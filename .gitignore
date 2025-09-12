@@ -1,0 +1,96 @@
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific folders
+.vscode/
+.vs/
+.idea/
+
+# Build output and intermediate files
+bin/
+obj/
+Debug/
+Release/
+Debug*/  
+Release*/
+
+# Explicitly ignore Debug/net6.0 directories
+**/bin/Debug/net6.0/
+**/bin/Debug/net6.0/**
+**/obj/Debug/net6.0/
+**/obj/Debug/net6.0/**
+SheenlacMISPortal/bin/Debug/net6.0/
+SheenlacMISPortal/bin/Debug/net6.0/**
+SheenlacMISPortal/obj/Debug/net6.0/
+SheenlacMISPortal/obj/Debug/net6.0/**
+
+# Ignore build artifacts
+*.exe
+*.dll
+*.log
+*.vsix
+*.zip
+*.tar.gz
+*.msix
+*.msixbundle
+*.apk
+*.ap_
+*.appx
+*.appxbundle
+*.appxupload
+
+# Auto-generated files
+*.g.i.cs
+*.g.cs
+*.designer.cs
+*.generated.cs
+*.generated.swift
+
+# Web development
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Entity Framework
+*.edmx.diagram
+*.edmx.sql
+*.edmx.table.sql
+
+# Visual Studio Components
+.vs/
+.idea/
+.sln.iml
+
+# Ignore SheenlacMISPortal build artifacts
+SheenlacMISPortal/bin/
+SheenlacMISPortal/obj/
+
+# Package Management
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Mono Auto Generated Files
+mono_crash.*
+
+# DotNet
+*.log
+.lock.json
+*.lock.json
+.global.json
+
+# Cache files
+*.cache
+# Exclude publish profiles
+**/Properties/PublishProfiles/
