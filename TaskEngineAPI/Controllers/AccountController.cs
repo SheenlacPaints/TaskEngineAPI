@@ -31,9 +31,9 @@ namespace TaskEngineAPI.Controllers
         [HttpPost]
         [Route("Login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> Login([FromBody] string encryptedString)
+        public async Task<ActionResult<APIResponse>> Login([FromBody] pay request)
         {
-            string urlSafe1 = AesEncryption.Decrypt(encryptedString);
+            string urlSafe1 = AesEncryption.Decrypt(request.payload);
             var User = JsonConvert.DeserializeObject<User>(urlSafe1);
 
             APIResponse Objresponse = new APIResponse();

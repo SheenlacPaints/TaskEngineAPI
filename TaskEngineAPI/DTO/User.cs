@@ -1,4 +1,6 @@
-﻿namespace TaskEngineAPI.DTO
+﻿using Newtonsoft.Json;
+
+namespace TaskEngineAPI.DTO
 {
   
     public class User
@@ -9,8 +11,17 @@
     }
 
 
-    public class EncryptedLoginRequest
+
+
+    public class pay
     {
-        public string EncryptedData { get; set; }
+        [JsonProperty("payload")]
+        public string payload { get; set; }
     }
+
+   
+
 }
+
+
+

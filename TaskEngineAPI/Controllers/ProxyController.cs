@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 
 namespace TaskEngineAPI.Controllers
@@ -21,11 +22,13 @@ namespace TaskEngineAPI.Controllers
         }
    
         [HttpPost("adminLogin")]
-        public async Task<IActionResult> Adminlogin([FromBody] string encryptedString)
+        public async Task<IActionResult> Adminlogin([FromBody] pay request)
         {
             try
             {
-                var content = new StringContent($"\"{encryptedString}\"", Encoding.UTF8, "application/json");
+
+
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}Account/Login", content);
                 var body = await response.Content.ReadAsStringAsync();
                 // Mirror the external API's status code + body
