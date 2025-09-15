@@ -9,9 +9,8 @@ namespace TaskEngineAPI.Interfaces
        
         Task<int> InsertSuperAdminAsync(CreateAdminDTO model);
 
-        Task<List<AdminUserDTO>> GetAllSuperAdminsAsync();
-        // or
-      
+   
+        Task<List<AdminUserDTO>> GetAllSuperAdminsAsync(int cTenantID);
 
 
     }

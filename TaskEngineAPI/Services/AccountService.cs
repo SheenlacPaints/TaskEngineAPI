@@ -7,7 +7,7 @@ using TaskEngineAPI.Repositories;
 
 namespace TaskEngineAPI.Services
 {
-   
+
 
     public class AccountService : IAdminService
     {
@@ -15,7 +15,7 @@ namespace TaskEngineAPI.Services
         private readonly IConfiguration _config;
         private readonly IAdminRepository _AdminRepository;
 
-        public AccountService(IAdminRepository repository,IConfiguration _configuration, IAdminRepository AdminRepository)
+        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository)
         {
             _repository = repository;
             _config = _configuration;
@@ -70,8 +70,8 @@ namespace TaskEngineAPI.Services
         }
 
 
+        public async Task<List<AdminUserDTO>> GetAllSuperAdminsAsync(int cTenantID)
 
-        public async Task<List<AdminUserDTO>> GetAllSuperAdminsAsync()
         {
             var result = new List<AdminUserDTO>();
             var connStr = _config.GetConnectionString("Database");
@@ -85,47 +85,51 @@ namespace TaskEngineAPI.Services
                    [cemail], [cphoneno], [cpassword], [croleID], [nisActive], [llastLoginAt],
                    [lfailedLoginAttempts], [cPasswordChangedAt], [cMustChangePassword],
                    [cLastLoginIP], [cLastLoginDevice]
-            FROM [dbo].[AdminUsers]
-            WHERE croleID = 2";
+            FROM [dbo].[AdminUsers] WHERE croleID = 2 AND cTenantID = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
-                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                 {
-                    while (await reader.ReadAsync())
+                    cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        result.Add(new AdminUserDTO
+                        while (await reader.ReadAsync())
                         {
-                            ID = reader.GetInt32(0),
-                            cuserid = reader.GetInt32(1),
-                            cTenantID = reader.GetInt32(2),
-                            cfirstName = reader.GetString(3),
-                            clastName = reader.GetString(4),
-                            cusername = reader.GetString(5),
-                            cemail = reader.GetString(6),
-                            cphoneno = reader.IsDBNull(7) ? null : reader.GetString(7),
-                            cpassword = reader.GetString(8),
-                            croleID = reader.GetInt32(9),
-                            nisActive = reader.GetBoolean(10),
-                            llastLoginAt = reader.IsDBNull(11) ? null : reader.GetDateTime(11),
-                            lfailedLoginAttempts = reader.IsDBNull(12) ? null : reader.GetInt32(12),
-                            cPasswordChangedAt = reader.IsDBNull(13) ? null : reader.GetDateTime(13),
-                            cMustChangePassword = reader.IsDBNull(14) ? null : reader.GetBoolean(14),
-                            cLastLoginIP = reader.IsDBNull(15) ? null : reader.GetString(15),
-                            cLastLoginDevice = reader.IsDBNull(16) ? null : reader.GetString(16)
-                        });
+                            result.Add(new AdminUserDTO
+                            {
+                                ID = reader.GetInt32(0),
+                                cuserid = reader.GetInt32(1),
+                                cTenantID = reader.GetInt32(2),
+                                cfirstName = reader.GetString(3),
+                                clastName = reader.GetString(4),
+                                cusername = reader.GetString(5),
+                                cemail = reader.GetString(6),
+                                cphoneno = reader.IsDBNull(7) ? null : reader.GetString(7),
+                                cpassword = reader.GetString(8),
+                                croleID = reader.GetInt32(9),
+                                nisActive = reader.GetBoolean(10),
+                                llastLoginAt = reader.IsDBNull(11) ? null : reader.GetDateTime(11),
+                                lfailedLoginAttempts = reader.IsDBNull(12) ? null : reader.GetInt32(12),
+                                cPasswordChangedAt = reader.IsDBNull(13) ? null : reader.GetDateTime(13),
+                                cMustChangePassword = reader.IsDBNull(14) ? null : reader.GetBoolean(14),
+                                cLastLoginIP = reader.IsDBNull(15) ? null : reader.GetString(15),
+                                cLastLoginDevice = reader.IsDBNull(16) ? null : reader.GetString(16)
+                            });
+                        }
                     }
                 }
+
+
+                return result;
             }
 
-            return result;
+
+
+
+
         }
 
 
 
-
-
     }
-
-
-
 }

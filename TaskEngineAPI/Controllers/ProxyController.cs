@@ -75,12 +75,13 @@ namespace TaskEngineAPI.Controllers
 
 
         [HttpPost("GetAllSuperAdmin")]
-        public async Task<IActionResult> GetAllSuperAdmin()
+        public async Task<IActionResult> GetAllSuperAdmin([FromQuery] pay request)
         {
             try
             {
-              
-                var response = await _httpClient.GetAsync($"{_baseUrl}Account/GetAllSuperAdmin");
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}Account/GetAllSuperAdmin", content);
+               
                 var body = await response.Content.ReadAsStringAsync();
                 // Mirror the external API's status code + body
                 return StatusCode((int)response.StatusCode, body);

@@ -361,13 +361,13 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-            [HttpGet]
-            [Route("GetAllSuperAdmin")]
-            public async Task<ActionResult> GetAllSuperAdmin()
-            {
-                var superAdmins = await _AccountService.GetAllSuperAdminsAsync();
+        [HttpGet]
+        [Route("GetAllSuperAdmin")]
+        public async Task<ActionResult> GetAllSuperAdmin([FromQuery] int cTenantID)
+        {          
+            var superAdmins = await _AccountService.GetAllSuperAdminsAsync(cTenantID); 
 
-                APIResponse response;
+            APIResponse response;
 
                 if (superAdmins == null || !superAdmins.Any())
                 {
