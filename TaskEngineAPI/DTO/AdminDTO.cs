@@ -22,5 +22,24 @@
             public string cLastLoginDevice { get; set; }
         }
 
-    
+    public class UpdateAdminDTO
+    {
+        public int ID { get; set; }
+        public int cuserid { get; set; }
+        public int cTenantID { get; set; }
+        public string? cfirstName { get; set; }
+        public string? clastName { get; set; }
+        public string? cusername { get; set; }
+        public string? cemail { get; set; }
+        public string? cphoneno { get; set; }
+        public string? cpassword { get; set; }
+        public bool? nisActive { get; set; }
+    }
+
+    public class DeleteAdminDTO
+    {
+        public int cuserid { get; set; }
+        public int cTenantID { get; set; }
+    }
+
 }

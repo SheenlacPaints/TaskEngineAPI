@@ -131,5 +131,70 @@ namespace TaskEngineAPI.Services
 
 
 
+        public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                string query = @"
+        UPDATE AdminUsers SET
+            cfirstName = @FirstName,
+            clastName = @LastName,
+            cusername = @Username,
+            cemail = @Email,
+            cphoneno = @PhoneNo,
+            cpassword = @Password,
+            nisActive = @IsActive
+        WHERE ID = @ID AND cuserid = @cuserid AND cTenantID = @TenantID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Username", (object?)model.cusername ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Email", (object?)model.cemail ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
+
+                    cmd.Parameters.AddWithValue("@ID", model.ID);
+                    cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
+                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
+
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                    return rowsAffected > 0;
+                }
+            }
+        }
+
+
+        public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                string query = @"
+        DELETE FROM AdminUsers
+        WHERE cuserid = @cuserid AND cTenantID = @TenantID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
+                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
+
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                    return rowsAffected > 0;
+                }
+            }
+        }
+
+
+
     }
 }

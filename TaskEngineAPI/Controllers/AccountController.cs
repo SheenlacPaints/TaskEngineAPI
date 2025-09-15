@@ -363,9 +363,13 @@ namespace TaskEngineAPI.Controllers
 
         [HttpGet]
         [Route("GetAllSuperAdmin")]
-        public async Task<ActionResult> GetAllSuperAdmin([FromQuery] int cTenantID)
-        {          
-            var superAdmins = await _AccountService.GetAllSuperAdminsAsync(cTenantID); 
+        public async Task<ActionResult> GetAllSuperAdmin([FromQuery] pay request)
+        {
+
+        
+            string decryptedJson = AesEncryption.Decrypt(request.payload);        
+            var model = JsonConvert.DeserializeObject<int>(decryptedJson);
+            var superAdmins = await _AccountService.GetAllSuperAdminsAsync(model); 
 
             APIResponse response;
 
@@ -394,10 +398,47 @@ namespace TaskEngineAPI.Controllers
             }
 
 
+
+        [HttpPut("UpdateSuperAdmin")]
+        public async Task<IActionResult> UpdateSuperAdmin([FromBody] pay request)
+        {
+
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<UpdateAdminDTO>(decryptedJson);
+            bool success = await _AccountService.UpdateSuperAdminAsync(model);
+
+            var response = new APIResponse
+            {
+                status = success ? 200 : 404,
+                statusText = success ? "Update successful" : "SuperAdmin not found or update failed"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, encrypted);
+        }
+
+        [HttpDelete("DeleteSuperAdmin")]
+        public async Task<IActionResult> DeleteSuperAdmin([FromBody] DeleteAdminDTO model)
+        {
+            bool success = await _AccountService.DeleteSuperAdminAsync(model);
+
+            var response = new APIResponse
+            {
+                status = success ? 200 : 404,
+                statusText = success ? "SuperAdmin deleted successfully" : "SuperAdmin not found"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, encrypted);
         }
 
 
     }
+
+
+}
 
 
 

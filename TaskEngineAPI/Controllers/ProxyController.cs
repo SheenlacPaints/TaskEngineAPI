@@ -31,9 +31,8 @@ namespace TaskEngineAPI.Controllers
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}Account/Login", content);
                 var body = await response.Content.ReadAsStringAsync();
-                // Mirror the external API's status code + body
-                return StatusCode((int)response.StatusCode, body);
-
+                // Mirror the external API's status code + body             
+                return StatusCode((int)response.StatusCode,body);
             }
             catch (Exception ex)
             {
@@ -74,7 +73,7 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        [HttpPost("GetAllSuperAdmin")]
+        [HttpGet("GetAllSuperAdmin")]
         public async Task<IActionResult> GetAllSuperAdmin([FromQuery] pay request)
         {
             try
@@ -99,6 +98,39 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, enc);
             }
         }
+
+
+        [HttpPut("UpdateSuperAdmin")]
+        public async Task<IActionResult> UpdateSuperAdmin([FromQuery] pay request)
+        {
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PutAsync($"{_baseUrl}Account/UpdateSuperAdmin", content);
+
+                var body = await response.Content.ReadAsStringAsync();
+                // Mirror the external API's status code + body
+                return StatusCode((int)response.StatusCode, body);
+
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string json = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(json);
+                return StatusCode(500, enc);
+            }
+        }
+
+
+       
+
+
+
 
     }
 }
