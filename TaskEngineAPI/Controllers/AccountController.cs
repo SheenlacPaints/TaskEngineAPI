@@ -11,6 +11,8 @@ using System.Security.Cryptography;
 using System.Text;
 using TaskEngineAPI.Data;
 using TaskEngineAPI.Services;
+using Microsoft.EntityFrameworkCore;
+using TaskEngineAPI.Repositories;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -46,7 +48,7 @@ namespace TaskEngineAPI.Controllers
 
             var connStr = _config.GetConnectionString("Database");
             string status = string.Empty;
-            string email = "", TenantID = "", UserID = "", roleid = "", roll_name = "", username = "";
+            string email = "", TenantID = "", UserID = "", roleid = "",  username = "";
             Console.WriteLine("DB Connection String: " + connStr);
 
             try
@@ -140,7 +142,6 @@ namespace TaskEngineAPI.Controllers
                 var encryptapierDtls = AesEncryption.Encrypt(jsone);
                 return StatusCode(500, encryptapierDtls);
 
-
             }
             catch (Exception ex)
             {
@@ -154,11 +155,8 @@ namespace TaskEngineAPI.Controllers
                 string jsoner = JsonConvert.SerializeObject(apierrDtls);
                 var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
                 return StatusCode(500, encryptapierrDtls);
-
             }
-
         }
-
 
         [HttpPost]
         [Route("Loginwithoutencrypt")]
@@ -303,9 +301,6 @@ namespace TaskEngineAPI.Controllers
 
         }
 
-
-
-
         [HttpPost]
         [Route("DecryptedInput")]
         public ActionResult<string> DecryptInput([FromBody] string encryptedInput)
@@ -315,10 +310,6 @@ namespace TaskEngineAPI.Controllers
             return Ok(Decrypted);
         }
 
-
-
-       
-     
         [HttpPost]
         [Route("CreateSuperAdmin")]
         public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
@@ -369,8 +360,46 @@ namespace TaskEngineAPI.Controllers
 
             }
         }
+
+            [HttpGet]
+            [Route("GetAllSuperAdmin")]
+            public async Task<ActionResult> GetAllSuperAdmin()
+            {
+                var superAdmins = await _AccountService.GetAllSuperAdminsAsync();
+
+                APIResponse response;
+
+                if (superAdmins == null || !superAdmins.Any())
+                {
+                    response = new APIResponse
+                    {
+                        body = Array.Empty<object>(),
+                        statusText = "No SuperAdmins found",
+                        status = 204
+                    };
+                }
+                else
+                {
+                    response = new APIResponse
+                    {
+                        body = superAdmins.ToArray(),
+                        statusText = "Successful",
+                        status = 200
+                    };
+                }
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+
+
+        }
+
+
     }
-}
+
+
 
   
 

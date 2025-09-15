@@ -74,6 +74,30 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [HttpPost("GetAllSuperAdmin")]
+        public async Task<IActionResult> GetAllSuperAdmin()
+        {
+            try
+            {
+              
+                var response = await _httpClient.GetAsync($"{_baseUrl}Account/GetAllSuperAdmin");
+                var body = await response.Content.ReadAsStringAsync();
+                // Mirror the external API's status code + body
+                return StatusCode((int)response.StatusCode, body);
+
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string json = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(json);
+                return StatusCode(500, enc);
+            }
+        }
 
     }
 }

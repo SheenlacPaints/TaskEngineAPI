@@ -6,9 +6,14 @@ namespace TaskEngineAPI.Interfaces
         public interface IAdminService
         {
             Task<APIResponse> CreateSuperAdminAsync(CreateAdminDTO model);
+       
+        Task<int> InsertSuperAdminAsync(CreateAdminDTO model);
 
-           Task<int> InsertSuperAdminAsync(CreateAdminDTO model);
- 
-        }
+        Task<List<AdminUserDTO>> GetAllSuperAdminsAsync();
+        // or
+      
+
+
+    }
 
 }
