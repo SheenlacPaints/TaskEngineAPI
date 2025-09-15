@@ -5,6 +5,7 @@ using TaskEngineAPI.Data;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Logging;
 using TaskEngineAPI.Middlewares;
+using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,8 @@ builder.Services.AddHttpClient();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAdminService, AccountService>();
+builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
 
 // Configure CORS
@@ -62,6 +65,7 @@ builder.Services.AddCors(options =>
                 "https://localhost:7257",
                 "https://devvendor.sheenlac.com",
                 "https://devportal.sheenlac.com"
+
             )
 
             .AllowAnyHeader()

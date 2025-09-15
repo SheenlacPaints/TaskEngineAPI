@@ -10,22 +10,25 @@ using System.Net.NetworkInformation;
 using System.Security.Cryptography;
 using System.Text;
 using TaskEngineAPI.Data;
+using TaskEngineAPI.Services;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
-    
+
     {
         private IConfiguration _config;
         private readonly IConfiguration _configuration;
         private readonly IJwtService _jwtService;
+        private readonly IAdminService _AccountService;
         private readonly ApplicationDbContext _context;
-        public AccountController(IConfiguration configuration, IJwtService jwtService)
+        public AccountController(IConfiguration configuration, IJwtService jwtService, IAdminService AccountService)
         {
 
             _config = configuration;
             _jwtService = jwtService;
+            _AccountService = AccountService;
         }
 
         [HttpPost]
@@ -125,7 +128,7 @@ namespace TaskEngineAPI.Controllers
                     };
                     string json = JsonConvert.SerializeObject(apiDtls);
                     var encryptCartDtls1 = AesEncryption.Encrypt(json);
-                    return StatusCode(200, encryptCartDtls1);                 
+                    return StatusCode(200, encryptCartDtls1);
                 }
 
                 var apierDtls = new APIResponse
@@ -137,11 +140,11 @@ namespace TaskEngineAPI.Controllers
                 var encryptapierDtls = AesEncryption.Encrypt(jsone);
                 return StatusCode(500, encryptapierDtls);
 
-               
+
             }
             catch (Exception ex)
             {
-               
+
                 var apierrDtls = new APIResponse
                 {
                     status = 500,
@@ -162,7 +165,7 @@ namespace TaskEngineAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<APIResponse>> Loginwithoutencrypt(User User)
         {
-       
+
             APIResponse Objresponse = new APIResponse();
 
             if (User == null || string.IsNullOrEmpty(User.userName) || string.IsNullOrEmpty(User.password))
@@ -222,7 +225,7 @@ namespace TaskEngineAPI.Controllers
                     var accessToken = _jwtService.GenerateJwtToken(User.userName, out var tokenExpiry);
                     var refreshToken = _jwtService.GenerateRefreshToken();
                     var refreshExpiry = DateTime.Now.AddDays(1);
-                    
+
                     var saved = await _jwtService.SaveRefreshTokenToDatabase(User.userName, refreshToken, refreshExpiry);
                     if (!saved)
                     {
@@ -243,7 +246,7 @@ namespace TaskEngineAPI.Controllers
                     };
                     Objresponse.body = new object[] { loginDetails };
                     Objresponse.statusText = "Logged in Successfully";
-                    Objresponse.status = 200;             
+                    Objresponse.status = 200;
                     var apiDtls = new APIResponse
                     {
                         status = 200,
@@ -251,7 +254,7 @@ namespace TaskEngineAPI.Controllers
                         body = new[] { loginDetails }
                     };
                     string json = JsonConvert.SerializeObject(apiDtls);
-                   
+
                     return StatusCode(200, json);
                 }
 
@@ -268,31 +271,106 @@ namespace TaskEngineAPI.Controllers
 
         }
 
-   
+        private static readonly byte[] IV = Encoding.UTF8.GetBytes("ABCDEFGH12345678");  // 16 bytes IV
+        private static readonly byte[] ENCKey = Encoding.UTF8.GetBytes("#@WORKFLOW!#%!#%$%^&KEY*&%#(@*!#");
+        private static readonly byte[] DECKey = Encoding.UTF8.GetBytes("#@MISPORTAL2025!%^$#$123456789@#");
+        public static string Encrypt(string plainText)
+        {
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = DECKey;
+                aes.IV = IV;
+                aes.Padding = PaddingMode.PKCS7;
+
+                using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+                using var ms = new MemoryStream();
+                using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
+                using (var sw = new StreamWriter(cs))
+                {
+                    sw.Write(plainText);
+                }
+                return Convert.ToBase64String(ms.ToArray());
+            }
+        }
+
         [HttpPost]
         [Route("EncryptInput")]
-        public ActionResult<string> EncryptInput([FromBody] User user)
+        public ActionResult<string> EncryptInput([FromBody] CreateAdminDTO user)
         {
             string json = JsonConvert.SerializeObject(user);
-            string encrypted = AesEncryption.Encrypt(json);
+            string encrypted = Encrypt(json);
             return Ok(encrypted);
+
         }
+
+
 
 
         [HttpPost]
         [Route("DecryptedInput")]
         public ActionResult<string> DecryptInput([FromBody] string encryptedInput)
         {
-           
+
             string Decrypted = AesEncryption.Decrypt(encryptedInput);
             return Ok(Decrypted);
         }
 
 
+
        
+     
+        [HttpPost]
+        [Route("CreateSuperAdmin")]
+        public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
+        {
+            try
+            {
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<CreateAdminDTO>(decryptedJson);   
+                // Insert into database             
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
+                // Insert into database
+                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
 
+                if (insertedUserId <= 0)
+                {
+                    return StatusCode(500, new APIResponse
+                    {
+                        status = 500,
+                        statusText = "Failed to create Super Admin"
+                    });
+                }
+
+                // Prepare response
+                var apierDtls = new APIResponse
+                {
+                    status = 200,
+                    statusText = "Super Admin created successfully",
+                    body = new object[] { new { UserID = insertedUserId } }
+                };        
+                string jsone = JsonConvert.SerializeObject(apierDtls);
+                var encryptapierDtls = AesEncryption.Encrypt(jsone);
+                return StatusCode(200, encryptapierDtls);        
+            }
+            catch (Exception ex)
+            {
+               
+                var apierrDtls = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Error creating Super Admin ",
+                    error = ex.Message
+                };
+
+                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                return StatusCode(500, encryptapierrDtls);
+
+            }
+        }
     }
 }
 
+  
 
