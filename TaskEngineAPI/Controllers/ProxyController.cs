@@ -48,5 +48,32 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [HttpPost("CreateSuperAdmin")]
+        public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
+        {
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateSuperAdmin", content);
+                var body = await response.Content.ReadAsStringAsync();
+                // Mirror the external API's status code + body
+                return StatusCode((int)response.StatusCode, body);
+
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string json = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(json);
+                return StatusCode(500, enc);
+            }
+        }
+
+
+
     }
 }
