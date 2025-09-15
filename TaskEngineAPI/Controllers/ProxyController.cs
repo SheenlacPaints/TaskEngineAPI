@@ -26,13 +26,11 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-
-
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}Account/Login", content);
-                var body = await response.Content.ReadAsStringAsync();
-                // Mirror the external API's status code + body             
-                return StatusCode((int)response.StatusCode,body);
+                var body = await response.Content.ReadAsStringAsync();                                   
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
             }
             catch (Exception ex)
             {
@@ -41,12 +39,13 @@ namespace TaskEngineAPI.Controllers
                     status = 500,
                     statusText = $"Error calling external API: {ex.Message}"
                 };
-                string json = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(json);
-                return StatusCode(500, enc);
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
             }
         }
-
+     
         [HttpPost("CreateSuperAdmin")]
         public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
         {
@@ -55,9 +54,8 @@ namespace TaskEngineAPI.Controllers
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateSuperAdmin", content);
                 var body = await response.Content.ReadAsStringAsync();
-                // Mirror the external API's status code + body
-                return StatusCode((int)response.StatusCode, body);
-
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
             }
             catch (Exception ex)
             {
@@ -66,9 +64,10 @@ namespace TaskEngineAPI.Controllers
                     status = 500,
                     statusText = $"Error calling external API: {ex.Message}"
                 };
-                string json = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(json);
-                return StatusCode(500, enc);
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
             }
         }
 
@@ -79,12 +78,11 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_baseUrl}Account/GetAllSuperAdmin", content);
-               
+                var response = await _httpClient.PostAsync($"{_baseUrl}Account/GetAllSuperAdmin", content);             
                 var body = await response.Content.ReadAsStringAsync();
                 // Mirror the external API's status code + body
-                return StatusCode((int)response.StatusCode, body);
-
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);          
             }
             catch (Exception ex)
             {
@@ -93,9 +91,10 @@ namespace TaskEngineAPI.Controllers
                     status = 500,
                     statusText = $"Error calling external API: {ex.Message}"
                 };
-                string json = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(json);
-                return StatusCode(500, enc);
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
             }
         }
 
@@ -107,11 +106,11 @@ namespace TaskEngineAPI.Controllers
             {
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PutAsync($"{_baseUrl}Account/UpdateSuperAdmin", content);
-
                 var body = await response.Content.ReadAsStringAsync();
                 // Mirror the external API's status code + body
-                return StatusCode((int)response.StatusCode, body);
-
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+              
             }
             catch (Exception ex)
             {
@@ -120,14 +119,46 @@ namespace TaskEngineAPI.Controllers
                     status = 500,
                     statusText = $"Error calling external API: {ex.Message}"
                 };
-                string json = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(json);
-                return StatusCode(500, enc);
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
             }
         }
 
 
-       
+
+        [HttpDelete("DeleteSuperAdmin")]
+        public async Task<IActionResult> DeleteSuperAdmin([FromBody] pay request)
+        {
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var requestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Delete,
+                    RequestUri = new Uri($"{_baseUrl}Account/DeleteSuperAdmin"),
+                    Content = content
+                };
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
 
 
 

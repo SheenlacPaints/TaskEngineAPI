@@ -419,8 +419,12 @@ namespace TaskEngineAPI.Controllers
         }
 
         [HttpDelete("DeleteSuperAdmin")]
-        public async Task<IActionResult> DeleteSuperAdmin([FromBody] DeleteAdminDTO model)
+        public async Task<IActionResult> DeleteSuperAdmin([FromBody] pay request)
         {
+
+
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<DeleteAdminDTO>(decryptedJson);
             bool success = await _AccountService.DeleteSuperAdminAsync(model);
 
             var response = new APIResponse
