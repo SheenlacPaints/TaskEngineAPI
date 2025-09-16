@@ -24,8 +24,7 @@
 
     public class UpdateAdminDTO
     {
-        public int cid { get; set; }
-        public int cuserid { get; set; }
+        public int cid { get; set; }     
         public int cTenantID { get; set; }
         public string? cfirstName { get; set; }
         public string? clastName { get; set; }
@@ -38,7 +37,7 @@
 
     public class DeleteAdminDTO
     {
-        public int cuserid { get; set; }
+        public int cid { get; set; }
         public int cTenantID { get; set; }
     }
 

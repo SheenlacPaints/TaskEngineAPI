@@ -1,4 +1,6 @@
-﻿using System.Data.SqlClient;
+﻿using System;
+using System.Data.SqlClient;
+using System.Net;
 using Microsoft.Extensions.Configuration;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
@@ -37,17 +39,16 @@ namespace TaskEngineAPI.Services
 
                 string query = @"
                 INSERT INTO AdminUsers 
-                (cuserid, cTenantID, cfirstName, clastName, cusername, cemail, cphoneno, 
+                ( cTenantID, cfirstName, clastName, cusername, cemail, cphoneno, 
                  cpassword, croleID, nisActive, llastLoginAt, cPasswordChangedAt, 
                  cLastLoginIP, cLastLoginDevice)
                 VALUES 
-                (@cuserid, @TenantID, @FirstName, @LastName, @Username, @Email, @PhoneNo, 
+                (@TenantID, @FirstName, @LastName, @Username, @Email, @PhoneNo, 
                  @Password, @RoleID, @IsActive, @LastLoginAt, @PasswordChangedAt, 
                  @LastLoginIP, @LastLoginDevice)";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
+                {                
                     cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
@@ -60,11 +61,10 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@LastLoginAt", (object?)model.llastLoginAt ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@PasswordChangedAt", (object?)model.cPasswordChangedAt ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.cLastLoginIP ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.cLastLoginDevice ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.cLastLoginDevice ?? DBNull.Value);                
+                    var newId = await cmd.ExecuteScalarAsync();
+                    return newId != null ? Convert.ToInt32(newId) : 0;
 
-                    int rows = await cmd.ExecuteNonQueryAsync();
-
-                    return rows > 0 ? model.cuserid : 0;
                 }
             }
         }
@@ -81,7 +81,7 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-            SELECT [ID], [cuserid], [cTenantID], [cfirstName], [clastName], [cusername],
+            SELECT [ID],  [cTenantID], [cfirstName], [clastName], [cusername],
                    [cemail], [cphoneno], [cpassword], [croleID], [nisActive], [llastLoginAt],
                    [lfailedLoginAttempts], [cPasswordChangedAt], [cMustChangePassword],
                    [cLastLoginIP], [cLastLoginDevice]
@@ -97,23 +97,22 @@ namespace TaskEngineAPI.Services
                         {
                             result.Add(new AdminUserDTO
                             {
-                                ID = reader.GetInt32(0),
-                                cuserid = reader.GetInt32(1),
-                                cTenantID = reader.GetInt32(2),
-                                cfirstName = reader.GetString(3),
-                                clastName = reader.GetString(4),
-                                cusername = reader.GetString(5),
-                                cemail = reader.GetString(6),
-                                cphoneno = reader.IsDBNull(7) ? null : reader.GetString(7),
-                                cpassword = reader.GetString(8),
-                                croleID = reader.GetInt32(9),
-                                nisActive = reader.GetBoolean(10),
-                                llastLoginAt = reader.IsDBNull(11) ? null : reader.GetDateTime(11),
-                                lfailedLoginAttempts = reader.IsDBNull(12) ? null : reader.GetInt32(12),
-                                cPasswordChangedAt = reader.IsDBNull(13) ? null : reader.GetDateTime(13),
-                                cMustChangePassword = reader.IsDBNull(14) ? null : reader.GetBoolean(14),
-                                cLastLoginIP = reader.IsDBNull(15) ? null : reader.GetString(15),
-                                cLastLoginDevice = reader.IsDBNull(16) ? null : reader.GetString(16)
+                                ID = reader.GetInt32(0),                              
+                                cTenantID = reader.GetInt32(1),
+                                cfirstName = reader.GetString(2),
+                                clastName = reader.GetString(3),
+                                cusername = reader.GetString(4),
+                                cemail = reader.GetString(5),
+                                cphoneno = reader.IsDBNull(6) ? null : reader.GetString(7),
+                                cpassword = reader.GetString(7),
+                                croleID = reader.GetInt32(8),
+                                nisActive = reader.GetBoolean(9),
+                                llastLoginAt = reader.IsDBNull(10) ? null : reader.GetDateTime(11),
+                                lfailedLoginAttempts = reader.IsDBNull(11) ? null : reader.GetInt32(12),
+                                cPasswordChangedAt = reader.IsDBNull(12) ? null : reader.GetDateTime(13),
+                                cMustChangePassword = reader.IsDBNull(13) ? null : reader.GetBoolean(14),
+                                cLastLoginIP = reader.IsDBNull(14) ? null : reader.GetString(15),
+                                cLastLoginDevice = reader.IsDBNull(15) ? null : reader.GetString(16)
                             });
                         }
                     }
@@ -148,7 +147,7 @@ namespace TaskEngineAPI.Services
             cphoneno = @PhoneNo,
             cpassword = @Password,
             nisActive = @IsActive
-        WHERE ID = @ID AND cuserid = @cuserid AND cTenantID = @TenantID";
+        WHERE ID = @ID AND  cTenantID = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -160,8 +159,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
 
-                    cmd.Parameters.AddWithValue("@ID", model.cid);
-                    cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
+                    cmd.Parameters.AddWithValue("@ID", model.cid);                 
                     cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
 
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
@@ -181,11 +179,11 @@ namespace TaskEngineAPI.Services
 
                 string query = @"
         DELETE FROM AdminUsers
-        WHERE cuserid = @cuserid AND cTenantID = @TenantID";
+        WHERE ID = @cuserid AND cTenantID = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
+                    cmd.Parameters.AddWithValue("@cuserid", model.cid);
                     cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
 
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
@@ -224,13 +222,77 @@ namespace TaskEngineAPI.Services
         @cDeletedBy, @lDeletedDate)";
 
             using var cmd = new SqlCommand(query, conn);
-            foreach (var prop in typeof(CreateUserDTO).GetProperties())
-            {
-                var value = prop.GetValue(model) ?? DBNull.Value;
-                cmd.Parameters.AddWithValue($"@{prop.Name}", value);
-            }
-
-            return await cmd.ExecuteNonQueryAsync();
+            cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
+            cmd.Parameters.AddWithValue("@ctenantID", model.ctenantID);
+            cmd.Parameters.AddWithValue("@cusername", model.cusername);
+            cmd.Parameters.AddWithValue("@cemail", model.cemail);
+            cmd.Parameters.AddWithValue("@cpassword", model.cpassword); // store as plain text
+            cmd.Parameters.AddWithValue("@nIsActive", model.nIsActive ?? true);
+            cmd.Parameters.AddWithValue("@cfirstName", (object?)model.cfirstName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@clastName", (object?)model.clastName ?? DBNull.Value);                     
+            cmd.Parameters.AddWithValue("@cphoneno", (object?)model.cphoneno ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cAlternatePhone", (object?)model.cAlternatePhone ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ldob", (object?)model.ldob ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cMaritalStatus", (object?)model.cMaritalStatus ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cnation", (object?)model.cnation ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cgender", (object?)model.cgender ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@caddress", (object?)model.caddress ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@caddress1", (object?)model.caddress1 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@caddress2", (object?)model.caddress2 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cpincode", (object?)model.cpincode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ccity", (object?)model.ccity ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cstatecode", (object?)model.cstatecode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cstatedesc", (object?)model.cstatedesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ccountrycode", (object?)model.ccountrycode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProfileImage", (object?)model.ProfileImage ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cbankName", (object?)model.cbankName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@caccountNumber", (object?)model.caccountNumber ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ciFSCCode", (object?)model.ciFSCCode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cpAN", (object?)model.cpAN ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ldoj", (object?)model.ldoj ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cemploymentStatus", (object?)model.cemploymentStatus ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nnoticePeriodDays", (object?)model.nnoticePeriodDays ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@lresignationDate", (object?)model.lresignationDate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@llastWorkingDate", (object?)model.llastWorkingDate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cempcategory", (object?)model.cempcategory ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cworkloccode", (object?)model.cworkloccode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cworklocname", (object?)model.cworklocname ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@croleID", (object?)model.croleID ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@crolecode", (object?)model.crolecode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@crolename", (object?)model.crolename ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cgradecode", (object?)model.cgradecode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cgradedesc", (object?)model.cgradedesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@csubrolecode", (object?)model.csubrolecode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cdeptcode", (object?)model.cdeptcode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cdeptdesc", (object?)model.cdeptdesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cjobcode", (object?)model.cjobcode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cjobdesc", (object?)model.cjobdesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@creportmgrcode", (object?)model.creportmgrcode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@creportmgrname", (object?)model.creportmgrname ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cRoll_id", (object?)model.cRoll_id ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cRoll_name", (object?)model.cRoll_name ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cRoll_Id_mngr", (object?)model.cRoll_Id_mngr ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cRoll_Id_mngr_desc", (object?)model.cRoll_Id_mngr_desc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cReportManager_empcode", (object?)model.cReportManager_empcode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cReportManager_Poscode", (object?)model.cReportManager_Poscode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cReportManager_Posdesc", (object?)model.cReportManager_Posdesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nIsWebAccessEnabled", (object?)model.nIsWebAccessEnabled ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nIsEventRead", (object?)model.nIsEventRead ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@lLastLoginAt", (object?)model.lLastLoginAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nFailedLoginAttempts", (object?)model.nFailedLoginAttempts ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cPasswordChangedAt", (object?)model.cPasswordChangedAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nIsLocked", (object?)model.nIsLocked ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.LastLoginIP ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.LastLoginDevice ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ccreateddate", (object?)model.ccreateddate ?? DateTime.UtcNow);
+            cmd.Parameters.AddWithValue("@ccreatedby", (object?)model.ccreatedby ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cmodifiedby", (object?)model.cmodifiedby ??  DBNull.Value);
+            cmd.Parameters.AddWithValue("@lmodifieddate", (object?)model.lmodifieddate ?? model.ccreateddate ?? DateTime.UtcNow);
+            cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? false);
+            cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
+            int rows = await cmd.ExecuteNonQueryAsync();
+            return rows > 0 ? model.cuserid : 0;
         }
 
 

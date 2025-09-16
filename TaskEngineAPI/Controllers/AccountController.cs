@@ -71,8 +71,7 @@ namespace TaskEngineAPI.Controllers
                                 {
                                     username = reader["cusername"]?.ToString();
                                     roleid = reader["croleID"]?.ToString();
-                                    TenantID = reader["cTenantID"]?.ToString();
-                                    UserID = reader["cuserid"]?.ToString();
+                                    TenantID = reader["cTenantID"]?.ToString();                                  
                                     email = reader["cemail"]?.ToString();
                                 }
                             }
@@ -109,8 +108,7 @@ namespace TaskEngineAPI.Controllers
                         return StatusCode(500, Objresponse);
                     }
                     var loginDetails = new
-                    {
-                        userID = UserID,
+                    {                    
                         username = username,
                         roleID = roleid,
                         tenantID = TenantID,
@@ -457,10 +455,13 @@ namespace TaskEngineAPI.Controllers
 
 
         [HttpPost("CreateUser")]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO model)
+        public async Task<IActionResult> CreateUser([FromBody] pay request)
         {
-            int result = await _AccountService.InsertUserAsync(model);
 
+
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
+            int result = await _AccountService.InsertUserAsync(model);
             var response = new APIResponse
             {
                 status = result > 0 ? 200 : 400,

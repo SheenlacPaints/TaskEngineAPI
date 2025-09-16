@@ -21,7 +21,7 @@ namespace TaskEngineAPI.DTO
 
     public class CreateAdminDTO
     {
-        public int cuserid { get; set; }
+      
         public int cTenantID { get; set; }
         public string? cfirstName { get; set; }
         public string? clastName { get; set; }
