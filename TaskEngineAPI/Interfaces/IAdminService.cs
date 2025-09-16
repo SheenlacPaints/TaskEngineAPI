@@ -15,6 +15,8 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model);
         Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model);
 
+        Task<int> InsertUserAsync(CreateUserDTO model);
+
 
     }
 

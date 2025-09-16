@@ -196,5 +196,45 @@ namespace TaskEngineAPI.Services
 
 
 
+        public async Task<int> InsertUserAsync(CreateUserDTO model)
+        {
+            var connStr = _config.GetConnectionString("Database");
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            string query = @"INSERT INTO Users (
+        cuserid, ctenantID, cusername, cemail, cpassword, nIsActive, cfirstName, clastName, cphoneno, cAlternatePhone,
+        ldob, cMaritalStatus, cnation, cgender, caddress, caddress1, caddress2, cpincode, ccity, cstatecode, cstatedesc,
+        ccountrycode, ProfileImage, cbankName, caccountNumber, ciFSCCode, cpAN, ldoj, cemploymentStatus, nnoticePeriodDays,
+        lresignationDate, llastWorkingDate, cempcategory, cworkloccode, cworklocname, croleID, crolecode, crolename,
+        cgradecode, cgradedesc, csubrolecode, cdeptcode, cdeptdesc, cjobcode, cjobdesc, creportmgrcode, creportmgrname,
+        cRoll_id, cRoll_name, cRoll_Id_mngr, cRoll_Id_mngr_desc, cReportManager_empcode, cReportManager_Poscode,
+        cReportManager_Posdesc, nIsWebAccessEnabled, nIsEventRead, lLastLoginAt, nFailedLoginAttempts, cPasswordChangedAt,
+        nIsLocked, LastLoginIP, LastLoginDevice, ccreateddate, ccreatedby, cmodifiedby, lmodifieddate, nIsDeleted,
+        cDeletedBy, lDeletedDate)
+        VALUES (
+        @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive, @cfirstName, @clastName, @cphoneno, @cAlternatePhone,
+        @ldob, @cMaritalStatus, @cnation, @cgender, @caddress, @caddress1, @caddress2, @cpincode, @ccity, @cstatecode, @cstatedesc,
+        @ccountrycode, @ProfileImage, @cbankName, @caccountNumber, @ciFSCCode, @cpAN, @ldoj, @cemploymentStatus, @nnoticePeriodDays,
+        @lresignationDate, @llastWorkingDate, @cempcategory, @cworkloccode, @cworklocname, @croleID, @crolecode, @crolename,
+        @cgradecode, @cgradedesc, @csubrolecode, @cdeptcode, @cdeptdesc, @cjobcode, @cjobdesc, @creportmgrcode, @creportmgrname,
+        @cRoll_id, @cRoll_name, @cRoll_Id_mngr, @cRoll_Id_mngr_desc, @cReportManager_empcode, @cReportManager_Poscode,
+        @cReportManager_Posdesc, @nIsWebAccessEnabled, @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
+        @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby, @cmodifiedby, @lmodifieddate, @nIsDeleted,
+        @cDeletedBy, @lDeletedDate)";
+
+            using var cmd = new SqlCommand(query, conn);
+            foreach (var prop in typeof(CreateUserDTO).GetProperties())
+            {
+                var value = prop.GetValue(model) ?? DBNull.Value;
+                cmd.Parameters.AddWithValue($"@{prop.Name}", value);
+            }
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+
+
+
     }
 }

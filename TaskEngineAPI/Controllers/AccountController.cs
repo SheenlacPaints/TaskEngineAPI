@@ -110,14 +110,14 @@ namespace TaskEngineAPI.Controllers
                     }
                     var loginDetails = new
                     {
-                        UserID = UserID,
+                        userID = UserID,
                         username = username,
-                        RoleID = roleid,
-                        TenantID = TenantID,
-                        TenantName = TenantID,
+                        roleID = roleid,
+                        tenantID = TenantID,
+                        tenantName = TenantID,
                         email = email,
-                        Token = accessToken,
-                        RefreshToken = refreshToken
+                        token = accessToken,
+                        refreshToken = refreshToken
                     };
                     Objresponse.body = new object[] { loginDetails };
                     Objresponse.statusText = "Logged in Successfully";
@@ -439,9 +439,32 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [HttpPost("CreateUser")]
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO model)
+        {
+            int result = await _AccountService.InsertUserAsync(model);
+
+            var response = new APIResponse
+            {
+                status = result > 0 ? 200 : 400,
+                statusText = result > 0 ? "User created successfully" : "User creation failed"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, encrypted);
+        }
+
+
+
+
+
+
+
+
+
+
     }
-
-
 }
 
 
