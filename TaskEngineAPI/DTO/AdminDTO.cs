@@ -41,4 +41,10 @@
         public int cTenantID { get; set; }
     }
 
+
+    public class adminget
+    {
+        public int cTenantID { get; set; }
+    }
+
 }

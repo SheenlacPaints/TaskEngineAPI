@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using TaskEngineAPI.DTO;
@@ -72,17 +73,29 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [Authorize]
         [HttpGet("getAllSuperAdmin")]
-        public async Task<IActionResult> getAllSuperAdmin([FromQuery] pay request)
+        public async Task<IActionResult> getAllSuperAdmin()
         {
             try
             {
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_baseUrl}Account/GetAllSuperAdmin", content);             
+                // Extract token from incoming request
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                // Attach token to outbound request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}Account/GetAllSuperAdmin");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-                // Mirror the external API's status code + body
+
                 string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);          
+                return StatusCode((int)response.StatusCode, json);
             }
             catch (Exception ex)
             {
@@ -97,6 +110,8 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+
 
 
         [HttpPut("updateSuperAdmin")]

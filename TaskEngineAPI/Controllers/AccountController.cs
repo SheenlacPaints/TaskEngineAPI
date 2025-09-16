@@ -13,6 +13,9 @@ using TaskEngineAPI.Data;
 using TaskEngineAPI.Services;
 using Microsoft.EntityFrameworkCore;
 using TaskEngineAPI.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Reflection.PortableExecutable;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -95,8 +98,14 @@ namespace TaskEngineAPI.Controllers
 
                 if (status == "valid user")
                 {
+                    if (!int.TryParse(TenantID, out int tenantIdInt))
+                    {
+                        Objresponse.statusText = "Invalid TenantID format.";
+                        Objresponse.status = 400;
+                        return BadRequest(Objresponse);
+                    }
 
-                    var accessToken = _jwtService.GenerateJwtToken(User.userName, out var tokenExpiry);
+                    var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);
                     var refreshToken = _jwtService.GenerateRefreshToken();
                     var refreshExpiry = DateTime.Now.AddDays(1);
 
@@ -217,8 +226,13 @@ namespace TaskEngineAPI.Controllers
 
                 if (status == "valid user")
                 {
-
-                    var accessToken = _jwtService.GenerateJwtToken(User.userName, out var tokenExpiry);
+                    if (!int.TryParse(TenantID, out int tenantIdInt))
+                    {
+                        Objresponse.statusText = "Invalid TenantID format.";
+                        Objresponse.status = 400;
+                        return BadRequest(Objresponse);
+                    }
+                    var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);                  
                     var refreshToken = _jwtService.GenerateRefreshToken();
                     var refreshExpiry = DateTime.Now.AddDays(1);
 
@@ -376,42 +390,52 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet]
         [Route("GetAllSuperAdmin")]
-        public async Task<ActionResult> GetAllSuperAdmin([FromQuery] pay request)
+        public async Task<ActionResult> GetAllSuperAdmin()
         {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
-        
-            string decryptedJson = AesEncryption.Decrypt(request.payload);        
-            var model = JsonConvert.DeserializeObject<int>(decryptedJson);
-            var superAdmins = await _AccountService.GetAllSuperAdminsAsync(model); 
-
-            APIResponse response;
-
-                if (superAdmins == null || !superAdmins.Any())
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                    response = new APIResponse
-                    {
-                        body = Array.Empty<object>(),
-                        statusText = "No SuperAdmins found",
-                        status = 204
-                    };
+                    return BadRequest("Invalid or missing cTenantID in token.");
                 }
-                else
+
+                var superAdmins = await _AccountService.GetAllSuperAdminsAsync(cTenantID);
+
+
+
+                var response = new APIResponse
                 {
-                    response = new APIResponse
-                    {
-                        body = superAdmins.ToArray(),
-                        statusText = "Successful",
-                        status = 200
-                    };
-                }
+                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
+                    statusText = superAdmins == null || !superAdmins.Any() ? "No SuperAdmins found" : "Successful",
+                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
+                };
 
                 string jsoner = JsonConvert.SerializeObject(response);
                 var encrypted = AesEncryption.Encrypt(jsoner);
                 return StatusCode(200, encrypted);
             }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
 
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
 
 
         [HttpPut("UpdateSuperAdmin")]
@@ -474,13 +498,7 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-
-
-
-
-
-
-
+       
 
     }
 }

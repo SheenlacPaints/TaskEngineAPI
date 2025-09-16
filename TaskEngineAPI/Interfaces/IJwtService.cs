@@ -5,7 +5,7 @@ namespace TaskEngineAPI.Interfaces
         public interface IJwtService
         {
        
-            string GenerateJwtToken(string userName, out DateTime expiry);
+            string GenerateJwtToken(string userName, int TenantID, out DateTime expiry);
 
             string GenerateRefreshToken();
 

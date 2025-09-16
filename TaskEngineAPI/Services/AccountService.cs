@@ -97,37 +97,30 @@ namespace TaskEngineAPI.Services
                         {
                             result.Add(new AdminUserDTO
                             {
-                                ID = reader.GetInt32(0),                              
-                                cTenantID = reader.GetInt32(1),
-                                cfirstName = reader.GetString(2),
-                                clastName = reader.GetString(3),
-                                cusername = reader.GetString(4),
-                                cemail = reader.GetString(5),
-                                cphoneno = reader.IsDBNull(6) ? null : reader.GetString(7),
-                                cpassword = reader.GetString(7),
-                                croleID = reader.GetInt32(8),
-                                nisActive = reader.GetBoolean(9),
-                                llastLoginAt = reader.IsDBNull(10) ? null : reader.GetDateTime(11),
-                                lfailedLoginAttempts = reader.IsDBNull(11) ? null : reader.GetInt32(12),
-                                cPasswordChangedAt = reader.IsDBNull(12) ? null : reader.GetDateTime(13),
-                                cMustChangePassword = reader.IsDBNull(13) ? null : reader.GetBoolean(14),
-                                cLastLoginIP = reader.IsDBNull(14) ? null : reader.GetString(15),
-                                cLastLoginDevice = reader.IsDBNull(15) ? null : reader.GetString(16)
-                            });
+
+                              ID = reader.GetInt32(reader.GetOrdinal("ID")),
+                              cTenantID = reader.GetInt32(reader.GetOrdinal("cTenantID")),
+                              cfirstName = reader.GetString(reader.GetOrdinal("cfirstName")),
+                              clastName = reader.GetString(reader.GetOrdinal("clastName")),
+                              cusername = reader.GetString(reader.GetOrdinal("cusername")),
+                              cemail = reader.GetString(reader.GetOrdinal("cemail")),
+                              cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
+                              cpassword = reader.GetString(reader.GetOrdinal("cpassword")),
+                              croleID = reader.GetInt32(reader.GetOrdinal("croleID")),
+                              nisActive = reader.GetBoolean(reader.GetOrdinal("nisActive")),
+                              llastLoginAt = reader.IsDBNull(reader.GetOrdinal("llastLoginAt")) ? null : reader.GetDateTime(reader.GetOrdinal("llastLoginAt")),
+                              lfailedLoginAttempts = reader.IsDBNull(reader.GetOrdinal("lfailedLoginAttempts")) ? null : reader.GetInt32(reader.GetOrdinal("lfailedLoginAttempts")),
+                              cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cPasswordChangedAt")) ? null : reader.GetDateTime(reader.GetOrdinal("cPasswordChangedAt")),
+                              cMustChangePassword = reader.IsDBNull(reader.GetOrdinal("cMustChangePassword")) ? null : reader.GetBoolean(reader.GetOrdinal("cMustChangePassword")),
+                              cLastLoginIP = reader.IsDBNull(reader.GetOrdinal("cLastLoginIP")) ? null : reader.GetString(reader.GetOrdinal("cLastLoginIP")),
+                              cLastLoginDevice = reader.IsDBNull(reader.GetOrdinal("cLastLoginDevice")) ? null : reader.GetString(reader.GetOrdinal("cLastLoginDevice"))
+                            });                        
                         }
                     }
                 }
-
-
                 return result;
             }
-
-
-
-
-
         }
-
 
 
         public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
@@ -294,9 +287,7 @@ namespace TaskEngineAPI.Services
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
         }
-
-
-
-
+  
+     
     }
 }
