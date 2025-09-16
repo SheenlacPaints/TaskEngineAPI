@@ -301,12 +301,29 @@ namespace TaskEngineAPI.Controllers
 
         }
 
+        public static string Decrypt(string cipherText)
+        {
+            byte[] buffer = Convert.FromBase64String(cipherText);
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = ENCKey;
+                aes.IV = IV;
+                aes.Padding = PaddingMode.PKCS7;
+
+                using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+                using var ms = new MemoryStream(buffer);
+                using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+                using var sr = new StreamReader(cs);
+                return sr.ReadToEnd();
+            }
+        }
+
         [HttpPost]
         [Route("DecryptedInput")]
         public ActionResult<string> DecryptInput([FromBody] string encryptedInput)
         {
 
-            string Decrypted = AesEncryption.Decrypt(encryptedInput);
+            string Decrypted = Decrypt(encryptedInput);
             return Ok(Decrypted);
         }
 

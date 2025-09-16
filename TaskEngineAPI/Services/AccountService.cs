@@ -160,7 +160,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
 
-                    cmd.Parameters.AddWithValue("@ID", model.ID);
+                    cmd.Parameters.AddWithValue("@ID", model.cid);
                     cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
                     cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
 

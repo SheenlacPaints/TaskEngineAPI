@@ -24,7 +24,7 @@
 
     public class UpdateAdminDTO
     {
-        public int ID { get; set; }
+        public int cid { get; set; }
         public int cuserid { get; set; }
         public int cTenantID { get; set; }
         public string? cfirstName { get; set; }

@@ -46,8 +46,8 @@ namespace TaskEngineAPI.Controllers
             }
         }
      
-        [HttpPost("CreateSuperAdmin")]
-        public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
+        [HttpPost("createSuperAdmin")]
+        public async Task<IActionResult> createSuperAdmin([FromBody] pay request)
         {
             try
             {
@@ -72,8 +72,8 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        [HttpGet("GetAllSuperAdmin")]
-        public async Task<IActionResult> GetAllSuperAdmin([FromQuery] pay request)
+        [HttpGet("getAllSuperAdmin")]
+        public async Task<IActionResult> getAllSuperAdmin([FromQuery] pay request)
         {
             try
             {
@@ -99,8 +99,8 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        [HttpPut("UpdateSuperAdmin")]
-        public async Task<IActionResult> UpdateSuperAdmin([FromQuery] pay request)
+        [HttpPut("updateSuperAdmin")]
+        public async Task<IActionResult> updateSuperAdmin([FromQuery] pay request)
         {
             try
             {
@@ -128,8 +128,8 @@ namespace TaskEngineAPI.Controllers
 
 
 
-        [HttpDelete("DeleteSuperAdmin")]
-        public async Task<IActionResult> DeleteSuperAdmin([FromBody] pay request)
+        [HttpDelete("deleteSuperAdmin")]
+        public async Task<IActionResult> deleteSuperAdmin([FromBody] pay request)
         {
             try
             {
