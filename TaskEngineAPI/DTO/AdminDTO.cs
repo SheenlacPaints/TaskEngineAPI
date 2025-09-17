@@ -47,4 +47,13 @@
         public int cTenantID { get; set; }
     }
 
+
+    public class createCustomerMadel
+    {
+        public string? cphoneno { get; set; }
+
+        public string? cusername { get; set; }
+    }
+
+
 }

@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection.PortableExecutable;
 using BCrypt.Net;
+using System.Net.Http.Headers;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -24,7 +25,7 @@ namespace TaskEngineAPI.Controllers
     public class AccountController : ControllerBase
 
     {
-        private IConfiguration _config;
+        private readonly IConfiguration _config;
         private readonly IConfiguration _configuration;
         private readonly IJwtService _jwtService;
         private readonly IAdminService _AccountService;
@@ -193,7 +194,7 @@ namespace TaskEngineAPI.Controllers
 
             var connStr = _config.GetConnectionString("Database");
             string status = string.Empty;
-            string email = "", TenantID = "", UserID = "", roleid = "",  username = "";
+            string email = "", TenantID = "", UserID = "", roleid = "", username = "";
             Console.WriteLine("DB Connection String: " + connStr);
 
             try
@@ -216,7 +217,7 @@ namespace TaskEngineAPI.Controllers
                                 {
                                     username = reader["cusername"]?.ToString();
                                     roleid = reader["croleID"]?.ToString();
-                                    TenantID = reader["cTenantID"]?.ToString();                                  
+                                    TenantID = reader["cTenantID"]?.ToString();
                                     email = reader["cemail"]?.ToString();
                                 }
                             }
@@ -259,7 +260,7 @@ namespace TaskEngineAPI.Controllers
                         return StatusCode(500, Objresponse);
                     }
                     var loginDetails = new
-                    {                    
+                    {
                         username = username,
                         roleID = roleid,
                         tenantID = TenantID,
@@ -374,7 +375,7 @@ namespace TaskEngineAPI.Controllers
                         Objresponse.status = 400;
                         return BadRequest(Objresponse);
                     }
-                    var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);                  
+                    var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);
                     var refreshToken = _jwtService.GenerateRefreshToken();
                     var refreshExpiry = DateTime.Now.AddDays(1);
 
@@ -488,7 +489,7 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var model = JsonConvert.DeserializeObject<CreateAdminDTO>(decryptedJson);   
+                var model = JsonConvert.DeserializeObject<CreateAdminDTO>(decryptedJson);
                 // Insert into database             
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
@@ -510,14 +511,14 @@ namespace TaskEngineAPI.Controllers
                     status = 200,
                     statusText = "Super Admin created successfully",
                     body = new object[] { new { UserID = insertedUserId } }
-                };        
+                };
                 string jsone = JsonConvert.SerializeObject(apierDtls);
                 var encryptapierDtls = AesEncryption.Encrypt(jsone);
-                return StatusCode(200, encryptapierDtls);        
+                return StatusCode(200, encryptapierDtls);
             }
             catch (Exception ex)
             {
-               
+
                 var apierrDtls = new APIResponse
                 {
                     status = 500,
@@ -680,12 +681,12 @@ namespace TaskEngineAPI.Controllers
                     string encryptedError = AesEncryption.Encrypt(errorJson);
                     return StatusCode(400, $"\"{encryptedError}\"");
                 }
-               
+
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<UpdateUserDTO>(decryptedJson);
-              
+
                 model.ctenantID = cTenantID;
-              
+
                 bool updated = await _AccountService.UpdateUserAsync(model);
 
                 var response = new APIResponse
@@ -712,8 +713,95 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [Authorize]     
+        [HttpPost]
+        [Route("oTPGenerateAdmin")]
+        public async Task<ActionResult> oTPGenerateAdmin()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
-       
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    var errorResponse = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Invalid or missing cTenantID in token."
+                    };
+                    string json = JsonConvert.SerializeObject(errorResponse);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return Ok(encrypted);
+                }                                 
+                    string query = "SELECT cphoneno,cusername FROM AdminUsers WHERE croleID = 1 AND cTenantID = @tenantID";
+                DataSet ds1 = new DataSet();
+
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@tenantID", cTenantID);
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(ds1);
+                }
+
+                string op = JsonConvert.SerializeObject(ds1.Tables[0], Formatting.Indented);
+                var model = JsonConvert.DeserializeObject<List<DTO.createCustomerMadel>>(op);
+
+                if (model.Count == 0)
+                {
+                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered for this CustomerCode" };
+                    string json = JsonConvert.SerializeObject(responsee);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return Ok(encrypted);
+                }
+
+                string mobile = model[0].cphoneno;              
+                int id = Convert.ToInt32(model[0].cusername);
+
+                int otp = new Random().Next(100000, 999999);
+
+                var url = "https://44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a@api.exotel.com/v1/Accounts/sheenlac2/Sms/send%20?From=08047363322&To=" + mobile + "&Body=Your Verification Code is  " + otp + " - Allpaints.in";
+
+                var client = new HttpClient();
+
+                var byteArray = Encoding.ASCII.GetBytes("44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a");
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                var response = await client.PostAsync(url, null);
+                var result = await response.Content.ReadAsStringAsync();
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                {
+                    await con.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO OTP_Validation 
+                (ctenantID, cuserid, cotpcode, cpurpose, nIsUsed, lusedAt, cexpiryDate) 
+                VALUES (@tenantID, @userID, @otp, @purpose, @isUsed, @usedAt, @expiry)", con))
+                    {
+                        cmd.Parameters.AddWithValue("@tenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@userID", id);
+                        cmd.Parameters.AddWithValue("@otp", otp);
+                        cmd.Parameters.AddWithValue("@purpose", "AdminLogin");
+                        cmd.Parameters.AddWithValue("@isUsed", 0);
+                        cmd.Parameters.AddWithValue("@usedAt", DBNull.Value);
+                        cmd.Parameters.AddWithValue("@expiry", DateTime.Now.AddMinutes(5));
+
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+                var response1 = new APIResponse { status = 200, statusText = "OTP Sent Successfully" };
+                string json2 = JsonConvert.SerializeObject(response1);
+                string encryptedResponse = AesEncryption.Encrypt(json2);
+                return Ok(encryptedResponse);
+            }
+            catch (Exception ex)
+            {
+                var error = new APIResponse { status = 500, statusText = "Error: " + ex.Message };
+                string json = JsonConvert.SerializeObject(error);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(500, encrypted);
+            }
+        }
 
     }
 }
