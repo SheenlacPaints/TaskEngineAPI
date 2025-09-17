@@ -112,8 +112,6 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-
-
         [HttpPut("updateSuperAdmin")]
         public async Task<IActionResult> updateSuperAdmin([FromQuery] pay request)
         {

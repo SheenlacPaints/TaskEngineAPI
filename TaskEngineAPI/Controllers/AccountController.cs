@@ -16,6 +16,7 @@ using TaskEngineAPI.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection.PortableExecutable;
+using BCrypt.Net;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -36,10 +37,151 @@ namespace TaskEngineAPI.Controllers
             _AccountService = AccountService;
         }
 
+
         [HttpPost]
         [Route("Login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> Login([FromBody] pay request)
+        public async Task<ActionResult> Login([FromBody] pay request)
+        {
+            string urlSafe1 = AesEncryption.Decrypt(request.payload);
+            var User = JsonConvert.DeserializeObject<User>(urlSafe1);
+
+            if (User == null || string.IsNullOrEmpty(User.userName) || string.IsNullOrEmpty(User.password))
+            {
+                var error = new APIResponse
+                {
+                    status = 400,
+                    statusText = "Username and password must be provided."
+                };
+                string json = JsonConvert.SerializeObject(error);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(400, encrypted);
+            }
+
+            var connStr = _config.GetConnectionString("Database");
+            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand("sp_validate_Admin_login", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@FilterValue1", User.userName);
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                username = reader["cusername"]?.ToString();
+                                firstname = reader["cfirstName"]?.ToString();
+                                lastname = reader["clastName"]?.ToString();
+                                roleid = reader["croleID"]?.ToString();
+                                tenantID = reader["cTenantID"]?.ToString();
+                                tenantname = reader["cTenantCode"]?.ToString();
+                                email = reader["cemail"]?.ToString();
+                                hashedPassword = reader["cpassword"]?.ToString();
+                            }
+                            else
+                            {
+                                var error = new APIResponse
+                                {
+                                    status = 404,
+                                    statusText = "User does not exist."
+                                };
+                                string json = JsonConvert.SerializeObject(error);
+                                string encrypted = AesEncryption.Encrypt(json);
+                                return StatusCode(404, encrypted);
+                            }
+                        }
+                    }
+                }
+                bool isValid = BCrypt.Net.BCrypt.Verify(User.password, hashedPassword);
+
+                if (!isValid)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Incorrect Password"
+                    };
+                    string json = JsonConvert.SerializeObject(error);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return StatusCode(400, encrypted);
+                }
+
+                if (!int.TryParse(tenantID, out int tenantIdInt))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Invalid TenantID format."
+                    };
+                    string json = JsonConvert.SerializeObject(error);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return StatusCode(400, encrypted);
+                }
+
+                var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);
+                var refreshToken = _jwtService.GenerateRefreshToken();
+                var refreshExpiry = DateTime.Now.AddDays(1);
+
+                var saved = await _jwtService.SaveRefreshTokenToDatabase(User.userName, refreshToken, refreshExpiry);
+                if (!saved)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 500,
+                        statusText = "Failed to save refresh token"
+                    };
+                    string json = JsonConvert.SerializeObject(error);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return StatusCode(500, encrypted);
+                }
+
+                var loginDetails = new
+                {
+                    username = username,
+                    firstname = firstname,
+                    lastname = lastname,
+                    roleID = roleid,
+                    tenantID = tenantID,
+                    tenantName = tenantname,
+                    email = email,
+                    token = accessToken,
+                    refreshToken = refreshToken
+                };
+
+                var success = new APIResponse
+                {
+                    status = 200,
+                    statusText = "Logged in Successfully",
+                    body = new[] { loginDetails }
+                };
+
+                string successJson = JsonConvert.SerializeObject(success);
+                string encryptedSuccess = AesEncryption.Encrypt(successJson);
+                return StatusCode(200, encryptedSuccess);
+            }
+            catch (Exception ex)
+            {
+                var error = new APIResponse
+                {
+                    status = 500,
+                    statusText = "An error occurred during login: " + ex.Message
+                };
+                string json = JsonConvert.SerializeObject(error);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(500, encrypted);
+            }
+        }
+
+        [HttpPost]
+        [Route("LoginOLD")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<APIResponse>> LoginOLD([FromBody] pay request)
         {
             string urlSafe1 = AesEncryption.Decrypt(request.payload);
             var User = JsonConvert.DeserializeObject<User>(urlSafe1);
@@ -59,7 +201,7 @@ namespace TaskEngineAPI.Controllers
                 using (SqlConnection conn = new SqlConnection(connStr))
                 {
                     await conn.OpenAsync();
-                    using (SqlCommand cmd = new SqlCommand("sp_validate_Admin_login", conn))
+                    using (SqlCommand cmd = new SqlCommand("sp_validate_Admin_login_OLD", conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@FilterValue1", User.userName);
@@ -305,7 +447,7 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("EncryptInput")]
-        public ActionResult<string> EncryptInput([FromBody] CreateAdminDTO user)
+        public ActionResult<string> EncryptInput([FromBody] User user)
         {
             string json = JsonConvert.SerializeObject(user);
             string encrypted = Encrypt(json);
@@ -457,14 +599,30 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(response.status, encrypted);
         }
 
+        [Authorize]
         [HttpDelete("DeleteSuperAdmin")]
         public async Task<IActionResult> DeleteSuperAdmin([FromBody] pay request)
         {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+            {
+                var error = new APIResponse
+                {
+                    status = 400,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(400, $"\"{encryptedError}\"");
+            }
 
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<DeleteAdminDTO>(decryptedJson);
-            bool success = await _AccountService.DeleteSuperAdminAsync(model);
+            bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID);
 
             var response = new APIResponse
             {
@@ -474,8 +632,9 @@ namespace TaskEngineAPI.Controllers
 
             string json = JsonConvert.SerializeObject(response);
             string encrypted = AesEncryption.Encrypt(json);
-            return StatusCode(response.status, encrypted);
+            return StatusCode(response.status, $"\"{encrypted}\"");
         }
+
 
 
         [HttpPost("CreateUser")]
@@ -496,6 +655,62 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, encrypted);
         }
+
+
+        [Authorize]
+        [HttpPut("UpdateUser")]
+        public async Task<IActionResult> UpdateUser([FromBody] pay request)
+        {
+            try
+            {
+                // Extract token and tenant ID
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Invalid or missing cTenantID in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, $"\"{encryptedError}\"");
+                }
+               
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<UpdateUserDTO>(decryptedJson);
+              
+                model.ctenantID = cTenantID;
+              
+                bool updated = await _AccountService.UpdateUserAsync(model);
+
+                var response = new APIResponse
+                {
+                    status = updated ? 200 : 404,
+                    statusText = updated ? "User updated successfully" : "User not found or update failed"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, $"\"{encrypted}\"");
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error updating user: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, $"\"{encryptedError}\"");
+            }
+        }
+
 
 
        

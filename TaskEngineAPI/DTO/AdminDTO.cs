@@ -38,7 +38,7 @@
     public class DeleteAdminDTO
     {
         public int cid { get; set; }
-        public int cTenantID { get; set; }
+       
     }
 
 

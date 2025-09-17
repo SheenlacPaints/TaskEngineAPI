@@ -13,9 +13,11 @@ namespace TaskEngineAPI.Interfaces
         Task<List<AdminUserDTO>> GetAllSuperAdminsAsync(int cTenantID);
 
         Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model);
-        Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model);
+        Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID);
 
         Task<int> InsertUserAsync(CreateUserDTO model);
+
+        Task<bool> UpdateUserAsync(UpdateUserDTO model);
 
 
     }

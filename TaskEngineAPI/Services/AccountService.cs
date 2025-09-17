@@ -162,7 +162,7 @@ namespace TaskEngineAPI.Services
         }
 
 
-        public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model)
+        public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID)
         {
             var connStr = _config.GetConnectionString("Database");
 
@@ -177,7 +177,7 @@ namespace TaskEngineAPI.Services
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@cuserid", model.cid);
-                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
+                    cmd.Parameters.AddWithValue("@TenantID", cTenantID);
 
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
@@ -287,7 +287,154 @@ namespace TaskEngineAPI.Services
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
         }
-  
-     
-    }
+
+        public async Task<bool> UpdateUserAsync(UpdateUserDTO model)
+        {
+            var connStr = _config.GetConnectionString("Database");
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            string query = @"UPDATE Users SET
+        cusername = @cusername,
+        cemail = @cemail,
+        cpassword = @cpassword,
+        nIsActive = @nIsActive,
+        cfirstName = @cfirstName,
+        clastName = @clastName,
+        cphoneno = @cphoneno,
+        cAlternatePhone = @cAlternatePhone,
+        ldob = @ldob,
+        cMaritalStatus = @cMaritalStatus,
+        cnation = @cnation,
+        cgender = @cgender,
+        caddress = @caddress,
+        caddress1 = @caddress1,
+        caddress2 = @caddress2,
+        cpincode = @cpincode,
+        ccity = @ccity,
+        cstatecode = @cstatecode,
+        cstatedesc = @cstatedesc,
+        ccountrycode = @ccountrycode,
+        ProfileImage = @ProfileImage,
+        cbankName = @cbankName,
+        caccountNumber = @caccountNumber,
+        ciFSCCode = @ciFSCCode,
+        cpAN = @cpAN,
+        ldoj = @ldoj,
+        cemploymentStatus = @cemploymentStatus,
+        nnoticePeriodDays = @nnoticePeriodDays,
+        lresignationDate = @lresignationDate,
+        llastWorkingDate = @llastWorkingDate,
+        cempcategory = @cempcategory,
+        cworkloccode = @cworkloccode,
+        cworklocname = @cworklocname,
+        croleID = @croleID,
+        crolecode = @crolecode,
+        crolename = @crolename,
+        cgradecode = @cgradecode,
+        cgradedesc = @cgradedesc,
+        csubrolecode = @csubrolecode,
+        cdeptcode = @cdeptcode,
+        cdeptdesc = @cdeptdesc,
+        cjobcode = @cjobcode,
+        cjobdesc = @cjobdesc,
+        creportmgrcode = @creportmgrcode,
+        creportmgrname = @creportmgrname,
+        cRoll_id = @cRoll_id,
+        cRoll_name = @cRoll_name,
+        cRoll_Id_mngr = @cRoll_Id_mngr,
+        cRoll_Id_mngr_desc = @cRoll_Id_mngr_desc,
+        cReportManager_empcode = @cReportManager_empcode,
+        cReportManager_Poscode = @cReportManager_Poscode,
+        cReportManager_Posdesc = @cReportManager_Posdesc,
+        nIsWebAccessEnabled = @nIsWebAccessEnabled,
+        nIsEventRead = @nIsEventRead,
+        lLastLoginAt = @lLastLoginAt,
+        nFailedLoginAttempts = @nFailedLoginAttempts,
+        cPasswordChangedAt = @cPasswordChangedAt,
+        nIsLocked = @nIsLocked,
+        LastLoginIP = @LastLoginIP,
+        LastLoginDevice = @LastLoginDevice,
+        cmodifiedby = @cmodifiedby,
+        lmodifieddate = @lmodifieddate,
+        nIsDeleted = @nIsDeleted,
+        cDeletedBy = @cDeletedBy,
+        lDeletedDate = @lDeletedDate
+        WHERE cuserid = @cuserid AND ctenantID = @ctenantID";
+
+            using var cmd = new SqlCommand(query, conn);
+
+            cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
+            cmd.Parameters.AddWithValue("@ctenantID", model.ctenantID);
+            cmd.Parameters.AddWithValue("@cusername", (object?)model.cusername ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cemail", (object?)model.cemail ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cpassword", (object?)model.cpassword ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nIsActive", (object?)model.nIsActive ?? true);
+            cmd.Parameters.AddWithValue("@cfirstName", (object?)model.cfirstName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@clastName", (object?)model.clastName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cphoneno", (object?)model.cphoneno ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cAlternatePhone", (object?)model.cAlternatePhone ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ldob", (object?)model.ldob ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cMaritalStatus", (object?)model.cMaritalStatus ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cnation", (object?)model.cnation ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cgender", (object?)model.cgender ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@caddress", (object?)model.caddress ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@caddress1", (object?)model.caddress1 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@caddress2", (object?)model.caddress2 ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cpincode", (object?)model.cpincode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ccity", (object?)model.ccity ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cstatecode", (object?)model.cstatecode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cstatedesc", (object?)model.cstatedesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ccountrycode", (object?)model.ccountrycode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProfileImage", (object?)model.ProfileImage ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cbankName", (object?)model.cbankName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@caccountNumber", (object?)model.caccountNumber ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ciFSCCode", (object?)model.ciFSCCode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cpAN", (object?)model.cpAN ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ldoj", (object?)model.ldoj ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cemploymentStatus", (object?)model.cemploymentStatus ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nnoticePeriodDays", (object?)model.nnoticePeriodDays ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@lresignationDate", (object?)model.lresignationDate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@llastWorkingDate", (object?)model.llastWorkingDate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cempcategory", (object?)model.cempcategory ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cworkloccode", (object?)model.cworkloccode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cworklocname", (object?)model.cworklocname ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@croleID", (object?)model.croleID ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@crolecode", (object?)model.crolecode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@crolename", (object?)model.crolename ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cgradecode", (object?)model.cgradecode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cgradedesc", (object?)model.cgradedesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@csubrolecode", (object?)model.csubrolecode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cdeptcode", (object?)model.cdeptcode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cdeptdesc", (object?)model.cdeptdesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cjobcode", (object?)model.cjobcode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cjobdesc", (object?)model.cjobdesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@creportmgrcode", (object?)model.creportmgrcode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@creportmgrname", (object?)model.creportmgrname ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cRoll_id", (object?)model.cRoll_id ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cRoll_name", (object?)model.cRoll_name ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cRoll_Id_mngr", (object?)model.cRoll_Id_mngr ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cRoll_Id_mngr_desc", (object?)model.cRoll_Id_mngr_desc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cReportManager_empcode", (object?)model.cReportManager_empcode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cReportManager_Poscode", (object?)model.cReportManager_Poscode ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cReportManager_Posdesc", (object?)model.cReportManager_Posdesc ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nIsWebAccessEnabled", (object?)model.nIsWebAccessEnabled ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nIsEventRead", (object?)model.nIsEventRead ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@lLastLoginAt", (object?)model.lLastLoginAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nFailedLoginAttempts", (object?)model.nFailedLoginAttempts ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cPasswordChangedAt", (object?)model.cPasswordChangedAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nIsLocked", (object?)model.nIsLocked ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.LastLoginIP ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.LastLoginDevice ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cmodifiedby", (object?)model.cmodifiedby ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@lmodifieddate", (object?)model.lmodifieddate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
+
+            int rows = await cmd.ExecuteNonQueryAsync();
+            return rows > 0;
+
+        }
+        }
 }
