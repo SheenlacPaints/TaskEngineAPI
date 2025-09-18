@@ -113,17 +113,16 @@ namespace TaskEngineAPI.Controllers
 
 
         [HttpPut("updateSuperAdmin")]
-        public async Task<IActionResult> updateSuperAdmin([FromQuery] pay request)
+        public async Task<IActionResult> updateSuperAdmin([FromBody] pay request)
         {
             try
             {
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PutAsync($"{_baseUrl}Account/UpdateSuperAdmin", content);
                 var body = await response.Content.ReadAsStringAsync();
-                // Mirror the external API's status code + body
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
-              
+
             }
             catch (Exception ex)
             {
