@@ -11,8 +11,6 @@ namespace TaskEngineAPI.DTO
     }
 
 
-
-
     public class pay
     {
         [JsonProperty("payload")]
@@ -38,6 +36,7 @@ namespace TaskEngineAPI.DTO
        
     }
 
+ 
 
 
 }

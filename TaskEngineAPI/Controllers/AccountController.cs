@@ -18,6 +18,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Reflection.PortableExecutable;
 using BCrypt.Net;
 using System.Net.Http.Headers;
+using System.Drawing;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -740,7 +741,7 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        [Authorize]     
+        [Authorize]
         [HttpPost]
         [Route("oTPGenerateAdmin")]
         public async Task<ActionResult> oTPGenerateAdmin()
@@ -762,8 +763,8 @@ namespace TaskEngineAPI.Controllers
                     string json = JsonConvert.SerializeObject(errorResponse);
                     string encrypted = AesEncryption.Encrypt(json);
                     return Ok(encrypted);
-                }                                 
-                    string query = "SELECT cphoneno,cusername FROM AdminUsers WHERE croleID = 1 AND cTenantID = @tenantID";
+                }
+                string query = "SELECT cphoneno,cusername FROM AdminUsers WHERE croleID = 1 AND cTenantID = @tenantID";
                 DataSet ds1 = new DataSet();
 
                 using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -785,7 +786,7 @@ namespace TaskEngineAPI.Controllers
                     return Ok(encrypted);
                 }
 
-                string mobile = model[0].cphoneno;              
+                string mobile = model[0].cphoneno;
                 int id = Convert.ToInt32(model[0].cusername);
 
                 int otp = new Random().Next(100000, 999999);
@@ -831,7 +832,7 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-      
+
         private ActionResult EncryptedError(int status, string message)
         {
             var response = new APIResponse { status = status, statusText = message };
@@ -850,199 +851,139 @@ namespace TaskEngineAPI.Controllers
 
 
         [Authorize]
-        [HttpPost]
-        [Route("verifyOtpAndExecute")]
-        public async Task<ActionResult> VerifyOtpAndExecute([FromBody] dynamic prms)
+        [HttpPost("verifyOtpAndExecute")]
+        public async Task<ActionResult> VerifyOtpAndExecute([FromBody] pay request)
         {
             try
             {
-                // 🔐 Extract token claims
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-                
 
                 if (!int.TryParse(tenantIdClaim, out int cTenantID))
                     return EncryptedError(400, "Invalid token claims");
 
-                // 🔓 Decrypt input
-                string decrypted = AesEncryption.Decrypt(prms.ToString());
-                var input = JsonConvert.DeserializeObject<Dictionary<string, object>>(decrypted);
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var baseRequest = JsonConvert.DeserializeObject<OtpActionRequest<object>>(decryptedJson);
 
-                string otpStr = input["otp"]?.ToString();
-                string action = input["action"]?.ToString()?.ToUpper();
-                var payload = JsonConvert.DeserializeObject<Dictionary<string, string>>(input["payload"]?.ToString());
+                if (baseRequest == null)
+                    return EncryptedError(400, "Invalid request format");
 
-                if (!int.TryParse(otpStr, out int otp))
-                    return EncryptedError(400, "Invalid OTP format");
-
-                // 🔍 Validate OTP
-                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
                 {
                     await con.OpenAsync();
-                    string query = @"SELECT * FROM OTP_Validation 
-                             WHERE ctenantID = @tenantID AND cotpcode = @otp AND cpurpose = 'AdminLogin'";
-                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    using (var tx = con.BeginTransaction())
                     {
-                        cmd.Parameters.AddWithValue("@tenantID", cTenantID);          
-                        cmd.Parameters.AddWithValue("@otp", otp);
+                        string query = @"SELECT * FROM OTP_Validation 
+                                 WHERE ctenantID = @tenantID AND cotpcode = @otp AND cpurpose = 'AdminLogin'";
 
-                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        using (SqlCommand cmd = new SqlCommand(query, con, tx))
                         {
-                            if (!reader.HasRows)
-                                return EncryptedError(404, "OTP not found");
+                            cmd.Parameters.AddWithValue("@tenantID", cTenantID);
+                            cmd.Parameters.AddWithValue("@otp", baseRequest.otp);
 
-                            await reader.ReadAsync();
-                            bool isUsed = Convert.ToBoolean(reader["nIsUsed"]);
-                            DateTime expiry = Convert.ToDateTime(reader["cexpiryDate"]);
+                            using (var reader = await cmd.ExecuteReaderAsync())
+                            {
+                                if (!reader.HasRows)
+                                    return EncryptedError(404, "OTP not found");
 
-                            if (isUsed)
-                                return EncryptedError(403, "OTP already used");
+                                await reader.ReadAsync();
+                                if (Convert.ToBoolean(reader["nIsUsed"]))
+                                    return EncryptedError(403, "OTP already used");
 
-                            if (DateTime.Now > expiry)
-                                return EncryptedError(410, "OTP expired");
+                                if (DateTime.Now > Convert.ToDateTime(reader["cexpiryDate"]))
+                                    return EncryptedError(410, "OTP expired");
+                            }
                         }
+
+                        string updateQuery = @"UPDATE OTP_Validation 
+                                       SET nIsUsed = 1, lusedAt = GETDATE() 
+                                       WHERE ctenantID = @tenantID AND cpurpose = 'AdminLogin' AND cotpcode = @otp";
+                        using (SqlCommand updateCmd = new SqlCommand(updateQuery, con, tx))
+                        {
+                            updateCmd.Parameters.AddWithValue("@tenantID", cTenantID);
+                            updateCmd.Parameters.AddWithValue("@otp", baseRequest.otp);
+                            await updateCmd.ExecuteNonQueryAsync();
+                        }
+
+                        tx.Commit();
                     }
-
-                    // ✅ Mark OTP as used
-                    string updateQuery = @"UPDATE OTP_Validation SET nIsUsed = 1, lusedAt = GETDATE() 
-                                   WHERE ctenantID = @tenantID AND cpurpose = 'AdminLogin' AND cotpcode = @otp";
-                    using (SqlCommand updateCmd = new SqlCommand(updateQuery, con))
-                    {
-                        updateCmd.Parameters.AddWithValue("@tenantID", cTenantID);                      
-                        updateCmd.Parameters.AddWithValue("@otp", otp);
-                        await updateCmd.ExecuteNonQueryAsync();
-                    }
-
-
-                    switch (action)
-                    {
-                        case "POST":
-                            try
-                            {
-                                string decryptedJson = AesEncryption.Decrypt(input["payload"].ToString());
-                                var model = JsonConvert.DeserializeObject<CreateAdminDTO>(decryptedJson);
-
-                                
-                                model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
-
-                                
-                                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
-
-                                if (insertedUserId <= 0)
-                                {
-                                    return EncryptedError(500, "Failed to create Super Admin");
-                                }
-
-                                var apierDtls = new APIResponse
-                                {
-                                    status = 200,
-                                    statusText = "Super Admin created successfully",
-                                    body = new object[] { new { UserID = insertedUserId } }
-                                };
-                                string jsone = JsonConvert.SerializeObject(apierDtls);
-                                var encryptapierDtls = AesEncryption.Encrypt(jsone);
-                                return StatusCode(200, encryptapierDtls);
-                            }
-                            catch (Exception ex)
-                            {
-                                var apierrDtls = new APIResponse
-                                {
-                                    status = 500,
-                                    statusText = "Error creating Super Admin",
-                                    error = ex.Message
-                                };
-                                string jsoner = JsonConvert.SerializeObject(apierrDtls);
-                                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
-                                return StatusCode(500, encryptapierrDtls);
-                            }
-                         break;
-                        case "PUT":
-                            try
-                            {
-                                string decryptedJson = AesEncryption.Decrypt(input["payload"].ToString());                             
-                                var model = JsonConvert.DeserializeObject<UpdateAdminDTO>(decryptedJson);
-                                bool success = await _AccountService.UpdateSuperAdminAsync(model);
-
-                                var response = new APIResponse
-                            {
-                                status = success ? 200 : 404,
-                                statusText = success ? "Update successful" : "SuperAdmin not found or update failed"
-                            };
-
-                                string json = JsonConvert.SerializeObject(response);
-                                string encrypted = AesEncryption.Encrypt(json);
-                                return StatusCode(response.status, encrypted);
-                            }
-                            catch (Exception ex)
-                            {
-                                var apierrDtls = new APIResponse
-                                {
-                                    status = 500,
-                                    statusText = "Error updating Super Admin",
-                                    error = ex.Message
-                                };
-                                string jsoner = JsonConvert.SerializeObject(apierrDtls);
-                                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
-                                return StatusCode(500, encryptapierrDtls);
-                            }
-                         break;
-
-                        case "DELETE":
-                            try
-                            {
-                            string decryptedJson = AesEncryption.Decrypt(input["payload"].ToString());
-                            var model = JsonConvert.DeserializeObject<DeleteAdminDTO>(decryptedJson);
-                            bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID);
-
-                            var response = new APIResponse
-                            {
-                                status = success ? 200 : 404,
-                                statusText = success ? "SuperAdmin deleted successfully" : "SuperAdmin not found"
-                            };
-
-                            string json = JsonConvert.SerializeObject(response);
-                            string encrypted = AesEncryption.Encrypt(json);
-                            return StatusCode(response.status, $"\"{encrypted}\"");
-                            }
-                            catch (Exception ex)
-                            {
-                                var apierrDtls = new APIResponse
-                                {
-                                    status = 500,
-                                    statusText = "Error Deleting Super Admin",
-                                    error = ex.Message
-                                };
-                                string jsoner = JsonConvert.SerializeObject(apierrDtls);
-                                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
-                                return StatusCode(500, encryptapierrDtls);
-                            }
-
-
-                            break;
-
-                        default:
-                            return EncryptedError(400, "Invalid action type");
-                    }
-
                 }
 
-                return EncryptedSuccess("OTP verified and action executed successfully");
+                // Handle actions
+                switch (baseRequest.action?.ToUpper())
+                {
+                    case "POST":
+                        try
+                        {
+
+                            var otpRequest = JsonConvert.DeserializeObject<OtpActionRequest<CreateAdminDTO>>(decryptedJson);
+                            if (otpRequest?.payload == null)
+                                return EncryptedError(400, "Invalid request data");
+
+                            var model = otpRequest.payload;
+
+                            // Hash password
+                            model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+
+                            // Insert new admin
+                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
+
+                            if (insertedUserId <= 0)
+                                return EncryptedError(500, "Failed to create Super Admin");
+
+
+                            var apierDtls = new APIResponse
+                            {
+                                status = 200,
+                                statusText = "Super Admin created successfully",
+                                body = new object[] { new { UserID = insertedUserId } }
+                            };
+                            string jsone = JsonConvert.SerializeObject(apierDtls);
+                            var encryptapierDtls = AesEncryption.Encrypt(jsone);
+                            return StatusCode(200, encryptapierDtls);
+                        }
+                        catch (Exception ex)
+                        {
+                            var apierrDtls = new APIResponse
+                            {
+                                status = 500,
+                                statusText = "Error creating Super Admin",
+                                error = ex.Message
+                            };
+                            string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                            var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                            return StatusCode(500, encryptapierrDtls);
+                        }
+                        break;
+
+
+                    case "PUT":
+                        var updateModel = JsonConvert.DeserializeObject<OtpActionRequest<UpdateAdminDTO>>(decryptedJson);
+                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload);
+                        return EncryptedSuccess(updated ? "Update successful" : "Update failed");
+
+                    case "DELETE":
+                        var deleteModel = JsonConvert.DeserializeObject<OtpActionRequest<DeleteAdminDTO>>(decryptedJson);
+                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID);
+                        return EncryptedSuccess(deleted ? "Deleted successfully" : "Not found");
+
+                    default:
+                        return EncryptedError(400, "Invalid action");
+                }
             }
             catch (Exception ex)
             {
-                return EncryptedError(500, "Error: " + ex.Message);
+                
+                return EncryptedError(500, "Something went wrong");
             }
         }
 
-
-
-
     }
 }
-
+            
+        
 
 
   

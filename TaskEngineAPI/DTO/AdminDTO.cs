@@ -1,4 +1,7 @@
-﻿namespace TaskEngineAPI.DTO
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
+namespace TaskEngineAPI.DTO
 {
  
         public class AdminUserDTO
@@ -54,6 +57,27 @@
 
         public string? cusername { get; set; }
     }
+  
+
+    public class OtpActionRequest
+    {
+        public string otp { get; set; }
+        public string action { get; set; }
+        public pay payload { get; set; }
+
+    }
+
+
+  
+    public class OtpActionRequest<T>
+    {
+        public string otp { get; set; }
+        public string action { get; set; }
+        public T payload { get; set; }
+    }
+
 
 
 }
+
+
