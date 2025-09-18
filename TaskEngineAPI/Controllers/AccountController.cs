@@ -461,6 +461,23 @@ namespace TaskEngineAPI.Controllers
             byte[] buffer = Convert.FromBase64String(cipherText);
             using (Aes aes = Aes.Create())
             {
+                aes.Key = DECKey;
+                aes.IV = IV;
+                aes.Padding = PaddingMode.PKCS7;
+
+                using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+                using var ms = new MemoryStream(buffer);
+                using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+                using var sr = new StreamReader(cs);
+                return sr.ReadToEnd();
+            }
+        }
+
+        public static string DecryptAPI(string cipherText)
+        {
+            byte[] buffer = Convert.FromBase64String(cipherText);
+            using (Aes aes = Aes.Create())
+            {
                 aes.Key = ENCKey;
                 aes.IV = IV;
                 aes.Padding = PaddingMode.PKCS7;
@@ -481,6 +498,18 @@ namespace TaskEngineAPI.Controllers
             string Decrypted = Decrypt(encryptedInput);
             return Ok(Decrypted);
         }
+
+
+        [HttpPost]
+        [Route("DecryptedInput_API")]
+        public ActionResult<string> DecryptedInput_API([FromBody] string encryptedInput)
+        {
+
+            string Decrypted = DecryptAPI(encryptedInput);
+            return Ok(Decrypted);
+        }
+
+
 
         [HttpPost]
         [Route("CreateSuperAdmin")]
@@ -803,6 +832,118 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        //[Authorize]
+        //[HttpPost]
+        //[Route("secureAction")]
+        //public async Task<ActionResult> SecureAction([FromBody] dynamic prms)
+        //{
+        //    try
+        //    {
+        //        // 🔐 Extract tenant and user ID from token
+        //        var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        //        var handler = new JwtSecurityTokenHandler();
+        //        var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+        //        var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+        //        var userIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cUserID")?.Value;
+
+        //        if (!int.TryParse(tenantIdClaim, out int cTenantID) || !int.TryParse(userIdClaim, out int cUserID))
+        //            return EncryptedError(400, "Invalid token claims");
+
+        //        // 🔓 Decrypt and parse input
+        //        string decrypted = AesEncryption.Decrypt(prms.ToString());
+        //        var input = JsonConvert.DeserializeObject<Dictionary<string, object>>(decrypted);
+
+        //        string otpStr = input["otp"]?.ToString();
+        //        string action = input["action"]?.ToString()?.ToUpper();
+        //        var payload = JsonConvert.DeserializeObject<Dictionary<string, string>>(input["payload"]?.ToString());
+
+        //        if (!int.TryParse(otpStr, out int otp))
+        //            return EncryptedError(400, "Invalid OTP format");
+
+        //        // 🔍 Validate OTP
+        //        using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+        //        {
+        //            await con.OpenAsync();
+        //            string query = @"SELECT * FROM OTP_Validation 
+        //                     WHERE ctenantID = @tenantID AND cuserid = @userID AND cotpcode = @otp AND cpurpose = 'SecureAction'";
+        //            using (SqlCommand cmd = new SqlCommand(query, con))
+        //            {
+        //                cmd.Parameters.AddWithValue("@tenantID", cTenantID);
+        //                cmd.Parameters.AddWithValue("@userID", cUserID);
+        //                cmd.Parameters.AddWithValue("@otp", otp);
+
+        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+        //                {
+        //                    if (!reader.HasRows)
+        //                        return EncryptedError(404, "OTP not found");
+
+        //                    await reader.ReadAsync();
+        //                    bool isUsed = Convert.ToBoolean(reader["nIsUsed"]);
+        //                    DateTime expiry = Convert.ToDateTime(reader["cexpiryDate"]);
+
+        //                    if (isUsed)
+        //                        return EncryptedError(403, "OTP already used");
+
+        //                    if (DateTime.Now > expiry)
+        //                        return EncryptedError(410, "OTP expired");
+        //                }
+        //            }
+
+        //            // ✅ Perform action
+        //            switch (action)
+        //            {
+        //                case "POST":
+        //                    await CreateSuperAdmin(payload, con);
+        //                    break;
+        //                case "PUT":
+        //                    await UpdateSuperAdmin(payload, con);
+        //                    break;
+        //                case "DELETE":
+        //                    await DeleteSuperAdmin(payload, con);
+        //                    break;
+        //                default:
+        //                    return EncryptedError(400, "Invalid action");
+        //            }
+
+        //            // 📝 Mark OTP as used
+        //            string updateQuery = @"UPDATE OTP_Validation SET nIsUsed = 1, lusedAt = GETDATE() 
+        //                           WHERE ctenantID = @tenantID AND cuserid = @userID AND cotpcode = @otp";
+        //            using (SqlCommand updateCmd = new SqlCommand(updateQuery, con))
+        //            {
+        //                updateCmd.Parameters.AddWithValue("@tenantID", cTenantID);
+        //                updateCmd.Parameters.AddWithValue("@userID", cUserID);
+        //                updateCmd.Parameters.AddWithValue("@otp", otp);
+        //                await updateCmd.ExecuteNonQueryAsync();
+        //            }
+        //        }
+
+        //        return EncryptedSuccess("Action executed successfully");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return EncryptedError(500, "Error: " + ex.Message);
+        //    }
+        //}
+
+        private ActionResult EncryptedError(int status, string message)
+        {
+            var response = new APIResponse { status = status, statusText = message };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return Ok(encrypted);
+        }
+
+        private ActionResult EncryptedSuccess(string message)
+        {
+            var response = new APIResponse { status = 200, statusText = message };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return Ok(encrypted);
+        }
+
+     
     }
 }
 

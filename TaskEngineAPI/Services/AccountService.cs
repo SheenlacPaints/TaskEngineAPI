@@ -45,7 +45,8 @@ namespace TaskEngineAPI.Services
                 VALUES 
                 (@TenantID, @FirstName, @LastName, @Username, @Email, @PhoneNo, 
                  @Password, @RoleID, @IsActive, @LastLoginAt, @PasswordChangedAt, 
-                 @LastLoginIP, @LastLoginDevice)";
+                 @LastLoginIP, @LastLoginDevice);
+                 SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {                
@@ -61,15 +62,13 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@LastLoginAt", (object?)model.llastLoginAt ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@PasswordChangedAt", (object?)model.cPasswordChangedAt ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.cLastLoginIP ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.cLastLoginDevice ?? DBNull.Value);                
+                    cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.cLastLoginDevice ?? DBNull.Value);                                 
                     var newId = await cmd.ExecuteScalarAsync();
                     return newId != null ? Convert.ToInt32(newId) : 0;
-
                 }
             }
         }
-
-
+        
         public async Task<List<AdminUserDTO>> GetAllSuperAdminsAsync(int cTenantID)
 
         {
