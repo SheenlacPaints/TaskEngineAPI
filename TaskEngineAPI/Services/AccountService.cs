@@ -49,7 +49,9 @@ namespace TaskEngineAPI.Services
                  SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
-                {                
+                {
+                    model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+
                     cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);

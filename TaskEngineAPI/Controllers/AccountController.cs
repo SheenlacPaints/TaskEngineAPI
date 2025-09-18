@@ -925,10 +925,10 @@ namespace TaskEngineAPI.Controllers
                                 string decryptedJson = AesEncryption.Decrypt(input["payload"].ToString());
                                 var model = JsonConvert.DeserializeObject<CreateAdminDTO>(decryptedJson);
 
-                                // 🔐 Hash password
+                                
                                 model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
-                                // 🧱 Insert into database
+                                
                                 int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
 
                                 if (insertedUserId <= 0)
@@ -958,13 +958,69 @@ namespace TaskEngineAPI.Controllers
                                 var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
                                 return StatusCode(500, encryptapierrDtls);
                             }
-
+                         break;
                         case "PUT":
-                            // Add your update logic here
-                            break;
+                            try
+                            {
+                                string decryptedJson = AesEncryption.Decrypt(input["payload"].ToString());                             
+                                var model = JsonConvert.DeserializeObject<UpdateAdminDTO>(decryptedJson);
+                                bool success = await _AccountService.UpdateSuperAdminAsync(model);
+
+                                var response = new APIResponse
+                            {
+                                status = success ? 200 : 404,
+                                statusText = success ? "Update successful" : "SuperAdmin not found or update failed"
+                            };
+
+                                string json = JsonConvert.SerializeObject(response);
+                                string encrypted = AesEncryption.Encrypt(json);
+                                return StatusCode(response.status, encrypted);
+                            }
+                            catch (Exception ex)
+                            {
+                                var apierrDtls = new APIResponse
+                                {
+                                    status = 500,
+                                    statusText = "Error updating Super Admin",
+                                    error = ex.Message
+                                };
+                                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                                return StatusCode(500, encryptapierrDtls);
+                            }
+                         break;
 
                         case "DELETE":
-                            // Add your delete logic here
+                            try
+                            {
+                            string decryptedJson = AesEncryption.Decrypt(input["payload"].ToString());
+                            var model = JsonConvert.DeserializeObject<DeleteAdminDTO>(decryptedJson);
+                            bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID);
+
+                            var response = new APIResponse
+                            {
+                                status = success ? 200 : 404,
+                                statusText = success ? "SuperAdmin deleted successfully" : "SuperAdmin not found"
+                            };
+
+                            string json = JsonConvert.SerializeObject(response);
+                            string encrypted = AesEncryption.Encrypt(json);
+                            return StatusCode(response.status, $"\"{encrypted}\"");
+                            }
+                            catch (Exception ex)
+                            {
+                                var apierrDtls = new APIResponse
+                                {
+                                    status = 500,
+                                    statusText = "Error Deleting Super Admin",
+                                    error = ex.Message
+                                };
+                                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                                return StatusCode(500, encryptapierrDtls);
+                            }
+
+
                             break;
 
                         default:
