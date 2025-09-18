@@ -509,8 +509,6 @@ namespace TaskEngineAPI.Controllers
             return Ok(Decrypted);
         }
 
-
-
         [HttpPost]
         [Route("CreateSuperAdmin")]
         public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
@@ -631,7 +629,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpDelete("DeleteSuperAdmin")]
-        public async Task<IActionResult> DeleteSuperAdmin([FromBody] pay request)
+        public async Task<IActionResult> DeleteSuperAdmin([FromQuery] pay request)
         {
             var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             var handler = new JwtSecurityTokenHandler();
@@ -833,100 +831,7 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        //[Authorize]
-        //[HttpPost]
-        //[Route("secureAction")]
-        //public async Task<ActionResult> SecureAction([FromBody] dynamic prms)
-        //{
-        //    try
-        //    {
-        //        // 🔐 Extract tenant and user ID from token
-        //        var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-        //        var handler = new JwtSecurityTokenHandler();
-        //        var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-        //        var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-        //        var userIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cUserID")?.Value;
-
-        //        if (!int.TryParse(tenantIdClaim, out int cTenantID) || !int.TryParse(userIdClaim, out int cUserID))
-        //            return EncryptedError(400, "Invalid token claims");
-
-        //        // 🔓 Decrypt and parse input
-        //        string decrypted = AesEncryption.Decrypt(prms.ToString());
-        //        var input = JsonConvert.DeserializeObject<Dictionary<string, object>>(decrypted);
-
-        //        string otpStr = input["otp"]?.ToString();
-        //        string action = input["action"]?.ToString()?.ToUpper();
-        //        var payload = JsonConvert.DeserializeObject<Dictionary<string, string>>(input["payload"]?.ToString());
-
-        //        if (!int.TryParse(otpStr, out int otp))
-        //            return EncryptedError(400, "Invalid OTP format");
-
-        //        // 🔍 Validate OTP
-        //        using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
-        //        {
-        //            await con.OpenAsync();
-        //            string query = @"SELECT * FROM OTP_Validation 
-        //                     WHERE ctenantID = @tenantID AND cuserid = @userID AND cotpcode = @otp AND cpurpose = 'SecureAction'";
-        //            using (SqlCommand cmd = new SqlCommand(query, con))
-        //            {
-        //                cmd.Parameters.AddWithValue("@tenantID", cTenantID);
-        //                cmd.Parameters.AddWithValue("@userID", cUserID);
-        //                cmd.Parameters.AddWithValue("@otp", otp);
-
-        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //                {
-        //                    if (!reader.HasRows)
-        //                        return EncryptedError(404, "OTP not found");
-
-        //                    await reader.ReadAsync();
-        //                    bool isUsed = Convert.ToBoolean(reader["nIsUsed"]);
-        //                    DateTime expiry = Convert.ToDateTime(reader["cexpiryDate"]);
-
-        //                    if (isUsed)
-        //                        return EncryptedError(403, "OTP already used");
-
-        //                    if (DateTime.Now > expiry)
-        //                        return EncryptedError(410, "OTP expired");
-        //                }
-        //            }
-
-        //            // ✅ Perform action
-        //            switch (action)
-        //            {
-        //                case "POST":
-        //                    await CreateSuperAdmin(payload, con);
-        //                    break;
-        //                case "PUT":
-        //                    await UpdateSuperAdmin(payload, con);
-        //                    break;
-        //                case "DELETE":
-        //                    await DeleteSuperAdmin(payload, con);
-        //                    break;
-        //                default:
-        //                    return EncryptedError(400, "Invalid action");
-        //            }
-
-        //            // 📝 Mark OTP as used
-        //            string updateQuery = @"UPDATE OTP_Validation SET nIsUsed = 1, lusedAt = GETDATE() 
-        //                           WHERE ctenantID = @tenantID AND cuserid = @userID AND cotpcode = @otp";
-        //            using (SqlCommand updateCmd = new SqlCommand(updateQuery, con))
-        //            {
-        //                updateCmd.Parameters.AddWithValue("@tenantID", cTenantID);
-        //                updateCmd.Parameters.AddWithValue("@userID", cUserID);
-        //                updateCmd.Parameters.AddWithValue("@otp", otp);
-        //                await updateCmd.ExecuteNonQueryAsync();
-        //            }
-        //        }
-
-        //        return EncryptedSuccess("Action executed successfully");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return EncryptedError(500, "Error: " + ex.Message);
-        //    }
-        //}
-
+      
         private ActionResult EncryptedError(int status, string message)
         {
             var response = new APIResponse { status = status, statusText = message };
@@ -943,7 +848,142 @@ namespace TaskEngineAPI.Controllers
             return Ok(encrypted);
         }
 
-     
+
+        [Authorize]
+        [HttpPost]
+        [Route("verifyOtpAndExecute")]
+        public async Task<ActionResult> VerifyOtpAndExecute([FromBody] dynamic prms)
+        {
+            try
+            {
+                // 🔐 Extract token claims
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                
+
+                if (!int.TryParse(tenantIdClaim, out int cTenantID))
+                    return EncryptedError(400, "Invalid token claims");
+
+                // 🔓 Decrypt input
+                string decrypted = AesEncryption.Decrypt(prms.ToString());
+                var input = JsonConvert.DeserializeObject<Dictionary<string, object>>(decrypted);
+
+                string otpStr = input["otp"]?.ToString();
+                string action = input["action"]?.ToString()?.ToUpper();
+                var payload = JsonConvert.DeserializeObject<Dictionary<string, string>>(input["payload"]?.ToString());
+
+                if (!int.TryParse(otpStr, out int otp))
+                    return EncryptedError(400, "Invalid OTP format");
+
+                // 🔍 Validate OTP
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                {
+                    await con.OpenAsync();
+                    string query = @"SELECT * FROM OTP_Validation 
+                             WHERE ctenantID = @tenantID AND cotpcode = @otp AND cpurpose = 'AdminLogin'";
+                    using (SqlCommand cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@tenantID", cTenantID);          
+                        cmd.Parameters.AddWithValue("@otp", otp);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            if (!reader.HasRows)
+                                return EncryptedError(404, "OTP not found");
+
+                            await reader.ReadAsync();
+                            bool isUsed = Convert.ToBoolean(reader["nIsUsed"]);
+                            DateTime expiry = Convert.ToDateTime(reader["cexpiryDate"]);
+
+                            if (isUsed)
+                                return EncryptedError(403, "OTP already used");
+
+                            if (DateTime.Now > expiry)
+                                return EncryptedError(410, "OTP expired");
+                        }
+                    }
+
+                    // ✅ Mark OTP as used
+                    string updateQuery = @"UPDATE OTP_Validation SET nIsUsed = 1, lusedAt = GETDATE() 
+                                   WHERE ctenantID = @tenantID AND cpurpose = 'AdminLogin' AND cotpcode = @otp";
+                    using (SqlCommand updateCmd = new SqlCommand(updateQuery, con))
+                    {
+                        updateCmd.Parameters.AddWithValue("@tenantID", cTenantID);                      
+                        updateCmd.Parameters.AddWithValue("@otp", otp);
+                        await updateCmd.ExecuteNonQueryAsync();
+                    }
+
+
+                    switch (action)
+                    {
+                        case "POST":
+                            try
+                            {
+                                string decryptedJson = AesEncryption.Decrypt(input["payload"].ToString());
+                                var model = JsonConvert.DeserializeObject<CreateAdminDTO>(decryptedJson);
+
+                                // 🔐 Hash password
+                                model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+
+                                // 🧱 Insert into database
+                                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
+
+                                if (insertedUserId <= 0)
+                                {
+                                    return EncryptedError(500, "Failed to create Super Admin");
+                                }
+
+                                var apierDtls = new APIResponse
+                                {
+                                    status = 200,
+                                    statusText = "Super Admin created successfully",
+                                    body = new object[] { new { UserID = insertedUserId } }
+                                };
+                                string jsone = JsonConvert.SerializeObject(apierDtls);
+                                var encryptapierDtls = AesEncryption.Encrypt(jsone);
+                                return StatusCode(200, encryptapierDtls);
+                            }
+                            catch (Exception ex)
+                            {
+                                var apierrDtls = new APIResponse
+                                {
+                                    status = 500,
+                                    statusText = "Error creating Super Admin",
+                                    error = ex.Message
+                                };
+                                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                                return StatusCode(500, encryptapierrDtls);
+                            }
+
+                        case "PUT":
+                            // Add your update logic here
+                            break;
+
+                        case "DELETE":
+                            // Add your delete logic here
+                            break;
+
+                        default:
+                            return EncryptedError(400, "Invalid action type");
+                    }
+
+                }
+
+                return EncryptedSuccess("OTP verified and action executed successfully");
+            }
+            catch (Exception ex)
+            {
+                return EncryptedError(500, "Error: " + ex.Message);
+            }
+        }
+
+
+
+
     }
 }
 

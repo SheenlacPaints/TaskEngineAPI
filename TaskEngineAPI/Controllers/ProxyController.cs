@@ -141,7 +141,7 @@ namespace TaskEngineAPI.Controllers
 
 
         [HttpDelete("deleteSuperAdmin")]
-        public async Task<IActionResult> deleteSuperAdmin([FromBody] pay request)
+        public async Task<IActionResult> deleteSuperAdmin([FromQuery] pay request)
         {
             try
             {
