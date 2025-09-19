@@ -47,50 +47,7 @@ namespace TaskEngineAPI.Helpers
         }
     }
 
-
-    //public static class AesEncryption1
-    //{
-    //    private static readonly string Key = "0123456789ABCDEF0123456789ABCDEF"; // 32 chars = 256-bit key
-    //    private static readonly string IV = "ABCDEF0123456789";
-
-    //    public static string Encrypt(string plainText)
-    //    {
-    //        using (Aes aes = Aes.Create())
-    //        {
-    //            aes.Key = Encoding.UTF8.GetBytes(Key.ToString());
-    //            aes.IV = Encoding.UTF8.GetBytes(IV.ToString());
-    //            aes.Padding = PaddingMode.PKCS7;
-    //            using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-    //            using var ms = new MemoryStream();
-    //            using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-    //            using (var sw = new StreamWriter(cs))
-    //            {
-    //                sw.Write(plainText);
-    //            }
-    //            return Convert.ToBase64String(ms.ToArray());
-    //        }
-    //    }
-
-    //    public static string Decrypt(string base64CipherText)
-    //    {
-    //        using (Aes aes = Aes.Create())
-    //        {
-    //            aes.Key = Encoding.UTF8.GetBytes(Key.ToString());
-    //            aes.IV = Encoding.UTF8.GetBytes(IV.ToString());
-    //            aes.Mode = CipherMode.CBC;
-    //            aes.Padding = PaddingMode.PKCS7;
-
-    //            byte[] buffer = Convert.FromBase64String(base64CipherText);
-
-    //            using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-    //            using var ms = new MemoryStream(buffer);
-    //            using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
-    //            using var sr = new StreamReader(cs);
-
-    //            return sr.ReadToEnd();
-    //        }
-    //    }
-    //}
+ 
 
 }
 

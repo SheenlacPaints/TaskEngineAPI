@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Net;
+using System.Reflection.PortableExecutable;
 using Microsoft.Extensions.Configuration;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
@@ -437,5 +438,121 @@ namespace TaskEngineAPI.Services
             return rows > 0;
 
         }
+
+
+        public async Task<List<GetUserDTO>> GetAllUserAsync(int cTenantID)
+        {
+            var result = new List<GetUserDTO>();
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                string query = @"
+        SELECT [ID], [cuserid], [ctenantID], [cusername], [cemail], [cpassword], [nIsActive],
+               [cfirstName], [clastName], [cphoneno], [cAlternatePhone], [ldob], [cMaritalStatus],
+               [cnation], [cgender], [caddress], [caddress1], [caddress2], [cpincode], [ccity],
+               [cstatecode], [cstatedesc], [ccountrycode], [ProfileImage], [cbankName],
+               [caccountNumber], [ciFSCCode], [cpAN], [ldoj], [cemploymentStatus],
+               [nnoticePeriodDays], [lresignationDate], [llastWorkingDate], [cempcategory],
+               [cworkloccode], [cworklocname], [croleID], [crolecode], [crolename], [cgradecode],
+               [cgradedesc], [csubrolecode], [cdeptcode], [cdeptdesc], [cjobcode], [cjobdesc],
+               [creportmgrcode], [creportmgrname], [cRoll_id], [cRoll_name], [cRoll_Id_mngr],
+               [cRoll_Id_mngr_desc], [cReportManager_empcode], [cReportManager_Poscode],
+               [cReportManager_Posdesc], [nIsWebAccessEnabled], [nIsEventRead], [lLastLoginAt],
+               [nFailedLoginAttempts], [cPasswordChangedAt], [nIsLocked], [LastLoginIP],
+               [LastLoginDevice], [ccreateddate], [ccreatedby], [cmodifiedby], [lmodifieddate],
+               [nIsDeleted], [cDeletedBy], [lDeletedDate]
+        FROM [dbo].[Users]
+        WHERE croleID = 3 AND cTenantID = @TenantID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            result.Add(new GetUserDTO
+                            {
+                                id = reader.GetInt32(reader.GetOrdinal("ID")),
+                                cuserid = reader.GetInt32(reader.GetOrdinal("cuserid")),
+                                ctenantID = reader.GetInt32(reader.GetOrdinal("ctenantID")),
+                                cusername = reader.GetString(reader.GetOrdinal("cusername")),
+                                cemail = reader.GetString(reader.GetOrdinal("cemail")),
+                                cpassword = reader.GetString(reader.GetOrdinal("cpassword")),
+                                nIsActive = reader.GetBoolean(reader.GetOrdinal("nIsActive")),
+                                cfirstName = reader.GetString(reader.GetOrdinal("cfirstName")),
+                                clastName = reader.GetString(reader.GetOrdinal("clastName")),
+                                cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
+                                cAlternatePhone = reader.IsDBNull(reader.GetOrdinal("cAlternatePhone")) ? null : reader.GetString(reader.GetOrdinal("cAlternatePhone")),
+                                ldob = reader.IsDBNull(reader.GetOrdinal("ldob")) ? null : reader.GetDateTime(reader.GetOrdinal("ldob")),
+                                cMaritalStatus = reader.IsDBNull(reader.GetOrdinal("cMaritalStatus")) ? null : reader.GetString(reader.GetOrdinal("cMaritalStatus")),
+                                cnation = reader.IsDBNull(reader.GetOrdinal("cnation")) ? null : reader.GetString(reader.GetOrdinal("cnation")),
+                                cgender = reader.IsDBNull(reader.GetOrdinal("cgender")) ? null : reader.GetString(reader.GetOrdinal("cgender")),
+                                caddress = reader.IsDBNull(reader.GetOrdinal("caddress")) ? null : reader.GetString(reader.GetOrdinal("caddress")),
+                                caddress1 = reader.IsDBNull(reader.GetOrdinal("caddress1")) ? null : reader.GetString(reader.GetOrdinal("caddress1")),
+                                caddress2 = reader.IsDBNull(reader.GetOrdinal("caddress2")) ? null : reader.GetString(reader.GetOrdinal("caddress2")),
+                                cpincode = reader.GetInt32(reader.GetOrdinal("cpincode")),
+                                ccity = reader.IsDBNull(reader.GetOrdinal("ccity")) ? null : reader.GetString(reader.GetOrdinal("ccity")),
+                                cstatecode = reader.IsDBNull(reader.GetOrdinal("cstatecode")) ? null : reader.GetString(reader.GetOrdinal("cstatecode")),
+                                cstatedesc = reader.IsDBNull(reader.GetOrdinal("cstatedesc")) ? null : reader.GetString(reader.GetOrdinal("cstatedesc")),
+                                ccountrycode = reader.IsDBNull(reader.GetOrdinal("ccountrycode")) ? null : reader.GetString(reader.GetOrdinal("ccountrycode")),
+                                ProfileImage = reader.IsDBNull(reader.GetOrdinal("ProfileImage")) ? null : reader.GetString(reader.GetOrdinal("ProfileImage")),
+                                cbankName = reader.IsDBNull(reader.GetOrdinal("cbankName")) ? null : reader.GetString(reader.GetOrdinal("cbankName")),
+                                caccountNumber = reader.IsDBNull(reader.GetOrdinal("caccountNumber")) ? null : reader.GetString(reader.GetOrdinal("caccountNumber")),
+                                ciFSCCode = reader.IsDBNull(reader.GetOrdinal("ciFSCCode")) ? null : reader.GetString(reader.GetOrdinal("ciFSCCode")),
+                                cpAN = reader.IsDBNull(reader.GetOrdinal("cpAN")) ? null : reader.GetString(reader.GetOrdinal("cpAN")),
+                                ldoj = reader.IsDBNull(reader.GetOrdinal("ldoj")) ? null : reader.GetDateTime(reader.GetOrdinal("ldoj")),
+                                cemploymentStatus = reader.IsDBNull(reader.GetOrdinal("cemploymentStatus")) ? null : reader.GetString(reader.GetOrdinal("cemploymentStatus")),
+                                nnoticePeriodDays = reader.IsDBNull(reader.GetOrdinal("nnoticePeriodDays")) ? null : reader.GetInt32(reader.GetOrdinal("nnoticePeriodDays")),
+                                lresignationDate = reader.IsDBNull(reader.GetOrdinal("lresignationDate")) ? null : reader.GetDateTime(reader.GetOrdinal("lresignationDate")),
+                                llastWorkingDate = reader.IsDBNull(reader.GetOrdinal("llastWorkingDate")) ? null : reader.GetDateTime(reader.GetOrdinal("llastWorkingDate")),
+                                cempcategory = reader.IsDBNull(reader.GetOrdinal("cempcategory")) ? null : reader.GetString(reader.GetOrdinal("cempcategory")),
+                                cworkloccode = reader.IsDBNull(reader.GetOrdinal("cworkloccode")) ? null : reader.GetString(reader.GetOrdinal("cworkloccode")),
+                                cworklocname = reader.IsDBNull(reader.GetOrdinal("cworklocname")) ? null : reader.GetString(reader.GetOrdinal("cworklocname")),
+                                croleID = reader.GetInt32(reader.GetOrdinal("croleID")),
+                                crolecode = reader.IsDBNull(reader.GetOrdinal("crolecode")) ? null : reader.GetString(reader.GetOrdinal("crolecode")),
+                                crolename = reader.IsDBNull(reader.GetOrdinal("crolename")) ? null : reader.GetString(reader.GetOrdinal("crolename")),
+                                cgradecode = reader.IsDBNull(reader.GetOrdinal("cgradecode")) ? null : reader.GetString(reader.GetOrdinal("cgradecode")),
+                                cgradedesc = reader.IsDBNull(reader.GetOrdinal("cgradedesc")) ? null : reader.GetString(reader.GetOrdinal("cgradedesc")),
+                                csubrolecode = reader.IsDBNull(reader.GetOrdinal("csubrolecode")) ? null : reader.GetString(reader.GetOrdinal("csubrolecode")),
+                                cdeptcode = reader.IsDBNull(reader.GetOrdinal("cdeptcode")) ? null : reader.GetString(reader.GetOrdinal("cdeptcode")),
+                                cdeptdesc = reader.IsDBNull(reader.GetOrdinal("cdeptdesc")) ? null : reader.GetString(reader.GetOrdinal("cdeptdesc")),
+                                cjobcode = reader.IsDBNull(reader.GetOrdinal("cjobcode")) ? null : reader.GetString(reader.GetOrdinal("cjobcode")),
+                                cjobdesc = reader.IsDBNull(reader.GetOrdinal("cjobdesc")) ? null : reader.GetString(reader.GetOrdinal("cjobdesc")),
+                                creportmgrcode = reader.IsDBNull(reader.GetOrdinal("creportmgrcode")) ? null : reader.GetString(reader.GetOrdinal("creportmgrcode")),
+                                creportmgrname = reader.IsDBNull(reader.GetOrdinal("creportmgrname")) ? null : reader.GetString(reader.GetOrdinal("creportmgrname")),
+                                cRoll_id = reader.IsDBNull(reader.GetOrdinal("cRoll_id")) ? null : reader.GetString(reader.GetOrdinal("cRoll_id")),
+                                cRoll_name = reader.IsDBNull(reader.GetOrdinal("cRoll_name")) ? null : reader.GetString(reader.GetOrdinal("cRoll_name")),
+                                cRoll_Id_mngr = reader.IsDBNull(reader.GetOrdinal("cRoll_Id_mngr")) ? null : reader.GetString(reader.GetOrdinal("cRoll_Id_mngr")),
+                                cRoll_Id_mngr_desc = reader.IsDBNull(reader.GetOrdinal("cRoll_Id_mngr_desc")) ? null : reader.GetString(reader.GetOrdinal("cRoll_Id_mngr_desc")),
+                                cReportManager_empcode = reader.IsDBNull(reader.GetOrdinal("cReportManager_empcode")) ? null : reader.GetString(reader.GetOrdinal("cReportManager_empcode")),
+                                cReportManager_Poscode = reader.IsDBNull(reader.GetOrdinal("cReportManager_Poscode")) ? null : reader.GetString(reader.GetOrdinal("cReportManager_Poscode")),
+                                cReportManager_Posdesc = reader.IsDBNull(reader.GetOrdinal("cReportManager_Posdesc")) ? null : reader.GetString(reader.GetOrdinal("cReportManager_Posdesc")),
+                                nIsWebAccessEnabled = reader.IsDBNull(reader.GetOrdinal("nIsWebAccessEnabled")) ? null : reader.GetBoolean(reader.GetOrdinal("nIsWebAccessEnabled")),
+                                nIsEventRead = reader.IsDBNull(reader.GetOrdinal("nIsEventRead")) ? null : reader.GetBoolean(reader.GetOrdinal("nIsEventRead")),
+                                lLastLoginAt = reader.IsDBNull(reader.GetOrdinal("lLastLoginAt")) ? null : reader.GetDateTime(reader.GetOrdinal("lLastLoginAt")),
+                                nFailedLoginAttempts = reader.IsDBNull(reader.GetOrdinal("nFailedLoginAttempts")) ? null : reader.GetInt32(reader.GetOrdinal("nFailedLoginAttempts")),
+                                cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cPasswordChangedAt")) ? null : reader.GetDateTime(reader.GetOrdinal("cPasswordChangedAt")),
+                                nIsLocked = reader.IsDBNull(reader.GetOrdinal("nIsLocked")) ? null : reader.GetBoolean(reader.GetOrdinal("nIsLocked")),
+                                LastLoginIP = reader.IsDBNull(reader.GetOrdinal("LastLoginIP")) ? null : reader.GetString(reader.GetOrdinal("LastLoginIP")),
+                                LastLoginDevice = reader.IsDBNull(reader.GetOrdinal("LastLoginDevice")) ? null : reader.GetString(reader.GetOrdinal("LastLoginDevice")),
+                                ccreateddate = reader.IsDBNull(reader.GetOrdinal("ccreateddate")) ? null : reader.GetDateTime(reader.GetOrdinal("ccreateddate")),
+                                ccreatedby = reader.IsDBNull(reader.GetOrdinal("ccreatedby")) ? null : reader.GetString(reader.GetOrdinal("ccreatedby")),
+                                cmodifiedby = reader.IsDBNull(reader.GetOrdinal("cmodifiedby")) ? null : reader.GetString(reader.GetOrdinal("cmodifiedby")),
+                                lmodifieddate = reader.IsDBNull(reader.GetOrdinal("lmodifieddate")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodifieddate")),
+                                nIsDeleted = reader.IsDBNull(reader.GetOrdinal("nIsDeleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIsDeleted")),
+                                cDeletedBy = reader.IsDBNull(reader.GetOrdinal("cDeletedBy")) ? null : reader.GetString(reader.GetOrdinal("cDeletedBy")),
+                                lDeletedDate=reader.IsDBNull(reader.GetOrdinal("lDeletedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("lDeletedDate"))
+                            });                  
+                        }
+                    }
+                }
+                return result;
+            }
         }
+    }
 }

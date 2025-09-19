@@ -980,6 +980,57 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
+        [HttpGet]
+        [Route("getAllUser")]
+        public async Task<ActionResult> getAllUser()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return BadRequest("Invalid or missing cTenantID in token.");
+                }
+
+                var superAdmins = await _AccountService.GetAllUserAsync(cTenantID);
+
+
+
+                var response = new APIResponse
+                {
+                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
+                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
+                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+
+
+
     }
 }
             

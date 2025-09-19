@@ -80,7 +80,7 @@ namespace TaskEngineAPI.DTO
     public class GetUserDTO
     {
         
-        public int? cid { get; set; }
+        public int? id { get; set; }
         public int? cuserid { get; set; }
         public int? ctenantID { get; set; }
         public string? cusername { get; set; }
@@ -98,7 +98,7 @@ namespace TaskEngineAPI.DTO
         public string? caddress { get; set; }
         public string? caddress1 { get; set; }
         public string? caddress2 { get; set; }
-        public string? cpincode { get; set; }
+        public int? cpincode { get; set; }
         public string? ccity { get; set; }
         public string? cstatecode { get; set; }
         public string? cstatedesc { get; set; }
@@ -227,6 +227,8 @@ namespace TaskEngineAPI.DTO
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
     }
+
+
 
 
 }

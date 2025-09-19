@@ -19,7 +19,7 @@ namespace TaskEngineAPI.Interfaces
 
         Task<bool> UpdateUserAsync(UpdateUserDTO model);
 
-
+        Task<List<GetUserDTO>> GetAllUserAsync(int cTenantID);
     }
 
 }
