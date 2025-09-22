@@ -19,6 +19,7 @@ using System.Reflection.PortableExecutable;
 using BCrypt.Net;
 using System.Net.Http.Headers;
 using System.Drawing;
+using System.Net.Http;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -457,6 +458,17 @@ namespace TaskEngineAPI.Controllers
 
         }
 
+        [HttpPost]
+        [Route("EncryptInputint")]
+        public ActionResult<string> EncryptInputint([FromBody] string id)
+        {
+            string json = JsonConvert.SerializeObject(id);
+            string encrypted = Encrypt(json);
+            return Ok(encrypted);
+
+        }
+
+
         public static string Decrypt(string cipherText)
         {
             byte[] buffer = Convert.FromBase64String(cipherText);
@@ -715,7 +727,7 @@ namespace TaskEngineAPI.Controllers
 
                 model.ctenantID = cTenantID;
 
-                bool updated = await _AccountService.UpdateUserAsync(model);
+                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID);
 
                 var response = new APIResponse
                 {
@@ -983,8 +995,62 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet]
-        [Route("getAllUser")]
-        public async Task<ActionResult> getAllUser()
+        [Route("GetAllUserbyid")]
+        public async Task<ActionResult> GetAllUserbyid([FromQuery] string id)
+        {
+
+            string decrypted = AesEncryption.Decrypt(id)?.Trim();
+
+            if (!int.TryParse(decrypted, out int userid))
+                return BadRequest($"Invalid user id: {decrypted}");
+                return BadRequest("Invalid user id");
+                try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return BadRequest("Invalid or missing cTenantID in token.");
+                }
+
+                var superAdmins = await _AccountService.GetAllUserIdAsync(cTenantID, userid);
+
+
+
+                var response = new APIResponse
+                {
+                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
+                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
+                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetAllUser")]
+        public async Task<ActionResult> GetAllUser()
         {
             try
             {
@@ -1027,6 +1093,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
+
 
 
 

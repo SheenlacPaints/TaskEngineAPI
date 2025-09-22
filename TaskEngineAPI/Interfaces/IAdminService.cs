@@ -17,9 +17,13 @@ namespace TaskEngineAPI.Interfaces
 
         Task<int> InsertUserAsync(CreateUserDTO model);
 
-        Task<bool> UpdateUserAsync(UpdateUserDTO model);
+        Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID);
 
         Task<List<GetUserDTO>> GetAllUserAsync(int cTenantID);
+
+        Task<List<GetUserDTO>> GetAllUserIdAsync(int cTenantID,int userid);
+    
+
     }
 
 }
