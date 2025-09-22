@@ -78,12 +78,12 @@ namespace TaskEngineAPI.Controllers
                         {
                             if (await reader.ReadAsync())
                             {
-                                username = reader["cusername"]?.ToString();
-                                firstname = reader["cfirstName"]?.ToString();
-                                lastname = reader["clastName"]?.ToString();
-                                roleid = reader["croleID"]?.ToString();
-                                tenantID = reader["cTenantID"]?.ToString();
-                                tenantname = reader["cTenantCode"]?.ToString();
+                                username = reader["cuser_name"]?.ToString();
+                                firstname = reader["cfirst_name"]?.ToString();
+                                lastname = reader["clast_name"]?.ToString();
+                                roleid = reader["crole_id"]?.ToString();
+                                tenantID = reader["ctenant_id"]?.ToString();
+                                tenantname = reader["ctenant_code"]?.ToString();
                                 email = reader["cemail"]?.ToString();
                                 hashedPassword = reader["cpassword"]?.ToString();
                             }
@@ -532,6 +532,35 @@ namespace TaskEngineAPI.Controllers
                 var model = JsonConvert.DeserializeObject<CreateAdminDTO>(decryptedJson);
                 // Insert into database             
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+
+
+                bool emailExists = await _AccountService.CheckEmailExistsAsync(model.cemail, model.ctenant_Id);
+                if (emailExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Email already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
+                bool usernameExists = await _AccountService.CheckUsernameExistsAsync(model.cuser_name, model.ctenant_Id);
+                if (usernameExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Username already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
+
 
                 // Insert into database
                 int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);

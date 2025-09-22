@@ -22,7 +22,10 @@ namespace TaskEngineAPI.Interfaces
         Task<List<GetUserDTO>> GetAllUserAsync(int cTenantID);
 
         Task<List<GetUserDTO>> GetAllUserIdAsync(int cTenantID,int userid);
-    
+
+        Task<bool> CheckEmailExistsAsync(string email, int tenantId);
+
+        Task<bool> CheckUsernameExistsAsync(string username, int tenantId);
 
     }
 

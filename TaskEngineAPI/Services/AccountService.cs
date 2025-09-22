@@ -39,39 +39,84 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-                INSERT INTO AdminUsers 
-                ( cTenantID, cfirstName, clastName, cusername, cemail, cphoneno, 
-                 cpassword, croleID, nisActive, llastLoginAt, cPasswordChangedAt, 
-                 cLastLoginIP, cLastLoginDevice)
+               INSERT INTO AdminUsers 
+                ( ctenant_Id, cfirst_name, clast_name, cuser_name, cemail, cphoneno, 
+                 cpassword, crole_id, nis_active, llast_login_at, cpassword_changed_at, 
+                 clast_login_ip, clast_login_device,ccreated_date,ccreated_by,cmodified_by,
+                 lmodified_date
                 VALUES 
-                (@TenantID, @FirstName, @LastName, @Username, @Email, @PhoneNo, 
-                 @Password, @RoleID, @IsActive, @LastLoginAt, @PasswordChangedAt, 
-                 @LastLoginIP, @LastLoginDevice);
+                  (@TenantID, @FirstName, @LastName, @Username, @Email, @PhoneNo, 
+                    @Password, @RoleID, @IsActive, @LastLoginAt, @PasswordChangedAt, 
+                    @LastLoginIP, @LastLoginDevice,@ccreated_date,@ccreated_by,@cmodified_by,@lmodified_date);
                  SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
-                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
-                    cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Username", model.cusername);
+                    cmd.Parameters.AddWithValue("@TenantID", model.ctenant_Id);
+                    cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirst_name ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastName", (object?)model.clast_name ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Username", model.cuser_name);
                     cmd.Parameters.AddWithValue("@Email", model.cemail);
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Password", model.cpassword); // store as plain text
-                    cmd.Parameters.AddWithValue("@RoleID", (object?)model.croleID ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
-                    cmd.Parameters.AddWithValue("@LastLoginAt", (object?)model.llastLoginAt ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@PasswordChangedAt", (object?)model.cPasswordChangedAt ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.cLastLoginIP ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.cLastLoginDevice ?? DBNull.Value);                                 
+                    cmd.Parameters.AddWithValue("@RoleID", (object?)model.crole_id ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@IsActive", model.nis_active ?? true);
+                    cmd.Parameters.AddWithValue("@LastLoginAt", (object?)model.llast_login_at ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PasswordChangedAt", (object?)model.cpassword_changed_at ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.clast_login_ip ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.clast_login_device ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@ccreated_by", (object?)model.ccreated_by ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);                                          
                     var newId = await cmd.ExecuteScalarAsync();
                     return newId != null ? Convert.ToInt32(newId) : 0;
                 }
             }
         }
-        
+
+        public async Task<bool> CheckEmailExistsAsync(string email, int tenantId)
+        {
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+            {
+                await conn.OpenAsync();
+                string query = "SELECT COUNT(1) FROM AdminUsers WHERE cemail = @email AND ctenant_Id = @tenantId ";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@email", email);
+                    cmd.Parameters.AddWithValue("@tenantId", tenantId);
+
+                    int count = (int)await cmd.ExecuteScalarAsync();
+                    return count > 0;
+                }
+            }
+        }
+
+
+        public async Task<bool> CheckUsernameExistsAsync(string username, int tenantId)
+        {
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+            {
+                await conn.OpenAsync();
+                string query = "SELECT COUNT(1) FROM AdminUsers WHERE cuser_name = @username AND ctenant_Id = @tenantId";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@tenantId", tenantId);
+
+                    int count = (int)await cmd.ExecuteScalarAsync();
+                    return count > 0;
+
+                }
+            }
+        }
+
+
+
         public async Task<List<AdminUserDTO>> GetAllSuperAdminsAsync(int cTenantID)
 
         {
@@ -83,11 +128,16 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-            SELECT [ID],  [cTenantID], [cfirstName], [clastName], [cusername],
-                   [cemail], [cphoneno], [cpassword], [croleID], [nisActive], [llastLoginAt],
-                   [lfailedLoginAttempts], [cPasswordChangedAt], [cMustChangePassword],
-                   [cLastLoginIP], [cLastLoginDevice]
-            FROM [dbo].[AdminUsers] WHERE croleID = 2 AND cTenantID = @TenantID";
+            SELECT [ID],  [ctenant_Id], [cfirst_name], [clast_name], [cuser_name],
+                   [cemail], [cphoneno], [cpassword], [crole_id], [nis_active], [llast_login_at],
+                   [lfailed_login_attempts], [cpassword_changed_at], [cmust_change_password],
+                   [clast_login_ip], [clast_login_device],[nis_locked],[ccreated_date],[ccreated_by],[cmodified_by],
+                   [lmodified_date],[nIs_deleted],[cdeleted_by],[ldeleted_date]
+            FROM [dbo].[AdminUsers] WHERE crole_id = 2 AND ctenant_Id = @TenantID";
+
+     
+      
+
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -101,21 +151,21 @@ namespace TaskEngineAPI.Services
                             {
 
                               ID = reader.GetInt32(reader.GetOrdinal("ID")),
-                              cTenantID = reader.GetInt32(reader.GetOrdinal("cTenantID")),
-                              cfirstName = reader.GetString(reader.GetOrdinal("cfirstName")),
-                              clastName = reader.GetString(reader.GetOrdinal("clastName")),
-                              cusername = reader.GetString(reader.GetOrdinal("cusername")),
+                              cTenantID = reader.GetInt32(reader.GetOrdinal("ctenant_Id")),
+                              cfirstName = reader.GetString(reader.GetOrdinal("cfirst_name")),
+                              clastName = reader.GetString(reader.GetOrdinal("clast_name")),
+                              cusername = reader.GetString(reader.GetOrdinal("cuser_name")),
                               cemail = reader.GetString(reader.GetOrdinal("cemail")),
                               cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
                               cpassword = reader.GetString(reader.GetOrdinal("cpassword")),
-                              croleID = reader.GetInt32(reader.GetOrdinal("croleID")),
-                              nisActive = reader.GetBoolean(reader.GetOrdinal("nisActive")),
-                              llastLoginAt = reader.IsDBNull(reader.GetOrdinal("llastLoginAt")) ? null : reader.GetDateTime(reader.GetOrdinal("llastLoginAt")),
-                              lfailedLoginAttempts = reader.IsDBNull(reader.GetOrdinal("lfailedLoginAttempts")) ? null : reader.GetInt32(reader.GetOrdinal("lfailedLoginAttempts")),
-                              cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cPasswordChangedAt")) ? null : reader.GetDateTime(reader.GetOrdinal("cPasswordChangedAt")),
-                              cMustChangePassword = reader.IsDBNull(reader.GetOrdinal("cMustChangePassword")) ? null : reader.GetBoolean(reader.GetOrdinal("cMustChangePassword")),
-                              cLastLoginIP = reader.IsDBNull(reader.GetOrdinal("cLastLoginIP")) ? null : reader.GetString(reader.GetOrdinal("cLastLoginIP")),
-                              cLastLoginDevice = reader.IsDBNull(reader.GetOrdinal("cLastLoginDevice")) ? null : reader.GetString(reader.GetOrdinal("cLastLoginDevice"))
+                              croleID = reader.GetInt32(reader.GetOrdinal("crole_id")),
+                              nisActive = reader.GetBoolean(reader.GetOrdinal("nis_active")),
+                              llastLoginAt = reader.IsDBNull(reader.GetOrdinal("llast_login_at")) ? null : reader.GetDateTime(reader.GetOrdinal("llast_login_at")),
+                              lfailedLoginAttempts = reader.IsDBNull(reader.GetOrdinal("lfailed_login_attempts")) ? null : reader.GetInt32(reader.GetOrdinal("lfailed_login_attempts")),
+                              cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cpassword_changed_at")) ? null : reader.GetDateTime(reader.GetOrdinal("cpassword_changed_at")),
+                              cMustChangePassword = reader.IsDBNull(reader.GetOrdinal("cmust_change_password")) ? null : reader.GetBoolean(reader.GetOrdinal("cmust_change_password")),
+                              cLastLoginIP = reader.IsDBNull(reader.GetOrdinal("clast_login_ip")) ? null : reader.GetString(reader.GetOrdinal("clast_login_ip")),
+                              cLastLoginDevice = reader.IsDBNull(reader.GetOrdinal("clast_login_device")) ? null : reader.GetString(reader.GetOrdinal("clast_login_device"))
                             });                        
                         }
                     }
