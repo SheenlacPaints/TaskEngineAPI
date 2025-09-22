@@ -135,10 +135,7 @@ namespace TaskEngineAPI.Services
                    [lmodified_date],[nIs_deleted],[cdeleted_by],[ldeleted_date]
             FROM [dbo].[AdminUsers] WHERE crole_id = 2 AND ctenant_Id = @TenantID";
 
-     
-      
-
-
+    
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -165,7 +162,17 @@ namespace TaskEngineAPI.Services
                               cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cpassword_changed_at")) ? null : reader.GetDateTime(reader.GetOrdinal("cpassword_changed_at")),
                               cMustChangePassword = reader.IsDBNull(reader.GetOrdinal("cmust_change_password")) ? null : reader.GetBoolean(reader.GetOrdinal("cmust_change_password")),
                               cLastLoginIP = reader.IsDBNull(reader.GetOrdinal("clast_login_ip")) ? null : reader.GetString(reader.GetOrdinal("clast_login_ip")),
-                              cLastLoginDevice = reader.IsDBNull(reader.GetOrdinal("clast_login_device")) ? null : reader.GetString(reader.GetOrdinal("clast_login_device"))
+                              cLastLoginDevice = reader.IsDBNull(reader.GetOrdinal("clast_login_device")) ? null : reader.GetString(reader.GetOrdinal("clast_login_device")),
+                              nis_locked = reader.IsDBNull(reader.GetOrdinal("nis_locked")) ? null : reader.GetBoolean(reader.GetOrdinal("nis_locked")),
+                              ccreated_date = reader.IsDBNull(reader.GetOrdinal("ccreated_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ccreated_date")),
+                              ccreated_by = reader.IsDBNull(reader.GetOrdinal("ccreated_by")) ? null : reader.GetString(reader.GetOrdinal("ccreated_by")),
+                              cmodified_by = reader.IsDBNull(reader.GetOrdinal("cmodified_by")) ? null : reader.GetString(reader.GetOrdinal("cmodified_by")),
+                              lmodified_date = reader.IsDBNull(reader.GetOrdinal("lmodified_date")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
+                              nIs_deleted = reader.IsDBNull(reader.GetOrdinal("nIs_deleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_deleted")),
+                              cdeleted_by = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
+                              ldeleted_date = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetString(reader.GetOrdinal("ldeleted_date")),
+
+
                             });                        
                         }
                     }
@@ -185,14 +192,16 @@ namespace TaskEngineAPI.Services
 
                 string query = @"
         UPDATE AdminUsers SET
-            cfirstName = @FirstName,
-            clastName = @LastName,
-            cusername = @Username,
+            cfirst_name = @FirstName,
+            clast_name = @LastName,
+            cuser_name = @Username,
             cemail = @Email,
             cphoneno = @PhoneNo,
             cpassword = @Password,
-            nisActive = @IsActive
-        WHERE ID = @ID AND  cTenantID = @TenantID";
+            nis_active = @IsActive,
+            cmodified_by=cmodified_by,
+            lmodified_date=lmodified_date
+        WHERE ID = @ID AND  ctenant_Id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -203,7 +212,8 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
-
+                    cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ID", model.cid);                 
                     cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
 

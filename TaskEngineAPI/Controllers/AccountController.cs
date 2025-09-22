@@ -460,9 +460,9 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("EncryptInputint")]
-        public ActionResult<string> EncryptInputint([FromBody] string id)
+        public ActionResult<string> EncryptInputint(CreateAdminDTO createAdminDTOO)
         {
-            string json = JsonConvert.SerializeObject(id);
+            string json = JsonConvert.SerializeObject(createAdminDTOO);
             string encrypted = Encrypt(json);
             return Ok(encrypted);
 

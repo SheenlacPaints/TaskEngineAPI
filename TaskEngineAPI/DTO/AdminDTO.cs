@@ -23,7 +23,15 @@ namespace TaskEngineAPI.DTO
             public bool? cMustChangePassword { get; set; }
             public string cLastLoginIP { get; set; }
             public string cLastLoginDevice { get; set; }
-        }
+            public bool? nis_locked { get; set; }
+            public DateTime? ccreated_date { get; set; }
+            public string? ccreated_by { get; set; }
+            public string? cmodified_by { get; set; }
+            public DateTime? lmodified_date { get; set; }
+            public bool? nIs_deleted { get; set; }
+            public string? cdeleted_by { get; set; }
+            public string? ldeleted_date { get; set; }
+    }
 
     public class UpdateAdminDTO
     {
@@ -36,6 +44,8 @@ namespace TaskEngineAPI.DTO
         public string? cphoneno { get; set; }
         public string? cpassword { get; set; }
         public bool? nisActive { get; set; }
+        public string? cmodified_by { get; set; }
+       
     }
 
     public class DeleteAdminDTO
