@@ -115,7 +115,23 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<bool> CheckPhenonoExistsAsync(string phoneno, int tenantId)
+        {
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+            {
+                await conn.OpenAsync();
+                string query = "SELECT COUNT(1) FROM AdminUsers WHERE cphoneno = @phoneno AND ctenant_Id = @tenantId ";
 
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@phoneno", phoneno);
+                    cmd.Parameters.AddWithValue("@tenantId", tenantId);
+
+                    int count = (int)await cmd.ExecuteScalarAsync();
+                    return count > 0;
+                }
+            }
+        }
 
         public async Task<List<AdminUserDTO>> GetAllSuperAdminsAsync(int cTenantID)
 

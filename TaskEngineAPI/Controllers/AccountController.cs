@@ -561,6 +561,19 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(409, encryptedConflict);
                 }
 
+                bool phenonoExists = await _AccountService.CheckPhenonoExistsAsync(model.cphoneno, model.ctenant_Id);
+                if (phenonoExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Phoneno already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
 
                 // Insert into database
                 int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);

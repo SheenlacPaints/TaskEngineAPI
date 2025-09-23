@@ -27,6 +27,7 @@ namespace TaskEngineAPI.Interfaces
 
         Task<bool> CheckUsernameExistsAsync(string username, int tenantId);
 
+        Task<bool> CheckPhenonoExistsAsync(string phoneno, int tenantId);
     }
 
 }
