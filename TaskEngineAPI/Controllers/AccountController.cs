@@ -864,7 +864,7 @@ namespace TaskEngineAPI.Controllers
                     string encrypted = AesEncryption.Encrypt(json);
                     return Ok(encrypted);
                 }
-                string query = "SELECT cphoneno,cusername FROM AdminUsers WHERE croleID = 1 AND cTenantID = @tenantID";
+                string query = "SELECT cphoneno,cuser_name FROM AdminUsers WHERE crole_id = 1 AND ctenant_Id = @tenantID";
                 DataSet ds1 = new DataSet();
 
                 using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
