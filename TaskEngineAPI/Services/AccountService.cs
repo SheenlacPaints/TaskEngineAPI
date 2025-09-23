@@ -147,7 +147,7 @@ namespace TaskEngineAPI.Services
                    [lfailed_login_attempts], [cpassword_changed_at], [cmust_change_password],
                    [clast_login_ip], [clast_login_device],[nis_locked],[ccreated_date],[ccreated_by],[cmodified_by],
                    [lmodified_date],[nIs_deleted],[cdeleted_by],[ldeleted_date]
-            FROM [dbo].[AdminUsers] WHERE crole_id = 2 AND ctenant_Id = @TenantID";
+            FROM [dbo].[AdminUsers] WHERE crole_id = 2 AND ctenant_Id = @TenantID and nis_deleted=0";
 
     
                 using (SqlCommand cmd = new SqlCommand(query, conn))
