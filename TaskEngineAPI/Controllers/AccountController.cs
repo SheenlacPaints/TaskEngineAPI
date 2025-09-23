@@ -727,6 +727,52 @@ namespace TaskEngineAPI.Controllers
 
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
+
+
+
+
+            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cusername, model.ctenantID);
+            if (usernameExists)
+            {
+                var conflictResponse = new
+                {
+                    status = 409,
+                    error = "Conflict",
+                    message = "Username already exists"
+                };
+                string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                return StatusCode(409, encryptedConflict);
+            }
+
+            bool useremailExists = await _AccountService.CheckuserEmailExistsAsync(model.cemail, model.ctenantID);
+            if (useremailExists)
+            {
+                var conflictResponse = new
+                {
+                    status = 409,
+                    error = "Conflict",
+                    message = "Email already exists"
+                };
+                string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                return StatusCode(409, encryptedConflict);
+            }
+
+            bool userphonenoExists = await _AccountService.CheckuserPhonenoExistsAsync(model.cphoneno, model.ctenantID);
+            if (userphonenoExists)
+            {
+                var conflictResponse = new
+                {
+                    status = 409,
+                    error = "Conflict",
+                    message = "Phoneno already exists"
+                };
+                string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                return StatusCode(409, encryptedConflict);
+            }
+
             int result = await _AccountService.InsertUserAsync(model);
             var response = new APIResponse
             {
