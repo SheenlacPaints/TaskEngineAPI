@@ -247,7 +247,7 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-        update  AdminUsers set nis_deleted=1,cdeleted_by=username,ldeleted_Date=@ldeleted_Date
+        update  AdminUsers set nis_deleted=1,cdeleted_by=@username,ldeleted_Date=@ldeleted_Date
         WHERE ID = @cuserid AND cTenant_ID = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
