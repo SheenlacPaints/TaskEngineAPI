@@ -238,7 +238,7 @@ namespace TaskEngineAPI.Services
         }
 
 
-        public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID)
+        public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID,string username)
         {
             var connStr = _config.GetConnectionString("Database");
 
@@ -247,14 +247,15 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-        DELETE FROM AdminUsers
-        WHERE ID = @cuserid AND cTenantID = @TenantID";
+        update  AdminUsers set nis_deleted=1,cdeleted_by=username,ldeleted_Date=@ldeleted_Date
+        WHERE ID = @cuserid AND cTenant_ID = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@cuserid", model.cid);
                     cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@ldeleted_Date", DateTime.Now);
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
                 }

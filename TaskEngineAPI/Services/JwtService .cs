@@ -149,7 +149,8 @@ namespace TaskEngineAPI.Services
         new Claim("Id", Guid.NewGuid().ToString()),
         new Claim(JwtRegisteredClaimNames.Sub, username),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        new Claim("cTenantID", cTenantID.ToString()) // ✅ Use the parameter directly
+        new Claim("cTenantID", cTenantID.ToString()), // ✅ Use the parameter directly
+        new Claim("username",username.ToString())
     };
 
             var tokenDescriptor = new SecurityTokenDescriptor

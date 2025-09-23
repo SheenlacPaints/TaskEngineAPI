@@ -691,8 +691,12 @@ namespace TaskEngineAPI.Controllers
             var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
             var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
-            {
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                 string.IsNullOrWhiteSpace(usernameClaim))
+
+                {
                 var error = new APIResponse
                 {
                     status = 400,
@@ -705,7 +709,7 @@ namespace TaskEngineAPI.Controllers
 
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<DeleteAdminDTO>(decryptedJson);
-            bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID);
+            bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID, username);
 
             var response = new APIResponse
             {
@@ -960,8 +964,9 @@ namespace TaskEngineAPI.Controllers
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-
-                if (!int.TryParse(tenantIdClaim, out int cTenantID))
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                string username = usernameClaim;
+                if (!int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
                     return EncryptedError(400, "Invalid token claims");
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
@@ -1066,7 +1071,7 @@ namespace TaskEngineAPI.Controllers
 
                     case "DELETE":
                         var deleteModel = JsonConvert.DeserializeObject<OtpActionRequest<DeleteAdminDTO>>(decryptedJson);
-                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID);
+                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID,username);
                         return EncryptedSuccess(deleted ? "Deleted successfully" : "Not found");
 
                     default:
