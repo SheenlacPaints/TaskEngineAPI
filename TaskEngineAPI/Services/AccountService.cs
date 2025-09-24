@@ -542,10 +542,8 @@ namespace TaskEngineAPI.Services
       ,[nis_event_read],[llast_login_at],[nfailed_logina_attempts],
 	  [cpassword_changed_at],[nis_locked],[last_login_ip],[last_login_device],
 	  [ccreated_date],[ccreated_by],[cmodified_by],[lmodified_date],[nIs_deleted],[cdeleted_by],
-	  [ldeleted_date]
-		from Users
-        FROM [dbo].[Users]
-        WHERE croleID = 3 AND cTenantID = @TenantID";
+	  [ldeleted_date] FROM [dbo].[Users]
+        WHERE crole_id = 3 AND ctenant_id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
