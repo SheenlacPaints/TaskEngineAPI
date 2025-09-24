@@ -396,7 +396,7 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync($"{_baseUrl}Account/Forgotpasswordmaster", content);
+                var response = await _httpClient.PostAsync($"{_baseUrl}Account/Forgotpasswordmaster", content);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);

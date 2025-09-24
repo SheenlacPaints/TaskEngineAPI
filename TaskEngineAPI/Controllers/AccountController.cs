@@ -1197,7 +1197,7 @@ namespace TaskEngineAPI.Controllers
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var modeld = JsonConvert.DeserializeObject<forgototp>(decryptedJson);
 
-                string query = "SELECT top 1 cuser_name,cphoneno FROM AdminUsers WHERE cphoneno=@cphoneno";
+                string query = "SELECT top 1 cuser_name,cphoneno,cTenant_ID FROM AdminUsers WHERE cphoneno=@cphoneno";
                 DataSet ds1 = new DataSet();
 
                 using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
