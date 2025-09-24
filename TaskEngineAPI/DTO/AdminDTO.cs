@@ -109,6 +109,17 @@ namespace TaskEngineAPI.DTO
     }
 
 
+    public class UpdateadminPassword
+    {
+
+        public string? otp { get; set; }
+        public string? cpassword { get; set; }      
+       
+
+    }
+
+
+
 }
 
 
