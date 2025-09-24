@@ -460,9 +460,9 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("EncryptInputint")]
-        public ActionResult<string> EncryptInputint(CreateAdminDTO createAdminDTOO)
+        public ActionResult<string> EncryptInputint(UpdateUserDTO UpdateUserDTO)
         {
-            string json = JsonConvert.SerializeObject(createAdminDTOO);
+            string json = JsonConvert.SerializeObject(UpdateUserDTO);
             string encrypted = Encrypt(json);
             return Ok(encrypted);
 
@@ -1188,8 +1188,81 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [HttpPost]
+        [Route("Forgotpasswordmaster")]
+        public async Task<ActionResult> Forgotpasswordmaster([FromBody] pay request)
+        {
+            try
+            {
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var modeld = JsonConvert.DeserializeObject<forgototp>(decryptedJson);
 
+                string query = "SELECT top 1 cuser_name,cphoneno FROM AdminUsers WHERE cphoneno=@cphoneno";
+                DataSet ds1 = new DataSet();
 
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@cphoneno", modeld.cphoneno);
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(ds1);
+                }
+
+                string op = JsonConvert.SerializeObject(ds1.Tables[0], Formatting.Indented);
+                var model = JsonConvert.DeserializeObject<List<DTO.forgototpModel>>(op);
+
+                if (model.Count == 0)
+                {
+                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered for this CustomerCode" };
+                    string json = JsonConvert.SerializeObject(responsee);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return Ok(encrypted);
+                }
+
+                string mobile = model[0].cphoneno;
+                int id = Convert.ToInt32(model[0].cusername);
+                int cTenantID = Convert.ToInt32(model[0].ctenantid);
+                int otp = new Random().Next(100000, 999999);
+
+                var url = "https://44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a@api.exotel.com/v1/Accounts/sheenlac2/Sms/send%20?From=08047363322&To=" + mobile + "&Body=Your Verification Code is  " + otp + " - Allpaints.in";
+
+                var client = new HttpClient();
+
+                var byteArray = Encoding.ASCII.GetBytes("44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a");
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                var response = await client.PostAsync(url, null);
+                var result = await response.Content.ReadAsStringAsync();
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                {
+                    await con.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO OTP_Validation 
+                (ctenantID, cuserid, cotpcode, cpurpose, nIsUsed, lusedAt, cexpiryDate) 
+                VALUES (@tenantID, @userID, @otp, @purpose, @isUsed, @usedAt, @expiry)", con))
+                    {
+                        cmd.Parameters.AddWithValue("@tenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@userID", id);
+                        cmd.Parameters.AddWithValue("@otp", otp);
+                        cmd.Parameters.AddWithValue("@purpose", "Forgot Password");
+                        cmd.Parameters.AddWithValue("@isUsed", 0);
+                        cmd.Parameters.AddWithValue("@usedAt", DBNull.Value);
+                        cmd.Parameters.AddWithValue("@expiry", DateTime.Now.AddMinutes(5));
+
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+                var response1 = new APIResponse { status = 200, statusText = "OTP Sent Successfully" };
+                string json2 = JsonConvert.SerializeObject(response1);
+                string encryptedResponse = AesEncryption.Encrypt(json2);
+                return Ok(encryptedResponse);
+            }
+            catch (Exception ex)
+            {
+                var error = new APIResponse { status = 500, statusText = "Error: " + ex.Message };
+                string json = JsonConvert.SerializeObject(error);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(500, encrypted);
+            }
+        }
 
     }
 }

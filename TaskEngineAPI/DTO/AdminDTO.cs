@@ -87,6 +87,20 @@ namespace TaskEngineAPI.DTO
     }
 
 
+    public class forgototp
+    {
+        public string? cphoneno { get; set; }
+    }
+
+    public class forgototpModel
+    {
+        public string? cphoneno { get; set; }
+
+        public string? cusername { get; set; }
+
+        public string? ctenantid { get; set; }
+
+    }
 
 }
 
