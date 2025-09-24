@@ -270,29 +270,37 @@ namespace TaskEngineAPI.Services
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
 
-            string query = @"INSERT INTO Users (
-         cuserid,[ctenant_id],[cuser_name],[cemail],[cpassword],[nIs_active],[cfirst_name],[clast_name], ,[cphoneno],[calternate_phone],[ldob],[cmarital_status],
-   cnation, cgender, caddress, caddress1, caddress2, [cpincode],[ccity],[cstate_code],[cstate_desc]
- ,[ccountry_code],[profile_image],[cbank_name],[caccount_number],[ciFSC_code],[cpan],[ldoj],[cemployment_status],[nnotice_period_days],
- ,[lresignation_date][llast_working_date],[cemp_category],[cwork_loc_code],[cwork_loc_name]
-      ,[crole_id],[crole_code],[crole_name],[cgrade_code],[cgrade_desc]
-      ,[csub_role_code],[cdept_code],[cdept_desc],[cjob_code],[cjob_desc]
-      ,[creport_mgr_code],[creport_mgr_name],[croll_id],[croll_name],[croll_id_mngr],[croll_id_mngr_desc]
-      ,[creport_manager_empcode],[creport_manager_poscode]
-      ,[creport_manager_pos_desc],[nis_web_access_enabled]
-      ,[nis_event_read],[llast_login_at],[nfailed_logina_attempts],
-	  [cpassword_changed_at],[nis_locked],[last_login_ip],[last_login_device],
-	  [ccreated_date],[ccreated_by],[cmodified_by],[lmodified_date],[nIs_deleted],[cdeleted_by],[ldeleted_date])
-        VALUES (
-        @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive, @cfirstName, @clastName, @cphoneno, @cAlternatePhone,
-        @ldob, @cMaritalStatus, @cnation, @cgender, @caddress, @caddress1, @caddress2, @cpincode, @ccity, @cstatecode, @cstatedesc,
-        @ccountrycode, @ProfileImage, @cbankName, @caccountNumber, @ciFSCCode, @cpAN, @ldoj, @cemploymentStatus, @nnoticePeriodDays,
-        @lresignationDate, @llastWorkingDate, @cempcategory, @cworkloccode, @cworklocname, @croleID, @crolecode, @crolename,
-        @cgradecode, @cgradedesc, @csubrolecode, @cdeptcode, @cdeptdesc, @cjobcode, @cjobdesc, @creportmgrcode, @creportmgrname,
-        @cRoll_id, @cRoll_name, @cRoll_Id_mngr, @cRoll_Id_mngr_desc, @cReportManager_empcode, @cReportManager_Poscode,
-        @cReportManager_Posdesc, @nIsWebAccessEnabled, @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
-        @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby, @cmodifiedby, @lmodifieddate, @nIsDeleted,
-        @cDeletedBy, @lDeletedDate)";
+            string query = @"
+INSERT INTO Users (
+    cuserid, [ctenant_id], [cuser_name], [cemail], [cpassword], [nIs_active],
+    [cfirst_name], [clast_name], [cphoneno], [calternate_phone], [ldob], [cmarital_status],
+    [cnation], [cgender], [caddress], [caddress1], [caddress2], [cpincode], [ccity],
+    [cstate_code], [cstate_desc], [ccountry_code], [profile_image], [cbank_name],
+    [caccount_number], [ciFSC_code], [cpan], [ldoj], [cemployment_status], [nnotice_period_days],
+    [lresignation_date], [llast_working_date], [cemp_category], [cwork_loc_code], [cwork_loc_name],
+    [crole_id], [crole_code], [crole_name], [cgrade_code], [cgrade_desc], [csub_role_code],
+    [cdept_code], [cdept_desc], [cjob_code], [cjob_desc], [creport_mgr_code], [creport_mgr_name],
+    [croll_id], [croll_name], [croll_id_mngr], [croll_id_mngr_desc], [creport_manager_empcode],
+    [creport_manager_poscode], [creport_manager_pos_desc], [nis_web_access_enabled],
+    [nis_event_read], [llast_login_at], [nfailed_logina_attempts], [cpassword_changed_at],
+    [nis_locked], [last_login_ip], [last_login_device], [ccreated_date], [ccreated_by],
+    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date]
+)
+VALUES (
+    @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive,
+    @cfirstName, @clastName, @cphoneno, @cAlternatePhone, @ldob, @cMaritalStatus,
+    @cnation, @cgender, @caddress, @caddress1, @caddress2, @cpincode, @ccity,
+    @cstatecode, @cstatedesc, @ccountrycode, @ProfileImage, @cbankName,
+    @caccountNumber, @ciFSCCode, @cpAN, @ldoj, @cemploymentStatus, @nnoticePeriodDays,
+    @lresignationDate, @llastWorkingDate, @cempcategory, @cworkloccode, @cworklocname,
+    @croleID, @crolecode, @crolename, @cgradecode, @cgradedesc, @csubrolecode,
+    @cdeptcode, @cdeptdesc, @cjobcode, @cjobdesc, @creportmgrcode, @creportmgrname,
+    @cRoll_id, @cRoll_name, @cRoll_Id_mngr, @cRoll_Id_mngr_desc, @cReportManager_empcode,
+    @cReportManager_Poscode, @cReportManager_Posdesc, @nIsWebAccessEnabled,
+    @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
+    @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby,
+    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate
+)";
 
             using var cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
