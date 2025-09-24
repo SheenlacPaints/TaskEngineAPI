@@ -390,7 +390,7 @@ namespace TaskEngineAPI.Controllers
 
 
 
-        [HttpPut("Forgotpasswordmaster")]
+        [HttpPost("Forgotpasswordmaster")]
         public async Task<IActionResult> Forgotpasswordmaster([FromBody] pay request)
         {
             try
