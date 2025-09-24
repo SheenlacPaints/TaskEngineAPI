@@ -96,11 +96,18 @@ namespace TaskEngineAPI.DTO
     {
         public string? cphoneno { get; set; }
 
-        public string? cusername { get; set; }
+        public string? cuser_name { get; set; }
 
-        public string? ctenantid { get; set; }
+        public string? cTenant_ID { get; set; }
 
     }
+
+    public class ForgotOtpverify
+    {
+        public string otp { get; set; }
+   
+    }
+
 
 }
 

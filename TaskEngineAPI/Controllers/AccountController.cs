@@ -20,6 +20,7 @@ using BCrypt.Net;
 using System.Net.Http.Headers;
 using System.Drawing;
 using System.Net.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -1187,7 +1188,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [HttpPost]
         [Route("Forgotpasswordmaster")]
         public async Task<ActionResult> Forgotpasswordmaster([FromBody] pay request)
@@ -1220,8 +1220,8 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string mobile = model[0].cphoneno;
-                int id = Convert.ToInt32(model[0].cusername);
-                int cTenantID = Convert.ToInt32(model[0].ctenantid);
+                int id = Convert.ToInt32(model[0].cuser_name);
+                int cTenantID = Convert.ToInt32(model[0].cTenant_ID);
                 int otp = new Random().Next(100000, 999999);
 
                 var url = "https://44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a@api.exotel.com/v1/Accounts/sheenlac2/Sms/send%20?From=08047363322&To=" + mobile + "&Body=Your Verification Code is  " + otp + " - Allpaints.in";
@@ -1236,8 +1236,8 @@ namespace TaskEngineAPI.Controllers
                 {
                     await con.OpenAsync();
                     using (SqlCommand cmd = new SqlCommand(@"INSERT INTO OTP_Validation 
-                (ctenantID, cuserid, cotpcode, cpurpose, nIsUsed, lusedAt, cexpiryDate) 
-                VALUES (@tenantID, @userID, @otp, @purpose, @isUsed, @usedAt, @expiry)", con))
+         (ctenantID, cuserid, cotpcode, cpurpose, nIsUsed, lusedAt, cexpiryDate) 
+         VALUES (@tenantID, @userID, @otp, @purpose, @isUsed, @usedAt, @expiry)", con))
                     {
                         cmd.Parameters.AddWithValue("@tenantID", cTenantID);
                         cmd.Parameters.AddWithValue("@userID", id);
@@ -1263,6 +1263,91 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encrypted);
             }
         }
+
+        [HttpPost("verifyOtpforforgetpassword")]
+        public async Task<ActionResult> VerifyOtpforforgetpassword([FromBody] pay request)
+        {
+            try
+            {
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var modeld = JsonConvert.DeserializeObject<ForgotOtpverify>(decryptedJson);
+
+                using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
+                {
+                    await con.OpenAsync();
+                    using (var tx = con.BeginTransaction())
+                    {
+                        string query = @"SELECT TOP 1 ctenantID, cuserid, cpurpose, nIsUsed, cexpiryDate 
+                                 FROM OTP_Validation 
+                                 WHERE cotpcode = @otp AND cpurpose = 'Forgot Password'";
+
+                        int tenantId = 0;
+                        string userName = null;
+
+                        using (SqlCommand cmd = new SqlCommand(query, con, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@otp", modeld.otp);
+
+                            using (var reader = await cmd.ExecuteReaderAsync())
+                            {
+                                if (!reader.HasRows)
+                                    return EncryptedError(404, "OTP not found");
+
+                                await reader.ReadAsync();
+
+                                if (Convert.ToBoolean(reader["nIsUsed"]))
+                                    return EncryptedError(403, "OTP already used");
+
+                                if (DateTime.Now > Convert.ToDateTime(reader["cexpiryDate"]))
+                                    return EncryptedError(410, "OTP expired");
+
+                                tenantId = Convert.ToInt32(reader["ctenantID"]);
+                                userName = reader["cuserid"].ToString();
+                            }
+                        }
+
+                        // Mark OTP as used
+                        string updateQuery = @"UPDATE OTP_Validation 
+                                       SET nIsUsed = 1, lusedAt = GETDATE() 
+                                       WHERE cotpcode = @otp AND cpurpose = 'Forgot Password'";
+                        using (SqlCommand updateCmd = new SqlCommand(updateQuery, con, tx))
+                        {
+                            updateCmd.Parameters.AddWithValue("@otp", modeld.otp);
+                            await updateCmd.ExecuteNonQueryAsync();
+                        }
+
+                        // Generate JWT token using values from OTP_Validation
+                        var accessToken = _jwtService.GenerateJwtToken(userName, tenantId, out var tokenExpiry);
+
+                        tx.Commit();
+
+                        // Return OTP verified message + JWT token
+                        var response1 = new APIResponse
+                        {
+                            status = 200,
+                            statusText = "OTP Verified Successfully",                          
+                            body = new object[] { new { token = accessToken, expiresAt = tokenExpiry } }
+
+                        };
+
+                        string json2 = JsonConvert.SerializeObject(response1);
+                        string encryptedResponse = AesEncryption.Encrypt(json2);
+                        return Ok(encryptedResponse);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var error = new APIResponse { status = 500, statusText = "Error: " + ex.Message };
+                string json = JsonConvert.SerializeObject(error);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(500, encrypted);
+            }
+        }
+
+
+
+
 
     }
 }
