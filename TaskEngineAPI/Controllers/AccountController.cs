@@ -41,7 +41,6 @@ namespace TaskEngineAPI.Controllers
             _AccountService = AccountService;
         }
 
-
         [HttpPost]
         [Route("Login")]
         [ProducesResponseType(StatusCodes.Status200OK)]
