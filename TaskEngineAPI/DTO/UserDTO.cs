@@ -154,6 +154,10 @@ namespace TaskEngineAPI.DTO
 
     public class UpdateUserDTO
     {
+
+        [Required]
+        public int id { get; set; }
+
         [Required]
         public int cuserid { get; set; }
 
@@ -229,6 +233,11 @@ namespace TaskEngineAPI.DTO
     }
 
 
+    public class DeleteuserDTO
+    {
+        public int cuserid { get; set; }
+
+    }
 
 
 }

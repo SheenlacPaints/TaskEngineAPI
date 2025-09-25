@@ -630,7 +630,8 @@ namespace TaskEngineAPI.Controllers
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                    return BadRequest("Invalid or missing cTenantID in token.");
+                  
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
                 var superAdmins = await _AccountService.GetAllSuperAdminsAsync(cTenantID);
@@ -700,7 +701,7 @@ namespace TaskEngineAPI.Controllers
                 {
                 var error = new APIResponse
                 {
-                    status = 400,
+                    status = 401,
                     statusText = "Invalid or missing cTenantID in token."
                 };
                 string errorJson = JsonConvert.SerializeObject(error);
@@ -821,7 +822,7 @@ namespace TaskEngineAPI.Controllers
                 model.ctenantID = cTenantID;
 
 
-                bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID,model.cuserid);
+                bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID,model.id);
                 if (usernameExists)
                 {
                     var conflictResponse = new
@@ -835,7 +836,7 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(409, encryptedConflict);
                 }
 
-                bool useremailExists = await _AccountService.CheckuserEmailExistsputAsync(model.cemail, model.ctenantID, model.cuserid);
+                bool useremailExists = await _AccountService.CheckuserEmailExistsputAsync(model.cemail, model.ctenantID, model.id);
                 if (useremailExists)
                 {
                     var conflictResponse = new
@@ -849,7 +850,7 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(409, encryptedConflict);
                 }
 
-                bool userphonenoExists = await _AccountService.CheckuserPhonenoExistsputAsync(model.cphoneno, model.ctenantID, model.cuserid);
+                bool userphonenoExists = await _AccountService.CheckuserPhonenoExistsputAsync(model.cphoneno, model.ctenantID, model.id);
                 if (userphonenoExists)
                 {
                     var conflictResponse = new
@@ -1429,6 +1430,46 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(response.status, encrypted);
         }
 
+
+        //[Authorize]
+        //[HttpDelete("Deleteuser")]
+        //public async Task<IActionResult> Deleteuser([FromQuery] pay request)
+        //{
+        //    var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        //    var handler = new JwtSecurityTokenHandler();
+        //    var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+        //    var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+        //    var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+        //    string username = usernameClaim;
+        //    if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+        //         string.IsNullOrWhiteSpace(usernameClaim))
+
+        //    {
+        //        var error = new APIResponse
+        //        {
+        //            status = 401,
+        //            statusText = "Invalid or missing cTenantID in token."
+        //        };
+        //        string errorJson = JsonConvert.SerializeObject(error);
+        //        string encryptedError = AesEncryption.Encrypt(errorJson);
+        //        return StatusCode(400, $"\"{encryptedError}\"");
+        //    }
+
+        //    string decryptedJson = AesEncryption.Decrypt(request.payload);
+        //    var model = JsonConvert.DeserializeObject<DeleteuserDTO>(decryptedJson);
+        //    bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID, username);
+
+        //    var response = new APIResponse
+        //    {
+        //        status = success ? 200 : 404,
+        //        statusText = success ? "SuperAdmin deleted successfully" : "SuperAdmin not found"
+        //    };
+
+        //    string json = JsonConvert.SerializeObject(response);
+        //    string encrypted = AesEncryption.Encrypt(json);
+        //    return StatusCode(response.status, $"\"{encrypted}\"");
+        //}
 
 
 

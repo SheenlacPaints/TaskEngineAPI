@@ -450,10 +450,10 @@ VALUES (
         nIs_deleted = @nIsDeleted,
         cdeleted_by = @cDeletedBy,
         ldeleted_date = @lDeletedDate
-        WHERE cuserid = @cuserid AND ctenant_id = @ctenantID";
+        WHERE cuserid = @cuserid AND ctenant_id = @ctenantID and id=@id";
 
             using var cmd = new SqlCommand(query, conn);
-
+            cmd.Parameters.AddWithValue("@id", model.id);
             cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
             cmd.Parameters.AddWithValue("@ctenantID", cTenantID);
             cmd.Parameters.AddWithValue("@cusername", (object?)model.cusername ?? DBNull.Value);
@@ -854,7 +854,7 @@ VALUES (
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
-                string query = "SELECT COUNT(1) FROM Users WHERE cuser_name = @username AND ctenant_Id = @tenantId and cuserid!= @excludeUserId";
+                string query = "SELECT COUNT(1) FROM Users WHERE cuser_name = @username AND ctenant_Id = @tenantId and ID!= @excludeUserId";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -874,7 +874,7 @@ VALUES (
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
-                string query = "SELECT COUNT(1) FROM Users WHERE cemail = @email AND ctenant_Id = @tenantId and cuserid!= @excludeUserId";
+                string query = "SELECT COUNT(1) FROM Users WHERE cemail = @email AND ctenant_Id = @tenantId and ID!= @excludeUserId";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -893,7 +893,7 @@ VALUES (
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
-                string query = "SELECT COUNT(1) FROM Users WHERE cphoneno = @phoneno AND ctenant_Id = @tenantId and cuserid!= @excludeUserId";
+                string query = "SELECT COUNT(1) FROM Users WHERE cphoneno = @phoneno AND ctenant_Id = @tenantId and ID!= @excludeUserId";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -907,6 +907,30 @@ VALUES (
             }
         }
 
+
+        //public async Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username)
+        //{
+        //    var connStr = _config.GetConnectionString("Database");
+
+        //    using (SqlConnection conn = new SqlConnection(connStr))
+        //    {
+        //        await conn.OpenAsync();
+
+        //        string query = @"
+        //update  AdminUsers set nis_deleted=1,cdeleted_by=@username,ldeleted_Date=@ldeleted_Date
+        //WHERE ID = @cuserid AND cTenant_ID = @TenantID";
+
+        //        using (SqlCommand cmd = new SqlCommand(query, conn))
+        //        {
+        //            cmd.Parameters.AddWithValue("@cuserid", model.cid);
+        //            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+        //            cmd.Parameters.AddWithValue("@username", username);
+        //            cmd.Parameters.AddWithValue("@ldeleted_Date", DateTime.Now);
+        //            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+        //            return rowsAffected > 0;
+        //        }
+        //    }
+        //}
 
 
 
