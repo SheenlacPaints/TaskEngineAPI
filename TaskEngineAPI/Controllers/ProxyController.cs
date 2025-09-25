@@ -379,7 +379,9 @@ namespace TaskEngineAPI.Controllers
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
+                return StatusCode((int)response.StatusCode, body);
+
+                //return StatusCode((int)response.StatusCode, json);
             }
             catch (Exception ex)
             {
