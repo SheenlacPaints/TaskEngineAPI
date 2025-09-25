@@ -360,19 +360,26 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        
-        
+
+        [Authorize]
         [HttpPut("updateUser")]
         public async Task<IActionResult> updateUser([FromBody] pay request)
         {
             try
             {
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PutAsync($"{_baseUrl}Account/updateUser", content);
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+                var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}Account/updateUser");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
-
             }
             catch (Exception ex)
             {
