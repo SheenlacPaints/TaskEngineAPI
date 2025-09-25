@@ -450,7 +450,7 @@ VALUES (
         nIs_deleted = @nIsDeleted,
         cdeleted_by = @cDeletedBy,
         ldeleted_date = @lDeletedDate
-        WHERE cuserid = @cuserid AND ctenant_id = @ctenantID and id=@id";
+        WHERE ctenant_id = @ctenantID and id=@id";
 
             using var cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@id", model.id);
