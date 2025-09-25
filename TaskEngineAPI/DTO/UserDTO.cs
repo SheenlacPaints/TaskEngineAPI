@@ -235,7 +235,7 @@ namespace TaskEngineAPI.DTO
 
     public class DeleteuserDTO
     {
-        public int cuserid { get; set; }
+        public int id { get; set; }
 
     }
 

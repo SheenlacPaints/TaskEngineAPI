@@ -47,7 +47,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> CheckuserPhonenoExistsputAsync(string phoneno, int tenantId, int cuserid);
 
 
-
+        Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username);
     }
 
 

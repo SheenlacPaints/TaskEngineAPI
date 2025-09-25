@@ -1431,45 +1431,45 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        //[Authorize]
-        //[HttpDelete("Deleteuser")]
-        //public async Task<IActionResult> Deleteuser([FromQuery] pay request)
-        //{
-        //    var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-        //    var handler = new JwtSecurityTokenHandler();
-        //    var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+        [Authorize]
+        [HttpDelete("Deleteuser")]
+        public async Task<IActionResult> Deleteuser([FromQuery] pay request)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
-        //    var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-        //    var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-        //    string username = usernameClaim;
-        //    if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
-        //         string.IsNullOrWhiteSpace(usernameClaim))
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                 string.IsNullOrWhiteSpace(usernameClaim))
 
-        //    {
-        //        var error = new APIResponse
-        //        {
-        //            status = 401,
-        //            statusText = "Invalid or missing cTenantID in token."
-        //        };
-        //        string errorJson = JsonConvert.SerializeObject(error);
-        //        string encryptedError = AesEncryption.Encrypt(errorJson);
-        //        return StatusCode(400, $"\"{encryptedError}\"");
-        //    }
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(400, $"\"{encryptedError}\"");
+            }
 
-        //    string decryptedJson = AesEncryption.Decrypt(request.payload);
-        //    var model = JsonConvert.DeserializeObject<DeleteuserDTO>(decryptedJson);
-        //    bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID, username);
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<DeleteuserDTO>(decryptedJson);
+            bool success = await _AccountService.DeleteuserAsync(model, cTenantID, username);
 
-        //    var response = new APIResponse
-        //    {
-        //        status = success ? 200 : 404,
-        //        statusText = success ? "SuperAdmin deleted successfully" : "SuperAdmin not found"
-        //    };
+            var response = new APIResponse
+            {
+                status = success ? 200 : 404,
+                statusText = success ? "User deleted successfully" : "User not found"
+            };
 
-        //    string json = JsonConvert.SerializeObject(response);
-        //    string encrypted = AesEncryption.Encrypt(json);
-        //    return StatusCode(response.status, $"\"{encrypted}\"");
-        //}
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, $"\"{encrypted}\"");
+        }
 
 
 

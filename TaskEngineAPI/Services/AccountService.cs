@@ -551,7 +551,7 @@ VALUES (
 	  [cpassword_changed_at],[nis_locked],[last_login_ip],[last_login_device],
 	  [ccreated_date],[ccreated_by],[cmodified_by],[lmodified_date],[nIs_deleted],[cdeleted_by],
 	  [ldeleted_date] FROM [dbo].[Users]
-        WHERE crole_id = 3 AND ctenant_id = @TenantID";
+        WHERE crole_id = 3 AND ctenant_id = @TenantID and nis_deleted=0";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -908,29 +908,29 @@ VALUES (
         }
 
 
-        //public async Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username)
-        //{
-        //    var connStr = _config.GetConnectionString("Database");
+        public async Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
 
-        //    using (SqlConnection conn = new SqlConnection(connStr))
-        //    {
-        //        await conn.OpenAsync();
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
 
-        //        string query = @"
-        //update  AdminUsers set nis_deleted=1,cdeleted_by=@username,ldeleted_Date=@ldeleted_Date
-        //WHERE ID = @cuserid AND cTenant_ID = @TenantID";
+                string query = @"
+        update  Users set nis_deleted=1,cdeleted_by=@username,ldeleted_Date=@ldeleted_Date
+        WHERE ID = @cuserid AND cTenant_ID = @TenantID";
 
-        //        using (SqlCommand cmd = new SqlCommand(query, conn))
-        //        {
-        //            cmd.Parameters.AddWithValue("@cuserid", model.cid);
-        //            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-        //            cmd.Parameters.AddWithValue("@username", username);
-        //            cmd.Parameters.AddWithValue("@ldeleted_Date", DateTime.Now);
-        //            int rowsAffected = await cmd.ExecuteNonQueryAsync();
-        //            return rowsAffected > 0;
-        //        }
-        //    }
-        //}
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@cuserid", model.id);
+                    cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@ldeleted_Date", DateTime.Now);
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                    return rowsAffected > 0;
+                }
+            }
+        }
 
 
 
