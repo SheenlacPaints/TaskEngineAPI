@@ -821,7 +821,7 @@ namespace TaskEngineAPI.Controllers
                 model.ctenantID = cTenantID;
 
 
-                bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cusername, model.ctenantID);
+                bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID,model.cuserid);
                 if (usernameExists)
                 {
                     var conflictResponse = new
@@ -835,7 +835,7 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(409, encryptedConflict);
                 }
 
-                bool useremailExists = await _AccountService.CheckuserEmailExistsAsync(model.cemail, model.ctenantID);
+                bool useremailExists = await _AccountService.CheckuserEmailExistsputAsync(model.cemail, model.ctenantID, model.cuserid);
                 if (useremailExists)
                 {
                     var conflictResponse = new
@@ -849,7 +849,7 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(409, encryptedConflict);
                 }
 
-                bool userphonenoExists = await _AccountService.CheckuserPhonenoExistsAsync(model.cphoneno, model.ctenantID);
+                bool userphonenoExists = await _AccountService.CheckuserPhonenoExistsputAsync(model.cphoneno, model.ctenantID, model.cuserid);
                 if (userphonenoExists)
                 {
                     var conflictResponse = new

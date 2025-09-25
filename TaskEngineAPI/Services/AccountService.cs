@@ -849,5 +849,67 @@ VALUES (
         }
 
 
+        public async Task<bool> CheckuserUsernameExistsputAsync(string username, int tenantId,int cuserid)
+        {
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+            {
+                await conn.OpenAsync();
+                string query = "SELECT COUNT(1) FROM Users WHERE cuser_name = @username AND ctenant_Id = @tenantId and cuserid!= @excludeUserId";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@tenantId", tenantId);
+                    cmd.Parameters.AddWithValue("@excludeUserId", cuserid);
+                    int count = (int)await cmd.ExecuteScalarAsync();
+                    return count > 0;
+
+                }
+            }
+        }
+
+
+        public async Task<bool> CheckuserEmailExistsputAsync(string email, int tenantId,int cuserid)
+        {
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+            {
+                await conn.OpenAsync();
+                string query = "SELECT COUNT(1) FROM Users WHERE cemail = @email AND ctenant_Id = @tenantId and cuserid!= @excludeUserId";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@email", email);
+                    cmd.Parameters.AddWithValue("@tenantId", tenantId);
+                    cmd.Parameters.AddWithValue("@excludeUserId", cuserid);
+                    int count = (int)await cmd.ExecuteScalarAsync();
+                    return count > 0;
+
+                }
+            }
+        }
+
+        public async Task<bool> CheckuserPhonenoExistsputAsync(string phoneno, int tenantId, int cuserid)
+        {
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+            {
+                await conn.OpenAsync();
+                string query = "SELECT COUNT(1) FROM Users WHERE cphoneno = @phoneno AND ctenant_Id = @tenantId and cuserid!= @excludeUserId";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@phoneno", phoneno);
+                    cmd.Parameters.AddWithValue("@tenantId", tenantId);
+                    cmd.Parameters.AddWithValue("@excludeUserId", cuserid);
+                    int count = (int)await cmd.ExecuteScalarAsync();
+                    return count > 0;
+
+                }
+            }
+        }
+
+
+
+
+
     }
 }
