@@ -469,7 +469,6 @@ namespace TaskEngineAPI.Controllers
 
         }
 
-
         public static string Decrypt(string cipherText)
         {
             byte[] buffer = Convert.FromBase64String(cipherText);
@@ -512,7 +511,6 @@ namespace TaskEngineAPI.Controllers
             string Decrypted = Decrypt(encryptedInput);
             return Ok(Decrypted);
         }
-
 
         [HttpPost]
         [Route("DecryptedInput_API")]
@@ -664,7 +662,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [HttpPut("UpdateSuperAdmin")]
         public async Task<IActionResult> UpdateSuperAdmin([FromBody] pay request)
         {
@@ -723,8 +720,7 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, $"\"{encrypted}\"");
         }
-
-     
+   
         [Authorize]
         [HttpGet]
         [Route("GetAllUser")]
@@ -824,7 +820,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
-
 
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromBody] pay request)
@@ -1267,7 +1262,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [HttpPost("verifyOtpforforgetpassword")]
         public async Task<ActionResult> VerifyOtpforforgetpassword([FromBody] pay request)
         {
@@ -1425,7 +1419,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
@@ -1462,7 +1455,6 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, encrypted);
         }
-
 
      
     }
