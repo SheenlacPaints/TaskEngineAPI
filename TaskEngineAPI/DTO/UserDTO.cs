@@ -75,8 +75,6 @@ namespace TaskEngineAPI.DTO
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
     }
-
-
     public class GetUserDTO
     {
         
@@ -151,7 +149,6 @@ namespace TaskEngineAPI.DTO
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
     }
-
     public class UpdateUserDTO
     {
 
@@ -231,13 +228,9 @@ namespace TaskEngineAPI.DTO
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
     }
-
-
     public class DeleteuserDTO
     {
         public int id { get; set; }
-
     }
-
 
 }

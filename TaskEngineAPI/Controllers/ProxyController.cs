@@ -46,32 +46,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-     
-        [HttpPost("createSuperAdmin")]
-        public async Task<IActionResult> createSuperAdmin([FromBody] pay request)
-        {
-            try
-            {
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateSuperAdmin", content);
-                var body = await response.Content.ReadAsStringAsync();
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
-            }
-            catch (Exception ex)
-            {
-                var err = new APIResponse
-                {
-                    status = 500,
-                    statusText = $"Error calling external API: {ex.Message}"
-                };
-                string jsonn = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(jsonn);
-                string encc = $"\"{enc}\"";
-                return StatusCode(500, encc);
-            }
-        }
-
 
         [Authorize]
         [HttpGet("getAllSuperAdmin")]
@@ -111,7 +85,31 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
+        [HttpPost("createSuperAdmin")]
+        public async Task<IActionResult> createSuperAdmin([FromBody] pay request)
+        {
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateSuperAdmin", content);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+   
         [HttpPut("updateSuperAdmin")]
         public async Task<IActionResult> updateSuperAdmin([FromBody] pay request)
         {
@@ -137,8 +135,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
-
 
         [HttpDelete("deleteSuperAdmin")]
         public async Task<IActionResult> deleteSuperAdmin([FromQuery] pay request)
@@ -170,8 +166,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
-      
+  
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromBody] pay request)
         {
@@ -197,91 +192,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-        [Authorize]
-        [HttpPost("oTPGenerateAdmin")]
-        public async Task<IActionResult> oTPGenerateAdmin()
-        {
-            try
-            {
-                // Extract token from incoming request
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(jwtToken))
-                {
-                    return Unauthorized("Missing Authorization token.");
-                }
-
-                // Attach token to outbound request
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/oTPGenerateAdmin");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-
-                var response = await _httpClient.SendAsync(requestMessage);
-                var body = await response.Content.ReadAsStringAsync();
-
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
-            }
-            catch (Exception ex)
-            {
-                var err = new APIResponse
-                {
-                    status = 500,
-                    statusText = $"Error calling external API: {ex.Message}"
-                };
-                string jsonn = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(jsonn);
-                string encc = $"\"{enc}\"";
-                return StatusCode(500, encc);
-            }
-        }
-
-
-        [Authorize]
-        [HttpPost("verifyOtpAndExecute")]
-        public async Task<IActionResult> verifyOtpAndExecute([FromBody] dynamic prms)
-        {
-            try
-            {
-                // Extract token from incoming request
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(jwtToken))
-                {
-                    return Unauthorized("Missing Authorization token.");
-                }
-
-                // Attach token to outbound request
-                // 🔧 Prepare outbound request
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/verifyOtpAndExecute");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-
-                // 🔒 Attach encrypted payload
-                string encryptedPayload = prms.ToString(); // already encrypted
-                requestMessage.Content = new StringContent(encryptedPayload, Encoding.UTF8, "application/json");
-
-                // 🌐 Send request
-                var response = await _httpClient.SendAsync(requestMessage);
-                var body = await response.Content.ReadAsStringAsync();
-
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
-            }
-            catch (Exception ex)
-            {
-                var err = new APIResponse
-                {
-                    status = 500,
-                    statusText = $"Error calling external API: {ex.Message}"
-                };
-                string jsonn = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(jsonn);
-                string encc = $"\"{enc}\"";
-                return StatusCode(500, encc);
-            }
-        }
-
-
         [Authorize]
         [HttpGet("GetAllUser")]
         public async Task<IActionResult> GetAllUser()
@@ -296,13 +206,13 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing Authorization token.");
                 }
                 // Attach token to outbound request
-               // var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}Account/getAllUser");
-                var requestMessage = new HttpRequestMessage( HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/GetAllUser");
+                // var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}Account/getAllUser");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/GetAllUser");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
-            
+
                 var response = await _httpClient.SendAsync(requestMessage);
-                var body = await response.Content.ReadAsStringAsync();           
+                var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }
@@ -360,7 +270,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpPut("updateUser")]
         public async Task<IActionResult> updateUser([FromBody] pay request)
@@ -397,19 +306,22 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
-        [HttpPost("Forgotpasswordmaster")]
-        public async Task<IActionResult> Forgotpasswordmaster([FromBody] pay request)
+        [HttpDelete("Deleteuser")]
+        public async Task<IActionResult> Deleteuser([FromQuery] pay request)
         {
             try
             {
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_baseUrl}Account/Forgotpasswordmaster", content);
+                var requestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Delete,
+                    RequestUri = new Uri($"{_baseUrl}Account/Deleteuser"),
+                    Content = content
+                };
+                var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
-
             }
             catch (Exception ex)
             {
@@ -425,6 +337,87 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost("oTPGenerateAdmin")]
+        public async Task<IActionResult> oTPGenerateAdmin()
+        {
+            try
+            {
+                // Extract token from incoming request
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                // Attach token to outbound request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/oTPGenerateAdmin");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("verifyOtpAndExecute")]
+        public async Task<IActionResult> verifyOtpAndExecute([FromBody] dynamic prms)
+        {
+            try
+            {
+                // Extract token from incoming request
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                // Attach token to outbound request
+                // 🔧 Prepare outbound request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/verifyOtpAndExecute");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                // 🔒 Attach encrypted payload
+                string encryptedPayload = prms.ToString(); // already encrypted
+                requestMessage.Content = new StringContent(encryptedPayload, Encoding.UTF8, "application/json");
+
+                // 🌐 Send request
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
 
         [HttpPost("verifyOtpforforgetpassword")]
         public async Task<IActionResult> verifyOtpforforgetpassword([FromBody] pay request)
@@ -452,7 +445,32 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-    
+        [HttpPost("Forgotpasswordmaster")]
+        public async Task<IActionResult> Forgotpasswordmaster([FromBody] pay request)
+        {
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}Account/Forgotpasswordmaster", content);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
         [Authorize]
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
@@ -489,38 +507,7 @@ namespace TaskEngineAPI.Controllers
 
 
 
-        [HttpDelete("Deleteuser")]
-        public async Task<IActionResult> Deleteuser([FromQuery] pay request)
-        {
-            try
-            {
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var requestMessage = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Delete,
-                    RequestUri = new Uri($"{_baseUrl}Account/Deleteuser"),
-                    Content = content
-                };
-                var response = await _httpClient.SendAsync(requestMessage);
-                var body = await response.Content.ReadAsStringAsync();
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
-            }
-            catch (Exception ex)
-            {
-                var err = new APIResponse
-                {
-                    status = 500,
-                    statusText = $"Error calling external API: {ex.Message}"
-                };
-                string jsonn = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(jsonn);
-                string encc = $"\"{enc}\"";
-                return StatusCode(500, encc);
-            }
-        }
-
-
+      
 
     }
 }

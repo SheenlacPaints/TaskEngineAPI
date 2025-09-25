@@ -461,9 +461,9 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("EncryptInputint")]
-        public ActionResult<string> EncryptInputint(UpdateUserDTO UpdateUserDTO)
+        public ActionResult<string> EncryptInputint(CreateAdminDTO CreateAdminDTO)
         {
-            string json = JsonConvert.SerializeObject(UpdateUserDTO);
+            string json = JsonConvert.SerializeObject(CreateAdminDTO);
             string encrypted = Encrypt(json);
             return Ok(encrypted);
 
@@ -724,6 +724,106 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(response.status, $"\"{encrypted}\"");
         }
 
+     
+        [Authorize]
+        [HttpGet]
+        [Route("GetAllUser")]
+        public async Task<ActionResult> GetAllUser()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return BadRequest("Invalid or missing cTenantID in token.");
+                }
+
+                var superAdmins = await _AccountService.GetAllUserAsync(cTenantID);
+
+
+
+                var response = new APIResponse
+                {
+                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
+                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
+                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetAllUserbyid")]
+        public async Task<ActionResult> GetAllUserbyid([FromQuery] string id)
+        {
+
+            string decrypted = AesEncryption.Decrypt(id)?.Trim();
+
+            if (!int.TryParse(decrypted, out int userid))
+                return BadRequest($"Invalid user id: {decrypted}");
+            return BadRequest("Invalid user id");
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return BadRequest("Invalid or missing cTenantID in token.");
+                }
+
+                var superAdmins = await _AccountService.GetAllUserIdAsync(cTenantID, userid);
+
+
+
+                var response = new APIResponse
+                {
+                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
+                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
+                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
 
 
         [HttpPost("CreateUser")]
@@ -790,7 +890,6 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, encrypted);
         }
-
 
         [Authorize]
         [HttpPut("UpdateUser")]
@@ -891,6 +990,45 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpDelete("Deleteuser")]
+        public async Task<IActionResult> Deleteuser([FromQuery] pay request)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                 string.IsNullOrWhiteSpace(usernameClaim))
+
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(400, $"\"{encryptedError}\"");
+            }
+
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<DeleteuserDTO>(decryptedJson);
+            bool success = await _AccountService.DeleteuserAsync(model, cTenantID, username);
+
+            var response = new APIResponse
+            {
+                status = success ? 200 : 404,
+                statusText = success ? "User deleted successfully" : "User not found"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, $"\"{encrypted}\"");
+        }
 
         [Authorize]
         [HttpPost]
@@ -982,8 +1120,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
         private ActionResult EncryptedError(int status, string message)
         {
             var response = new APIResponse { status = status, statusText = message };
@@ -999,7 +1135,6 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return Ok(encrypted);
         }
-
 
         [Authorize]
         [HttpPost("verifyOtpAndExecute")]
@@ -1133,183 +1268,6 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        [Authorize]
-        [HttpGet]
-        [Route("GetAllUserbyid")]
-        public async Task<ActionResult> GetAllUserbyid([FromQuery] string id)
-        {
-
-            string decrypted = AesEncryption.Decrypt(id)?.Trim();
-
-            if (!int.TryParse(decrypted, out int userid))
-                return BadRequest($"Invalid user id: {decrypted}");
-                return BadRequest("Invalid user id");
-                try
-            {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
-                {
-                    return BadRequest("Invalid or missing cTenantID in token.");
-                }
-
-                var superAdmins = await _AccountService.GetAllUserIdAsync(cTenantID, userid);
-
-
-
-                var response = new APIResponse
-                {
-                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
-                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
-                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
-                };
-
-                string jsoner = JsonConvert.SerializeObject(response);
-                var encrypted = AesEncryption.Encrypt(jsoner);
-                return StatusCode(200, encrypted);
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new APIResponse
-                {
-                    body = Array.Empty<object>(),
-                    statusText = $"Error: {ex.Message}",
-                    status = 500
-                };
-
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
-            }
-        }
-
-
-        [Authorize]
-        [HttpGet]
-        [Route("GetAllUser")]
-        public async Task<ActionResult> GetAllUser()
-        {
-            try
-            {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
-                {
-                    return BadRequest("Invalid or missing cTenantID in token.");
-                }
-
-                var superAdmins = await _AccountService.GetAllUserAsync(cTenantID);
-
-
-
-                var response = new APIResponse
-                {
-                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
-                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
-                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
-                };
-
-                string jsoner = JsonConvert.SerializeObject(response);
-                var encrypted = AesEncryption.Encrypt(jsoner);
-                return StatusCode(200, encrypted);
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new APIResponse
-                {
-                    body = Array.Empty<object>(),
-                    statusText = $"Error: {ex.Message}",
-                    status = 500
-                };
-
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
-            }
-        }
-
-        [HttpPost]
-        [Route("Forgotpasswordmaster")]
-        public async Task<ActionResult> Forgotpasswordmaster([FromBody] pay request)
-        {
-            try
-            {
-                string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var modeld = JsonConvert.DeserializeObject<forgototp>(decryptedJson);
-
-                string query = "SELECT top 1 cuser_name,cphoneno,cTenant_ID FROM AdminUsers WHERE cphoneno=@cphoneno";
-                DataSet ds1 = new DataSet();
-
-                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
-                using (SqlCommand cmd = new SqlCommand(query, con))
-                {
-                    cmd.Parameters.AddWithValue("@cphoneno", modeld.cphoneno);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-                    adapter.Fill(ds1);
-                }
-
-                string op = JsonConvert.SerializeObject(ds1.Tables[0], Formatting.Indented);
-                var model = JsonConvert.DeserializeObject<List<DTO.forgototpModel>>(op);
-
-                if (model.Count == 0)
-                {
-                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered for this CustomerCode" };
-                    string json = JsonConvert.SerializeObject(responsee);
-                    string encrypted = AesEncryption.Encrypt(json);
-                    return Ok(encrypted);
-                }
-
-                string mobile = model[0].cphoneno;
-                int id = Convert.ToInt32(model[0].cuser_name);
-                int cTenantID = Convert.ToInt32(model[0].cTenant_ID);
-                int otp = new Random().Next(100000, 999999);
-
-                var url = "https://44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a@api.exotel.com/v1/Accounts/sheenlac2/Sms/send%20?From=08047363322&To=" + mobile + "&Body=Your Verification Code is  " + otp + " - Allpaints.in";
-
-                var client = new HttpClient();
-
-                var byteArray = Encoding.ASCII.GetBytes("44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a");
-                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-                var response = await client.PostAsync(url, null);
-                var result = await response.Content.ReadAsStringAsync();
-                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
-                {
-                    await con.OpenAsync();
-                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO OTP_Validation 
-         (ctenantID, cuserid, cotpcode, cpurpose, nIsUsed, lusedAt, cexpiryDate) 
-         VALUES (@tenantID, @userID, @otp, @purpose, @isUsed, @usedAt, @expiry)", con))
-                    {
-                        cmd.Parameters.AddWithValue("@tenantID", cTenantID);
-                        cmd.Parameters.AddWithValue("@userID", id);
-                        cmd.Parameters.AddWithValue("@otp", otp);
-                        cmd.Parameters.AddWithValue("@purpose", "Forgot Password");
-                        cmd.Parameters.AddWithValue("@isUsed", 0);
-                        cmd.Parameters.AddWithValue("@usedAt", DBNull.Value);
-                        cmd.Parameters.AddWithValue("@expiry", DateTime.Now.AddMinutes(5));
-
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                }
-                var response1 = new APIResponse { status = 200, statusText = "OTP Sent Successfully" };
-                string json2 = JsonConvert.SerializeObject(response1);
-                string encryptedResponse = AesEncryption.Encrypt(json2);
-                return Ok(encryptedResponse);
-            }
-            catch (Exception ex)
-            {
-                var error = new APIResponse { status = 500, statusText = "Error: " + ex.Message };
-                string json = JsonConvert.SerializeObject(error);
-                string encrypted = AesEncryption.Encrypt(json);
-                return StatusCode(500, encrypted);
-            }
-        }
-
         [HttpPost("verifyOtpforforgetpassword")]
         public async Task<ActionResult> VerifyOtpforforgetpassword([FromBody] pay request)
         {
@@ -1391,6 +1349,81 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("Forgotpasswordmaster")]
+        public async Task<ActionResult> Forgotpasswordmaster([FromBody] pay request)
+        {
+            try
+            {
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var modeld = JsonConvert.DeserializeObject<forgototp>(decryptedJson);
+
+                string query = "SELECT top 1 cuser_name,cphoneno,cTenant_ID FROM AdminUsers WHERE cphoneno=@cphoneno";
+                DataSet ds1 = new DataSet();
+
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@cphoneno", modeld.cphoneno);
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(ds1);
+                }
+
+                string op = JsonConvert.SerializeObject(ds1.Tables[0], Formatting.Indented);
+                var model = JsonConvert.DeserializeObject<List<DTO.forgototpModel>>(op);
+
+                if (model.Count == 0)
+                {
+                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered for this CustomerCode" };
+                    string json = JsonConvert.SerializeObject(responsee);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return Ok(encrypted);
+                }
+
+                string mobile = model[0].cphoneno;
+                int id = Convert.ToInt32(model[0].cuser_name);
+                int cTenantID = Convert.ToInt32(model[0].cTenant_ID);
+                int otp = new Random().Next(100000, 999999);
+
+                var url = "https://44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a@api.exotel.com/v1/Accounts/sheenlac2/Sms/send%20?From=08047363322&To=" + mobile + "&Body=Your Verification Code is  " + otp + " - Allpaints.in";
+
+                var client = new HttpClient();
+
+                var byteArray = Encoding.ASCII.GetBytes("44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a");
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                var response = await client.PostAsync(url, null);
+                var result = await response.Content.ReadAsStringAsync();
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                {
+                    await con.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO OTP_Validation 
+         (ctenantID, cuserid, cotpcode, cpurpose, nIsUsed, lusedAt, cexpiryDate) 
+         VALUES (@tenantID, @userID, @otp, @purpose, @isUsed, @usedAt, @expiry)", con))
+                    {
+                        cmd.Parameters.AddWithValue("@tenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@userID", id);
+                        cmd.Parameters.AddWithValue("@otp", otp);
+                        cmd.Parameters.AddWithValue("@purpose", "Forgot Password");
+                        cmd.Parameters.AddWithValue("@isUsed", 0);
+                        cmd.Parameters.AddWithValue("@usedAt", DBNull.Value);
+                        cmd.Parameters.AddWithValue("@expiry", DateTime.Now.AddMinutes(5));
+
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+                var response1 = new APIResponse { status = 200, statusText = "OTP Sent Successfully" };
+                string json2 = JsonConvert.SerializeObject(response1);
+                string encryptedResponse = AesEncryption.Encrypt(json2);
+                return Ok(encryptedResponse);
+            }
+            catch (Exception ex)
+            {
+                var error = new APIResponse { status = 500, statusText = "Error: " + ex.Message };
+                string json = JsonConvert.SerializeObject(error);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(500, encrypted);
+            }
+        }
 
 
         [Authorize]
@@ -1431,48 +1464,7 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        [Authorize]
-        [HttpDelete("Deleteuser")]
-        public async Task<IActionResult> Deleteuser([FromQuery] pay request)
-        {
-            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            var handler = new JwtSecurityTokenHandler();
-            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-            string username = usernameClaim;
-            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
-                 string.IsNullOrWhiteSpace(usernameClaim))
-
-            {
-                var error = new APIResponse
-                {
-                    status = 401,
-                    statusText = "Invalid or missing cTenantID in token."
-                };
-                string errorJson = JsonConvert.SerializeObject(error);
-                string encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(400, $"\"{encryptedError}\"");
-            }
-
-            string decryptedJson = AesEncryption.Decrypt(request.payload);
-            var model = JsonConvert.DeserializeObject<DeleteuserDTO>(decryptedJson);
-            bool success = await _AccountService.DeleteuserAsync(model, cTenantID, username);
-
-            var response = new APIResponse
-            {
-                status = success ? 200 : 404,
-                statusText = success ? "User deleted successfully" : "User not found"
-            };
-
-            string json = JsonConvert.SerializeObject(response);
-            string encrypted = AesEncryption.Encrypt(json);
-            return StatusCode(response.status, $"\"{encrypted}\"");
-        }
-
-
-
+     
     }
 }
             

@@ -33,19 +33,48 @@ namespace TaskEngineAPI.Services
         public async Task<int> InsertSuperAdminAsync(CreateAdminDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
+            string? savedFileName = null;
+            string? savedFilePath = null;
+
+            // 1. Handle attachment saving
+            if (model.Attachments != null && model.Attachments.Any())
+            {
+                var uploadsFolder = Path.Combine(@"D:\Images\SuperAdmin");
+
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                foreach (var attachment in model.Attachments)
+                {
+                    if (attachment != null && attachment.Length > 0)
+                    {                      
+                        savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
+                        savedFilePath = Path.Combine(uploadsFolder, savedFileName);
+
+                        using (var stream = new FileStream(savedFilePath, FileMode.Create))
+                        {
+                            await attachment.CopyToAsync(stream);
+                        }                      
+                        break; 
+                    }
+                }
+            }
+
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
            
-                string query = @"   INSERT INTO AdminUsers (
+                string query = @"INSERT INTO AdminUsers (
         ctenant_Id, cfirst_name, clast_name, cuser_name, cemail, cphoneno, 
         cpassword, crole_id, nis_active, llast_login_at, cpassword_changed_at, 
         clast_login_ip, clast_login_device, ccreated_date, ccreated_by, cmodified_by,
-        lmodified_date) VALUES(
+        lmodified_date,cprofile_image_name, cprofile_image_path) VALUES(
         @TenantID, @FirstName, @LastName, @Username, @Email, @PhoneNo, 
         @Password, @RoleID, @IsActive, @LastLoginAt, @PasswordChangedAt, 
-        @LastLoginIP, @LastLoginDevice, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date);
+        @LastLoginIP, @LastLoginDevice, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@ProfileImageName, @ProfileImagePath);
         SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -68,7 +97,11 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ccreated_by", (object?)model.ccreated_by ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);                                          
+                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
+
+
                     var newId = await cmd.ExecuteScalarAsync();
                     return newId != null ? Convert.ToInt32(newId) : 0;
                 }
@@ -146,7 +179,7 @@ namespace TaskEngineAPI.Services
                    [cemail], [cphoneno], [cpassword], [crole_id], [nis_active], [llast_login_at],
                    [lfailed_login_attempts], [cpassword_changed_at], [cmust_change_password],
                    [clast_login_ip], [clast_login_device],[nis_locked],[ccreated_date],[ccreated_by],[cmodified_by],
-                   [lmodified_date],[nIs_deleted],[cdeleted_by],[ldeleted_date]
+                   [lmodified_date],[nIs_deleted],[cdeleted_by],[ldeleted_date],[cprofile_image_name],[cprofile_image_path]
             FROM [dbo].[AdminUsers] WHERE crole_id = 2 AND ctenant_Id = @TenantID and nis_deleted=0";
 
     
@@ -185,8 +218,8 @@ namespace TaskEngineAPI.Services
                               nIs_deleted = reader.IsDBNull(reader.GetOrdinal("nIs_deleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_deleted")),
                               cdeleted_by = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
                               ldeleted_date = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetString(reader.GetOrdinal("ldeleted_date")),
-
-
+                              cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
+                              cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
                             });                        
                         }
                     }
@@ -198,14 +231,40 @@ namespace TaskEngineAPI.Services
 
         public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
         {
-            var connStr = _config.GetConnectionString("Database");
+            var connStr = _config.GetConnectionString("Database");          
+            string? savedFileName = null;
+            string? savedFilePath = null;
+       
+            if (model.Attachments != null && model.Attachments.Any())
+            {
+                var uploadsFolder = Path.Combine(@"D:\Images\SuperAdmin");
+
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                foreach (var attachment in model.Attachments)
+                {
+                    if (attachment != null && attachment.Length > 0)
+                    {
+                        savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
+                        savedFilePath = Path.Combine(uploadsFolder, savedFileName);
+
+                        using (var stream = new FileStream(savedFilePath, FileMode.Create))
+                        {
+                            await attachment.CopyToAsync(stream);
+                        }
+
+                        break; 
+                    }
+                }
+            }
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
 
                 string query = @"
-        UPDATE AdminUsers SET
+             UPDATE AdminUsers SET
             cfirst_name = @FirstName,
             clast_name = @LastName,
             cuser_name = @Username,
@@ -215,7 +274,9 @@ namespace TaskEngineAPI.Services
             nis_active = @IsActive,
             cmodified_by=cmodified_by,
             lmodified_date=lmodified_date
-        WHERE ID = @ID AND  ctenant_Id = @TenantID";
+            cprofile_image_name = ISNULL(@ProfileImageName, cprofile_image_name),
+            cprofile_image_path = ISNULL(@ProfileImagePath, cprofile_image_path)
+            WHERE ID = @ID AND  ctenant_Id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -230,7 +291,8 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ID", model.cid);                 
                     cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
-
+                    cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
                 }
@@ -267,6 +329,10 @@ namespace TaskEngineAPI.Services
         public async Task<int> InsertUserAsync(CreateUserDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
+            string? savedFileName = null;
+
+          
+
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
 
