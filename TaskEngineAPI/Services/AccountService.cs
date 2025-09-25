@@ -832,7 +832,7 @@ VALUES (
                 string query = @"
         UPDATE AdminUsers SET
             cpassword = @Password,
-            cpassword_changed_at =cPasswordChangedAt          
+            cpassword_changed_at =@cPasswordChangedAt          
         WHERE cuser_name = @ID AND  ctenant_Id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))

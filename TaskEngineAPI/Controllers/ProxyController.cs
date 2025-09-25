@@ -443,26 +443,22 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
+    
         [Authorize]
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
         {
             try
             {
-                // Extract token from incoming request
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
 
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return Unauthorized("Missing Authorization token.");
-                }
-                // Attach token to outbound request
-                // var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}Account/getAllUser");
-                var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl.TrimEnd('/')}/Account/UpdateSuperAdminpassword");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-
-
+                }         
+                var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}Account/UpdateSuperAdminpassword");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());               
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
@@ -481,5 +477,8 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+
+
     }
 }
