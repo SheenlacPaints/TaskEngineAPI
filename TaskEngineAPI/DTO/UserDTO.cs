@@ -74,6 +74,7 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
+        public List<IFormFile>? Attachments { get; set; }
     }
     public class GetUserDTO
     {
@@ -148,6 +149,9 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
+        public string? cprofile_image_name { get; set; }
+        public string? cprofile_image_path { get; set; }
+
     }
     public class UpdateUserDTO
     {
@@ -227,6 +231,7 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
+        public List<IFormFile>? Attachments { get; set; }
     }
     public class DeleteuserDTO
     {

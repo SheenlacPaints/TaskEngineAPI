@@ -306,28 +306,32 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpDelete("Deleteuser")]
         public async Task<IActionResult> Deleteuser([FromQuery] pay request)
         {
             try
             {
-
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(jwtToken))
+                
+                var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
-                    return Unauthorized("Missing Authorization token.");
+                    return Unauthorized("Missing or invalid Authorization token.");
                 }
-                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"{_baseUrl}Account/Deleteuser");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var jwtToken = authHeader.Substring("Bearer ".Length).Trim();           
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");          
+                var requestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Delete,
+                    RequestUri = new Uri($"{_baseUrl}Account/Deleteuser"),
+                    Content = content
+                };
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+              
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, body);
 
+                return StatusCode((int)response.StatusCode, body);
             }
             catch (Exception ex)
             {
@@ -338,10 +342,10 @@ namespace TaskEngineAPI.Controllers
                 };
                 string jsonn = JsonConvert.SerializeObject(err);
                 string enc = AesEncryption.Encrypt(jsonn);
-                string encc = $"\"{enc}\"";
-                return StatusCode(500, encc);
+                return StatusCode(500, $"\"{enc}\"");
             }
         }
+
 
         [Authorize]
         [HttpPost("oTPGenerateAdmin")]

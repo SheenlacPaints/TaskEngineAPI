@@ -330,8 +330,34 @@ namespace TaskEngineAPI.Services
         {
             var connStr = _config.GetConnectionString("Database");
             string? savedFileName = null;
+        
+            string? savedFilePath = null;
 
-          
+            
+            if (model.Attachments != null && model.Attachments.Any())
+            {
+                var uploadsFolder = Path.Combine(@"D:\Images\User");
+
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                foreach (var attachment in model.Attachments)
+                {
+                    if (attachment != null && attachment.Length > 0)
+                    {
+                        savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
+                        savedFilePath = Path.Combine(uploadsFolder, savedFileName);
+
+                        using (var stream = new FileStream(savedFilePath, FileMode.Create))
+                        {
+                            await attachment.CopyToAsync(stream);
+                        }
+                        break;
+                    }
+                }
+            }
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
@@ -350,7 +376,7 @@ INSERT INTO Users (
     [creport_manager_poscode], [creport_manager_pos_desc], [nis_web_access_enabled],
     [nis_event_read], [llast_login_at], [nfailed_logina_attempts], [cpassword_changed_at],
     [nis_locked], [last_login_ip], [last_login_device], [ccreated_date], [ccreated_by],
-    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date]
+    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date],[cprofile_image_name],[cprofile_image_path]
 )
 VALUES (
     @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive,
@@ -365,10 +391,12 @@ VALUES (
     @cReportManager_Poscode, @cReportManager_Posdesc, @nIsWebAccessEnabled,
     @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
     @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby,
-    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate
+    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate,@ProfileImageName, @ProfileImagePath
 )";
 
             using var cmd = new SqlCommand(query, conn);
+            model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+
             cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
             cmd.Parameters.AddWithValue("@ctenantID", model.ctenantID);
             cmd.Parameters.AddWithValue("@cusername", model.cusername);
@@ -438,7 +466,8 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? false);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
-
+            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
 
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
@@ -447,6 +476,34 @@ VALUES (
         public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)
         {
             var connStr = _config.GetConnectionString("Database");
+
+            string? savedFileName = null;
+            string? savedFilePath = null;
+
+            if (model.Attachments != null && model.Attachments.Any())
+            {
+                var uploadsFolder = Path.Combine(@"D:\Images\SuperAdmin");
+
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                foreach (var attachment in model.Attachments)
+                {
+                    if (attachment != null && attachment.Length > 0)
+                    {
+                        savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
+                        savedFilePath = Path.Combine(uploadsFolder, savedFileName);
+
+                        using (var stream = new FileStream(savedFilePath, FileMode.Create))
+                        {
+                            await attachment.CopyToAsync(stream);
+                        }
+
+                        break;
+                    }
+                }
+            }
+
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
 
@@ -515,7 +572,9 @@ VALUES (
         lmodified_date = @lmodifieddate,
         nIs_deleted = @nIsDeleted,
         cdeleted_by = @cDeletedBy,
-        ldeleted_date = @lDeletedDate
+        ldeleted_date = @lDeletedDate,
+        cprofile_image_name = ISNULL(@ProfileImageName, cprofile_image_name),
+        cprofile_image_path = ISNULL(@ProfileImagePath, cprofile_image_path)
         WHERE ctenant_id = @ctenantID and id=@id";
 
             using var cmd = new SqlCommand(query, conn);
@@ -586,7 +645,9 @@ VALUES (
             cmd.Parameters.AddWithValue("@lmodifieddate", (object?)model.lmodifieddate ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);        
+            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;
         }
@@ -616,7 +677,7 @@ VALUES (
       ,[nis_event_read],[llast_login_at],[nfailed_logina_attempts],
 	  [cpassword_changed_at],[nis_locked],[last_login_ip],[last_login_device],
 	  [ccreated_date],[ccreated_by],[cmodified_by],[lmodified_date],[nIs_deleted],[cdeleted_by],
-	  [ldeleted_date] FROM [dbo].[Users]
+	  [ldeleted_date],[cprofile_image_name],[cprofile_image_path]   FROM [dbo].[Users]
         WHERE crole_id = 3 AND ctenant_id = @TenantID and nis_deleted=0";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -698,7 +759,11 @@ VALUES (
                                 lmodifieddate = reader.IsDBNull(reader.GetOrdinal("lmodified_date")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
                                 nIsDeleted = reader.IsDBNull(reader.GetOrdinal("nIs_deleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_deleted")),
                                 cDeletedBy = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
-                                lDeletedDate=reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date"))
+                                lDeletedDate=reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date")),
+                                cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
+                                cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path"))
+
+
                             });                  
                         }
                     }
@@ -733,7 +798,7 @@ VALUES (
                [cReportManager_Posdesc], [nIsWebAccessEnabled], [nIsEventRead], [lLastLoginAt],
                [nFailedLoginAttempts], [cPasswordChangedAt], [nIsLocked], [LastLoginIP],
                [LastLoginDevice], [ccreateddate], [ccreatedby], [cmodifiedby], [lmodifieddate],
-               [nIsDeleted], [cDeletedBy], [lDeletedDate]
+               [nIsDeleted], [cDeletedBy], [lDeletedDate], [cprofile_image_name], [cprofile_image_path]
         FROM [dbo].[Users]
         WHERE croleID = 3 AND cTenantID = @TenantID  and cuserid=@userid";
 
@@ -817,7 +882,10 @@ VALUES (
                                 lmodifieddate = reader.IsDBNull(reader.GetOrdinal("lmodifieddate")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodifieddate")),
                                 nIsDeleted = reader.IsDBNull(reader.GetOrdinal("nIsDeleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIsDeleted")),
                                 cDeletedBy = reader.IsDBNull(reader.GetOrdinal("cDeletedBy")) ? null : reader.GetString(reader.GetOrdinal("cDeletedBy")),
-                                lDeletedDate = reader.IsDBNull(reader.GetOrdinal("lDeletedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("lDeletedDate"))
+                                lDeletedDate = reader.IsDBNull(reader.GetOrdinal("lDeletedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("lDeletedDate")),
+                                cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
+                                cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
+
                             });
                         }
                     }

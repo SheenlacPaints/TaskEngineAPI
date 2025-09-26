@@ -734,7 +734,8 @@ namespace TaskEngineAPI.Controllers
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                    return BadRequest("Invalid or missing cTenantID in token.");
+                  
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
                 var superAdmins = await _AccountService.GetAllUserAsync(cTenantID);
@@ -823,14 +824,8 @@ namespace TaskEngineAPI.Controllers
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromBody] pay request)
         {
-
-
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
-
-
-
-
             bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cusername, model.ctenantID);
             if (usernameExists)
             {
@@ -901,7 +896,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     var error = new APIResponse
                     {
-                        status = 400,
+                        status = 401,
                         statusText = "Invalid or missing cTenantID in token."
                     };
                     string errorJson = JsonConvert.SerializeObject(error);
@@ -963,7 +958,7 @@ namespace TaskEngineAPI.Controllers
 
                 var response = new APIResponse
                 {
-                    status = updated ? 200 : 404,
+                    status = updated ? 200 : 204,
                     statusText = updated ? "User updated successfully" : "User not found or update failed"
                 };
 
@@ -1015,7 +1010,7 @@ namespace TaskEngineAPI.Controllers
 
             var response = new APIResponse
             {
-                status = success ? 200 : 404,
+                status = success ? 200 : 204,
                 statusText = success ? "User deleted successfully" : "User not found"
             };
 
@@ -1040,7 +1035,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     var errorResponse = new APIResponse
                     {
-                        status = 400,
+                        status = 401,
                         statusText = "Invalid or missing cTenantID in token."
                     };
                     string json = JsonConvert.SerializeObject(errorResponse);
@@ -1063,7 +1058,7 @@ namespace TaskEngineAPI.Controllers
 
                 if (model.Count == 0)
                 {
-                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered for this CustomerCode" };
+                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered" };
                     string json = JsonConvert.SerializeObject(responsee);
                     string encrypted = AesEncryption.Encrypt(json);
                     return Ok(encrypted);
@@ -1143,7 +1138,7 @@ namespace TaskEngineAPI.Controllers
                 var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
                 string username = usernameClaim;
                 if (!int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
-                    return EncryptedError(400, "Invalid token claims");
+                    return EncryptedError(401, "Invalid token claims");
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var baseRequest = JsonConvert.DeserializeObject<OtpActionRequest<object>>(decryptedJson);
@@ -1367,7 +1362,7 @@ namespace TaskEngineAPI.Controllers
 
                 if (model.Count == 0)
                 {
-                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered for this CustomerCode" };
+                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered" };
                     string json = JsonConvert.SerializeObject(responsee);
                     string encrypted = AesEncryption.Encrypt(json);
                     return Ok(encrypted);
@@ -1433,12 +1428,12 @@ namespace TaskEngineAPI.Controllers
             {
                 var error = new APIResponse
                 {
-                    status = 400,
+                    status = 401,
                     statusText = "Invalid or missing cTenantID in token."
                 };
                 string errorJson = JsonConvert.SerializeObject(error);
                 string encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(400, $"\"{encryptedError}\"");
+                return StatusCode(401, $"\"{encryptedError}\"");
             }
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
@@ -1446,7 +1441,7 @@ namespace TaskEngineAPI.Controllers
 
             var response = new APIResponse
             {
-                status = success ? 200 : 404,
+                status = success ? 200 : 204,
                 statusText = success ? "Update successful" : "SuperAdmin not found or update failed"
             };
 
