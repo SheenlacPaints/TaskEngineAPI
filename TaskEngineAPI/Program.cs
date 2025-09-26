@@ -116,6 +116,7 @@ app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
+app.UseEncryptionMiddleware();
 app.MapControllers();
 
 app.Run();

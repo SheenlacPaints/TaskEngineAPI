@@ -306,22 +306,28 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
         [HttpDelete("Deleteuser")]
         public async Task<IActionResult> Deleteuser([FromQuery] pay request)
         {
             try
             {
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var requestMessage = new HttpRequestMessage
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
                 {
-                    Method = HttpMethod.Delete,
-                    RequestUri = new Uri($"{_baseUrl}Account/Deleteuser"),
-                    Content = content
-                };
+                    return Unauthorized("Missing Authorization token.");
+                }
+                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"{_baseUrl}Account/Deleteuser");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
+                return StatusCode((int)response.StatusCode, body);
+
             }
             catch (Exception ex)
             {
