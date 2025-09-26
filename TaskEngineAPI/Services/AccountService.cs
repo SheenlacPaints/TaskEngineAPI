@@ -324,8 +324,6 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
-
         public async Task<int> InsertUserAsync(CreateUserDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -334,30 +332,30 @@ namespace TaskEngineAPI.Services
             string? savedFilePath = null;
 
             
-            if (model.Attachments != null && model.Attachments.Any())
-            {
-                var uploadsFolder = Path.Combine(@"D:\Images\User");
+            //if (model.Attachments != null && model.Attachments.Any())
+            //{
+            //    var uploadsFolder = Path.Combine(@"D:\Images\User");
 
-                if (!Directory.Exists(uploadsFolder))
-                {
-                    Directory.CreateDirectory(uploadsFolder);
-                }
+            //    if (!Directory.Exists(uploadsFolder))
+            //    {
+            //        Directory.CreateDirectory(uploadsFolder);
+            //    }
 
-                foreach (var attachment in model.Attachments)
-                {
-                    if (attachment != null && attachment.Length > 0)
-                    {
-                        savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                        savedFilePath = Path.Combine(uploadsFolder, savedFileName);
+            //    foreach (var attachment in model.Attachments)
+            //    {
+            //        if (attachment != null && attachment.Length > 0)
+            //        {
+            //            savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
+            //            savedFilePath = Path.Combine(uploadsFolder, savedFileName);
 
-                        using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                        {
-                            await attachment.CopyToAsync(stream);
-                        }
-                        break;
-                    }
-                }
-            }
+            //            using (var stream = new FileStream(savedFilePath, FileMode.Create))
+            //            {
+            //                await attachment.CopyToAsync(stream);
+            //            }
+            //            break;
+            //        }
+            //    }
+            //}
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
@@ -472,110 +470,99 @@ VALUES (
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
         }
-
+     
         public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)
         {
             var connStr = _config.GetConnectionString("Database");
-
             string? savedFileName = null;
             string? savedFilePath = null;
 
-            if (model.Attachments != null && model.Attachments.Any())
+            if (model.Attachments != null && model.Attachments.Length > 0)
             {
-                var uploadsFolder = Path.Combine(@"D:\Images\SuperAdmin");
+                 savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(model.Attachments.FileName)}";
+                 savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
 
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
+                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
+                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
 
-                foreach (var attachment in model.Attachments)
+                using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
-                    if (attachment != null && attachment.Length > 0)
-                    {
-                        savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                        savedFilePath = Path.Combine(uploadsFolder, savedFileName);
-
-                        using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                        {
-                            await attachment.CopyToAsync(stream);
-                        }
-
-                        break;
-                    }
+                    await model.Attachments.CopyToAsync(stream);
                 }
+
             }
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
-
             string query = @"UPDATE Users SET
-        cuser_name = @cusername,
-        cemail = @cemail,
-        cpassword = @cpassword,
-        [nIs_active] = @nIsActive,
-        [cfirst_name] = @cfirstName,
-        [clast_name] = @clastName,
-        cphoneno = @cphoneno,
-        calternate_phone = @cAlternatePhone,
-        ldob = @ldob,
-        cmarital_status = @cMaritalStatus,
-        cnation = @cnation,
-        cgender = @cgender,
-        caddress = @caddress,
-        caddress1 = @caddress1,
-        caddress2 = @caddress2,
-        cpincode = @cpincode,
-        ccity = @ccity,
-        cstate_code = @cstatecode,
-        cstate_desc = @cstatedesc,
-        ccountry_code = @ccountrycode,
-        profile_image = @ProfileImage,
-        cbank_name = @cbankName,
-        caccount_number = @caccountNumber,
-        ciFSC_code = @ciFSCCode,
-        cpan = @cpAN,
-        ldoj = @ldoj,
-        cemployment_status = @cemploymentStatus,
-        nnotice_period_days = @nnoticePeriodDays,
-        lresignation_date = @lresignationDate,
-        llast_working_date = @llastWorkingDate,
-        cemp_category = @cempcategory,
-        cwork_loc_code = @cworkloccode,
-        cwork_loc_name = @cworklocname,
-        crole_id = @croleID,
-        crole_code = @crolecode,
-        crole_name = @crolename,
-        cgrade_code = @cgradecode,
-        cgrade_desc = @cgradedesc,
-        csub_role_code = @csubrolecode,
-        cdept_code = @cdeptcode,
-        cdept_desc = @cdeptdesc,
-        cjob_code = @cjobcode,
-        cjob_desc = @cjobdesc,
-        creport_mgr_code = @creportmgrcode,
-        creport_mgr_name = @creportmgrname,
-        croll_id = @cRoll_id,
-        croll_name = @cRoll_name,
-        croll_id_mngr = @cRoll_Id_mngr,
-        croll_id_mngr_desc = @cRoll_Id_mngr_desc,
-        creport_manager_empcode = @cReportManager_empcode,
-        creport_manager_poscode = @cReportManager_Poscode,
-        creport_manager_pos_desc = @cReportManager_Posdesc,
-        nis_web_access_enabled = @nIsWebAccessEnabled,
-        nis_event_read = @nIsEventRead,
-        llast_login_at = @lLastLoginAt,
-        nfailed_logina_attempts = @nFailedLoginAttempts,
-        cpassword_changed_at = @cPasswordChangedAt,
-        nis_locked = @nIsLocked,
-        last_login_ip = @LastLoginIP,
-        last_login_device = @LastLoginDevice,
-        cmodified_by = @cmodifiedby,
-        lmodified_date = @lmodifieddate,
-        nIs_deleted = @nIsDeleted,
-        cdeleted_by = @cDeletedBy,
-        ldeleted_date = @lDeletedDate,
-        cprofile_image_name = ISNULL(@ProfileImageName, cprofile_image_name),
-        cprofile_image_path = ISNULL(@ProfileImagePath, cprofile_image_path)
-        WHERE ctenant_id = @ctenantID and id=@id";
+            cuser_name = @cusername,
+            cemail = @cemail,
+            cpassword = @cpassword,
+            [nIs_active] = @nIsActive,
+            [cfirst_name] = @cfirstName,
+            [clast_name] = @clastName,
+            cphoneno = @cphoneno,
+            calternate_phone = @cAlternatePhone,
+            ldob = @ldob,
+            cmarital_status = @cMaritalStatus,
+            cnation = @cnation,
+            cgender = @cgender,
+            caddress = @caddress,
+            caddress1 = @caddress1,
+            caddress2 = @caddress2,
+            cpincode = @cpincode,
+            ccity = @ccity,
+            cstate_code = @cstatecode,
+            cstate_desc = @cstatedesc,
+            ccountry_code = @ccountrycode,
+            profile_image = @ProfileImage,
+            cbank_name = @cbankName,
+            caccount_number = @caccountNumber,
+            ciFSC_code = @ciFSCCode,
+            cpan = @cpAN,
+            ldoj = @ldoj,
+            cemployment_status = @cemploymentStatus,
+            nnotice_period_days = @nnoticePeriodDays,
+            lresignation_date = @lresignationDate,
+            llast_working_date = @llastWorkingDate,
+            cemp_category = @cempcategory,
+            cwork_loc_code = @cworkloccode,
+            cwork_loc_name = @cworklocname,
+            crole_id = @croleID,
+            crole_code = @crolecode,
+            crole_name = @crolename,
+            cgrade_code = @cgradecode,
+            cgrade_desc = @cgradedesc,
+            csub_role_code = @csubrolecode,
+            cdept_code = @cdeptcode,
+            cdept_desc = @cdeptdesc,
+            cjob_code = @cjobcode,
+            cjob_desc = @cjobdesc,
+            creport_mgr_code = @creportmgrcode,
+            creport_mgr_name = @creportmgrname,
+            croll_id = @cRoll_id,
+            croll_name = @cRoll_name,
+            croll_id_mngr = @cRoll_Id_mngr,
+            croll_id_mngr_desc = @cRoll_Id_mngr_desc,
+            creport_manager_empcode = @cReportManager_empcode,
+            creport_manager_poscode = @cReportManager_Poscode,
+            creport_manager_pos_desc = @cReportManager_Posdesc,
+            nis_web_access_enabled = @nIsWebAccessEnabled,
+            nis_event_read = @nIsEventRead,
+            llast_login_at = @lLastLoginAt,
+            nfailed_logina_attempts = @nFailedLoginAttempts,
+            cpassword_changed_at = @cPasswordChangedAt,
+            nis_locked = @nIsLocked,
+            last_login_ip = @LastLoginIP,
+            last_login_device = @LastLoginDevice,
+            cmodified_by = @cmodifiedby,
+            lmodified_date = @lmodifieddate,
+            nIs_deleted = @nIsDeleted,
+            cdeleted_by = @cDeletedBy,
+            ldeleted_date = @lDeletedDate,
+            cprofile_image_name = ISNULL(@ProfileImageName, cprofile_image_name),
+            cprofile_image_path = ISNULL(@ProfileImagePath, cprofile_image_path)
+            WHERE ctenant_id = @ctenantID and id=@id";
 
             using var cmd = new SqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@id", model.id);
@@ -646,12 +633,12 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)model.ProfileImage ?? DBNull.Value);     
             cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
             int rows = await cmd.ExecuteNonQueryAsync();
-            return rows > 0;
+            return rows > 0;   
         }
-
 
         public async Task<List<GetUserDTO>> GetAllUserAsync(int cTenantID)
         {
@@ -774,7 +761,6 @@ VALUES (
             }
         }
 
-
         public async Task<List<GetUserDTO>> GetAllUserIdAsync(int cTenantID,int userid)
         {
             var result = new List<GetUserDTO>();
@@ -894,8 +880,6 @@ VALUES (
             }
         }
 
-
-
         public async Task<bool> CheckuserUsernameExistsAsync(string username, int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
@@ -914,8 +898,6 @@ VALUES (
                 }
             }
         }
-
-
         public async Task<bool> CheckuserEmailExistsAsync(string email, int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
@@ -954,7 +936,6 @@ VALUES (
             }
         }
 
-
         public async Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model,int tenantId, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -981,8 +962,6 @@ VALUES (
                 }
             }
         }
-
-
         public async Task<bool> CheckuserUsernameExistsputAsync(string username, int tenantId,int cuserid)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
@@ -1001,7 +980,6 @@ VALUES (
                 }
             }
         }
-
 
         public async Task<bool> CheckuserEmailExistsputAsync(string email, int tenantId,int cuserid)
         {

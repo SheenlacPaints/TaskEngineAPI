@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace TaskEngineAPI.DTO
 {
@@ -13,6 +14,15 @@ namespace TaskEngineAPI.DTO
     {
         [JsonProperty("payload")]
         public string payload { get; set; }
+    }
+
+
+    public class UpdateUserFormDTO
+    {
+        [Required]
+        public string payload { get; set; }  // Encrypted JSON
+
+        public IFormFile? attachment { get; set; } // Single uploaded file
     }
 
 }

@@ -882,7 +882,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateUser([FromBody] pay request)
+        public async Task<IActionResult> UpdateUser([FromForm] UpdateUserFormDTO request)
         {
             try
             {
@@ -908,8 +908,7 @@ namespace TaskEngineAPI.Controllers
                 var model = JsonConvert.DeserializeObject<UpdateUserDTO>(decryptedJson);
 
                 model.ctenantID = cTenantID;
-
-
+          
                 bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID,model.id);
                 if (usernameExists)
                 {

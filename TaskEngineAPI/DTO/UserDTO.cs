@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace TaskEngineAPI.DTO
 {
@@ -74,7 +75,7 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
-        public List<IFormFile>? Attachments { get; set; }
+        public IFormFile? Attachments { get; set; }
     }
     public class GetUserDTO
     {
@@ -231,11 +232,17 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
-        public List<IFormFile>? Attachments { get; set; }
+        public IFormFile? Attachments { get; set; }
+
+       
     }
     public class DeleteuserDTO
     {
         public int id { get; set; }
     }
+
+
+    
+
 
 }
