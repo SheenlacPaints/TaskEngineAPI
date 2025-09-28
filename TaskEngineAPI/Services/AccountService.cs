@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.SqlClient;
 using System.Net;
+using System.Net.Mail;
 using System.Reflection.PortableExecutable;
 using Microsoft.Extensions.Configuration;
 using TaskEngineAPI.DTO;
@@ -324,38 +325,27 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<int> InsertUserAsync(CreateUserDTO model)
+        public async Task<int> InsertUserAsync(CreateUserDTO model, IFormFile? attachment)
         {
             var connStr = _config.GetConnectionString("Database");
-            string? savedFileName = null;
-        
-            string? savedFilePath = null;
+            string? savedFileName = null;      
+            string? savedFilePath = null;          
+            if (attachment != null && attachment.Length > 0)
+            {
+                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
+                savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
 
-            
-            //if (model.Attachments != null && model.Attachments.Any())
-            //{
-            //    var uploadsFolder = Path.Combine(@"D:\Images\User");
+                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
+                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
 
-            //    if (!Directory.Exists(uploadsFolder))
-            //    {
-            //        Directory.CreateDirectory(uploadsFolder);
-            //    }
+                using (var stream = new FileStream(savedFilePath, FileMode.Create))
+                {
+                    await attachment.CopyToAsync(stream);
+                }
 
-            //    foreach (var attachment in model.Attachments)
-            //    {
-            //        if (attachment != null && attachment.Length > 0)
-            //        {
-            //            savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-            //            savedFilePath = Path.Combine(uploadsFolder, savedFileName);
+            }
 
-            //            using (var stream = new FileStream(savedFilePath, FileMode.Create))
-            //            {
-            //                await attachment.CopyToAsync(stream);
-            //            }
-            //            break;
-            //        }
-            //    }
-            //}
+
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
@@ -471,15 +461,15 @@ VALUES (
             return rows > 0 ? model.cuserid : 0;
         }
      
-        public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)
+        public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID,IFormFile? attachment )
         {
             var connStr = _config.GetConnectionString("Database");
             string? savedFileName = null;
             string? savedFilePath = null;
 
-            if (model.Attachments != null && model.Attachments.Length > 0)
+            if (attachment != null && attachment.Length > 0)
             {
-                 savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(model.Attachments.FileName)}";
+                 savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
                  savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
 
                 if (!Directory.Exists(@"D:\Images\SuperAdmin"))
@@ -487,7 +477,7 @@ VALUES (
 
                 using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
-                    await model.Attachments.CopyToAsync(stream);
+                    await attachment.CopyToAsync(stream);
                 }
 
             }

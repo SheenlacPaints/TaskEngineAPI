@@ -822,7 +822,7 @@ namespace TaskEngineAPI.Controllers
         }
 
         [HttpPost("CreateUser")]
-        public async Task<IActionResult> CreateUser([FromBody] pay request)
+        public async Task<IActionResult> CreateUser([FromForm] InputDTO request)
         {
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
@@ -868,7 +868,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(409, encryptedConflict);
             }
 
-            int result = await _AccountService.InsertUserAsync(model);
+            int result = await _AccountService.InsertUserAsync(model,request.attachment);
             var response = new APIResponse
             {
                 status = result > 0 ? 200 : 400,
@@ -882,7 +882,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateUser([FromForm] UpdateUserFormDTO request)
+        public async Task<IActionResult> UpdateUser([FromForm] InputDTO request)
         {
             try
             {
@@ -905,6 +905,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var attachment = (request.attachment);
                 var model = JsonConvert.DeserializeObject<UpdateUserDTO>(decryptedJson);
 
                 model.ctenantID = cTenantID;
@@ -953,7 +954,7 @@ namespace TaskEngineAPI.Controllers
 
 
 
-                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID);
+                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID, request.attachment);
 
                 var response = new APIResponse
                 {

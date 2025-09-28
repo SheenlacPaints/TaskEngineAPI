@@ -17,7 +17,7 @@ namespace TaskEngineAPI.DTO
     }
 
 
-    public class UpdateUserFormDTO
+    public class InputDTO
     {
         [Required]
         public string payload { get; set; }  // Encrypted JSON

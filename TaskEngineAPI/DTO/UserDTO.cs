@@ -75,7 +75,6 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
-        public IFormFile? Attachments { get; set; }
     }
     public class GetUserDTO
     {
@@ -232,8 +231,6 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
-        public IFormFile? Attachments { get; set; }
-
        
     }
     public class DeleteuserDTO
