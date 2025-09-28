@@ -168,7 +168,7 @@ namespace TaskEngineAPI.Controllers
         }
   
         [HttpPost("CreateUser")]
-        public async Task<IActionResult> CreateUser([FromBody] pay request)
+        public async Task<IActionResult> CreateUser([FromForm] InputDTO request)
         {
             try
             {
@@ -272,7 +272,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPut("updateUser")]
-        public async Task<IActionResult> updateUser([FromForm] pay request)
+        public async Task<IActionResult> updateUser([FromForm] InputDTO request)
         {
             try
             {

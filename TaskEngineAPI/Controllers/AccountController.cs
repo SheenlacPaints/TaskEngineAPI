@@ -1182,11 +1182,9 @@ namespace TaskEngineAPI.Controllers
                             updateCmd.Parameters.AddWithValue("@otp", baseRequest.otp);
                             await updateCmd.ExecuteNonQueryAsync();
                         }
-
                         tx.Commit();
                     }
                 }
-
                 // Handle actions
                 switch (baseRequest.action?.ToUpper())
                 {
@@ -1233,7 +1231,6 @@ namespace TaskEngineAPI.Controllers
                             return StatusCode(500, encryptapierrDtls);
                         }
                         break;
-
 
                     case "PUT":
                         var updateModel = JsonConvert.DeserializeObject<OtpActionRequest<UpdateAdminDTO>>(decryptedJson);
