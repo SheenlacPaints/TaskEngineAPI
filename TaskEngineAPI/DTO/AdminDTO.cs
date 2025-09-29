@@ -98,7 +98,18 @@ namespace TaskEngineAPI.DTO
         public string otp { get; set; }
         public string action { get; set; }
         public T payload { get; set; }
+
     }
+
+    public class OtpRequest<T>
+    {
+        public string otp { get; set; }
+        public string action { get; set; }
+        public T payload { get; set; }
+        public IFormFile? attachment { get; set; }
+
+    }
+    
     public class forgototp
     {
         public string? cphoneno { get; set; }

@@ -31,39 +31,25 @@ namespace TaskEngineAPI.Services
             throw new NotImplementedException();
         }
 
-        public async Task<int> InsertSuperAdminAsync(CreateAdminDTO model)
+        public async Task<int> InsertSuperAdminAsync(CreateAdminDTO model, IFormFile? attachment)
         {
             var connStr = _config.GetConnectionString("Database");
             string? savedFileName = null;
-            string? savedFilePath = null;
-
-            // 1. Handle attachment saving
-            if (model.Attachments != null && model.Attachments.Any())
+            string? savedFilePath = null;     
+            if (attachment != null && attachment.Length > 0)
             {
-                var uploadsFolder = Path.Combine(@"D:\Images\SuperAdmin");
+                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
+                savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
 
-                if (!Directory.Exists(uploadsFolder))
+                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
+                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
+
+                using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
-                    Directory.CreateDirectory(uploadsFolder);
+                    await attachment.CopyToAsync(stream);
                 }
 
-                foreach (var attachment in model.Attachments)
-                {
-                    if (attachment != null && attachment.Length > 0)
-                    {                      
-                        savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                        savedFilePath = Path.Combine(uploadsFolder, savedFileName);
-
-                        using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                        {
-                            await attachment.CopyToAsync(stream);
-                        }                      
-                        break; 
-                    }
-                }
             }
-
-
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
@@ -230,34 +216,25 @@ namespace TaskEngineAPI.Services
         }
 
 
-        public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
+        public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model,IFormFile? attachment)
         {
             var connStr = _config.GetConnectionString("Database");          
             string? savedFileName = null;
             string? savedFilePath = null;
-       
-            if (model.Attachments != null && model.Attachments.Any())
+          
+            if (attachment != null && attachment.Length > 0)
             {
-                var uploadsFolder = Path.Combine(@"D:\Images\SuperAdmin");
+                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
+                savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
 
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
+                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
+                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
 
-                foreach (var attachment in model.Attachments)
+                using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
-                    if (attachment != null && attachment.Length > 0)
-                    {
-                        savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                        savedFilePath = Path.Combine(uploadsFolder, savedFileName);
-
-                        using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                        {
-                            await attachment.CopyToAsync(stream);
-                        }
-
-                        break; 
-                    }
+                    await attachment.CopyToAsync(stream);
                 }
+
             }
 
             using (SqlConnection conn = new SqlConnection(connStr))
@@ -333,10 +310,10 @@ namespace TaskEngineAPI.Services
             if (attachment != null && attachment.Length > 0)
             {
                 savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
+                savedFilePath = Path.Combine(@"D:\Images\User", savedFileName);
 
-                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
-                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
+                if (!Directory.Exists(@"D:\Images\User"))
+                    Directory.CreateDirectory(@"D:\Images\User");
 
                 using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
@@ -344,8 +321,6 @@ namespace TaskEngineAPI.Services
                 }
 
             }
-
-
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
@@ -470,10 +445,10 @@ VALUES (
             if (attachment != null && attachment.Length > 0)
             {
                  savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                 savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
+                 savedFilePath = Path.Combine(@"D:\Images\User", savedFileName);
 
-                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
-                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
+                if (!Directory.Exists(@"D:\Images\User"))
+                    Directory.CreateDirectory(@"D:\Images\User");
 
                 using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {

@@ -21,6 +21,7 @@ using System.Net.Http.Headers;
 using System.Drawing;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
+using System.Net.Mail;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -522,7 +523,7 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("CreateSuperAdmin")]
-        public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
+        public async Task<IActionResult> CreateSuperAdmin([FromForm] InputDTO request)
         {
             try
             {
@@ -574,7 +575,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 // Insert into database
-                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
+                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model,request.attachment);
 
                 if (insertedUserId <= 0)
                 {
@@ -662,12 +663,12 @@ namespace TaskEngineAPI.Controllers
         }
 
         [HttpPut("UpdateSuperAdmin")]
-        public async Task<IActionResult> UpdateSuperAdmin([FromBody] pay request)
+        public async Task<IActionResult> UpdateSuperAdmin([FromForm] InputDTO request)
         {
 
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<UpdateAdminDTO>(decryptedJson);
-            bool success = await _AccountService.UpdateSuperAdminAsync(model);
+            bool success = await _AccountService.UpdateSuperAdminAsync(model,request.attachment);
 
             var response = new APIResponse
             {
@@ -1127,7 +1128,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost("verifyOtpAndExecute")]
-        public async Task<ActionResult> VerifyOtpAndExecute([FromBody] pay request)
+        public async Task<ActionResult> VerifyOtpAndExecute([FromForm] InputDTO request)
         {
             try
             {
@@ -1202,7 +1203,7 @@ namespace TaskEngineAPI.Controllers
                             model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
                             // Insert new admin
-                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
+                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model,request.attachment);
 
                             if (insertedUserId <= 0)
                                 return EncryptedError(500, "Failed to create Super Admin");
@@ -1234,7 +1235,7 @@ namespace TaskEngineAPI.Controllers
 
                     case "PUT":
                         var updateModel = JsonConvert.DeserializeObject<OtpActionRequest<UpdateAdminDTO>>(decryptedJson);
-                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload);
+                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload,request.attachment);
                         return EncryptedSuccess(updated ? "Update successful" : "Update failed");
 
                     case "DELETE":
