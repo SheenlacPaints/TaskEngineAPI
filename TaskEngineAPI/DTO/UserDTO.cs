@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace TaskEngineAPI.DTO
 {
@@ -75,8 +76,6 @@ namespace TaskEngineAPI.DTO
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
     }
-
-
     public class GetUserDTO
     {
         
@@ -150,10 +149,16 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
-    }
+        public string? cprofile_image_name { get; set; }
+        public string? cprofile_image_path { get; set; }
 
+    }
     public class UpdateUserDTO
     {
+
+        [Required]
+        public int id { get; set; }
+
         [Required]
         public int cuserid { get; set; }
 
@@ -226,9 +231,15 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
+       
+    }
+    public class DeleteuserDTO
+    {
+        public int id { get; set; }
     }
 
 
+    
 
 
 }

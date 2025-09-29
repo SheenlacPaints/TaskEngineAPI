@@ -20,6 +20,8 @@ using BCrypt.Net;
 using System.Net.Http.Headers;
 using System.Drawing;
 using System.Net.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using System.Net.Mail;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -39,7 +41,6 @@ namespace TaskEngineAPI.Controllers
             _jwtService = jwtService;
             _AccountService = AccountService;
         }
-
 
         [HttpPost]
         [Route("Login")]
@@ -78,12 +79,12 @@ namespace TaskEngineAPI.Controllers
                         {
                             if (await reader.ReadAsync())
                             {
-                                username = reader["cusername"]?.ToString();
-                                firstname = reader["cfirstName"]?.ToString();
-                                lastname = reader["clastName"]?.ToString();
-                                roleid = reader["croleID"]?.ToString();
-                                tenantID = reader["cTenantID"]?.ToString();
-                                tenantname = reader["cTenantCode"]?.ToString();
+                                username = reader["cuser_name"]?.ToString();
+                                firstname = reader["cfirst_name"]?.ToString();
+                                lastname = reader["clast_name"]?.ToString();
+                                roleid = reader["crole_id"]?.ToString();
+                                tenantID = reader["ctenant_id"]?.ToString();
+                                tenantname = reader["ctenant_code"]?.ToString();
                                 email = reader["cemail"]?.ToString();
                                 hashedPassword = reader["cpassword"]?.ToString();
                             }
@@ -460,14 +461,13 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("EncryptInputint")]
-        public ActionResult<string> EncryptInputint([FromBody] string id)
+        public ActionResult<string> EncryptInputint(CreateAdminDTO CreateAdminDTO)
         {
-            string json = JsonConvert.SerializeObject(id);
+            string json = JsonConvert.SerializeObject(CreateAdminDTO);
             string encrypted = Encrypt(json);
             return Ok(encrypted);
 
         }
-
 
         public static string Decrypt(string cipherText)
         {
@@ -512,7 +512,6 @@ namespace TaskEngineAPI.Controllers
             return Ok(Decrypted);
         }
 
-
         [HttpPost]
         [Route("DecryptedInput_API")]
         public ActionResult<string> DecryptedInput_API([FromBody] string encryptedInput)
@@ -524,7 +523,7 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("CreateSuperAdmin")]
-        public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
+        public async Task<IActionResult> CreateSuperAdmin([FromForm] InputDTO request)
         {
             try
             {
@@ -533,8 +532,50 @@ namespace TaskEngineAPI.Controllers
                 // Insert into database             
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
+
+                bool emailExists = await _AccountService.CheckEmailExistsAsync(model.cemail, model.ctenant_Id);
+                if (emailExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Email already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
+                bool usernameExists = await _AccountService.CheckUsernameExistsAsync(model.cuser_name, model.ctenant_Id);
+                if (usernameExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Username already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
+
+                bool phenonoExists = await _AccountService.CheckPhenonoExistsAsync(model.cphoneno, model.ctenant_Id);
+                if (phenonoExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Phoneno already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
+
                 // Insert into database
-                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
+                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model,request.attachment);
 
                 if (insertedUserId <= 0)
                 {
@@ -587,7 +628,8 @@ namespace TaskEngineAPI.Controllers
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                    return BadRequest("Invalid or missing cTenantID in token.");
+                  
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
                 var superAdmins = await _AccountService.GetAllSuperAdminsAsync(cTenantID);
@@ -620,14 +662,13 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [HttpPut("UpdateSuperAdmin")]
-        public async Task<IActionResult> UpdateSuperAdmin([FromBody] pay request)
+        public async Task<IActionResult> UpdateSuperAdmin([FromForm] InputDTO request)
         {
 
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<UpdateAdminDTO>(decryptedJson);
-            bool success = await _AccountService.UpdateSuperAdminAsync(model);
+            bool success = await _AccountService.UpdateSuperAdminAsync(model,request.attachment);
 
             var response = new APIResponse
             {
@@ -649,11 +690,15 @@ namespace TaskEngineAPI.Controllers
             var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
             var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
-            {
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                 string.IsNullOrWhiteSpace(usernameClaim))
+
+                {
                 var error = new APIResponse
                 {
-                    status = 400,
+                    status = 401,
                     statusText = "Invalid or missing cTenantID in token."
                 };
                 string errorJson = JsonConvert.SerializeObject(error);
@@ -663,7 +708,7 @@ namespace TaskEngineAPI.Controllers
 
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<DeleteAdminDTO>(decryptedJson);
-            bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID);
+            bool success = await _AccountService.DeleteSuperAdminAsync(model, cTenantID, username);
 
             var response = new APIResponse
             {
@@ -675,17 +720,156 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, $"\"{encrypted}\"");
         }
+   
+        [Authorize]
+        [HttpGet]
+        [Route("GetAllUser")]
+        public async Task<ActionResult> GetAllUser()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                  
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+
+                var superAdmins = await _AccountService.GetAllUserAsync(cTenantID);
 
 
 
-        [HttpPost("CreateUser")]
-        public async Task<IActionResult> CreateUser([FromBody] pay request)
+                var response = new APIResponse
+                {
+                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
+                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
+                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetAllUserbyid")]
+        public async Task<ActionResult> GetAllUserbyid([FromQuery] string id)
         {
 
+            string decrypted = AesEncryption.Decrypt(id)?.Trim();
 
+            if (!int.TryParse(decrypted, out int userid))
+                return BadRequest($"Invalid user id: {decrypted}");
+            return BadRequest("Invalid user id");
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return BadRequest("Invalid or missing cTenantID in token.");
+                }
+
+                var superAdmins = await _AccountService.GetAllUserIdAsync(cTenantID, userid);
+
+
+
+                var response = new APIResponse
+                {
+                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
+                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
+                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+        [HttpPost("CreateUser")]
+        public async Task<IActionResult> CreateUser([FromForm] InputDTO request)
+        {
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
-            int result = await _AccountService.InsertUserAsync(model);
+            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cusername, model.ctenantID);
+            if (usernameExists)
+            {
+                var conflictResponse = new
+                {
+                    status = 409,
+                    error = "Conflict",
+                    message = "Username already exists"
+                };
+                string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                return StatusCode(409, encryptedConflict);
+            }
+
+            bool useremailExists = await _AccountService.CheckuserEmailExistsAsync(model.cemail, model.ctenantID);
+            if (useremailExists)
+            {
+                var conflictResponse = new
+                {
+                    status = 409,
+                    error = "Conflict",
+                    message = "Email already exists"
+                };
+                string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                return StatusCode(409, encryptedConflict);
+            }
+
+            bool userphonenoExists = await _AccountService.CheckuserPhonenoExistsAsync(model.cphoneno, model.ctenantID);
+            if (userphonenoExists)
+            {
+                var conflictResponse = new
+                {
+                    status = 409,
+                    error = "Conflict",
+                    message = "Phoneno already exists"
+                };
+                string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                return StatusCode(409, encryptedConflict);
+            }
+
+            int result = await _AccountService.InsertUserAsync(model,request.attachment);
             var response = new APIResponse
             {
                 status = result > 0 ? 200 : 400,
@@ -697,10 +881,9 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(response.status, encrypted);
         }
 
-
         [Authorize]
         [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateUser([FromBody] pay request)
+        public async Task<IActionResult> UpdateUser([FromForm] InputDTO request)
         {
             try
             {
@@ -714,7 +897,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     var error = new APIResponse
                     {
-                        status = 400,
+                        status = 401,
                         statusText = "Invalid or missing cTenantID in token."
                     };
                     string errorJson = JsonConvert.SerializeObject(error);
@@ -723,15 +906,60 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var attachment = (request.attachment);
                 var model = JsonConvert.DeserializeObject<UpdateUserDTO>(decryptedJson);
 
                 model.ctenantID = cTenantID;
+          
+                bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID,model.id);
+                if (usernameExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Username already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
 
-                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID);
+                bool useremailExists = await _AccountService.CheckuserEmailExistsputAsync(model.cemail, model.ctenantID, model.id);
+                if (useremailExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Email already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
+
+                bool userphonenoExists = await _AccountService.CheckuserPhonenoExistsputAsync(model.cphoneno, model.ctenantID, model.id);
+                if (userphonenoExists)
+                {
+                    var conflictResponse = new
+                    {
+                        status = 409,
+                        error = "Conflict",
+                        message = "Phoneno already exists"
+                    };
+                    string conflictJson = JsonConvert.SerializeObject(conflictResponse);
+                    var encryptedConflict = AesEncryption.Encrypt(conflictJson);
+                    return StatusCode(409, encryptedConflict);
+                }
+
+
+
+                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID, request.attachment);
 
                 var response = new APIResponse
                 {
-                    status = updated ? 200 : 404,
+                    status = updated ? 200 : 204,
                     statusText = updated ? "User updated successfully" : "User not found or update failed"
                 };
 
@@ -752,6 +980,45 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpDelete("Deleteuser")]
+        public async Task<IActionResult> Deleteuser([FromQuery] pay request)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                 string.IsNullOrWhiteSpace(usernameClaim))
+
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(400, $"\"{encryptedError}\"");
+            }
+
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<DeleteuserDTO>(decryptedJson);
+            bool success = await _AccountService.DeleteuserAsync(model, cTenantID, username);
+
+            var response = new APIResponse
+            {
+                status = success ? 200 : 204,
+                statusText = success ? "User deleted successfully" : "User not found"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, $"\"{encrypted}\"");
+        }
 
         [Authorize]
         [HttpPost]
@@ -769,14 +1036,14 @@ namespace TaskEngineAPI.Controllers
                 {
                     var errorResponse = new APIResponse
                     {
-                        status = 400,
+                        status = 401,
                         statusText = "Invalid or missing cTenantID in token."
                     };
                     string json = JsonConvert.SerializeObject(errorResponse);
                     string encrypted = AesEncryption.Encrypt(json);
                     return Ok(encrypted);
                 }
-                string query = "SELECT cphoneno,cusername FROM AdminUsers WHERE croleID = 1 AND cTenantID = @tenantID";
+                string query = "SELECT cphoneno,cuser_name FROM AdminUsers WHERE crole_id = 1 AND ctenant_Id = @tenantID";
                 DataSet ds1 = new DataSet();
 
                 using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -792,7 +1059,7 @@ namespace TaskEngineAPI.Controllers
 
                 if (model.Count == 0)
                 {
-                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered for this CustomerCode" };
+                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered" };
                     string json = JsonConvert.SerializeObject(responsee);
                     string encrypted = AesEncryption.Encrypt(json);
                     return Ok(encrypted);
@@ -843,8 +1110,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
         private ActionResult EncryptedError(int status, string message)
         {
             var response = new APIResponse { status = status, statusText = message };
@@ -861,10 +1126,9 @@ namespace TaskEngineAPI.Controllers
             return Ok(encrypted);
         }
 
-
         [Authorize]
         [HttpPost("verifyOtpAndExecute")]
-        public async Task<ActionResult> VerifyOtpAndExecute([FromBody] pay request)
+        public async Task<ActionResult> VerifyOtpAndExecute([FromForm] InputDTO request)
         {
             try
             {
@@ -872,9 +1136,10 @@ namespace TaskEngineAPI.Controllers
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-
-                if (!int.TryParse(tenantIdClaim, out int cTenantID))
-                    return EncryptedError(400, "Invalid token claims");
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                string username = usernameClaim;
+                if (!int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                    return EncryptedError(401, "Invalid token claims");
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var baseRequest = JsonConvert.DeserializeObject<OtpActionRequest<object>>(decryptedJson);
@@ -918,11 +1183,9 @@ namespace TaskEngineAPI.Controllers
                             updateCmd.Parameters.AddWithValue("@otp", baseRequest.otp);
                             await updateCmd.ExecuteNonQueryAsync();
                         }
-
                         tx.Commit();
                     }
                 }
-
                 // Handle actions
                 switch (baseRequest.action?.ToUpper())
                 {
@@ -940,7 +1203,7 @@ namespace TaskEngineAPI.Controllers
                             model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
                             // Insert new admin
-                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
+                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model,request.attachment);
 
                             if (insertedUserId <= 0)
                                 return EncryptedError(500, "Failed to create Super Admin");
@@ -970,15 +1233,14 @@ namespace TaskEngineAPI.Controllers
                         }
                         break;
 
-
                     case "PUT":
                         var updateModel = JsonConvert.DeserializeObject<OtpActionRequest<UpdateAdminDTO>>(decryptedJson);
-                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload);
+                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload,request.attachment);
                         return EncryptedSuccess(updated ? "Update successful" : "Update failed");
 
                     case "DELETE":
                         var deleteModel = JsonConvert.DeserializeObject<OtpActionRequest<DeleteAdminDTO>>(decryptedJson);
-                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID);
+                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID,username);
                         return EncryptedSuccess(deleted ? "Deleted successfully" : "Not found");
 
                     default:
@@ -992,112 +1254,201 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-        [Authorize]
-        [HttpGet]
-        [Route("GetAllUserbyid")]
-        public async Task<ActionResult> GetAllUserbyid([FromQuery] string id)
-        {
-
-            string decrypted = AesEncryption.Decrypt(id)?.Trim();
-
-            if (!int.TryParse(decrypted, out int userid))
-                return BadRequest($"Invalid user id: {decrypted}");
-                return BadRequest("Invalid user id");
-                try
-            {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
-                {
-                    return BadRequest("Invalid or missing cTenantID in token.");
-                }
-
-                var superAdmins = await _AccountService.GetAllUserIdAsync(cTenantID, userid);
-
-
-
-                var response = new APIResponse
-                {
-                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
-                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
-                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
-                };
-
-                string jsoner = JsonConvert.SerializeObject(response);
-                var encrypted = AesEncryption.Encrypt(jsoner);
-                return StatusCode(200, encrypted);
-            }
-            catch (Exception ex)
-            {
-                var errorResponse = new APIResponse
-                {
-                    body = Array.Empty<object>(),
-                    statusText = $"Error: {ex.Message}",
-                    status = 500
-                };
-
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
-            }
-        }
-
-
-        [Authorize]
-        [HttpGet]
-        [Route("GetAllUser")]
-        public async Task<ActionResult> GetAllUser()
+        [HttpPost("verifyOtpforforgetpassword")]
+        public async Task<ActionResult> VerifyOtpforforgetpassword([FromBody] pay request)
         {
             try
             {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var modeld = JsonConvert.DeserializeObject<ForgotOtpverify>(decryptedJson);
 
-                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
                 {
-                    return BadRequest("Invalid or missing cTenantID in token.");
+                    await con.OpenAsync();
+                    using (var tx = con.BeginTransaction())
+                    {
+                        string query = @"SELECT TOP 1 ctenantID, cuserid, cpurpose, nIsUsed, cexpiryDate 
+                                 FROM OTP_Validation 
+                                 WHERE cotpcode = @otp AND cpurpose = 'Forgot Password'";
+
+                        int tenantId = 0;
+                        string userName = null;
+
+                        using (SqlCommand cmd = new SqlCommand(query, con, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@otp", modeld.otp);
+
+                            using (var reader = await cmd.ExecuteReaderAsync())
+                            {
+                                if (!reader.HasRows)
+                                    return EncryptedError(404, "OTP not found");
+
+                                await reader.ReadAsync();
+
+                                if (Convert.ToBoolean(reader["nIsUsed"]))
+                                    return EncryptedError(403, "OTP already used");
+
+                                if (DateTime.Now > Convert.ToDateTime(reader["cexpiryDate"]))
+                                    return EncryptedError(410, "OTP expired");
+
+                                tenantId = Convert.ToInt32(reader["ctenantID"]);
+                                userName = reader["cuserid"].ToString();
+                            }
+                        }
+
+                        // Mark OTP as used
+                        string updateQuery = @"UPDATE OTP_Validation 
+                                       SET nIsUsed = 1, lusedAt = GETDATE() 
+                                       WHERE cotpcode = @otp AND cpurpose = 'Forgot Password'";
+                        using (SqlCommand updateCmd = new SqlCommand(updateQuery, con, tx))
+                        {
+                            updateCmd.Parameters.AddWithValue("@otp", modeld.otp);
+                            await updateCmd.ExecuteNonQueryAsync();
+                        }
+
+                        // Generate JWT token using values from OTP_Validation
+                        var accessToken = _jwtService.GenerateJwtToken(userName, tenantId, out var tokenExpiry);
+
+                        tx.Commit();
+
+                        // Return OTP verified message + JWT token
+                        var response1 = new APIResponse
+                        {
+                            status = 200,
+                            statusText = "OTP Verified Successfully",                          
+                            body = new object[] { new { token = accessToken, expiresAt = tokenExpiry } }
+
+                        };
+
+                        string json2 = JsonConvert.SerializeObject(response1);
+                        string encryptedResponse = AesEncryption.Encrypt(json2);
+                        return Ok(encryptedResponse);
+                    }
                 }
-
-                var superAdmins = await _AccountService.GetAllUserAsync(cTenantID);
-
-
-
-                var response = new APIResponse
-                {
-                    body = superAdmins?.ToArray() ?? Array.Empty<object>(),
-                    statusText = superAdmins == null || !superAdmins.Any() ? "No Users found" : "Successful",
-                    status = superAdmins == null || !superAdmins.Any() ? 204 : 200
-                };
-
-                string jsoner = JsonConvert.SerializeObject(response);
-                var encrypted = AesEncryption.Encrypt(jsoner);
-                return StatusCode(200, encrypted);
             }
             catch (Exception ex)
             {
-                var errorResponse = new APIResponse
-                {
-                    body = Array.Empty<object>(),
-                    statusText = $"Error: {ex.Message}",
-                    status = 500
-                };
-
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
+                var error = new APIResponse { status = 500, statusText = "Error: " + ex.Message };
+                string json = JsonConvert.SerializeObject(error);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(500, encrypted);
             }
         }
 
+        [HttpPost]
+        [Route("Forgotpasswordmaster")]
+        public async Task<ActionResult> Forgotpasswordmaster([FromBody] pay request)
+        {
+            try
+            {
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var modeld = JsonConvert.DeserializeObject<forgototp>(decryptedJson);
 
+                string query = "SELECT top 1 cuser_name,cphoneno,cTenant_ID FROM AdminUsers WHERE cphoneno=@cphoneno";
+                DataSet ds1 = new DataSet();
 
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.Parameters.AddWithValue("@cphoneno", modeld.cphoneno);
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(ds1);
+                }
 
+                string op = JsonConvert.SerializeObject(ds1.Tables[0], Formatting.Indented);
+                var model = JsonConvert.DeserializeObject<List<DTO.forgototpModel>>(op);
 
+                if (model.Count == 0)
+                {
+                    var responsee = new APIResponse { status = 500, statusText = "Mobile Number Not Registered" };
+                    string json = JsonConvert.SerializeObject(responsee);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return Ok(encrypted);
+                }
+
+                string mobile = model[0].cphoneno;
+                int id = Convert.ToInt32(model[0].cuser_name);
+                int cTenantID = Convert.ToInt32(model[0].cTenant_ID);
+                int otp = new Random().Next(100000, 999999);
+
+                var url = "https://44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a@api.exotel.com/v1/Accounts/sheenlac2/Sms/send%20?From=08047363322&To=" + mobile + "&Body=Your Verification Code is  " + otp + " - Allpaints.in";
+
+                var client = new HttpClient();
+
+                var byteArray = Encoding.ASCII.GetBytes("44d5837031a337405506c716260bed50bd5cb7d2b25aa56c:57bbd9d33fb4411f82b2f9b324025c8a63c75a5b237c745a");
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                var response = await client.PostAsync(url, null);
+                var result = await response.Content.ReadAsStringAsync();
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+                {
+                    await con.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO OTP_Validation 
+         (ctenantID, cuserid, cotpcode, cpurpose, nIsUsed, lusedAt, cexpiryDate) 
+         VALUES (@tenantID, @userID, @otp, @purpose, @isUsed, @usedAt, @expiry)", con))
+                    {
+                        cmd.Parameters.AddWithValue("@tenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@userID", id);
+                        cmd.Parameters.AddWithValue("@otp", otp);
+                        cmd.Parameters.AddWithValue("@purpose", "Forgot Password");
+                        cmd.Parameters.AddWithValue("@isUsed", 0);
+                        cmd.Parameters.AddWithValue("@usedAt", DBNull.Value);
+                        cmd.Parameters.AddWithValue("@expiry", DateTime.Now.AddMinutes(5));
+
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+                var response1 = new APIResponse { status = 200, statusText = "OTP Sent Successfully" };
+                string json2 = JsonConvert.SerializeObject(response1);
+                string encryptedResponse = AesEncryption.Encrypt(json2);
+                return Ok(encryptedResponse);
+            }
+            catch (Exception ex)
+            {
+                var error = new APIResponse { status = 500, statusText = "Error: " + ex.Message };
+                string json = JsonConvert.SerializeObject(error);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(500, encrypted);
+            }
+        }
+
+        [Authorize]
+        [HttpPut("UpdateSuperAdminpassword")]
+        public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;        
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(401, $"\"{encryptedError}\"");
+            }
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
+            bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, username);
+
+            var response = new APIResponse
+            {
+                status = success ? 200 : 204,
+                statusText = success ? "Update successful" : "SuperAdmin not found or update failed"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, encrypted);
+        }
+
+     
     }
 }
             
