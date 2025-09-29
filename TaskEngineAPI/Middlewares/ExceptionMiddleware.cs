@@ -29,6 +29,8 @@ namespace TaskEngineAPI.Middlewares
                
                 Exceptionlog.LogException(
                     message: ex.Message,
+
+
                     docType: "GlobalMiddleware",
                     ex: ex,
                     tenantId: tenantId,

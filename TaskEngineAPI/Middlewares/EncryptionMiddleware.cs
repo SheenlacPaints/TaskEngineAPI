@@ -15,7 +15,7 @@ public class EncryptionMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
        
-        context.Request.EnableBuffering(); // allows reading multiple times
+        context.Request.EnableBuffering(); 
         string requestBody = string.Empty;
         using (var reader = new StreamReader(context.Request.Body, Encoding.UTF8, leaveOpen: true))
         {
