@@ -22,6 +22,7 @@ using System.Drawing;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Net.Mail;
+using Microsoft.IdentityModel.Tokens;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -466,7 +467,14 @@ namespace TaskEngineAPI.Controllers
             string json = JsonConvert.SerializeObject(CreateAdminDTO);
             string encrypted = Encrypt(json);
             return Ok(encrypted);
+        }
 
+        [HttpPost]
+        [Route("Encryptpassword")]
+        public ActionResult<string> Encryptpassword(string password)
+        {
+          var  passwords = BCrypt.Net.BCrypt.HashPassword(password);
+            return Ok(passwords);
         }
 
         public static string Decrypt(string cipherText)
@@ -827,6 +835,21 @@ namespace TaskEngineAPI.Controllers
         {
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
+            byte[]? fileBytes = null;
+            string? fileExtension = null;
+
+            if (request.attachment != null && request.attachment.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await request.attachment.CopyToAsync(ms);
+                fileBytes = ms.ToArray();
+
+                fileExtension = Path.GetExtension(request.attachment.FileName);
+               
+            }
+           
+
+
             bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cusername, model.ctenantID);
             if (usernameExists)
             {
@@ -869,7 +892,8 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(409, encryptedConflict);
             }
 
-            int result = await _AccountService.InsertUserAsync(model,request.attachment);
+         int result = await _AccountService.InsertUserAsync(model, request.attachment);
+           
             var response = new APIResponse
             {
                 status = result > 0 ? 200 : 400,
@@ -1448,7 +1472,10 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(response.status, encrypted);
         }
 
-     
+
+
+       
+
     }
 }
             

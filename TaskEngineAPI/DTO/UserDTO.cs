@@ -75,6 +75,7 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
+
     }
     public class GetUserDTO
     {
@@ -238,8 +239,7 @@ namespace TaskEngineAPI.DTO
         public int id { get; set; }
     }
 
-
-    
+   
 
 
 }

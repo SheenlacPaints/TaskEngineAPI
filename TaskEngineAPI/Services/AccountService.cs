@@ -4,9 +4,11 @@ using System.Net;
 using System.Net.Mail;
 using System.Reflection.PortableExecutable;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
+using TaskEngineAPI.Models;
 using TaskEngineAPI.Repositories;
 
 namespace TaskEngineAPI.Services
@@ -18,12 +20,13 @@ namespace TaskEngineAPI.Services
         private readonly IAdminRepository _repository;
         private readonly IConfiguration _config;
         private readonly IAdminRepository _AdminRepository;
-
-        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository)
+        private readonly UploadSettings _uploadSettings;
+        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository,IOptions<UploadSettings> uploadSettings)
         {
             _repository = repository;
             _config = _configuration;
             _AdminRepository = AdminRepository;
+            _uploadSettings = uploadSettings.Value;
         }
 
         public Task<APIResponse> CreateSuperAdminAsync(CreateAdminDTO model)
@@ -41,9 +44,10 @@ namespace TaskEngineAPI.Services
                 savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
                 savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
 
-                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
-                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
+                var uploadsFolder = _uploadSettings.SuperadminUploadPath;
 
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);        
                 using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
                     await attachment.CopyToAsync(stream);
@@ -226,9 +230,11 @@ namespace TaskEngineAPI.Services
             {
                 savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
                 savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
+              
+                var uploadsFolder = _uploadSettings.SuperadminUploadPath;
 
-                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
-                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
 
                 using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
@@ -302,24 +308,32 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<int> InsertUserAsync(CreateUserDTO model, IFormFile? attachment)
+        public async Task<int> InsertUserAsync(CreateUserDTO model, IFormFile attachment)
         {
             var connStr = _config.GetConnectionString("Database");
             string? savedFileName = null;      
-            string? savedFilePath = null;          
+            string? savedFilePath = null;
+
             if (attachment != null && attachment.Length > 0)
             {
-                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                savedFilePath = Path.Combine(@"D:\Images\User", savedFileName);
-
-                if (!Directory.Exists(@"D:\Images\User"))
-                    Directory.CreateDirectory(@"D:\Images\User");
-
-                using (var stream = new FileStream(savedFilePath, FileMode.Create))
+                try
                 {
+                    var uploadsFolder = @"D:\Images\User";
+
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    var fileExtension = Path.GetExtension(attachment.FileName);
+                    savedFileName = $"{Guid.NewGuid()}{fileExtension}";
+                    savedFilePath = Path.Combine(uploadsFolder, savedFileName);
+
+                    using var stream = new FileStream(savedFilePath, FileMode.Create);
                     await attachment.CopyToAsync(stream);
                 }
-
+                catch (Exception ex)
+                {
+                    throw new Exception("Error saving attachment: " + ex.Message, ex);
+                }
             }
 
             using var conn = new SqlConnection(connStr);
