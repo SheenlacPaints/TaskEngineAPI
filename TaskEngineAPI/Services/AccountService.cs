@@ -41,19 +41,17 @@ namespace TaskEngineAPI.Services
             string? savedFilePath = null;     
             if (attachment != null && attachment.Length > 0)
             {
-                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
-
+                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";            
                 var uploadsFolder = _uploadSettings.SuperadminUploadPath;
 
                 if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);        
+                    Directory.CreateDirectory(uploadsFolder);
+                savedFilePath = Path.Combine(uploadsFolder, savedFileName);
                 using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
                     await attachment.CopyToAsync(stream);
                 }
-
-            }
+            }                
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
@@ -228,21 +226,18 @@ namespace TaskEngineAPI.Services
           
             if (attachment != null && attachment.Length > 0)
             {
-                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
-              
+                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";                      
                 var uploadsFolder = _uploadSettings.SuperadminUploadPath;
 
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
-
+                savedFilePath = Path.Combine(uploadsFolder, savedFileName);
                 using (var stream = new FileStream(savedFilePath, FileMode.Create))
                 {
                     await attachment.CopyToAsync(stream);
                 }
 
-            }
-
+            }           
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
