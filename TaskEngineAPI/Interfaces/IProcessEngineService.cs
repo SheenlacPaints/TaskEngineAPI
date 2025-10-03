@@ -7,5 +7,9 @@ namespace TaskEngineAPI.Interfaces
     {
 
         Task<List<ProcessEngineTypeDTO>> GetAllProcessenginetypeAsync(int cTenantID);
+
+        Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID,string username);
+
+
     }
 }
