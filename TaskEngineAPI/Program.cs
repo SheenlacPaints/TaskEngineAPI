@@ -75,7 +75,7 @@ builder.Services.AddSwaggerGen(swagger =>
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminService, AccountService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
-
+builder.Services.AddScoped<IProcessEngineService, ProcessEngineService>();
 
 // Configure CORS
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -115,8 +115,8 @@ app.UseExceptionHandler("/Error");
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<ExceptionMiddleware>();
-app.UseEncryptionMiddleware();
+//app.UseMiddleware<ExceptionMiddleware>();
+//app.UseEncryptionMiddleware();
 app.MapControllers();
 
 app.Run();
