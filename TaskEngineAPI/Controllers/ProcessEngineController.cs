@@ -11,7 +11,8 @@ using System.Data.SqlClient;
 
 namespace TaskEngineAPI.Controllers
 {
-
+    [ApiController]
+    [Route("api/[controller]")]
     public class ProcessEngineController : ControllerBase
 
     {
