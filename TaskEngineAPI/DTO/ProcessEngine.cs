@@ -25,7 +25,7 @@
     public class ProcessEngineChildItems
     {
         public string? cprocesscode { get; set; }
-        public string? ciseqno { get; set; }
+        public int? ciseqno { get; set; }
         public string? cseq_order { get; set; }       
         public string cactivitycode { get; set; }
         public string cactivitydescription { get; set; }

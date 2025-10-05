@@ -556,7 +556,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost("CreateProcessEngine")]
-        public async Task<IActionResult> CreateProcessEngine()
+        public async Task<IActionResult> CreateProcessEngine([FromBody] pay request)
         {
             try
             {
@@ -567,14 +567,12 @@ namespace TaskEngineAPI.Controllers
                 {
                     return Unauthorized("Missing Authorization token.");
                 }
-
-                // Attach token to outbound request
+          
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/CreateProcessEngine");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }
