@@ -1,4 +1,5 @@
 ﻿using System.Data.SqlClient;
+using System.Net.NetworkInformation;
 using Microsoft.Extensions.Options;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Interfaces;
@@ -112,7 +113,7 @@ namespace TaskEngineAPI.Services
 
                      
                         string queryDetail = @"
-                INSERT INTO tbl_processengine_details (
+                INSERT INTO tbl_process_engine_details (
                     ctenentid, ciseqno, cprocesscode, cseq_order, cactivitycode, cactivitydescription, 
                     ctasktype, cprevstep, cactivityname, cnextseqno, 
                     ccreated_date, ccreated_by, cmodified_by, lmodified_date
@@ -194,6 +195,63 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
+
+      //  public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(GetProcessEngineDTO model,int cTenantID)
+
+      //  {
+      //      var result = new List<GetProcessEngineDTO>();
+      //      var connStr = _config.GetConnectionString("Database");
+
+      //      using (SqlConnection conn = new SqlConnection(connStr))
+      //      {
+      //          await conn.OpenAsync();
+
+      //          string query = @"
+      //      SELECT [cseq_id],[slug],[ctenentid],[ciseqno],[cprocesscode],[cprocessname],[ctype],[cstatus],[cuser_id],[cuser_name],[crole_code]
+      //,[crole_name],[cposition_code],[cposition_title],[cdepartment_code],[cdepartment_name],[ccreated_by],[ccreated_date],[cmodified_by]
+      //,[lmodified_date] FROM [dbo].[tbl_process_engine_master] WHERE   ctenentid = @TenantID";
+          
+      //          using (SqlCommand cmd = new SqlCommand(query, conn))
+      //          {
+      //              cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+      //              using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+      //              {
+      //                  while (await reader.ReadAsync())
+      //                  {
+      //                      result.Add(new GetProcessEngineDTO
+      //                      {
+
+      //                          ctype = reader.GetString(reader.GetOrdinal("ctype")),
+      //                          cseq_id= reader.GetString(reader.GetOrdinal("cseq_id")),
+      //                          ciseqno= reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cprocesscode = reader.GetString(reader.GetOrdinal("cprocesscode"),
+      //                          cprocessname = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cstatus = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cuser_id = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cuser_name = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          crole_code = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          crole_name = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cposition_code = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cposition_title = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cdepartment_code = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cdepartment_name = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          ccreated_by = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          ccreated_date = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          lmodified_date = reader.GetString(reader.GetOrdinal("ciseqno"),
+      //                          cmodified_by = reader.GetString(reader.GetOrdinal("ciseqno")
+
+
+      //                      });
+      //                  }
+      //              }
+      //          }
+      //          return result;
+      //      }
+      //  }
+
+
+
 
     }
 
