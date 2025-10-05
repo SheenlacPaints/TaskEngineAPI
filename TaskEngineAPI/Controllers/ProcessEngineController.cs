@@ -172,7 +172,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GetAllProcessEngine")]
-        public async Task<ActionResult> GetAllSuperAdmin()
+        public async Task<ActionResult> GetAllProcessEngine()
         {
             try
             {

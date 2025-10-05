@@ -56,11 +56,22 @@ namespace TaskEngineAPI.Helpers
             return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
         }
 
-        public static int? SafeGetInt(this SqlDataReader reader, string column)
+        //public static int? SafeGetInt(this SqlDataReader reader, string column)
+        //{
+        //    int ordinal = reader.GetOrdinal(column);
+        //    return reader.IsDBNull(ordinal) ? null : reader.GetInt32(ordinal);
+        //}
+
+
+        public static int SafeGetInt(this SqlDataReader reader, string column)
         {
-            int ordinal = reader.GetOrdinal(column);
-            return reader.IsDBNull(ordinal) ? null : reader.GetInt32(ordinal);
+            var ordinal = reader.GetOrdinal(column);
+            if (reader.IsDBNull(ordinal))
+                return 0; // or null if your DTO supports nullable int
+            return Convert.ToInt32(reader.GetValue(ordinal));
         }
+
+
 
         public static DateTime? SafeGetDateTime(this SqlDataReader reader, string column)
         {

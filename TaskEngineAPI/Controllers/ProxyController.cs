@@ -7,13 +7,13 @@ using TaskEngineAPI.Helpers;
 
 namespace TaskEngineAPI.Controllers
 {
-    
 
-        [ApiController]
-        [Route("api/[controller]")]
-        public class ProxyController : ControllerBase
 
-        { 
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ProxyController : ControllerBase
+
+    {
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
         public ProxyController(IHttpClientFactory httpClientFactory, IConfiguration config)
@@ -21,7 +21,7 @@ namespace TaskEngineAPI.Controllers
             _httpClient = httpClientFactory.CreateClient();
             _baseUrl = config["Proxy:SheenlacApiBaseUrl"];
         }
-   
+
         [HttpPost("adminLogin")]
         public async Task<IActionResult> Adminlogin([FromBody] pay request)
         {
@@ -29,7 +29,7 @@ namespace TaskEngineAPI.Controllers
             {
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}Account/Login", content);
-                var body = await response.Content.ReadAsStringAsync();                                   
+                var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }
@@ -109,7 +109,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-   
+
         [HttpPut("updateSuperAdmin")]
         public async Task<IActionResult> updateSuperAdmin([FromBody] pay request)
         {
@@ -166,7 +166,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-  
+
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromForm] InputDTO request)
         {
@@ -312,14 +312,14 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-                
+
                 var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
                     return Unauthorized("Missing or invalid Authorization token.");
                 }
-                var jwtToken = authHeader.Substring("Bearer ".Length).Trim();           
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");          
+                var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var requestMessage = new HttpRequestMessage
                 {
                     Method = HttpMethod.Delete,
@@ -327,7 +327,7 @@ namespace TaskEngineAPI.Controllers
                     Content = content
                 };
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
-              
+
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
 
@@ -492,9 +492,9 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return Unauthorized("Missing Authorization token.");
-                }         
+                }
                 var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}Account/UpdateSuperAdminpassword");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());               
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
@@ -567,12 +567,50 @@ namespace TaskEngineAPI.Controllers
                 {
                     return Unauthorized("Missing Authorization token.");
                 }
-          
+
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/CreateProcessEngine");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("GetAllProcessEngine")]
+        public async Task<IActionResult> GetAllProcessEngine()
+        {
+            try
+            {
+                // Extract token from incoming request
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                // Attach token to outbound request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}Account/GetAllProcessEngine");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }

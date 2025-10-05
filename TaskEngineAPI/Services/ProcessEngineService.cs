@@ -197,59 +197,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-      //  public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID)
-
-      //  {
-      //      var result = new List<GetProcessEngineDTO>();
-      //      var connStr = _config.GetConnectionString("Database");
-
-      //      using (SqlConnection conn = new SqlConnection(connStr))
-      //      {
-      //          await conn.OpenAsync();
-
-      //          string query = @"
-      //      SELECT [cseq_id],[slug],[ctenentid],[ciseqno],[cprocesscode],[cprocessname],[ctype],[cstatus],[cuser_id],[cuser_name],[crole_code]
-      //,[crole_name],[cposition_code],[cposition_title],[cdepartment_code],[cdepartment_name],[ccreated_by],[ccreated_date],[cmodified_by]
-      //,[lmodified_date] FROM [dbo].[tbl_process_engine_master] WHERE   ctenentid = @TenantID";
-
-      //          using (SqlCommand cmd = new SqlCommand(query, conn))
-      //          {
-      //              cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-
-      //              using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-      //              {
-      //                  while (await reader.ReadAsync())
-      //                  {
-      //                      result.Add(new GetProcessEngineDTO
-      //                      {
-
-      //                          ctype = reader.GetString(reader.GetOrdinal("ctype")),
-      //                          cseq_id = reader.GetInt32(reader.GetOrdinal("cseq_id")),
-      //                          ciseqno = reader.GetString(reader.GetOrdinal("ciseqno")),
-      //                          cprocesscode = reader.GetString(reader.GetOrdinal("cprocesscode")),
-      //                          cprocessname = reader.GetString(reader.GetOrdinal("cprocessname")),                            
-      //                          cstatus = reader.GetString(reader.GetOrdinal("cstatus")),
-      //                          cuser_id = reader.GetString(reader.GetOrdinal("cuser_id")),
-      //                          cuser_name = reader.GetString(reader.GetOrdinal("cuser_name")),
-      //                          crole_code = reader.GetString(reader.GetOrdinal("crole_code")),
-      //                          crole_name = reader.GetString(reader.GetOrdinal("crole_name")),
-      //                          cposition_code = reader.GetString(reader.GetOrdinal("cposition_code")),
-      //                          cposition_title = reader.GetString(reader.GetOrdinal("cposition_title")),
-      //                          cdepartment_code = reader.GetString(reader.GetOrdinal("cdepartment_code")),
-      //                          cdepartment_name = reader.GetString(reader.GetOrdinal("cdepartment_name")),
-      //                          ccreated_by = reader.GetString(reader.GetOrdinal("ccreated_by")),
-      //                          ccreated_date = reader.GetDateTime(reader.GetOrdinal("ccreated_date")),
-      //                          lmodified_date = reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
-      //                          cmodified_by = reader.GetString(reader.GetOrdinal("cmodified_by")),
-
-      //                      });
-      //                  }
-      //              }
-      //          }
-      //          return result;
-      //      }
-      //  }
-
+    
         public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID)
         {
             var result = new Dictionary<int, GetProcessEngineDTO>();
@@ -272,7 +220,7 @@ namespace TaskEngineAPI.Services
                 LEFT JOIN tbl_process_engine_details d 
                     ON m.cprocesscode = d.cprocesscode AND  m.cseq_id = d.ciseqno
                 LEFT JOIN tbl_process_engine_condition c 
-                    ON d.cprocesscode = c.cprocesscode AND d.ciseqno = c.ciseqno 
+                    ON  d.ciseqno = c.ciseqno 
                 WHERE m.ctenentid = @TenantID
                 ORDER BY m.cseq_id, d.cseq_order, c.icondseqno";
 
@@ -360,9 +308,7 @@ namespace TaskEngineAPI.Services
             return result.Values.ToList();
         }
 
-
-
-        
+   
     }
 
 }
