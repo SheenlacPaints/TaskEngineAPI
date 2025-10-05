@@ -2,6 +2,7 @@
 using System.Net.NetworkInformation;
 using Microsoft.Extensions.Options;
 using TaskEngineAPI.DTO;
+using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
 
@@ -196,7 +197,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-      //  public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(GetProcessEngineDTO model,int cTenantID)
+      //  public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID)
 
       //  {
       //      var result = new List<GetProcessEngineDTO>();
@@ -210,7 +211,7 @@ namespace TaskEngineAPI.Services
       //      SELECT [cseq_id],[slug],[ctenentid],[ciseqno],[cprocesscode],[cprocessname],[ctype],[cstatus],[cuser_id],[cuser_name],[crole_code]
       //,[crole_name],[cposition_code],[cposition_title],[cdepartment_code],[cdepartment_name],[ccreated_by],[ccreated_date],[cmodified_by]
       //,[lmodified_date] FROM [dbo].[tbl_process_engine_master] WHERE   ctenentid = @TenantID";
-          
+
       //          using (SqlCommand cmd = new SqlCommand(query, conn))
       //          {
       //              cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -223,24 +224,23 @@ namespace TaskEngineAPI.Services
       //                      {
 
       //                          ctype = reader.GetString(reader.GetOrdinal("ctype")),
-      //                          cseq_id= reader.GetString(reader.GetOrdinal("cseq_id")),
-      //                          ciseqno= reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cprocesscode = reader.GetString(reader.GetOrdinal("cprocesscode"),
-      //                          cprocessname = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cstatus = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cuser_id = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cuser_name = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          crole_code = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          crole_name = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cposition_code = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cposition_title = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cdepartment_code = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cdepartment_name = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          ccreated_by = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          ccreated_date = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          lmodified_date = reader.GetString(reader.GetOrdinal("ciseqno"),
-      //                          cmodified_by = reader.GetString(reader.GetOrdinal("ciseqno")
-
+      //                          cseq_id = reader.GetInt32(reader.GetOrdinal("cseq_id")),
+      //                          ciseqno = reader.GetString(reader.GetOrdinal("ciseqno")),
+      //                          cprocesscode = reader.GetString(reader.GetOrdinal("cprocesscode")),
+      //                          cprocessname = reader.GetString(reader.GetOrdinal("cprocessname")),                            
+      //                          cstatus = reader.GetString(reader.GetOrdinal("cstatus")),
+      //                          cuser_id = reader.GetString(reader.GetOrdinal("cuser_id")),
+      //                          cuser_name = reader.GetString(reader.GetOrdinal("cuser_name")),
+      //                          crole_code = reader.GetString(reader.GetOrdinal("crole_code")),
+      //                          crole_name = reader.GetString(reader.GetOrdinal("crole_name")),
+      //                          cposition_code = reader.GetString(reader.GetOrdinal("cposition_code")),
+      //                          cposition_title = reader.GetString(reader.GetOrdinal("cposition_title")),
+      //                          cdepartment_code = reader.GetString(reader.GetOrdinal("cdepartment_code")),
+      //                          cdepartment_name = reader.GetString(reader.GetOrdinal("cdepartment_name")),
+      //                          ccreated_by = reader.GetString(reader.GetOrdinal("ccreated_by")),
+      //                          ccreated_date = reader.GetDateTime(reader.GetOrdinal("ccreated_date")),
+      //                          lmodified_date = reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
+      //                          cmodified_by = reader.GetString(reader.GetOrdinal("cmodified_by")),
 
       //                      });
       //                  }
@@ -250,9 +250,119 @@ namespace TaskEngineAPI.Services
       //      }
       //  }
 
+        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID)
+        {
+            var result = new Dictionary<int, GetProcessEngineDTO>();
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using var conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+                string query = @"
+                SELECT 
+                    m.cseq_id, m.ctenentid, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, m.cstatus,
+                    m.cuser_id, m.cuser_name, m.crole_code, m.crole_name, m.cposition_code, m.cposition_title,
+                    m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.ccreated_date, m.cmodified_by, m.lmodified_date,
+                    d.cactivitycode, d.cactivitydescription, d.ctasktype, d.cprevstep, d.cactivityname, d.cnextseqno, d.cseq_order,
+                    c.icondseqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfieldvalue, c.ccondition,
+                    c.remarks1, c.remarks2, c.remarks3
+                FROM tbl_process_engine_master m
+                LEFT JOIN tbl_process_engine_details d 
+                    ON m.cprocesscode = d.cprocesscode AND  m.cseq_id = d.ciseqno
+                LEFT JOIN tbl_process_engine_condition c 
+                    ON d.cprocesscode = c.cprocesscode AND d.ciseqno = c.ciseqno 
+                WHERE m.ctenentid = @TenantID
+                ORDER BY m.cseq_id, d.cseq_order, c.icondseqno";
+
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    int cseq_id = reader.GetInt32(reader.GetOrdinal("cseq_id"));
+
+                    if (!result.TryGetValue(cseq_id, out var engine))
+                    {
+                        engine = new GetProcessEngineDTO
+                        {
+                            cseq_id = cseq_id,
+                            ciseqno = reader.SafeGetString("ciseqno"),
+                            cprocesscode = reader.SafeGetString("cprocesscode"),
+                            cprocessname = reader.SafeGetString("cprocessname"),
+                            ctype = reader.SafeGetString("ctype"),
+                            cstatus = reader.SafeGetString("cstatus"),
+                            cuser_id = reader.SafeGetString("cuser_id"),
+                            cuser_name = reader.SafeGetString("cuser_name"),
+                            crole_code = reader.SafeGetString("crole_code"),
+                            crole_name = reader.SafeGetString("crole_name"),
+                            cposition_code = reader.SafeGetString("cposition_code"),
+                            cposition_title = reader.SafeGetString("cposition_title"),
+                            cdepartment_code = reader.SafeGetString("cdepartment_code"),
+                            cdepartment_name = reader.SafeGetString("cdepartment_name"),
+                            ccreated_by = reader.SafeGetString("ccreated_by"),
+                            ccreated_date = reader.SafeGetDateTime("ccreated_date"),
+                            cmodified_by = reader.SafeGetString("cmodified_by"),
+                            lmodified_date = reader.SafeGetDateTime("lmodified_date"),
+                            ProcessEngineChildItems = new List<ProcessEngineChildItems>()
+                        };
+                        result[cseq_id] = engine;
+                    }
+
+                    string activityCode = reader.SafeGetString("cactivitycode");
+                    if (!string.IsNullOrEmpty(activityCode))
+                    {
+                        var child = engine.ProcessEngineChildItems.FirstOrDefault(x => x.cactivitycode == activityCode);
+                        if (child == null)
+                        {
+                            child = new ProcessEngineChildItems
+                            {
+                                cactivitycode = activityCode,
+                                cactivitydescription = reader.SafeGetString("cactivitydescription"),
+                                ctasktype = reader.SafeGetString("ctasktype"),
+                                cprevstep = reader.SafeGetString("cprevstep"),
+                                cactivityname = reader.SafeGetString("cactivityname"),
+                                cnextseqno = reader.SafeGetString("cnextseqno"),
+                                cseq_order = reader.SafeGetString("cseq_order"),
+                                ProcessEngineConditionDetails = new List<ProcessEngineConditionDetails>()
+                            };
+                            engine.ProcessEngineChildItems.Add(child);
+                        }
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("icondseqno")))
+                        {
+                            child.ProcessEngineConditionDetails.Add(new ProcessEngineConditionDetails
+                            {
+                                cprocesscode = reader.SafeGetString("cprocesscode"),
+                                ciseqno = reader.SafeGetInt("ciseqno"),
+                                icondseqno = reader.SafeGetInt("icondseqno"),
+                                cseq_order = reader.SafeGetInt("cond_seq_order"),
+                                ctype = reader.SafeGetString("cond_type"),
+                                clabel = reader.SafeGetString("clabel"),
+                                cfieldvalue = reader.SafeGetString("cfieldvalue"),
+                                ccondition = reader.SafeGetString("ccondition"),
+                                remarks1 = reader.SafeGetString("remarks1"),
+                                remarks2 = reader.SafeGetString("remarks2"),
+                                remarks3 = reader.SafeGetString("remarks3")
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+               // _logger.LogError(ex, "Error fetching process engine data for tenant {TenantID}", cTenantID);
+                throw;
+            }
+
+            return result.Values.ToList();
+        }
 
 
 
+        
     }
 
 }

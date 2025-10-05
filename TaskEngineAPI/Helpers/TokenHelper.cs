@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Data.SqlClient;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace TaskEngineAPI.Helpers
@@ -47,7 +48,28 @@ namespace TaskEngineAPI.Helpers
         }
     }
 
- 
+    public static class SqlDataReaderExtensions
+    {
+        public static string SafeGetString(this SqlDataReader reader, string column)
+        {
+            int ordinal = reader.GetOrdinal(column);
+            return reader.IsDBNull(ordinal) ? null : reader.GetString(ordinal);
+        }
+
+        public static int? SafeGetInt(this SqlDataReader reader, string column)
+        {
+            int ordinal = reader.GetOrdinal(column);
+            return reader.IsDBNull(ordinal) ? null : reader.GetInt32(ordinal);
+        }
+
+        public static DateTime? SafeGetDateTime(this SqlDataReader reader, string column)
+        {
+            int ordinal = reader.GetOrdinal(column);
+            return reader.IsDBNull(ordinal) ? null : reader.GetDateTime(ordinal);
+        }
+    }
+
+
 
 }
 
