@@ -27,12 +27,15 @@
         public string? cprocesscode { get; set; }
         public int? ciseqno { get; set; }
         public string? cseq_order { get; set; }       
-        public string cactivitycode { get; set; }
-        public string cactivitydescription { get; set; }
-        public string ctasktype { get; set; }
-        public string cprevstep { get; set; }
-        public string cactivityname { get; set; }
-        public string cnextseqno { get; set; }
+        public string? cactivitycode { get; set; }
+        public string? cactivitydescription { get; set; }
+        public string? ctasktype { get; set; }
+        public string? cprevstep { get; set; }
+        public string? cactivityname { get; set; }
+        public string? cnextseqno { get; set; }
+        public string? cassignee { get; set; }
+        public string? cprocess_type { get; set; }
+
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
 
     }

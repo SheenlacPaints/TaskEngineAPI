@@ -60,7 +60,6 @@ namespace TaskEngineAPI.Services
                 return result;
             }
         }
-
         public async Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -117,11 +116,11 @@ namespace TaskEngineAPI.Services
                 INSERT INTO tbl_process_engine_details (
                     ctenentid, ciseqno, cprocesscode, cseq_order, cactivitycode, cactivitydescription, 
                     ctasktype, cprevstep, cactivityname, cnextseqno, 
-                    ccreated_date, ccreated_by, cmodified_by, lmodified_date
+                    ccreated_date, ccreated_by, cmodified_by, lmodified_date,cassignee,cprocess_type
                 ) VALUES (
                     @TenantID, @ciseqno, @cprocesscode, @cseq_order, @cactivitycode, @cactivitydescription, 
                     @ctasktype, @cprevstep, @cactivityname, @cnextseqno, 
-                    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date
+                    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cassignee,@cprocess_type
                 );";
 
                         foreach (var detail in model.ProcessEngineChildItems)
@@ -142,11 +141,12 @@ namespace TaskEngineAPI.Services
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-
+                                cmdDetail.Parameters.AddWithValue("@cassignee", detail.cassignee);
+                                cmdDetail.Parameters.AddWithValue("@cprocess_type", detail.cprocess_type);
                                 await cmdDetail.ExecuteNonQueryAsync();
                             }
 
-                            // ================= CONDITION =================
+                         
                             string queryCondition = @"
                     INSERT INTO tbl_process_engine_condition (
                         ctenentid, cprocesscode, ciseqno, cseq_order, icondseqno, ctype, 
@@ -195,9 +195,7 @@ namespace TaskEngineAPI.Services
                     }
                 }
             }
-        }
-
-    
+        }   
         public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID)
         {
             var result = new Dictionary<int, GetProcessEngineDTO>();
@@ -307,7 +305,6 @@ namespace TaskEngineAPI.Services
 
             return result.Values.ToList();
         }
-
    
     }
 
