@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Newtonsoft.Json;
 using TaskEngineAPI.Data;
 using TaskEngineAPI.Interfaces;
+using System.IdentityModel.Tokens.Jwt;
+using TaskEngineAPI.Services;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -15,14 +17,82 @@ namespace TaskEngineAPI.Controllers
         private readonly IConfiguration _config;
         private readonly IConfiguration _configuration;
         private readonly IJwtService _jwtService;
-        private readonly IAdminService _AccountService;
+        private readonly ITaskMasterService _TaskMasterService;
         private readonly ApplicationDbContext _context;
-        public TaskMasterController(IConfiguration configuration, IJwtService jwtService, IAdminService AccountService)
+        public TaskMasterController(IConfiguration configuration, IJwtService jwtService, ITaskMasterService TaskMasterService)
         {
 
             _config = configuration;
             _jwtService = jwtService;
-            _AccountService = AccountService;
+            _TaskMasterService = TaskMasterService;
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("InsertTask")]
+        public async Task<IActionResult> InsertTask([FromBody] pay request)
+        {
+            try
+            {
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                string username = usernameClaim;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, $"\"{encryptedError}\"");
+                }
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<TaskMasterDTO>(decryptedJson);
+
+                  int insertedUserId = await _TaskMasterService.InsertTaskMasterAsync(model, cTenantID, username);
+
+                if (insertedUserId <= 0)
+                {
+                    return StatusCode(500, new APIResponse
+                    {
+                        status = 500,
+                        statusText = "Failed to create Process"
+                    });
+                }
+
+                // Prepare response
+                var apierDtls = new APIResponse
+                {
+                    status = 200,
+                    statusText = "Process created successfully",
+                    body = new object[] { new { UserID = insertedUserId } }
+                };
+                string jsone = JsonConvert.SerializeObject(apierDtls);
+                var encryptapierDtls = AesEncryption.Encrypt(jsone);
+                return StatusCode(200, encryptapierDtls);
+            }
+            catch (Exception ex)
+            {
+
+                var apierrDtls = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Error creating Super Admin ",
+                    error = ex.Message
+                };
+
+                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                return StatusCode(500, encryptapierrDtls);
+
+            }
         }
 
 

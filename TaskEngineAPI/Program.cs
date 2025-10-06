@@ -76,7 +76,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminService, AccountService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IProcessEngineService, ProcessEngineService>();
-
+builder.Services.AddScoped<ITaskMasterService, TaskMasterService>();
 // Configure CORS
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>

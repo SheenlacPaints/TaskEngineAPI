@@ -49,6 +49,14 @@ namespace TaskEngineAPI.Controllers
 
 
         [HttpPost]
+        [Route("EncryptPassword")]
+        public ActionResult<string> Encryptpassword([FromBody] string password)
+        {
+            var hashed = BCrypt.Net.BCrypt.HashPassword(password);
+            return Ok(hashed);
+        }
+
+        [HttpPost]
         [Route("EncryptInput")]
         public ActionResult<string> EncryptInput([FromBody] ProcessEngineDTO user)
         {
@@ -56,6 +64,70 @@ namespace TaskEngineAPI.Controllers
             string encrypted = Encrypt(json);
             return Ok(encrypted);
 
+        }       
+      
+        [HttpPost]
+        [Route("EncryptInputint")]
+        public ActionResult<string> EncryptInputint(CreateAdminDTO CreateAdminDTO)
+        {
+            string json = JsonConvert.SerializeObject(CreateAdminDTO);
+            string encrypted = Encrypt(json);
+            return Ok(encrypted);
+        }
+
+        [HttpPost]
+        [Route("Decrypt")]
+        public ActionResult<string> Decrypt([FromBody] string encryptedInput)
+        {
+            string json = JsonConvert.SerializeObject(encryptedInput);
+            string encrypted = Decrypt1(json);
+            return Ok(encrypted);
+
+        }
+
+        [HttpPost]
+        [Route("DecryptedInput_API")]
+        public ActionResult<string> DecryptedInput_API([FromBody] string encryptedInput)
+        {
+
+            string Decrypted = DecryptAPI(encryptedInput);
+            return Ok(Decrypted);
+        }
+
+      
+        public static string DecryptAPI(string cipherText)
+        {
+            byte[] buffer = Convert.FromBase64String(cipherText);
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = ENCKey;
+                aes.IV = IV;
+                aes.Padding = PaddingMode.PKCS7;
+
+                using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+                using var ms = new MemoryStream(buffer);
+                using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+                using var sr = new StreamReader(cs);
+                return sr.ReadToEnd();
+            }
+        }
+
+
+        public static string Decrypt1(string cipherText)
+        {
+            byte[] buffer = Convert.FromBase64String(cipherText);
+            using (Aes aes = Aes.Create())
+            {
+                aes.Key = DECKey;
+                aes.IV = IV;
+                aes.Padding = PaddingMode.PKCS7;
+
+                using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+                using var ms = new MemoryStream(buffer);
+                using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
+                using var sr = new StreamReader(cs);
+                return sr.ReadToEnd();
+            }
         }
 
         public static string Encrypt(string plainText)
@@ -96,7 +168,7 @@ namespace TaskEngineAPI.Controllers
         }
 
         public static string DecryptAPII(string cipherText)
-            {
+        {
             byte[] buffer = Convert.FromBase64String(cipherText);
             using (Aes aes = Aes.Create())
             {
@@ -110,38 +182,10 @@ namespace TaskEngineAPI.Controllers
                 using var sr = new StreamReader(cs);
                 return sr.ReadToEnd();
             }
-             }
-
-        [HttpPost]
-        [Route("EncryptPassword")]
-        public ActionResult<string> Encryptpassword([FromBody] string password)
-        {
-            var hashed = BCrypt.Net.BCrypt.HashPassword(password);
-            return Ok(hashed);
         }
 
 
-
-        [HttpPost]
-        [Route("DecryptAPI")]
-        public ActionResult<string> DecryptAPI([FromBody] string payload)
-        {
-            string json = JsonConvert.SerializeObject(payload);
-            string encrypted = DecryptAPII(json);
-            return Ok(encrypted);
-
-        }
-
-        [HttpPost]
-        [Route("Decrypt")]
-        public ActionResult<string> Decrypt([FromBody] string payload)
-        {
-            string json = JsonConvert.SerializeObject(payload);
-            string encrypted = DecryptI(json);
-            return Ok(encrypted);
-
-        }
-
+        
 
     }
 }

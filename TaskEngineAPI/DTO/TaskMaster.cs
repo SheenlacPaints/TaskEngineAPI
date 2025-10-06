@@ -19,15 +19,15 @@ namespace TaskEngineAPI.DTO
 
         public class TaskDetailDTO
     {
-        public string? cprocesscode { get; set; }
-        public int? ciseqno { get; set; }
-        public string? cseq_order { get; set; }
-        public string cactivitycode { get; set; }
-        public string cactivitydescription { get; set; }
-        public string ctasktype { get; set; }
-        public string cprevstep { get; set; }
-        public string cactivityname { get; set; }
-        public string cnextseqno { get; set; }
+        public int? iseqno { get; set; }
+        public string? ctask_type { get; set; }
+        public string? cmapping_code { get; set; }
+        public string ccurrent_status { get; set; }
+        public string cremarks { get; set; }
+        public string inext_seqno { get; set; }
+        public string cnext_seqtype { get; set; }
+        public string cprevtype { get; set; }
+        public string csla { get; set; }
       
 
     }
@@ -36,4 +36,6 @@ namespace TaskEngineAPI.DTO
 }
 
 
+   
+  
 
