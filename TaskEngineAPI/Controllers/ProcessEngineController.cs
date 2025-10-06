@@ -197,7 +197,10 @@ namespace TaskEngineAPI.Controllers
                 };
 
                 string jsoner = JsonConvert.SerializeObject(response);
+
+
                 var encrypted = AesEncryption.Encrypt(jsoner);
+
                 return StatusCode(200, encrypted);
             }
             catch (Exception ex)

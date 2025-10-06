@@ -63,7 +63,7 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(500, new APIResponse
                     {
                         status = 500,
-                        statusText = "Failed to create Process"
+                        statusText = "Failed to create Task"
                     });
                 }
 
@@ -71,7 +71,7 @@ namespace TaskEngineAPI.Controllers
                 var apierDtls = new APIResponse
                 {
                     status = 200,
-                    statusText = "Process created successfully",
+                    statusText = "Task created successfully",
                     body = new object[] { new { UserID = insertedUserId } }
                 };
                 string jsone = JsonConvert.SerializeObject(apierDtls);
@@ -84,7 +84,7 @@ namespace TaskEngineAPI.Controllers
                 var apierrDtls = new APIResponse
                 {
                     status = 500,
-                    statusText = "Error creating Super Admin ",
+                    statusText = "Error creating Task",
                     error = ex.Message
                 };
 

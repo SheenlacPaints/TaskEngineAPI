@@ -568,7 +568,7 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing Authorization token.");
                 }
 
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/CreateProcessEngine");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}ProcessEngine/CreateProcessEngine");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
@@ -605,7 +605,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 // Attach token to outbound request
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}Account/GetAllProcessEngine");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}ProcessEngine/GetAllProcessEngine");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
                 var response = await _httpClient.SendAsync(requestMessage);

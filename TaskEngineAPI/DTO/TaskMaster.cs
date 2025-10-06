@@ -22,12 +22,12 @@ namespace TaskEngineAPI.DTO
         public int? iseqno { get; set; }
         public string? ctask_type { get; set; }
         public string? cmapping_code { get; set; }
-        public string ccurrent_status { get; set; }
-        public string cremarks { get; set; }
-        public string inext_seqno { get; set; }
-        public string cnext_seqtype { get; set; }
-        public string cprevtype { get; set; }
-        public string csla { get; set; }
+        public string? ccurrent_status { get; set; }
+        public string? cremarks { get; set; }
+        public int? inext_seqno { get; set; }
+        public string? cnext_seqtype { get; set; }
+        public string? cprevtype { get; set; }
+        public string? csla { get; set; }
       
 
     }
