@@ -99,14 +99,14 @@ namespace TaskEngineAPI.Services
                         {
                             using (SqlCommand cmdDetail = new SqlCommand(queryDetail, conn, transaction))
                             {
-                                cmdDetail.Parameters.AddWithValue("@itaskno", cTenantID);
-                                cmdDetail.Parameters.AddWithValue("@iseqno", cTenantID);
+                                cmdDetail.Parameters.AddWithValue("@itaskno", newTaskNo);
+                                cmdDetail.Parameters.AddWithValue("@iseqno", detail.iseqno);
                                 cmdDetail.Parameters.AddWithValue("@iheader_id", masterId );
                                 cmdDetail.Parameters.AddWithValue("@ctenent_id", cTenantID);
                                 cmdDetail.Parameters.AddWithValue("@ctask_type", detail.ctask_type ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cmapping_code", detail.cmapping_code ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@ccurrent_status", detail.ccurrent_status ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@lcurrent_status_date", cTenantID);
+                                cmdDetail.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@cremarks", detail.cremarks ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@inext_seqno", detail.inext_seqno ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cnext_seqtype", detail.cnext_seqtype);
