@@ -32,18 +32,20 @@ namespace TaskEngineAPI.Services
         public async Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int cTenantID, string username)
         {
             int masterId = 0;
+
             using (var conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
+
                 using (var transaction = conn.BeginTransaction())
                 {
                     try
-                    {
-                        // Step 1: Generate new task number (int)
+                    {                    
                         string taskNoQuery = @"
-                SELECT ISNULL(MAX(TRY_CAST(itaskno AS INT)), 0) +1 
-                FROM tbl_taskflow_master   WHERE ctenent_id = @TenantID";
-               
+                    SELECT ISNULL(MAX(TRY_CAST(itaskno AS INT)), 0) + 1 
+                    FROM tbl_taskflow_master 
+                    WHERE ctenent_id = @TenantID";
+
                         int newTaskNo;
                         using (var taskNoCmd = new SqlCommand(taskNoQuery, conn, transaction))
                         {
@@ -52,18 +54,16 @@ namespace TaskEngineAPI.Services
                             newTaskNo = result != null ? Convert.ToInt32(result) : 1;
                         }
 
-                        // Step 2: Insert into master
                         string queryMaster = @"
-                INSERT INTO tbl_taskflow_master (
-                    itaskno, ctenent_id, ctask_type, ctask_name, ctask_description, cstatus,  
-                    lcreated_date, ccreated_by, cmodified_by, lmodified_date
-                ) VALUES (
-                    @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
-                    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date
-                );
-                SELECT SCOPE_IDENTITY();";
+                    INSERT INTO tbl_taskflow_master (
+                        itaskno, ctenent_id, ctask_type, ctask_name, ctask_description, cstatus,  
+                        lcreated_date, ccreated_by, cmodified_by, lmodified_date
+                    ) VALUES (
+                        @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
+                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date
+                    );
+                    SELECT SCOPE_IDENTITY();";
 
-                       
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
@@ -80,54 +80,82 @@ namespace TaskEngineAPI.Services
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
+                     
+                        string selectQuery = @"
+                    SELECT ctenentid, cprocesscode, ciseqno, cseq_order, cactivitycode, 
+                           cactivitydescription, ctasktype, cprevstep, cactivityname, cnextseqno 
+                    FROM tbl_process_engine_details 
+                    WHERE cprocesscode = @cprocesscode AND ctenentid = @ctenent_id";
 
-                        // Step 3: Insert into detail
-                        string queryDetail = @"
-                INSERT INTO tbl_taskflow_detail (
-                    itaskno, iseqno, iheader_id, ctenent_id, ctask_type, cmapping_code, 
-                    ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
-                    cnext_seqtype, cprevtype, csla
-                ) VALUES (
-                    @itaskno, @iseqno, @iheader_id, @ctenent_id, @ctask_type, @cmapping_code, 
-                    @ccurrent_status, @lcurrent_status_date, @cremarks, @inext_seqno, 
-                    @cnext_seqtype, @cprevtype, @csla);";
+                        var detailRows = new List<Dictionary<string, object>>();
 
-                        foreach (var detail in model.TaskDetailDTO)
+                        using (var cmdSelect = new SqlCommand(selectQuery, conn, transaction))
                         {
-                            using (var cmdDetail = new SqlCommand(queryDetail, conn, transaction))
-                            {
-                                cmdDetail.Parameters.AddWithValue("@itaskno", newTaskNo);
-                                cmdDetail.Parameters.AddWithValue("@iseqno", detail.iseqno);
-                                cmdDetail.Parameters.AddWithValue("@iheader_id", masterId);
-                                cmdDetail.Parameters.AddWithValue("@ctenent_id", cTenantID);
-                                cmdDetail.Parameters.AddWithValue("@ctask_type", detail.ctask_type ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cmapping_code", detail.cmapping_code ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@ccurrent_status", detail.ccurrent_status ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
-                                cmdDetail.Parameters.AddWithValue("@cremarks", detail.cremarks ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@inext_seqno", detail.inext_seqno ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cnext_seqtype", detail.cnext_seqtype ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cprevtype", detail.cprevtype ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@csla", detail.csla ?? (object)DBNull.Value);
+                            cmdSelect.Parameters.AddWithValue("@cprocesscode", model.ctask_name);
+                            cmdSelect.Parameters.AddWithValue("@ctenent_id", cTenantID);
 
-                                await cmdDetail.ExecuteNonQueryAsync();
+                            using (var reader = await cmdSelect.ExecuteReaderAsync())
+                            {
+                                while (await reader.ReadAsync())
+                                {
+                                    var row = new Dictionary<string, object>
+                                    {
+                                        ["ciseqno"] = reader["ciseqno"],
+                                        ["ctenentid"] = reader["ctenentid"],
+                                        ["ctasktype"] = reader["ctasktype"],
+                                        ["cprocesscode"] = reader["cprocesscode"],
+                                        ["cnextseqno"] = reader["cnextseqno"],
+                                        ["cprevstep"] = reader["cprevstep"]
+                                    };
+                                    detailRows.Add(row);
+                                }
+                            }
+                        }                    
+                        string queryDetail = @"
+                    INSERT INTO tbl_taskflow_detail (
+                        itaskno, iseqno, iheader_id, ctenent_id, ctask_type, cmapping_code, 
+                        ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
+                        cnext_seqtype, cprevtype, csla
+                    ) VALUES (
+                        @itaskno, @iseqno, @iheader_id, @ctenent_id, @ctask_type, @cmapping_code, 
+                        @ccurrent_status, @lcurrent_status_date, @cremarks, @inext_seqno, 
+                        @cnext_seqtype, @cprevtype, @csla);";
+
+                        foreach (var row in detailRows)
+                        {
+                            using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
+                            {
+                                cmdInsert.Parameters.AddWithValue("@itaskno", newTaskNo);
+                                cmdInsert.Parameters.AddWithValue("@iseqno", row["ciseqno"]);
+                                cmdInsert.Parameters.AddWithValue("@iheader_id", masterId);
+                                cmdInsert.Parameters.AddWithValue("@ctenent_id", row["ctenentid"]);
+                                cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
+                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cprocesscode"]);
+                                cmdInsert.Parameters.AddWithValue("@ccurrent_status", "P");
+                                cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
+                                cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
+                                cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
+                                cmdInsert.Parameters.AddWithValue("@cnext_seqtype", DBNull.Value);
+                                cmdInsert.Parameters.AddWithValue("@cprevtype", row["cprevstep"]);
+                                cmdInsert.Parameters.AddWithValue("@csla", DBNull.Value);
+
+                                await cmdInsert.ExecuteNonQueryAsync();
                             }
                         }
 
-                        // Step 4: Commit transaction
                         transaction.Commit();
                     }
                     catch (Exception ex)
                     {
-                        transaction.Rollback();
+                        transaction.Rollback();                      
                         throw;
                     }
                 }
-               
             }
-            return masterId;
 
+            return masterId;
         }
+
 
 
         public async Task<string> GetAllProcessmetaAsync(int cTenantID, string processcode)

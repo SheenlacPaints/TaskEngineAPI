@@ -13,8 +13,7 @@ namespace TaskEngineAPI.DTO
             [StringLength(255)]
             public string? ctask_name { get; set; }
             public string? ctask_description { get; set; }
-
-            public List<TaskDetailDTO> TaskDetailDTO { get; set; }
+         
         }
 
         public class TaskDetailDTO
