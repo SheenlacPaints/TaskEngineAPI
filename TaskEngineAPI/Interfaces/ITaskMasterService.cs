@@ -8,7 +8,7 @@ namespace TaskEngineAPI.Interfaces
             Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string username);
 
 
-            Task<string> GetAllProcessmetaAsync(int cTenantID);
+            Task<string> GetAllProcessmetaAsync(int cTenantID,string processcode);
 
 
     }

@@ -666,28 +666,30 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
+        
         [Authorize]
         [HttpGet("GetMetadata")]
-        public async Task<IActionResult> GetMetadata()
+        public async Task<IActionResult> GetMetadata([FromQuery] string processcode)
         {
             try
             {
-                // Extract token from incoming request
+                // 🔐 Extract token
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
                 if (string.IsNullOrWhiteSpace(jwtToken))
-                {
                     return Unauthorized("Missing Authorization token.");
-                }
+                // 🔗 Build full URL with encrypted query             
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GetMetadata?processcode={processcode}";
 
-                // Attach token to outbound request
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}TaskMaster/GetMetadata");
+
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
+                // 📡 Forward request
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
 
+                // 🔐 Wrap encrypted response in quotes
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }
@@ -704,6 +706,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
 
 
         [Authorize]
