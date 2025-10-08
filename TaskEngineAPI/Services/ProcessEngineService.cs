@@ -305,7 +305,122 @@ namespace TaskEngineAPI.Services
 
             return result.Values.ToList();
         }
-   
+
+
+        public async Task<List<GetProcessEngineDTO>> GetProcessengineAsync(int cTenantID, int id)
+        {
+            var result = new Dictionary<int, GetProcessEngineDTO>();
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using var conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+                string query = @"
+                SELECT 
+                    m.cseq_id, m.ctenentid, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, m.cstatus,
+                    m.cuser_id, m.cuser_name, m.crole_code, m.crole_name, m.cposition_code, m.cposition_title,
+                    m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.ccreated_date, m.cmodified_by, m.lmodified_date,
+                    d.cactivitycode, d.cactivitydescription, d.ctasktype, d.cprevstep, d.cactivityname, d.cnextseqno, d.cseq_order,
+                    c.icondseqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfieldvalue, c.ccondition,
+                    c.remarks1, c.remarks2, c.remarks3
+                FROM tbl_process_engine_master m
+                LEFT JOIN tbl_process_engine_details d 
+                    ON m.cprocesscode = d.cprocesscode AND  m.cseq_id = d.ciseqno
+                LEFT JOIN tbl_process_engine_condition c 
+                    ON  d.ciseqno = c.ciseqno 
+                WHERE m.ctenentid = @TenantID and m.cseq_id=@id
+                ORDER BY m.cseq_id, d.cseq_order, c.icondseqno";
+
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                cmd.Parameters.AddWithValue("@id", id);
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    int cseq_id = reader.GetInt32(reader.GetOrdinal("cseq_id"));
+
+                    if (!result.TryGetValue(cseq_id, out var engine))
+                    {
+                        engine = new GetProcessEngineDTO
+                        {
+                            cseq_id = cseq_id,
+                            ciseqno = reader.SafeGetString("ciseqno"),
+                            cprocesscode = reader.SafeGetString("cprocesscode"),
+                            cprocessname = reader.SafeGetString("cprocessname"),
+                            ctype = reader.SafeGetString("ctype"),
+                            cstatus = reader.SafeGetString("cstatus"),
+                            cuser_id = reader.SafeGetString("cuser_id"),
+                            cuser_name = reader.SafeGetString("cuser_name"),
+                            crole_code = reader.SafeGetString("crole_code"),
+                            crole_name = reader.SafeGetString("crole_name"),
+                            cposition_code = reader.SafeGetString("cposition_code"),
+                            cposition_title = reader.SafeGetString("cposition_title"),
+                            cdepartment_code = reader.SafeGetString("cdepartment_code"),
+                            cdepartment_name = reader.SafeGetString("cdepartment_name"),
+                            ccreated_by = reader.SafeGetString("ccreated_by"),
+                            ccreated_date = reader.SafeGetDateTime("ccreated_date"),
+                            cmodified_by = reader.SafeGetString("cmodified_by"),
+                            lmodified_date = reader.SafeGetDateTime("lmodified_date"),
+                            ProcessEngineChildItems = new List<ProcessEngineChildItems>()
+                        };
+                        result[cseq_id] = engine;
+                    }
+
+                    string activityCode = reader.SafeGetString("cactivitycode");
+                    if (!string.IsNullOrEmpty(activityCode))
+                    {
+                        var child = engine.ProcessEngineChildItems.FirstOrDefault(x => x.cactivitycode == activityCode);
+                        if (child == null)
+                        {
+                            child = new ProcessEngineChildItems
+                            {
+                                cactivitycode = activityCode,
+                                cactivitydescription = reader.SafeGetString("cactivitydescription"),
+                                ctasktype = reader.SafeGetString("ctasktype"),
+                                cprevstep = reader.SafeGetString("cprevstep"),
+                                cactivityname = reader.SafeGetString("cactivityname"),
+                                cnextseqno = reader.SafeGetString("cnextseqno"),
+                                cseq_order = reader.SafeGetString("cseq_order"),
+                                ProcessEngineConditionDetails = new List<ProcessEngineConditionDetails>()
+                            };
+                            engine.ProcessEngineChildItems.Add(child);
+                        }
+
+                        if (!reader.IsDBNull(reader.GetOrdinal("icondseqno")))
+                        {
+                            child.ProcessEngineConditionDetails.Add(new ProcessEngineConditionDetails
+                            {
+                                cprocesscode = reader.SafeGetString("cprocesscode"),
+                                ciseqno = reader.SafeGetInt("ciseqno"),
+                                icondseqno = reader.SafeGetInt("icondseqno"),
+                                cseq_order = reader.SafeGetInt("cond_seq_order"),
+                                ctype = reader.SafeGetString("cond_type"),
+                                clabel = reader.SafeGetString("clabel"),
+                                cfieldvalue = reader.SafeGetString("cfieldvalue"),
+                                ccondition = reader.SafeGetString("ccondition"),
+                                remarks1 = reader.SafeGetString("remarks1"),
+                                remarks2 = reader.SafeGetString("remarks2"),
+                                remarks3 = reader.SafeGetString("remarks3")
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error fetching process engine data for tenant {TenantID}", cTenantID);
+                throw;
+            }
+
+            return result.Values.ToList();
+        }
+
+
+
+
+
     }
 
 }
