@@ -16,7 +16,7 @@ namespace TaskEngineAPI.Interfaces
         Task<List<GetUserDTO>> GetAllUserAsync(int cTenantID);
         Task<List<GetUserDTO>> GetAllUserIdAsync(int cTenantID,int userid);
         Task<bool> CheckEmailExistsAsync(string email, int tenantId);
-        Task<bool> CheckUsernameExistsAsync(string username, int tenantId);
+        Task<bool> CheckUsernameExistsAsync(int cuserid, int tenantId);
         Task<bool> CheckPhenonoExistsAsync(string phoneno, int tenantId);
         Task<bool> CheckuserUsernameExistsAsync(int cuserid, int tenantId);
         Task<bool> CheckuserEmailExistsAsync(string email, int tenantId);

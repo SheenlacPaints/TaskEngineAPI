@@ -42,7 +42,7 @@ namespace TaskEngineAPI.DTO
         public int ctenant_Id { get; set; }
         public string? cfirst_name { get; set; }
         public string? clast_name { get; set; }
-        public string cuserid { get; set; }
+        public int cuserid { get; set; }
         public string cemail { get; set; }
         public string? cphoneno { get; set; }
         public string cpassword { get; set; }

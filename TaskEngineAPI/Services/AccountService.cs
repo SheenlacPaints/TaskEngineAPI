@@ -73,7 +73,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@TenantID", model.ctenant_Id);
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirst_name ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clast_name ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Username", model.cuserid);
+                    cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
                     cmd.Parameters.AddWithValue("@Email", model.cemail);
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Password", model.cpassword); // store as plain text
@@ -116,16 +116,16 @@ namespace TaskEngineAPI.Services
         }
 
 
-        public async Task<bool> CheckUsernameExistsAsync(string username, int tenantId)
+        public async Task<bool> CheckUsernameExistsAsync(int cuserid, int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
-                string query = "SELECT COUNT(1) FROM AdminUsers WHERE cuser_name = @username AND ctenant_Id = @tenantId";
+                string query = "SELECT COUNT(1) FROM AdminUsers WHERE cuserid = @username AND ctenant_Id = @tenantId";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@username", cuserid);
                     cmd.Parameters.AddWithValue("@tenantId", tenantId);
 
                     int count = (int)await cmd.ExecuteScalarAsync();
