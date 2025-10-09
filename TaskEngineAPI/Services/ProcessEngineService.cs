@@ -73,10 +73,10 @@ namespace TaskEngineAPI.Services
                     {
                         string queryMaster = @"
                 INSERT INTO tbl_process_engine_master (
-                    ctenentid, ciseqno, cprocesscode, cprocessname, ctype, cstatus, 
+                    ctenent_id, ciseqno, cprocesscode, cprocessname, ctype, cstatus, 
                     cuser_id, cuser_name, crole_code, crole_name, cposition_code, 
                     cposition_title, cdepartment_code, cdepartment_name, 
-                    ccreated_date, ccreated_by, cmodified_by, lmodified_date
+                    lcreated_date, ccreated_by, cmodified_by, lmodified_date
                 ) VALUES (
                     @TenantID, @ciseqno, @cprocesscode, @cprocessname, @ctype, @cstatus, 
                     @cuser_id, @cuser_name, @crole_code, @crole_name, @cposition_code, 
@@ -114,11 +114,11 @@ namespace TaskEngineAPI.Services
                      
                         string queryDetail = @"
                 INSERT INTO tbl_process_engine_details (
-                    ctenentid, ciseqno, cprocesscode, cseq_order, cactivitycode, cactivitydescription, 
-                    ctasktype, cprevstep, cactivityname, cnextseqno, 
-                    ccreated_date, ccreated_by, cmodified_by, lmodified_date,cassignee,cprocess_type
+                    ctenent_id, cheader_id,ciseqno, cprocesscode, cseq_order, cactivitycode, cactivity_description, 
+                    ctask_type, cprev_step, cactivityname, cnext_seqno, 
+                    lcreated_date, ccreated_by, cmodified_by, lmodified_date,cassignee,cprocess_type
                 ) VALUES (
-                    @TenantID, @ciseqno, @cprocesscode, @cseq_order, @cactivitycode, @cactivitydescription, 
+                    @TenantID, @cheader_id,@ciseqno, @cprocesscode, @cseq_order, @cactivitycode, @cactivitydescription, 
                     @ctasktype, @cprevstep, @cactivityname, @cnextseqno, 
                     @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cassignee,@cprocess_type
                 );";
@@ -130,6 +130,7 @@ namespace TaskEngineAPI.Services
                                 cmdDetail.Parameters.AddWithValue("@TenantID", cTenantID);
                                 cmdDetail.Parameters.AddWithValue("@cprocesscode", detail.cprocesscode);
                                 cmdDetail.Parameters.AddWithValue("@ciseqno", masterId);
+                                cmdDetail.Parameters.AddWithValue("@cheader_id", masterId);
                                 cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivitycode ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivitydescription ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@ctasktype", detail.ctasktype ?? (object)DBNull.Value);
@@ -149,8 +150,8 @@ namespace TaskEngineAPI.Services
                             string metadata = @"
                     INSERT INTO tbl_process_meta (process_code,ctenant_id,cinput_type,label,cplaceholder,cis_required,cis_autofill,cis_editable,
                     cis_validate,cmin_len,cmax_len,cdata_source_type,cfetch_type,cis_req_search,cis_multi_select,cmin_date,cmax_date,cdate_type,cmin_time,
-                    cmax_time,ctime_type,cprocess_source,clocation,ccreated_by,lcreated_date,cmodified_by,lmodified_date,ccolumn_value) VALUES (
-                    @cprocesscode,@TenantID,@cinput_type,@label,@cplaceholder,@cis_required,@cis_autofill,@cis_editable,@cis_validate,
+                    cmax_time,ctime_type,cprocess_source,clocation,ccreated_by,lcreated_date,cmodified_by,lmodified_date,ccolumn_value)
+                    VALUES ( @cprocesscode,@TenantID,@cinput_type,@label,@cplaceholder,@cis_required,@cis_autofill,@cis_editable,@cis_validate,
                     @cmin_len,@cmax_len,@cdata_source_type,@cfetch_type,@cis_req_search,@cis_multi_select,@cmin_date,@cmax_date,
                     @cdate_type,@cmin_time,@cmax_time,@ctime_type,@cprocess_source,@clocation,
                     @ccreated_by,@ccreated_date,@cmodified_by,@lmodified_date,@ccolumn_value);";
@@ -168,35 +169,35 @@ namespace TaskEngineAPI.Services
                                     cmdDetail.Parameters.AddWithValue("@cis_required", meta.cis_required ?? (object)DBNull.Value);
                                     cmdDetail.Parameters.AddWithValue("@cis_autofill", meta.cis_autofill ?? (object)DBNull.Value);
                                     cmdDetail.Parameters.AddWithValue("@cis_editable", meta.cis_editable ?? (object)DBNull.Value);
-                                    cmdDetail.Parameters.AddWithValue("@cis_validate", meta.cis_validate);
-                                    cmdDetail.Parameters.AddWithValue("@cmin_len", meta.cmin_len);
-                                    cmdDetail.Parameters.AddWithValue("@cmax_len", meta.cmax_len);
-                                    cmdDetail.Parameters.AddWithValue("@cdata_source_type", meta.cdata_source_type);
-                                    cmdDetail.Parameters.AddWithValue("@cfetch_type", meta.cfetch_type);
-                                    cmdDetail.Parameters.AddWithValue("@cis_req_search", meta.cis_req_search);
-                                    cmdDetail.Parameters.AddWithValue("@cis_multi_select", meta.cis_multi_select);
-                                    cmdDetail.Parameters.AddWithValue("@cmin_date", meta.cmin_date);
-                                    cmdDetail.Parameters.AddWithValue("@cmax_date", meta.cmax_date);
-                                    cmdDetail.Parameters.AddWithValue("@cdate_type", meta.cdate_type);
-                                    cmdDetail.Parameters.AddWithValue("@cmin_time", meta.cmin_time);
-                                    cmdDetail.Parameters.AddWithValue("@cmax_time", meta.cmax_time);
-                                    cmdDetail.Parameters.AddWithValue("@ctime_type", meta.ctime_type);
-                                    cmdDetail.Parameters.AddWithValue("@cprocess_source", meta.cprocess_source);
-                                    cmdDetail.Parameters.AddWithValue("@clocation", meta.clocation);
+                                    cmdDetail.Parameters.AddWithValue("@cis_validate", meta.cis_validate ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cmin_len", meta.cmin_len ?? (object)DBNull.Value);
+                                   cmdDetail.Parameters.AddWithValue("@cmax_len", meta.cmax_len ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cdata_source_type", meta.cdata_source_type ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cfetch_type", meta.cfetch_type ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cis_req_search", meta.cis_req_search ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cis_multi_select", meta.cis_multi_select ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cmin_date", meta.cmin_date ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cmax_date", meta.cmax_date ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cdate_type", meta.cdate_type ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cmin_time", meta.cmin_time ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cmax_time", meta.cmax_time ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@ctime_type", meta.ctime_type ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@cprocess_source", meta.cprocess_source ?? (object)DBNull.Value);
+                                    cmdDetail.Parameters.AddWithValue("@clocation", meta.clocation ?? (object)DBNull.Value);
                                     cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                     cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                     cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
                                     cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                                    cmdDetail.Parameters.AddWithValue("@ccolumn_value", meta.ccolumn_value);
+                                    cmdDetail.Parameters.AddWithValue("@ccolumn_value", meta.ccolumn_value ?? (object)DBNull.Value);
                                     await cmdDetail.ExecuteNonQueryAsync();
                                 }
                             }
 
                                 string queryCondition = @"
                     INSERT INTO tbl_process_engine_condition (
-                        ctenentid, cprocesscode, ciseqno, cseq_order, icondseqno, ctype, 
-                        clabel, cfieldvalue, ccondition, remarks1, remarks2, remarks3, 
-                        ccreated_date, ccreated_by, cmodified_by, lmodified_date
+                        ctenent_id, cprocesscode, ciseqno, cseq_order, icond_seqno, ctype, 
+                        clabel, cfield_value, ccondition, remarks1, remarks2, remarks3, 
+                        lcreated_date, ccreated_by, cmodified_by, lmodified_date
                     ) VALUES (
                         @TenantID, @cprocesscode, @ciseqno, @cseq_order, @icondseqno, @ctype, 
                         @clabel, @cfieldvalue, @ccondition, @remarks1, @remarks2, @remarks3,
@@ -253,19 +254,19 @@ namespace TaskEngineAPI.Services
 
                 string query = @"
                 SELECT 
-                    m.cseq_id, m.ctenentid, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, m.cstatus,
-                    m.cuser_id, m.cuser_name, m.crole_code, m.crole_name, m.cposition_code, m.cposition_title,
-                    m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.ccreated_date, m.cmodified_by, m.lmodified_date,
-                    d.cactivitycode, d.cactivitydescription, d.ctasktype, d.cprevstep, d.cactivityname, d.cnextseqno, d.cseq_order,
-                    c.icondseqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfieldvalue, c.ccondition,
-                    c.remarks1, c.remarks2, c.remarks3
-                FROM tbl_process_engine_master m
-                LEFT JOIN tbl_process_engine_details d 
-                    ON m.cprocesscode = d.cprocesscode AND  m.cseq_id = d.ciseqno
-                LEFT JOIN tbl_process_engine_condition c 
-                    ON  d.ciseqno = c.ciseqno 
-                WHERE m.ctenentid = @TenantID
-                ORDER BY m.cseq_id, d.cseq_order, c.icondseqno";
+    m.ID, m.ctenent_id, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, m.cstatus,
+    m.cuser_id, m.cuser_name, m.crole_code, m.crole_name, m.cposition_code, m.cposition_title,
+    m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,
+    d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
+    c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
+    c.remarks1, c.remarks2, c.remarks3
+FROM tbl_process_engine_master m
+LEFT JOIN tbl_process_engine_details d 
+    ON m.cprocesscode = d.cprocesscode AND  m.ID = d.cheader_id
+LEFT JOIN tbl_process_engine_condition c 
+    ON  d.ciseqno = c.ciseqno 
+WHERE m.ctenent_id = @TenantID
+ORDER BY m.ID, d.cseq_order, c.icond_seqno";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -273,7 +274,7 @@ namespace TaskEngineAPI.Services
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    int cseq_id = reader.GetInt32(reader.GetOrdinal("cseq_id"));
+                    int cseq_id = reader.GetInt32(reader.GetOrdinal("ID"));
 
                     if (!result.TryGetValue(cseq_id, out var engine))
                     {
@@ -294,7 +295,7 @@ namespace TaskEngineAPI.Services
                             cdepartment_code = reader.SafeGetString("cdepartment_code"),
                             cdepartment_name = reader.SafeGetString("cdepartment_name"),
                             ccreated_by = reader.SafeGetString("ccreated_by"),
-                            ccreated_date = reader.SafeGetDateTime("ccreated_date"),
+                            ccreated_date = reader.SafeGetDateTime("lcreated_date"),
                             cmodified_by = reader.SafeGetString("cmodified_by"),
                             lmodified_date = reader.SafeGetDateTime("lmodified_date"),
                             ProcessEngineChildItems = new List<ProcessEngineChildItems>()
@@ -311,11 +312,11 @@ namespace TaskEngineAPI.Services
                             child = new ProcessEngineChildItems
                             {
                                 cactivitycode = activityCode,
-                                cactivitydescription = reader.SafeGetString("cactivitydescription"),
-                                ctasktype = reader.SafeGetString("ctasktype"),
-                                cprevstep = reader.SafeGetString("cprevstep"),
+                                cactivitydescription = reader.SafeGetString("cactivity_description"),
+                                ctasktype = reader.SafeGetString("ctask_type"),
+                                cprevstep = reader.SafeGetString("cprev_step"),
                                 cactivityname = reader.SafeGetString("cactivityname"),
-                                cnextseqno = reader.SafeGetString("cnextseqno"),
+                                cnextseqno = reader.SafeGetString("cnext_seqno"),
                                 cseq_order = reader.SafeGetString("cseq_order"),
                                 ProcessEngineConditionDetails = new List<ProcessEngineConditionDetails>()
                             };
@@ -328,11 +329,11 @@ namespace TaskEngineAPI.Services
                             {
                                 cprocesscode = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                icondseqno = reader.SafeGetInt("icondseqno"),
+                                icondseqno = reader.SafeGetInt("icond_seqno"),
                                 cseq_order = reader.SafeGetInt("cond_seq_order"),
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
-                                cfieldvalue = reader.SafeGetString("cfieldvalue"),
+                                cfieldvalue = reader.SafeGetString("cfield_value"),
                                 ccondition = reader.SafeGetString("ccondition"),
                                 remarks1 = reader.SafeGetString("remarks1"),
                                 remarks2 = reader.SafeGetString("remarks2"),

@@ -59,9 +59,9 @@
         public string? cfetch_type { get; set; }
         public bool? cis_req_search { get; set; }
         public bool? cis_multi_select { get; set; }
-        public bool? cmin_date { get; set; }
-        public bool? cmax_date { get; set; }
-        public bool? cdate_type { get; set; }
+        public DateTime? cmin_date { get; set; }
+        public DateTime? cmax_date { get; set; }
+        public string? cdate_type { get; set; }
         public int? cmin_time { get; set; }
         public int? cmax_time { get; set; }
         public string? ctime_type { get; set; }
