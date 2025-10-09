@@ -192,6 +192,55 @@ namespace TaskEngineAPI.Controllers
 
 
 
+        [Authorize]
+        [HttpGet]
+        [Route("Getprocessengineprivilege")]
+        public async Task<IActionResult> Getprocessengineprivilege([FromQuery] string? cprocesscode, string cprivilege)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+
+                var json = await _TaskMasterService.Getprocessengineprivilege(cTenantID, cprocesscode, cprivilege);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                var response = new APIResponse
+                {
+                    body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
+                    statusText = data == null || !data.Any() ? "No data found" : "Successful",
+                    status = data == null || !data.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var apierrDtls = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Internal server Error",
+                    error = ex.Message
+                };
+
+                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                return StatusCode(500, encryptapierrDtls);
+            }
+        }
+
+
+
+
         private ActionResult EncryptedError(int status, string message)
         {
             var response = new APIResponse { status = status, statusText = message };

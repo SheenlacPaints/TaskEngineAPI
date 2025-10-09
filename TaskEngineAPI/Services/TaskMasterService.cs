@@ -235,6 +235,34 @@ namespace TaskEngineAPI.Services
         }
 
 
+        public async Task<string> Getprocessengineprivilege(int cTenantID, string cprocesscode,string cprivilege)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_process_engine_privilege", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@cprocesscode", cprocesscode);
+                    cmd.Parameters.AddWithValue("@cprivilege", cprivilege);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
 
 
     }
