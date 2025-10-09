@@ -42,7 +42,7 @@ namespace TaskEngineAPI.DTO
         public int ctenant_Id { get; set; }
         public string? cfirst_name { get; set; }
         public string? clast_name { get; set; }
-        public string cuser_name { get; set; }
+        public string cuserid { get; set; }
         public string cemail { get; set; }
         public string? cphoneno { get; set; }
         public string cpassword { get; set; }
@@ -62,7 +62,7 @@ namespace TaskEngineAPI.DTO
         public int cTenantID { get; set; }
         public string? cfirstName { get; set; }
         public string? clastName { get; set; }
-        public string? cusername { get; set; }
+        public string? cuserid { get; set; }
         public string? cemail { get; set; }
         public string? cphoneno { get; set; }
         public string? cpassword { get; set; }

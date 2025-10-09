@@ -338,7 +338,7 @@ namespace TaskEngineAPI.Controllers
                     var encryptedConflict = AesEncryption.Encrypt(conflictJson);
                     return StatusCode(409, encryptedConflict);
                 }
-                bool usernameExists = await _AccountService.CheckUsernameExistsAsync(model.cuser_name, model.ctenant_Id);
+                bool usernameExists = await _AccountService.CheckUsernameExistsAsync(model.cuserid, model.ctenant_Id);
                 if (usernameExists)
                 {
                     var conflictResponse = new
@@ -632,9 +632,7 @@ namespace TaskEngineAPI.Controllers
                
             }
            
-
-
-            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cusername, model.ctenantID);
+            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cuserid, model.ctenantID);
             if (usernameExists)
             {
                 var conflictResponse = new

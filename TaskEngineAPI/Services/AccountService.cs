@@ -57,7 +57,7 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
            
                 string query = @"INSERT INTO AdminUsers (
-        ctenant_Id, cfirst_name, clast_name, cuser_name, cemail, cphoneno, 
+        ctenant_Id, cfirst_name, clast_name, cuserid, cemail, cphoneno, 
         cpassword, crole_id, nis_active, llast_login_at, cpassword_changed_at, 
         clast_login_ip, clast_login_device, ccreated_date, ccreated_by, cmodified_by,
         lmodified_date,cprofile_image_name, cprofile_image_path) VALUES(
@@ -73,7 +73,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@TenantID", model.ctenant_Id);
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirst_name ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clast_name ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Username", model.cuser_name);
+                    cmd.Parameters.AddWithValue("@Username", model.cuserid);
                     cmd.Parameters.AddWithValue("@Email", model.cemail);
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Password", model.cpassword); // store as plain text
@@ -164,7 +164,7 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-            SELECT [ID],  [ctenant_Id], [cfirst_name], [clast_name], [cuser_name],
+            SELECT [ID],  [ctenant_Id], [cfirst_name], [clast_name], [cuserid],
                    [cemail], [cphoneno], [cpassword], [crole_id], [nis_active], [llast_login_at],
                    [lfailed_login_attempts], [cpassword_changed_at], [cmust_change_password],
                    [clast_login_ip], [clast_login_device],[nis_locked],[ccreated_date],[ccreated_by],[cmodified_by],
@@ -187,7 +187,7 @@ namespace TaskEngineAPI.Services
                               cTenantID = reader.GetInt32(reader.GetOrdinal("ctenant_Id")),
                               cfirstName = reader.GetString(reader.GetOrdinal("cfirst_name")),
                               clastName = reader.GetString(reader.GetOrdinal("clast_name")),
-                              cusername = reader.GetString(reader.GetOrdinal("cuser_name")),
+                              cuserid = reader.GetInt32(reader.GetOrdinal("cuserid")),
                               cemail = reader.GetString(reader.GetOrdinal("cemail")),
                               cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
                               cpassword = reader.GetString(reader.GetOrdinal("cpassword")),
@@ -246,7 +246,7 @@ namespace TaskEngineAPI.Services
              UPDATE AdminUsers SET
             cfirst_name = @FirstName,
             clast_name = @LastName,
-            cuser_name = @Username,
+            cuserid = @Username,
             cemail = @Email,
             cphoneno = @PhoneNo,
             cpassword = @Password,
@@ -261,7 +261,7 @@ namespace TaskEngineAPI.Services
                 {
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Username", (object?)model.cusername ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Username", (object?)model.cuserid ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", (object?)model.cemail ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
@@ -854,16 +854,16 @@ VALUES (
             }
         }
 
-        public async Task<bool> CheckuserUsernameExistsAsync(string username, int tenantId)
+        public async Task<bool> CheckuserUsernameExistsAsync(int cuserid, int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
-                string query = "SELECT COUNT(1) FROM Users WHERE cuser_name = @username AND ctenant_Id = @tenantId";
+                string query = "SELECT COUNT(1) FROM Users WHERE cuserid = @username AND ctenant_Id = @tenantId";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@username", cuserid);
                     cmd.Parameters.AddWithValue("@tenantId", tenantId);
 
                     int count = (int)await cmd.ExecuteScalarAsync();

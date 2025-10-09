@@ -18,7 +18,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> CheckEmailExistsAsync(string email, int tenantId);
         Task<bool> CheckUsernameExistsAsync(string username, int tenantId);
         Task<bool> CheckPhenonoExistsAsync(string phoneno, int tenantId);
-        Task<bool> CheckuserUsernameExistsAsync(string username, int tenantId);
+        Task<bool> CheckuserUsernameExistsAsync(int cuserid, int tenantId);
         Task<bool> CheckuserEmailExistsAsync(string email, int tenantId);
         Task<bool> CheckuserPhonenoExistsAsync(string phoneno, int tenantId);
         Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model, int tenantId, string username);
