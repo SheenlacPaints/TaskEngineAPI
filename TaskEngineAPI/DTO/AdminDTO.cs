@@ -84,7 +84,7 @@ namespace TaskEngineAPI.DTO
     {
         public string? cphoneno { get; set; }
 
-        public string? cusername { get; set; }
+        public int? cuserid { get; set; }
     }
     public class OtpActionRequest
     {

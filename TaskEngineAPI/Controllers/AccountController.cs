@@ -849,7 +849,7 @@ namespace TaskEngineAPI.Controllers
                     string encrypted = AesEncryption.Encrypt(json);
                     return Ok(encrypted);
                 }
-                string query = "SELECT cphoneno,cuser_name FROM AdminUsers WHERE crole_id = 1 AND ctenant_Id = @tenantID";
+                string query = "SELECT cphoneno,cuserid FROM AdminUsers WHERE crole_id = 1 AND ctenant_Id = @tenantID";
                 DataSet ds1 = new DataSet();
 
                 using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -872,7 +872,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string mobile = model[0].cphoneno;
-                int id = Convert.ToInt32(model[0].cusername);
+                int id = Convert.ToInt32(model[0].cuserid);
 
                 int otp = new Random().Next(100000, 999999);
 
