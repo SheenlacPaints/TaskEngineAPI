@@ -21,12 +21,14 @@
         public string? cdepartment_name { get; set; }     
         public string cstatus { get; set; }
         public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }
+
+        public List<ProcessEngineMeta> ProcessEngineMeta { get; set; }
     }
     public class ProcessEngineChildItems
     {
         public string? cprocesscode { get; set; }
         public int? ciseqno { get; set; }
-        public string? cseq_order { get; set; }       
+        public string? cseq_order { get; set; }
         public string? cactivitycode { get; set; }
         public string? cactivitydescription { get; set; }
         public string? ctasktype { get; set; }
@@ -38,7 +40,37 @@
 
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
 
+
+  
     }
+
+     public class ProcessEngineMeta
+    {
+        public string? cinput_type { get; set; }
+        public string? label { get; set; }
+        public string? cplaceholder { get; set; }
+        public bool? cis_required { get; set; }
+        public bool? cis_autofill { get; set; }
+        public bool? cis_editable { get; set; }
+        public bool? cis_validate { get; set; }
+        public int? cmin_len { get; set; }
+        public int? cmax_len { get; set; }
+        public string? cdata_source_type { get; set; }
+        public string? cfetch_type { get; set; }
+        public bool? cis_req_search { get; set; }
+        public bool? cis_multi_select { get; set; }
+        public bool? cmin_date { get; set; }
+        public bool? cmax_date { get; set; }
+        public bool? cdate_type { get; set; }
+        public int? cmin_time { get; set; }
+        public int? cmax_time { get; set; }
+        public string? ctime_type { get; set; }
+        public bool? cprocess_source { get; set; }
+        public string? clocation { get; set; }
+        public string? ccolumn_value { get; set; }
+
+    }
+
     public class ProcessEngineConditionDetails
     {
         public string? cprocesscode { get; set; }
