@@ -147,18 +147,20 @@ namespace TaskEngineAPI.Services
                     INSERT INTO tbl_transaction_process_meta_layout (
                         [cmeta_id],[cprocess_id],[cprocess_code],[ctenent_id],[cdata]
                     ) VALUES (
-                        @cmeta_id, @cprocess_id, @cprocess_code, @ctenent_id, @cdata);";
+                        @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata);";
 
+                        foreach (var metaData in model.metaData)
+                        {
+                            using (SqlCommand cmd = new SqlCommand(meta, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
 
-                        using (var cmd = new SqlCommand(meta, conn, transaction))
-                        {                        
-                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-
-                            cmd.Parameters.AddWithValue("@cmeta_id", (object?)model.cmeta_id ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@cprocess_code", (object?)model.ctask_name ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@cdata", (object?)model.cdata ?? DBNull.Value);                 
-                            await cmd.ExecuteNonQueryAsync();
+                                cmd.Parameters.AddWithValue("@cmeta_id", (object?)metaData.cmeta_id ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@cprocess_code", (object?)model.ctask_name ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
+                                await cmd.ExecuteNonQueryAsync();
+                            }
                         }
                         transaction.Commit();
                     }

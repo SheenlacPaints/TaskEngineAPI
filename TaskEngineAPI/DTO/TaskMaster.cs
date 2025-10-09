@@ -11,17 +11,26 @@ namespace TaskEngineAPI.DTO
            [StringLength(100)]
            public string? ctask_type { get; set; }
             [StringLength(255)]
-            public string? ctask_name { get; set; }
-            public string? ctask_description { get; set; }
-            public int? cmeta_id { get; set; }         
-            public int?  cprocess_id { get; set; }
-            public string? cdata { get; set; }
-        
+           public string? ctask_name { get; set; }
+           public string? ctask_description { get; set; }              
+           public int?  cprocess_id { get; set; }
+           public List<metaData> metaData { get; set; }
+        }
 
-    }
+
+       public class metaData
+       {
+         public int? cmeta_id { get; set; }
+         public string? cdata { get; set; }
+   
+       }
+
+
+      
+
 
         public class TaskDetailDTO
-    {
+       {
         public int? iseqno { get; set; }
         public string? ctask_type { get; set; }
         public string? cmapping_code { get; set; }
