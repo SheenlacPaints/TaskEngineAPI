@@ -30,7 +30,7 @@ namespace TaskEngineAPI.DTO
             public DateTime? lmodified_date { get; set; }
             public bool? nIs_deleted { get; set; }
             public string? cdeleted_by { get; set; }
-            public string? ldeleted_date { get; set; }
+            public DateTime? ldeleted_date { get; set; }
             public string? cprofile_image_name { get; set; }
             public string? cprofile_image_path { get; set; }
 

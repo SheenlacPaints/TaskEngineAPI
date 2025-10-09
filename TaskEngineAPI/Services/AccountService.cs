@@ -206,7 +206,7 @@ namespace TaskEngineAPI.Services
                               lmodified_date = reader.IsDBNull(reader.GetOrdinal("lmodified_date")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
                               nIs_deleted = reader.IsDBNull(reader.GetOrdinal("nIs_deleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_deleted")),
                               cdeleted_by = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
-                              ldeleted_date = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetString(reader.GetOrdinal("ldeleted_date")),
+                              ldeleted_date = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date")),
                               cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
                               cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
                             });                        
