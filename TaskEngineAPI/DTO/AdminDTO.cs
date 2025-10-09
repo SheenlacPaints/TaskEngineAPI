@@ -54,7 +54,7 @@ namespace TaskEngineAPI.DTO
         public string? clast_login_device { get; set; }
         public string? ccreated_by { get; set; }
         public string? cmodified_by { get; set; }
-        public List<IFormFile>? Attachments { get; set; }
+        //public List<IFormFile>? Attachments { get; set; }
     }
     public class UpdateAdminDTO
     {
@@ -68,7 +68,7 @@ namespace TaskEngineAPI.DTO
         public string? cpassword { get; set; }
         public bool? nisActive { get; set; }
         public string? cmodified_by { get; set; }
-        public List<IFormFile>? Attachments { get; set; }
+       // public List<IFormFile>? Attachments { get; set; }
 
     }
     public class DeleteAdminDTO
