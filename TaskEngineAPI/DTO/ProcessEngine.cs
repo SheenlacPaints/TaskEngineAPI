@@ -92,9 +92,9 @@
     public class GetProcessEngineDTO
     {
 
-        public int? cseq_id { get; set; }
+        public int? ID { get; set; }
         public string? ctype { get; set; }
-        public string? ciseqno { get; set; }
+        public int? ciseqno { get; set; }
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public string? cuser_id { get; set; }

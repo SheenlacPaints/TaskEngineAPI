@@ -280,8 +280,8 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                     {
                         engine = new GetProcessEngineDTO
                         {
-                            cseq_id = cseq_id,
-                            ciseqno = reader.SafeGetString("ciseqno"),
+                            ID = cseq_id,
+                            ciseqno = reader.SafeGetInt("ciseqno"),
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
                             ctype = reader.SafeGetString("ctype"),
@@ -323,7 +323,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             engine.ProcessEngineChildItems.Add(child);
                         }
 
-                        if (!reader.IsDBNull(reader.GetOrdinal("icondseqno")))
+                        if (!reader.IsDBNull(reader.GetOrdinal("icond_seqno")))
                         {
                             child.ProcessEngineConditionDetails.Add(new ProcessEngineConditionDetails
                             {
@@ -365,19 +365,19 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
 
                 string query = @"
                 SELECT 
-                    m.cseq_id, m.ctenentid, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, m.cstatus,
-                    m.cuser_id, m.cuser_name, m.crole_code, m.crole_name, m.cposition_code, m.cposition_title,
-                    m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.ccreated_date, m.cmodified_by, m.lmodified_date,
-                    d.cactivitycode, d.cactivitydescription, d.ctasktype, d.cprevstep, d.cactivityname, d.cnextseqno, d.cseq_order,
-                    c.icondseqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfieldvalue, c.ccondition,
-                    c.remarks1, c.remarks2, c.remarks3
-                FROM tbl_process_engine_master m
-                LEFT JOIN tbl_process_engine_details d 
-                    ON m.cprocesscode = d.cprocesscode AND  m.cseq_id = d.ciseqno
-                LEFT JOIN tbl_process_engine_condition c 
-                    ON  d.ciseqno = c.ciseqno 
-                WHERE m.ctenentid = @TenantID and m.cseq_id=@id
-                ORDER BY m.cseq_id, d.cseq_order, c.icondseqno";
+     m.ID, m.ctenent_id, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, m.cstatus,
+     m.cuser_id, m.cuser_name, m.crole_code, m.crole_name, m.cposition_code, m.cposition_title,
+     m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,
+     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
+     c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
+     c.remarks1, c.remarks2, c.remarks3
+ FROM tbl_process_engine_master m
+ LEFT JOIN tbl_process_engine_details d 
+     ON m.cprocesscode = d.cprocesscode AND  m.ID = d.ciseqno
+ LEFT JOIN tbl_process_engine_condition c 
+     ON  d.ciseqno = c.ciseqno 
+ WHERE m.ctenent_id = @TenantID and m.id=@id
+ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -385,14 +385,14 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    int cseq_id = reader.GetInt32(reader.GetOrdinal("cseq_id"));
+                    int ID = reader.GetInt32(reader.GetOrdinal("ID"));
 
-                    if (!result.TryGetValue(cseq_id, out var engine))
+                    if (!result.TryGetValue(ID, out var engine))
                     {
                         engine = new GetProcessEngineDTO
                         {
-                            cseq_id = cseq_id,
-                            ciseqno = reader.SafeGetString("ciseqno"),
+                            ID = ID,
+                            ciseqno = reader.SafeGetInt("ciseqno"),
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
                             ctype = reader.SafeGetString("ctype"),
@@ -406,12 +406,12 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             cdepartment_code = reader.SafeGetString("cdepartment_code"),
                             cdepartment_name = reader.SafeGetString("cdepartment_name"),
                             ccreated_by = reader.SafeGetString("ccreated_by"),
-                            ccreated_date = reader.SafeGetDateTime("ccreated_date"),
+                            ccreated_date = reader.SafeGetDateTime("lcreated_date"),
                             cmodified_by = reader.SafeGetString("cmodified_by"),
                             lmodified_date = reader.SafeGetDateTime("lmodified_date"),
                             ProcessEngineChildItems = new List<ProcessEngineChildItems>()
                         };
-                        result[cseq_id] = engine;
+                        result[ID] = engine;
                     }
 
                     string activityCode = reader.SafeGetString("cactivitycode");
@@ -423,11 +423,11 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             child = new ProcessEngineChildItems
                             {
                                 cactivitycode = activityCode,
-                                cactivitydescription = reader.SafeGetString("cactivitydescription"),
-                                ctasktype = reader.SafeGetString("ctasktype"),
-                                cprevstep = reader.SafeGetString("cprevstep"),
+                                cactivitydescription = reader.SafeGetString("cactivity_description"),
+                                ctasktype = reader.SafeGetString("ctask_type"),
+                                cprevstep = reader.SafeGetString("cprev_step"),
                                 cactivityname = reader.SafeGetString("cactivityname"),
-                                cnextseqno = reader.SafeGetString("cnextseqno"),
+                                cnextseqno = reader.SafeGetString("cnext_seqno"),
                                 cseq_order = reader.SafeGetString("cseq_order"),
                                 ProcessEngineConditionDetails = new List<ProcessEngineConditionDetails>()
                             };
@@ -440,11 +440,11 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             {
                                 cprocesscode = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                icondseqno = reader.SafeGetInt("icondseqno"),
+                                icondseqno = reader.SafeGetInt("icond_seqno"),
                                 cseq_order = reader.SafeGetInt("cond_seq_order"),
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
-                                cfieldvalue = reader.SafeGetString("cfieldvalue"),
+                                cfieldvalue = reader.SafeGetString("cfield_value"),
                                 ccondition = reader.SafeGetString("ccondition"),
                                 remarks1 = reader.SafeGetString("remarks1"),
                                 remarks2 = reader.SafeGetString("remarks2"),
