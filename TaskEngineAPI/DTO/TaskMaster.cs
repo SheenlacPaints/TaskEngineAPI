@@ -13,8 +13,12 @@ namespace TaskEngineAPI.DTO
             [StringLength(255)]
             public string? ctask_name { get; set; }
             public string? ctask_description { get; set; }
-         
-        }
+            public int? cmeta_id { get; set; }         
+            public int?  cprocess_id { get; set; }
+            public string? cdata { get; set; }
+        
+
+    }
 
         public class TaskDetailDTO
     {

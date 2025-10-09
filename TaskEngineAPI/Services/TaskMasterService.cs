@@ -143,6 +143,23 @@ namespace TaskEngineAPI.Services
                             }
                         }
 
+                        string meta = @"
+                    INSERT INTO tbl_transaction_process_meta_layout (
+                        [cmeta_id],[cprocess_id],[cprocess_code],[ctenent_id],[cdata]
+                    ) VALUES (
+                        @cmeta_id, @cprocess_id, @cprocess_code, @ctenent_id, @cdata);";
+
+
+                        using (var cmd = new SqlCommand(meta, conn, transaction))
+                        {                        
+                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                            cmd.Parameters.AddWithValue("@cmeta_id", (object?)model.cmeta_id ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocess_code", (object?)model.ctask_name ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cdata", (object?)model.cdata ?? DBNull.Value);                 
+                            await cmd.ExecuteNonQueryAsync();
+                        }
                         transaction.Commit();
                     }
                     catch (Exception ex)
@@ -185,6 +202,37 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
+
+
+        public async Task<string> Getdepartmentroleposition(int cTenantID, string table)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_department_role_position", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@table", table);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
 
 
     }
