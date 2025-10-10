@@ -137,13 +137,13 @@ namespace TaskEngineAPI.Services
                                 cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprevstep ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivityname ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnextseqno ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cseq_order", detail.cseq_order);
+                                cmdDetail.Parameters.AddWithValue("@cseq_order", detail.cseq_order ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                                cmdDetail.Parameters.AddWithValue("@cassignee", detail.cassignee);
-                                cmdDetail.Parameters.AddWithValue("@cprocess_type", detail.cprocess_type);
+                                cmdDetail.Parameters.AddWithValue("@cassignee", detail.cassignee ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cprocess_type", detail.cprocess_type ?? (object)DBNull.Value);
                                 await cmdDetail.ExecuteNonQueryAsync();
                             }
 
@@ -211,8 +211,8 @@ namespace TaskEngineAPI.Services
                                     cmdCond.Parameters.AddWithValue("@TenantID", cTenantID);
                                     cmdCond.Parameters.AddWithValue("@cprocesscode", cond.cprocesscode);
                                     cmdCond.Parameters.AddWithValue("@ciseqno", masterId);
-                                    cmdCond.Parameters.AddWithValue("@cseq_order", cond.cseq_order);
-                                    cmdCond.Parameters.AddWithValue("@icondseqno", cond.icondseqno);
+                                    cmdCond.Parameters.AddWithValue("@cseq_order", cond.cseq_order ?? (object)DBNull.Value);
+                                    cmdCond.Parameters.AddWithValue("@icondseqno", cond.icondseqno ?? (object)DBNull.Value);
                                     cmdCond.Parameters.AddWithValue("@ctype", cond.ctype ?? (object)DBNull.Value);
                                     cmdCond.Parameters.AddWithValue("@clabel", cond.clabel ?? (object)DBNull.Value);
                                     cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfieldvalue ?? (object)DBNull.Value);
