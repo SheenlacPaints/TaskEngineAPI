@@ -47,7 +47,7 @@ namespace TaskEngineAPI.Services
         cpassword, crole_id, nis_active, llast_login_at, cpassword_changed_at, 
         clast_login_ip, clast_login_device, ccreated_date, ccreated_by, cmodified_by,
         lmodified_date) VALUES(
-        @TenantID, @FirstName, @LastName, @Username, @Email, @PhoneNo, 
+        @TenantID, @FirstName, @LastName, @cuserid, @Email, @PhoneNo, 
         @Password, @RoleID, @IsActive, @LastLoginAt, @PasswordChangedAt, 
         @LastLoginIP, @LastLoginDevice, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date);
         SELECT SCOPE_IDENTITY();";

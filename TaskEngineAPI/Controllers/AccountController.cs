@@ -460,7 +460,7 @@ namespace TaskEngineAPI.Controllers
 
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<UpdateAdminDTO>(decryptedJson);
-            bool success = await _AccountService.UpdateSuperAdminAsync(model,request.attachment);
+            bool success = await _AccountService.UpdateSuperAdminAsync(model);
 
             var response = new APIResponse
             {
