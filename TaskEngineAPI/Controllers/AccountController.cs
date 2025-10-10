@@ -315,7 +315,7 @@ namespace TaskEngineAPI.Controllers
            
         [HttpPost]
         [Route("CreateSuperAdmin")]
-        public async Task<IActionResult> CreateSuperAdmin([FromForm] InputDTO request)
+        public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
         {
             try
             {
@@ -367,7 +367,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 // Insert into database
-                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model,request.attachment);
+                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
 
                 if (insertedUserId <= 0)
                 {
@@ -934,7 +934,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost("verifyOtpAndExecute")]
-        public async Task<ActionResult> VerifyOtpAndExecute([FromForm] InputDTO request)
+        public async Task<ActionResult> VerifyOtpAndExecute([FromBody] pay request)
         {
             try
             {
@@ -1009,7 +1009,7 @@ namespace TaskEngineAPI.Controllers
                             model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
                             // Insert new admin
-                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model,request.attachment);
+                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
 
                             if (insertedUserId <= 0)
                                 return EncryptedError(500, "Failed to create Super Admin");
@@ -1041,7 +1041,7 @@ namespace TaskEngineAPI.Controllers
 
                     case "PUT":
                         var updateModel = JsonConvert.DeserializeObject<OtpActionRequest<UpdateAdminDTO>>(decryptedJson);
-                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload,request.attachment);
+                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload);
                         return EncryptedSuccess(updated ? "Update successful" : "Update failed");
 
                     case "DELETE":

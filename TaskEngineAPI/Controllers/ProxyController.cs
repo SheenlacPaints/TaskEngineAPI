@@ -387,7 +387,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost("verifyOtpAndExecute")]
-        public async Task<IActionResult> verifyOtpAndExecute([FromBody] dynamic prms)
+        public async Task<IActionResult> verifyOtpAndExecute([FromBody] pay request)
         {
             try
             {
@@ -397,23 +397,15 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return Unauthorized("Missing Authorization token.");
-                }
-
+                }      
                 // Attach token to outbound request
-                // 🔧 Prepare outbound request
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/verifyOtpAndExecute");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-
-                // 🔒 Attach encrypted payload
-                string encryptedPayload = prms.ToString(); // already encrypted
-                requestMessage.Content = new StringContent(encryptedPayload, Encoding.UTF8, "application/json");
-
-                // 🌐 Send request
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
+
             }
             catch (Exception ex)
             {

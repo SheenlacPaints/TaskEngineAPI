@@ -39,9 +39,6 @@
         public string? cprocess_type { get; set; }
 
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
-
-
-  
     }
 
      public class ProcessEngineMeta
@@ -71,6 +68,9 @@
 
     }
 
+ 
+
+
     public class ProcessEngineConditionDetails
     {
         public string? cprocesscode { get; set; }
@@ -86,9 +86,6 @@
         public string remarks3 { get; set; }
 
     }
-
-
-
     public class GetProcessEngineDTO
     {
 
