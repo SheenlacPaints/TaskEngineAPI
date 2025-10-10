@@ -167,15 +167,15 @@ namespace TaskEngineAPI.Services
 
                               ID = reader.GetInt32(reader.GetOrdinal("ID")),
                               cTenantID = reader.GetInt32(reader.GetOrdinal("ctenant_Id")),
-                              cfirstName = reader.GetString(reader.GetOrdinal("cfirst_name")),
-                              clastName = reader.GetString(reader.GetOrdinal("clast_name")),
-                              cuserid = reader.GetInt32(reader.GetOrdinal("cuserid")),
-                              cemail = reader.GetString(reader.GetOrdinal("cemail")),
+                              cfirstName = reader.IsDBNull(reader.GetOrdinal("cfirst_name")) ? null : reader.GetString(reader.GetOrdinal("cfirst_name")),
+                              clastName = reader.IsDBNull(reader.GetOrdinal("clast_name")) ? null : reader.GetString(reader.GetOrdinal("clast_name")),                             
+                              cuserid = reader.IsDBNull(reader.GetOrdinal("cuserid"))? 0  : reader.GetInt32(reader.GetOrdinal("cuserid")),
+                              cemail = reader.IsDBNull(reader.GetOrdinal("cemail")) ? null : reader.GetString(reader.GetOrdinal("cemail")),
                               cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
-                              cpassword = reader.GetString(reader.GetOrdinal("cpassword")),
-                              croleID = reader.GetInt32(reader.GetOrdinal("crole_id")),
-                              nisActive = reader.GetBoolean(reader.GetOrdinal("nis_active")),
-                              llastLoginAt = reader.IsDBNull(reader.GetOrdinal("llast_login_at")) ? null : reader.GetDateTime(reader.GetOrdinal("llast_login_at")),
+                              cpassword = reader.IsDBNull(reader.GetOrdinal("cpassword")) ? null : reader.GetString(reader.GetOrdinal("cpassword")),
+                              croleID = reader.IsDBNull(reader.GetOrdinal("crole_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("crole_id")),
+                              nisActive =reader.GetBoolean(reader.GetOrdinal("nis_active")),
+                                llastLoginAt = reader.IsDBNull(reader.GetOrdinal("llast_login_at")) ? null : reader.GetDateTime(reader.GetOrdinal("llast_login_at")),
                               lfailedLoginAttempts = reader.IsDBNull(reader.GetOrdinal("lfailed_login_attempts")) ? null : reader.GetInt32(reader.GetOrdinal("lfailed_login_attempts")),
                               cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cpassword_changed_at")) ? null : reader.GetDateTime(reader.GetOrdinal("cpassword_changed_at")),
                               cMustChangePassword = reader.IsDBNull(reader.GetOrdinal("cmust_change_password")) ? null : reader.GetBoolean(reader.GetOrdinal("cmust_change_password")),
@@ -198,7 +198,6 @@ namespace TaskEngineAPI.Services
                 return result;
             }
         }
-
 
         public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
         {
