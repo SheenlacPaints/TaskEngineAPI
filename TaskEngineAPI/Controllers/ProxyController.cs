@@ -397,15 +397,13 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return Unauthorized("Missing Authorization token.");
-                }      
-                // Attach token to outbound request
+                }                  
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/verifyOtpAndExecute");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
-
             }
             catch (Exception ex)
             {
@@ -544,7 +542,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
 
         [Authorize]
         [HttpPost("CreateProcessEngine")]
