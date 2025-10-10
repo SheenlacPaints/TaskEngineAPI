@@ -235,7 +235,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpGet]
         [Route("Getdropdown")]
@@ -281,6 +280,148 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptapierrDtls);
             }
         }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Gettaskinbox")]
+        public async Task<IActionResult> Gettaskinbox()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+                string username = usernameClaim;
+                var json = await _TaskMasterService.Gettaskinbox(cTenantID,username);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                var response = new APIResponse
+                {
+                    body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
+                    statusText = data == null || !data.Any() ? "No data found" : "Successful",
+                    status = data == null || !data.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var apierrDtls = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Internal server Error",
+                    error = ex.Message
+                };
+
+                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                return StatusCode(500, encryptapierrDtls);
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Gettaskapprove")]
+        public async Task<IActionResult> Gettaskapprove()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+                string username = usernameClaim;
+                var json = await _TaskMasterService.Gettaskapprove(cTenantID, username);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                var response = new APIResponse
+                {
+                    body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
+                    statusText = data == null || !data.Any() ? "No data found" : "Successful",
+                    status = data == null || !data.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var apierrDtls = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Internal server Error",
+                    error = ex.Message
+                };
+
+                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                return StatusCode(500, encryptapierrDtls);
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Gettaskhold")]
+        public async Task<IActionResult> Gettaskhold()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+                string username = usernameClaim;
+                var json = await _TaskMasterService.Gettaskhold(cTenantID, username);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                var response = new APIResponse
+                {
+                    body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
+                    statusText = data == null || !data.Any() ? "No data found" : "Successful",
+                    status = data == null || !data.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var apierrDtls = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Internal server Error",
+                    error = ex.Message
+                };
+
+                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                return StatusCode(500, encryptapierrDtls);
+            }
+        }
+
 
 
         //[Authorize]
