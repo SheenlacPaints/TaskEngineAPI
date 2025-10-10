@@ -1287,11 +1287,12 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 // Step 1: Determine upload path
+                          
                 string basePath = model.type switch
                 {
-                    2 => _config["UploadSettings:SuperadminUploadPath"],
-                    3 => _config["UploadSettings:userUploadPath"],
-                    _ => throw new Exception("Invalid type. Must be 2 (SuperAdmin) or 3 (User).")
+                    "Superadmin" => _config["UploadSettings:SuperadminUploadPath"],
+                    "user" => _config["UploadSettings:userUploadPath"],
+                    _ => throw new Exception("Invalid type. Must be 'Superadmin' or 'user'.")
                 };
 
                 if (!Directory.Exists(basePath))

@@ -189,9 +189,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
-
         [Authorize]
         [HttpGet]
         [Route("Getprocessengineprivilege")]
@@ -286,8 +283,6 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-
-
         //[Authorize]
         //[HttpGet]
         //[Route("Gettaskinbox")]
@@ -333,8 +328,6 @@ namespace TaskEngineAPI.Controllers
         //        return StatusCode(500, encryptapierrDtls);
         //    }
         //}
-
-
 
 
         private ActionResult EncryptedError(int status, string message)
