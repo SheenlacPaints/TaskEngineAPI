@@ -272,7 +272,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPut("updateUser")]
-        public async Task<IActionResult> updateUser([FromForm] InputDTO request)
+        public async Task<IActionResult> updateUser([FromBody] pay request)
         {
             try
             {
