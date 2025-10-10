@@ -617,9 +617,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
-
         [Authorize]
         [HttpPost("InsertTask")]
         public async Task<IActionResult> InsertTask([FromBody] pay request)
@@ -655,6 +652,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+      
         
         [Authorize]
         [HttpGet("GetMetadata")]
@@ -809,6 +807,46 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+
+
+
+        [Authorize]
+        [HttpPost("fileUpload")]
+        public async Task<IActionResult> fileUpload([FromForm] FileUploadDTO request)
+        {
+            try
+            {
+                // Extract token from incoming request
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/fileUpload");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
 
 
     }

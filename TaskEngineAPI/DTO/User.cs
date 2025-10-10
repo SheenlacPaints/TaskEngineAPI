@@ -36,7 +36,16 @@ namespace TaskEngineAPI.DTO
     }
 
 
+    public class FileUploadDTO
+    {
+        [Required]
+        public int type { get; set; }   
+        [Required]
+        public int id { get; set; }        
 
+        [Required]
+        public IFormFile file { get; set; } 
+    }
 
 
 }

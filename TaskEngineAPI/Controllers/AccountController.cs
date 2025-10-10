@@ -312,7 +312,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-           
+
         [HttpPost]
         [Route("CreateSuperAdmin")]
         public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
@@ -420,7 +420,7 @@ namespace TaskEngineAPI.Controllers
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                  
+
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
@@ -487,7 +487,7 @@ namespace TaskEngineAPI.Controllers
             if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
                  string.IsNullOrWhiteSpace(usernameClaim))
 
-                {
+            {
                 var error = new APIResponse
                 {
                     status = 401,
@@ -512,7 +512,7 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, $"\"{encrypted}\"");
         }
-   
+
         [Authorize]
         [HttpGet]
         [Route("GetAllUser")]
@@ -527,7 +527,7 @@ namespace TaskEngineAPI.Controllers
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                  
+
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
@@ -619,7 +619,7 @@ namespace TaskEngineAPI.Controllers
         {
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
-                    
+
             bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cuserid, model.ctenantID);
             if (usernameExists)
             {
@@ -662,8 +662,8 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(409, encryptedConflict);
             }
 
-         int result = await _AccountService.InsertUserAsync(model);
-           
+            int result = await _AccountService.InsertUserAsync(model);
+
             var response = new APIResponse
             {
                 status = result > 0 ? 200 : 400,
@@ -699,12 +699,12 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(400, $"\"{encryptedError}\"");
                 }
 
-                string decryptedJson = AesEncryption.Decrypt(request.payload);             
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<UpdateUserDTO>(decryptedJson);
 
                 model.ctenantID = cTenantID;
-          
-                bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID,model.id);
+
+                bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID, model.id);
                 if (usernameExists)
                 {
                     var conflictResponse = new
@@ -1039,7 +1039,7 @@ namespace TaskEngineAPI.Controllers
 
                     case "DELETE":
                         var deleteModel = JsonConvert.DeserializeObject<OtpActionRequest<DeleteAdminDTO>>(decryptedJson);
-                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID,username);
+                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID, username);
                         return EncryptedSuccess(deleted ? "Deleted successfully" : "Not found");
 
                     default:
@@ -1048,7 +1048,7 @@ namespace TaskEngineAPI.Controllers
             }
             catch (Exception ex)
             {
-                
+
                 return EncryptedError(500, "Something went wrong");
             }
         }
@@ -1114,7 +1114,7 @@ namespace TaskEngineAPI.Controllers
                         var response1 = new APIResponse
                         {
                             status = 200,
-                            statusText = "OTP Verified Successfully",                          
+                            statusText = "OTP Verified Successfully",
                             body = new object[] { new { token = accessToken, expiresAt = tokenExpiry } }
 
                         };
@@ -1220,7 +1220,7 @@ namespace TaskEngineAPI.Controllers
 
             var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
             var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-            string username = usernameClaim;        
+            string username = usernameClaim;
             if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
             {
                 var error = new APIResponse
@@ -1246,7 +1246,129 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, encrypted);
         }
-      
+
+
+        [Authorize]
+        [HttpPost("fileUpload")]
+        public async Task<IActionResult> fileUpload([FromForm] FileUploadDTO model)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(401, encryptedError);
+            }
+
+            try
+            {
+                if (model.file == null || model.file.Length == 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "File not selected."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                // Step 1: Determine upload path
+                string basePath = model.type switch
+                {
+                    2 => _config["UploadSettings:SuperadminUploadPath"],
+                    3 => _config["UploadSettings:userUploadPath"],
+                    _ => throw new Exception("Invalid type. Must be 2 (SuperAdmin) or 3 (User).")
+                };
+
+                if (!Directory.Exists(basePath))
+                    Directory.CreateDirectory(basePath);
+
+                string sanitizedFileName = Path.GetFileName(model.file.FileName);
+                string fileName = $"{model.id}_{sanitizedFileName}";
+                string fullPath = Path.Combine(basePath, fileName);
+
+                // Step 2: Save file to disk
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await model.file.CopyToAsync(stream);
+                }
+
+                // Step 3: Update database (optional success)
+                try
+                {
+                    string connStr = _config.GetConnectionString("Database");
+                    using (var conn = new SqlConnection(connStr))
+                    {
+                        await conn.OpenAsync();
+
+                        string query = @"UPDATE Users
+                                 SET cprofile_image_name = @ProfilePath,
+                                     cprofile_image_path = @FilePath
+                                 WHERE id = @UserId";
+
+                        using (var cmd = new SqlCommand(query, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@ProfilePath", fileName);
+                            cmd.Parameters.AddWithValue("@FilePath", fullPath);
+                            cmd.Parameters.AddWithValue("@UserId", model.id);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+                catch (Exception dbEx)
+                {
+                    // Log DB error if needed, but don't block success response
+                }
+
+                // Step 4: Return success based on file upload
+                var response = new APIResponse
+                {
+                    status = 200,
+                    statusText = "File uploaded successfully."
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error occurred: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
     }
 }
             
