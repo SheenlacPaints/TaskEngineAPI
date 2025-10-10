@@ -265,34 +265,10 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<int> InsertUserAsync(CreateUserDTO model, IFormFile attachment)
+        public async Task<int> InsertUserAsync(CreateUserDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
-            string? savedFileName = null;      
-            string? savedFilePath = null;
-
-            if (attachment != null && attachment.Length > 0)
-            {
-                try
-                {
-                    var uploadsFolder = @"D:\Images\User";
-
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    var fileExtension = Path.GetExtension(attachment.FileName);
-                    savedFileName = $"{Guid.NewGuid()}{fileExtension}";
-                    savedFilePath = Path.Combine(uploadsFolder, savedFileName);
-
-                    using var stream = new FileStream(savedFilePath, FileMode.Create);
-                    await attachment.CopyToAsync(stream);
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception("Error saving attachment: " + ex.Message, ex);
-                }
-            }
-
+        
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
 
@@ -310,7 +286,7 @@ INSERT INTO Users (
     [creport_manager_poscode], [creport_manager_pos_desc], [nis_web_access_enabled],
     [nis_event_read], [llast_login_at], [nfailed_logina_attempts], [cpassword_changed_at],
     [nis_locked], [last_login_ip], [last_login_device], [ccreated_date], [ccreated_by],
-    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date],[cprofile_image_name],[cprofile_image_path]
+    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date]
 )
 VALUES (
     @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive,
@@ -325,7 +301,7 @@ VALUES (
     @cReportManager_Poscode, @cReportManager_Posdesc, @nIsWebAccessEnabled,
     @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
     @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby,
-    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate,@ProfileImageName, @ProfileImagePath
+    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate
 )";
 
             using var cmd = new SqlCommand(query, conn);
@@ -399,34 +375,15 @@ VALUES (
             cmd.Parameters.AddWithValue("@lmodifieddate", (DateTime.Now));
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? false);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
-
+            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);           
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
         }
      
-        public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID,IFormFile? attachment )
+        public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)
         {
             var connStr = _config.GetConnectionString("Database");
-            string? savedFileName = null;
-            string? savedFilePath = null;
-
-            if (attachment != null && attachment.Length > 0)
-            {
-                 savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                 savedFilePath = Path.Combine(@"D:\Images\User", savedFileName);
-
-                if (!Directory.Exists(@"D:\Images\User"))
-                    Directory.CreateDirectory(@"D:\Images\User");
-
-                using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                {
-                    await attachment.CopyToAsync(stream);
-                }
-
-            }
+           
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
@@ -495,9 +452,7 @@ VALUES (
             lmodified_date = @lmodifieddate,
             nIs_deleted = @nIsDeleted,
             cdeleted_by = @cDeletedBy,
-            ldeleted_date = @lDeletedDate,
-            cprofile_image_name = ISNULL(@ProfileImageName, cprofile_image_name),
-            cprofile_image_path = ISNULL(@ProfileImagePath, cprofile_image_path)
+            ldeleted_date = @lDeletedDate        
             WHERE ctenant_id = @ctenantID and id=@id";
 
             using var cmd = new SqlCommand(query, conn);
@@ -569,9 +524,7 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)model.ProfileImage ?? DBNull.Value);     
-            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)model.ProfileImage ?? DBNull.Value);              
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;   
         }

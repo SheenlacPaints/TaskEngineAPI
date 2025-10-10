@@ -168,7 +168,7 @@ namespace TaskEngineAPI.Controllers
         }
 
         [HttpPost("CreateUser")]
-        public async Task<IActionResult> CreateUser([FromForm] InputDTO request)
+        public async Task<IActionResult> CreateUser([FromBody] pay request)
         {
             try
             {

@@ -615,23 +615,11 @@ namespace TaskEngineAPI.Controllers
         }
 
         [HttpPost("CreateUser")]
-        public async Task<IActionResult> CreateUser([FromForm] InputDTO request)
+        public async Task<IActionResult> CreateUser([FromBody] pay request)
         {
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
-            byte[]? fileBytes = null;
-            string? fileExtension = null;
-
-            if (request.attachment != null && request.attachment.Length > 0)
-            {
-                using var ms = new MemoryStream();
-                await request.attachment.CopyToAsync(ms);
-                fileBytes = ms.ToArray();
-
-                fileExtension = Path.GetExtension(request.attachment.FileName);
-               
-            }
-           
+                    
             bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cuserid, model.ctenantID);
             if (usernameExists)
             {
@@ -674,7 +662,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(409, encryptedConflict);
             }
 
-         int result = await _AccountService.InsertUserAsync(model, request.attachment);
+         int result = await _AccountService.InsertUserAsync(model);
            
             var response = new APIResponse
             {
@@ -689,7 +677,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateUser([FromForm] InputDTO request)
+        public async Task<IActionResult> UpdateUser([FromBody] pay request)
         {
             try
             {
@@ -711,8 +699,7 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(400, $"\"{encryptedError}\"");
                 }
 
-                string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var attachment = (request.attachment);
+                string decryptedJson = AesEncryption.Decrypt(request.payload);             
                 var model = JsonConvert.DeserializeObject<UpdateUserDTO>(decryptedJson);
 
                 model.ctenantID = cTenantID;
@@ -761,7 +748,7 @@ namespace TaskEngineAPI.Controllers
 
 
 
-                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID, request.attachment);
+                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID);
 
                 var response = new APIResponse
                 {
@@ -1024,6 +1011,12 @@ namespace TaskEngineAPI.Controllers
                             string jsone = JsonConvert.SerializeObject(apierDtls);
                             var encryptapierDtls = AesEncryption.Encrypt(jsone);
                             return StatusCode(200, encryptapierDtls);
+
+
+                            var response1 = new APIResponse { status = 200, statusText = "OTP Sent Successfully" };
+                            string json2 = JsonConvert.SerializeObject(response1);
+
+
                         }
                         catch (Exception ex)
                         {

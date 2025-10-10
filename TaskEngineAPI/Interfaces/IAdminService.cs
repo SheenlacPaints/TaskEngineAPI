@@ -11,8 +11,8 @@ namespace TaskEngineAPI.Interfaces
         Task<List<AdminUserDTO>> GetAllSuperAdminsAsync(int cTenantID);
         Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model);
         Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID,string username);
-        Task<int> InsertUserAsync(CreateUserDTO model, IFormFile? attachment);
-        Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID, IFormFile? attachment);    
+        Task<int> InsertUserAsync(CreateUserDTO model);
+        Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID);    
         Task<List<GetUserDTO>> GetAllUserAsync(int cTenantID);
         Task<List<GetUserDTO>> GetAllUserIdAsync(int cTenantID,int userid);
         Task<bool> CheckEmailExistsAsync(string email, int tenantId);
