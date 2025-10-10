@@ -265,6 +265,34 @@ namespace TaskEngineAPI.Services
         }
 
 
+        public async Task<string> Getdropdown(int cTenantID, string @column)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_dropdown", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@tenent", cTenantID);
+                    cmd.Parameters.AddWithValue("@column", @column);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
     }
 }
 

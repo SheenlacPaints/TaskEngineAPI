@@ -1,4 +1,5 @@
-﻿using TaskEngineAPI.DTO;
+﻿using System.Data.Common;
+using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 namespace TaskEngineAPI.Interfaces
 {
@@ -9,6 +10,8 @@ namespace TaskEngineAPI.Interfaces
             Task<string> GetAllProcessmetaAsync(int cTenantID,string processcode);
             Task<string> Getdepartmentroleposition(int cTenantID, string table);
             Task<string> Getprocessengineprivilege(int cTenantID, string cprocesscode, string cprivilege);
+            Task<string> Getdropdown(int cTenantID, string column);
+      
     }
 
         
