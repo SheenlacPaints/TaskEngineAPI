@@ -399,10 +399,13 @@ namespace TaskEngineAPI.Controllers
                 }                  
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/verifyOtpAndExecute");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                var jsonContent = JsonConvert.SerializeObject(request);
+                requestMessage.Content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
+       
             }
             catch (Exception ex)
             {
