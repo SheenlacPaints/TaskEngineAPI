@@ -990,7 +990,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost("DeptposrolecrudAsync")]
-        public async Task<IActionResult> DeptposrolecrudAsync([FromBody] DeptPostRoleDTO request)
+        public async Task<IActionResult> DeptposrolecrudAsync([FromBody] pay request)
         {
             try
             {

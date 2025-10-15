@@ -491,7 +491,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("DeptposrolecrudAsync")]
-        public async Task<IActionResult> DeptposrolecrudAsync([FromBody] DeptPostRoleDTO request)
+        public async Task<IActionResult> DeptposrolecrudAsync([FromBody] pay request)
         {
             try
             {
@@ -506,7 +506,11 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
                 string username = usernameClaim;
-                var json = (await _TaskMasterService.DeptposrolecrudAsync(request, cTenantID, username)).ToString();
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<DeptPostRoleDTO>(decryptedJson);
+
+
+                var json = (await _TaskMasterService.DeptposrolecrudAsync(model, cTenantID, username)).ToString();
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
                 var response = new APIResponse
