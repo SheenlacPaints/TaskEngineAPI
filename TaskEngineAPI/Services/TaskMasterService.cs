@@ -186,7 +186,7 @@ namespace TaskEngineAPI.Services
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
-                    cmd.Parameters.AddWithValue("@processcode", processid);
+                    cmd.Parameters.AddWithValue("@processid", processid);
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);
                     await Task.Run(() => adapter.Fill(ds)); // async wrapper
