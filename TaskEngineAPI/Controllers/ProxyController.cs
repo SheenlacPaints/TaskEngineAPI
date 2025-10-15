@@ -666,7 +666,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GetMetadata?processid={processid}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GetMetadetailbyid?processid={processid}";
 
 
 
