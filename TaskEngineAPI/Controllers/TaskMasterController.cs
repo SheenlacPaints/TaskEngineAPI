@@ -97,8 +97,8 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet]
-        [Route("GetMetadata")]
-        public async Task<IActionResult> GetMetadata([FromQuery] string processcode)
+        [Route("GetMetadetailbyid")]
+        public async Task<IActionResult> GetMetadetailbyid([FromQuery] int processid)
         {
             try
             {
@@ -112,7 +112,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
-                var json = await _TaskMasterService.GetAllProcessmetaAsync(cTenantID, processcode);
+                var json = await _TaskMasterService.GetAllProcessmetaAsync(cTenantID, processid);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
                 var response = new APIResponse

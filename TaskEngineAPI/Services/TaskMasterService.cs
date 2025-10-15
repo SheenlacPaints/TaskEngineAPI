@@ -177,7 +177,7 @@ namespace TaskEngineAPI.Services
 
 
 
-        public async Task<string> GetAllProcessmetaAsync(int cTenantID, string processcode)
+        public async Task<string> GetAllProcessmetaAsync(int cTenantID, int processid)
         {
             try
             {
@@ -186,7 +186,7 @@ namespace TaskEngineAPI.Services
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
-                    cmd.Parameters.AddWithValue("@processcode", processcode);
+                    cmd.Parameters.AddWithValue("@processcode", processid);
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);
                     await Task.Run(() => adapter.Fill(ds)); // async wrapper

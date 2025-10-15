@@ -18,7 +18,9 @@
         public string? cposition_code { get; set; }
         public string? cposition_title { get; set; }
         public string? cdepartment_code { get; set; }
-        public string? cdepartment_name { get; set; }     
+        public string? cdepartment_name { get; set; }
+
+        public string cmetatype { get; set; }
         public string cstatus { get; set; }
         public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }
 

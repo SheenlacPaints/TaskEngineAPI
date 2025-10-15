@@ -656,8 +656,8 @@ namespace TaskEngineAPI.Controllers
         }
        
         [Authorize]
-        [HttpGet("GetMetadata")]
-        public async Task<IActionResult> GetMetadata([FromQuery] string processcode)
+        [HttpGet("GetMetadetailbyid")]
+        public async Task<IActionResult> GetMetadetailbyid([FromQuery] int processid)
         {
             try
             {
@@ -666,7 +666,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GetMetadata?processcode={processcode}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GetMetadata?processid={processid}";
 
 
 
