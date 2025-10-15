@@ -1312,15 +1312,25 @@ namespace TaskEngineAPI.Controllers
                 // Step 3: Update database (optional success)
                 try
                 {
+
+              
                     string connStr = _config.GetConnectionString("Database");
                     using (var conn = new SqlConnection(connStr))
                     {
                         await conn.OpenAsync();
 
-                        string query = @"UPDATE Users
-                                 SET cprofile_image_name = @ProfilePath,
-                                     cprofile_image_path = @FilePath
-                                 WHERE id = @UserId";
+                        string targetTable = model.type.ToLower() switch
+                        {
+                            "user" => "Users",
+                            "superadmin" => "AdminUsers",
+                            _ => throw new Exception("Invalid type. Must be 'Superadmin' or 'user'.")
+                        };
+
+                        string query = $@"
+                    UPDATE {targetTable}
+                    SET cprofile_image_name = @ProfilePath,
+                        cprofile_image_path = @FilePath
+                    WHERE id = @UserId";
 
                         using (var cmd = new SqlCommand(query, conn))
                         {
@@ -1331,6 +1341,7 @@ namespace TaskEngineAPI.Controllers
                             await cmd.ExecuteNonQueryAsync();
                         }
                     }
+
                 }
                 catch (Exception dbEx)
                 {
