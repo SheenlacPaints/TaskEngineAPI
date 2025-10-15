@@ -300,8 +300,7 @@ VALUES (
     @cReportManager_Poscode, @cReportManager_Posdesc, @nIsWebAccessEnabled,
     @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
     @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby,
-    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate
-)";
+    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate); SELECT SCOPE_IDENTITY(); ";
 
             using var cmd = new SqlCommand(query, conn);
             model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
@@ -377,6 +376,8 @@ VALUES (
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);           
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
+            var newId = await cmd.ExecuteScalarAsync();
+            return newId != null ? Convert.ToInt32(newId) : 0;
         }
      
         public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)

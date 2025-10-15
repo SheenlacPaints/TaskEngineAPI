@@ -44,10 +44,39 @@ namespace TaskEngineAPI.DTO
 
     }
 
+    public class DeptPostRoleDTO
+    {
+        public string? table { get; set; }
+        public string? action { get; set; }
+        public string? userid { get; set; }
+        public string? position { get; set; }
+        public string? role { get; set; }
+        public string? departmentname { get; set; }
+        public string? departmentdesc { get; set; }  
+        public string? cdepartmentmanagerrolecode { get; set; }
+        public string? cdepartmentmanagername { get; set; }
+        public string? cdepartmentemail { get; set; }
+        public string? cdepartmentphone { get; set; }
+        public bool? nisactive { get; set; }
+        public string? user { get; set; }
+        public string? cdepartmentcode { get; set; }
+        public string? rolename { get; set; }
+        public string? rolelevel { get; set; }
+        public string? roledescription { get; set; }
+        public string? positionname { get; set; }
+        public string? positioncode { get; set; }
+        public string? positiondescription { get; set; }
+        public string? creportingmanagerpositionid { get; set; }
+        public string? rolecode { get; set; }
+
+    }
+
+
+
 
 }
 
 
-   
-  
+
+
 

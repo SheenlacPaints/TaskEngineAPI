@@ -663,11 +663,12 @@ namespace TaskEngineAPI.Controllers
             }
 
             int result = await _AccountService.InsertUserAsync(model);
-
+            
             var response = new APIResponse
             {
                 status = result > 0 ? 200 : 400,
-                statusText = result > 0 ? "User created successfully" : "User creation failed"
+                statusText = result > 0 ? "User created successfully" : "User creation failed",
+                body = new object[] { new { UserID = result } }               
             };
 
             string json = JsonConvert.SerializeObject(response);

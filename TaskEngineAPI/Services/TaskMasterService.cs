@@ -380,7 +380,61 @@ namespace TaskEngineAPI.Services
         }
 
 
+        public async Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_tables_crud", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@action", model.action);
+                    cmd.Parameters.AddWithValue("@userid", model.userid);
+                    cmd.Parameters.AddWithValue("@position", model.position);
+                    cmd.Parameters.AddWithValue("@role", model.role);
+                    cmd.Parameters.AddWithValue("@departmentname", model.departmentname);
+                    cmd.Parameters.AddWithValue("@departmentdesc", model.departmentdesc);
+                    cmd.Parameters.AddWithValue("@table", model.table);
+                    cmd.Parameters.AddWithValue("@cdepartmentmanagerrolecode", model.cdepartmentmanagerrolecode);
+                    cmd.Parameters.AddWithValue("@cdepartmentmanagername", model.cdepartmentmanagername);
+                    cmd.Parameters.AddWithValue("@cdepartmentemail", model.cdepartmentemail);
+                    cmd.Parameters.AddWithValue("@cdepartmentphone", model.cdepartmentphone);
+                    cmd.Parameters.AddWithValue("@nisactive", model.nisactive);
+                    cmd.Parameters.AddWithValue("@user", model.user);
+                    cmd.Parameters.AddWithValue("@cdepartmentcode", model.cdepartmentcode);
+                    cmd.Parameters.AddWithValue("@rolename", model.rolename);
+                    cmd.Parameters.AddWithValue("@rolelevel", model.rolelevel);
+                    cmd.Parameters.AddWithValue("@roledescription", model.roledescription);
+                    cmd.Parameters.AddWithValue("@positionname", model.positionname);
+                    cmd.Parameters.AddWithValue("@positioncode", model.positioncode);
+                    cmd.Parameters.AddWithValue("@positiondescription", model.positiondescription);
+                    cmd.Parameters.AddWithValue("@creportingmanagerpositionid", model.creportingmanagerpositionid);
+                    cmd.Parameters.AddWithValue("@rolecode", model.rolecode);
+
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+   
     }
+
+
+
+
 }
 
 

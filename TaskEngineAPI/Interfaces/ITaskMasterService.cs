@@ -14,6 +14,7 @@ namespace TaskEngineAPI.Interfaces
             Task<string> Gettaskinbox(int cTenantID, string username);
             Task<string> Gettaskapprove(int cTenantID, string username);
             Task<string> Gettaskhold(int cTenantID, string username);
+            Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username);
 
     }
         
