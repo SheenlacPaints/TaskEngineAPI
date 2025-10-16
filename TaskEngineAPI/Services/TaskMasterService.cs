@@ -411,6 +411,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@positiondescription", model.positiondescription);
                     cmd.Parameters.AddWithValue("@creportingmanagerpositionid", model.creportingmanagerpositionid);
                     cmd.Parameters.AddWithValue("@rolecode", model.rolecode);
+                    cmd.Parameters.AddWithValue("@id", model.id);
 
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);
