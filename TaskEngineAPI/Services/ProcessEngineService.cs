@@ -577,7 +577,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 }
                             }
                         }
-                        if (model.cmetatype == "New" && model.ProcessEngineMetaMaster != null && model.ProcessEngineMetaMaster.Any())
+                        if (model.cmetatype == "new" && model.ProcessEngineMetaMaster != null && model.ProcessEngineMetaMaster.Any())
                         {
                             int metaMasterId = 0;
                             foreach (var metaMaster in model.ProcessEngineMetaMaster)
