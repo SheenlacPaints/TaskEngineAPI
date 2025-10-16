@@ -85,7 +85,7 @@ namespace TaskEngineAPI.Services
                      SELECT ctenent_id, cprocesscode, ciseqno, cseq_order, cactivitycode, 
                     cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno 
                     FROM tbl_process_engine_details  
-                    WHERE cprocesscode = @cprocesscode AND ctenentid = @ctenent_id";
+                    WHERE cprocesscode = @cprocesscode AND ctenent_id = @ctenent_id";
 
                         var detailRows = new List<Dictionary<string, object>>();
 
