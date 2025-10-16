@@ -38,7 +38,7 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-            SELECT ctype FROM [dbo].[tbl_process_engine_type] WHERE nis_active = 1 AND ctenant_Id = @TenantID";
+            SELECT cprocess_privilege,ID FROM [dbo].[tbl_process_privilege_type] WHERE nis_active = 1 AND ctenent_id = @TenantID";
 
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -52,7 +52,8 @@ namespace TaskEngineAPI.Services
                             result.Add(new ProcessEngineTypeDTO
                             {
 
-                                ctype = reader.GetString(reader.GetOrdinal("ctype"))
+                                privilege = reader.GetString(reader.GetOrdinal("cprocess_privilege")),
+                                ID = reader.GetInt32(reader.GetOrdinal("ID"))
                             });
                         }
                     }

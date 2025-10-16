@@ -3,7 +3,9 @@
     
     public class ProcessEngineTypeDTO
     {
-        public string? ctype { get; set; } 
+        public int? ID { get; set; }
+        public string? privilege { get; set; }
+       
     }
     public class ProcessEngineDTO
     {
