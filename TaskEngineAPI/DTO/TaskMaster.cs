@@ -16,19 +16,12 @@ namespace TaskEngineAPI.DTO
            public int?  cprocess_id { get; set; }
            public List<metaData> metaData { get; set; }
         }
-
-
        public class metaData
        {
          public int? cmeta_id { get; set; }
          public string? cdata { get; set; }
    
        }
-
-
-      
-
-
         public class TaskDetailDTO
        {
         public int? iseqno { get; set; }
@@ -39,13 +32,11 @@ namespace TaskEngineAPI.DTO
         public int? inext_seqno { get; set; }
         public string? cnext_seqtype { get; set; }
         public string? cprevtype { get; set; }
-        public string? csla { get; set; }
-      
-
+        public string? csla { get; set; }    
     }
 
-    public class DeptPostRoleDTO
-    {
+        public class DeptPostRoleDTO
+        {
         public string? table { get; set; }
         public string? action { get; set; }
         public string? userid { get; set; }
@@ -70,10 +61,21 @@ namespace TaskEngineAPI.DTO
         public string? rolecode { get; set; }
         public int id { get; set; }
 
+        }
+
+    public class privilegeMappingDTO
+    {      
+        public List<privilegeMapping> privilegeMapping { get; set; }
     }
 
+    public class privilegeMapping
+    {
+        public string? privilege { get; set; }
+        public int? cprocess_id { get; set; }
+        public string? cprocess_code { get; set; }
+        public string? cprocess_name { get; set; }
 
-
+    }
 
 }
 
