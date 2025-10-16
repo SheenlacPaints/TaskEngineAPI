@@ -772,7 +772,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Getprocessengineprivilege")]
-        public async Task<IActionResult> Getprocessengineprivilege([FromQuery] string? cprocesscode, string cprivilege)
+        public async Task<IActionResult> Getprocessengineprivilege([FromQuery] string? value, string cprivilege)
         {
             try
             {
@@ -781,7 +781,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Getprocessengineprivilege?cprocesscode={cprocesscode}&cprivilege={cprivilege}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Getprocessengineprivilege?value={value}&cprivilege={cprivilege}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 

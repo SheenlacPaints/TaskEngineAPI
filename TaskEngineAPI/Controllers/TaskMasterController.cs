@@ -190,7 +190,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Getprocessengineprivilege")]
-        public async Task<IActionResult> Getprocessengineprivilege([FromQuery] string? cprocesscode, string cprivilege)
+        public async Task<IActionResult> Getprocessengineprivilege([FromQuery] string? value, string cprivilege)
         {
             try
             {
@@ -204,7 +204,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
-                var json = await _TaskMasterService.Getprocessengineprivilege(cTenantID, cprocesscode, cprivilege);
+                var json = await _TaskMasterService.Getprocessengineprivilege(cTenantID, value, cprivilege);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
                 var response = new APIResponse

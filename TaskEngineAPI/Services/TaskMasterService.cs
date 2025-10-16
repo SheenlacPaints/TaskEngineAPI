@@ -235,7 +235,7 @@ namespace TaskEngineAPI.Services
         }
 
 
-        public async Task<string> Getprocessengineprivilege(int cTenantID, string cprocesscode,string cprivilege)
+        public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege)
         {
             try
             {
@@ -244,7 +244,7 @@ namespace TaskEngineAPI.Services
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@tenentid", cTenantID);
-                    cmd.Parameters.AddWithValue("@cprocesscode", cprocesscode);
+                    cmd.Parameters.AddWithValue("@value", value);
                     cmd.Parameters.AddWithValue("@cprivilege", cprivilege);
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);
