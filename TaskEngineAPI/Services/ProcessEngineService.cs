@@ -262,7 +262,7 @@ namespace TaskEngineAPI.Services
     m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
     c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
-    c.remarks1, c.remarks2, c.remarks3
+    c.remarks1, c.remarks2, c.remarks3,m.cmeta_id
 FROM tbl_process_engine_master m
 LEFT JOIN tbl_process_engine_details d 
     ON m.cprocesscode = d.cprocesscode AND  m.ID = d.cheader_id
@@ -297,6 +297,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             cposition_title = reader.SafeGetString("cposition_title"),
                             cdepartment_code = reader.SafeGetString("cdepartment_code"),
                             cdepartment_name = reader.SafeGetString("cdepartment_name"),
+                            cmeta_id = reader.SafeGetInt("cmeta_id"),
                             ccreated_by = reader.SafeGetString("ccreated_by"),
                             ccreated_date = reader.SafeGetDateTime("lcreated_date"),
                             cmodified_by = reader.SafeGetString("cmodified_by"),
@@ -373,7 +374,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
      m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,
      d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
      c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
-     c.remarks1, c.remarks2, c.remarks3
+     c.remarks1, c.remarks2, c.remarks3,m.cmeta_id
  FROM tbl_process_engine_master m
  LEFT JOIN tbl_process_engine_details d 
      ON m.cprocesscode = d.cprocesscode AND  m.ID = d.ciseqno
@@ -408,6 +409,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             cposition_title = reader.SafeGetString("cposition_title"),
                             cdepartment_code = reader.SafeGetString("cdepartment_code"),
                             cdepartment_name = reader.SafeGetString("cdepartment_name"),
+                            cmeta_id = reader.SafeGetInt("cmeta_id"),
                             ccreated_by = reader.SafeGetString("ccreated_by"),
                             ccreated_date = reader.SafeGetDateTime("lcreated_date"),
                             cmodified_by = reader.SafeGetString("cmodified_by"),
@@ -613,12 +615,12 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
 
                             if (model.ProcessEngineMeta != null && model.ProcessEngineMeta.Any())
                             {
-                                string metadata = @"INSERT INTO tbl_process_meta (
-    process_code, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_autofill, cis_editable,
+                                string metadata = @"INSERT INTO tbl_process_meta_detail (
+    Header_ID, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_autofill, cis_editable,
     cis_validate, cmin_len, cmax_len, cdata_source_type, cfetch_type, cis_req_search, cis_multi_select, 
     cmin_date, cmax_date, cdate_type, cmin_time, cmax_time, ctime_type, cprocess_source, clocation, 
     ccreated_by, lcreated_date, cmodified_by, lmodified_date, ccolumn_value) VALUES (
-    @cprocesscode, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_autofill, 
+    @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_autofill, 
     @cis_editable, @cis_validate, @cmin_len, @cmax_len, @cdata_source_type, @cfetch_type, 
     @cis_req_search, @cis_multi_select, @cmin_date, @cmax_date, @cdate_type, @cmin_time, 
     @cmax_time, @ctime_type, @cprocess_source, @clocation, @ccreated_by, @lcreated_date, 
@@ -628,7 +630,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                     using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
                                     {
                                         cmdMeta.Parameters.AddWithValue("@TenantID", cTenantID);
-                                        cmdMeta.Parameters.AddWithValue("@cprocesscode", model.cprocesscode ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@Header_ID", metaMasterId);
                                         cmdMeta.Parameters.AddWithValue("@cinput_type", meta.cinput_type ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@label", meta.label ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@cplaceholder", meta.cplaceholder ?? (object)DBNull.Value);

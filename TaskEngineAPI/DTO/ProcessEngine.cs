@@ -101,10 +101,12 @@
         public string? cdepartment_code { get; set; }
         public string? cdepartment_name { get; set; }
         public string? cstatus { get; set; }
+        public int? cmeta_id { get; set; }
         public string? ccreated_by { get; set; }
         public DateTime? ccreated_date { get; set; }
         public string? cmodified_by { get; set; }
         public DateTime? lmodified_date { get; set; }
+
         public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }
     }
     public class ProcessEngineMetaMaster
