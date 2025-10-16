@@ -65,7 +65,7 @@ namespace TaskEngineAPI.DTO
 
     public class privilegeMappingDTO
     {
-        public string? privilege { get; set; }
+        public int? privilege { get; set; }
         public int? cprocess_id { get; set; }
         public string? cprocess_code { get; set; }
         public string? cprocess_name { get; set; }
@@ -74,7 +74,7 @@ namespace TaskEngineAPI.DTO
 
     public class privilegeMapping
     {
-        public string? entity_type { get; set; }
+        public int? entity_type { get; set; }
         public string? entity_id { get; set; }
 
     }
