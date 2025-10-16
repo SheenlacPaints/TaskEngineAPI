@@ -433,7 +433,8 @@ namespace TaskEngineAPI.Services
            
          public async Task<int> Processprivilege_mapping(privilegeMappingDTO model, int cTenantID, string username)
          {
-            int rowsInserted = 0;
+            
+            int masterId = 0;
 
             try
             {
@@ -442,41 +443,65 @@ namespace TaskEngineAPI.Services
                     await conn.OpenAsync();
                     using (var transaction = conn.BeginTransaction())
                     {
-                        string queryDetail = @"
+                        string query = @"
                 INSERT INTO tbl_engine_master_to_process_privilege (
                     [ctenent_id],[cprocess_privilege],[cseq_id],[ciseqno],[cprocess_id],[cprocesscode],
                     [cprocessname],[cis_active],[ccreated_by],[lcreated_date],[cmodified_by],[lmodified_date]
                 ) VALUES (
                     @ctenent_id, @cprocess_privilege, @cseq_id, @ciseqno, @cprocess_id, @cprocesscode, 
                     @cprocessname, @cis_active, @ccreated_by, @lcreated_date, 
-                    @cmodified_by, @lmodified_date);";
+                    @cmodified_by, @lmodified_date); SELECT SCOPE_IDENTITY()";
+
+                        
+                            using (var cmdInsert = new SqlCommand(query, conn, transaction))
+                            {
+                                cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                                cmdInsert.Parameters.AddWithValue("@cprocess_privilege", model.privilege);
+                                cmdInsert.Parameters.AddWithValue("@cseq_id", "1");
+                                cmdInsert.Parameters.AddWithValue("@ciseqno", "1");
+                                cmdInsert.Parameters.AddWithValue("@cprocess_id", model.cprocess_id);
+                                cmdInsert.Parameters.AddWithValue("@cprocesscode", model.cprocess_code);
+                                cmdInsert.Parameters.AddWithValue("@cprocessname", model.cprocess_name);
+                                cmdInsert.Parameters.AddWithValue("@cis_active", "1");
+                                cmdInsert.Parameters.AddWithValue("@ccreated_by", username);
+                                cmdInsert.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                                cmdInsert.Parameters.AddWithValue("@cmodified_by", username);
+                                cmdInsert.Parameters.AddWithValue("@lmodified_date", DateTime.Now);                               
+                                var newId = await cmdInsert.ExecuteScalarAsync();
+                                masterId = newId != null ? Convert.ToInt32(newId) : 0;
+                        }
+                       
+                        string queryDetail = @"
+                    INSERT INTO tbl_process_privilege_details (
+                        privilege_id, entity_type, entity_id, ctenent_id, cis_active,ccreated_by,lcreated_date, 
+                    cmodified_by, lmodified_date,cprocess_id) VALUES (
+                        @privilege_id, @entity_type, @entity_id, @ctenent_id, @cis_active, @ccreated_by, 
+                        @lcreated_date, @cmodified_by, @lmodified_date, @cprocess_id);";
 
                         foreach (var row in model.privilegeMapping)
                         {
                             using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
                             {
+                                cmdInsert.Parameters.AddWithValue("@privilege_id", masterId);
+                                cmdInsert.Parameters.AddWithValue("@entity_type", row.entity_type);
+                                cmdInsert.Parameters.AddWithValue("@entity_id", row.entity_id);
                                 cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
-                                cmdInsert.Parameters.AddWithValue("@cprocess_privilege", row.privilege);
-                                cmdInsert.Parameters.AddWithValue("@cseq_id", "1");
-                                cmdInsert.Parameters.AddWithValue("@ciseqno", "1");
-                                cmdInsert.Parameters.AddWithValue("@cprocess_id", row.cprocess_id);
-                                cmdInsert.Parameters.AddWithValue("@cprocesscode", row.cprocess_code);
-                                cmdInsert.Parameters.AddWithValue("@cprocessname", row.cprocess_name);
-                                cmdInsert.Parameters.AddWithValue("@cis_active", "1");
-                                cmdInsert.Parameters.AddWithValue("@ccreated_by", username);
+                                cmdInsert.Parameters.AddWithValue("@cis_active",true);                  
                                 cmdInsert.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                                cmdInsert.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdInsert.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdInsert.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-
-                                rowsInserted += await cmdInsert.ExecuteNonQueryAsync();
+                                cmdInsert.Parameters.AddWithValue("@cprocess_id", model.cprocess_id);                        
+                                await cmdInsert.ExecuteNonQueryAsync();
                             }
                         }
-
                         transaction.Commit();
+
+
                     }
                 }
 
-                return rowsInserted;
+                return masterId;
             }
             catch (Exception ex)
             {
