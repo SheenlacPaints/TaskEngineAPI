@@ -60,8 +60,10 @@ namespace TaskEngineAPI.DTO
         public string? creportingmanagerpositionid { get; set; }
         public string? rolecode { get; set; }
         public int id { get; set; }
-
-        }
+        public string? new_cdepartmentcode { get; set; }
+        public string? new_rolecode { get; set; }
+        public string? new_positioncode { get; set; }
+    }
 
     public class privilegeMappingDTO
     {
