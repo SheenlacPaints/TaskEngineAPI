@@ -85,13 +85,13 @@ namespace TaskEngineAPI.Services
                      SELECT ctenent_id, cprocesscode, ciseqno, cseq_order, cactivitycode, 
                     cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno 
                     FROM tbl_process_engine_details  
-                    WHERE cprocesscode = @cprocesscode AND ctenent_id = @ctenent_id";
+                    WHERE cheader_id = @cprocesscode AND ctenent_id = @ctenent_id";
 
                         var detailRows = new List<Dictionary<string, object>>();
 
                         using (var cmdSelect = new SqlCommand(selectQuery, conn, transaction))
                         {
-                            cmdSelect.Parameters.AddWithValue("@cprocesscode", model.ctask_name);
+                            cmdSelect.Parameters.AddWithValue("@cprocesscode", model.cprocess_id);
                             cmdSelect.Parameters.AddWithValue("@ctenent_id", cTenantID);
 
                             using (var reader = await cmdSelect.ExecuteReaderAsync())
@@ -101,11 +101,11 @@ namespace TaskEngineAPI.Services
                                     var row = new Dictionary<string, object>
                                     {
                                         ["ciseqno"] = reader["ciseqno"],
-                                        ["ctenentid"] = reader["ctenentid"],
-                                        ["ctasktype"] = reader["ctasktype"],
+                                        ["ctenentid"] = reader["ctenent_id"],
+                                        ["ctasktype"] = reader["ctask_type"],
                                         ["cprocesscode"] = reader["cprocesscode"],
-                                        ["cnextseqno"] = reader["cnextseqno"],
-                                        ["cprevstep"] = reader["cprevstep"]
+                                        ["cnextseqno"] = reader["cnext_seqno"],
+                                        ["cprevstep"] = reader["cprev_step"]
                                     };
                                     detailRows.Add(row);
                                 }
