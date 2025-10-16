@@ -18,13 +18,13 @@
         public string? cposition_code { get; set; }
         public string? cposition_title { get; set; }
         public string? cdepartment_code { get; set; }
-        public string? cdepartment_name { get; set; }
-
-        public string cmetatype { get; set; }
-        public string cstatus { get; set; }
+        public string? cdepartment_name { get; set; } 
+        public string? cstatus { get; set; }
+        public string? cmetatype { get; set; }
+        public int? cmeta_id { get; set; }
         public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }
-
-        public List<ProcessEngineMeta> ProcessEngineMeta { get; set; }
+        public List<ProcessEngineMetaMaster> ProcessEngineMetaMaster { get; set; }
+        public List<ProcessEngineMeta> ProcessEngineMeta { get; set; }   
     }
     public class ProcessEngineChildItems
     {
@@ -43,7 +43,7 @@
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
     }
 
-     public class ProcessEngineMeta
+    public class ProcessEngineMeta
     {
         public string? cinput_type { get; set; }
         public string? label { get; set; }
@@ -70,9 +70,6 @@
 
     }
 
- 
-
-
     public class ProcessEngineConditionDetails
     {
         public string? cprocesscode { get; set; }
@@ -90,7 +87,6 @@
     }
     public class GetProcessEngineDTO
     {
-
         public int? ID { get; set; }
         public string? ctype { get; set; }
         public int? ciseqno { get; set; }
@@ -111,12 +107,14 @@
         public DateTime? lmodified_date { get; set; }
         public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }
     }
-
-
-
+    public class ProcessEngineMetaMaster
+    {
+        public string? meta_Name { get; set; }
+        public string? meta_Description { get; set; }
+        public string?label { get; set; }
+    }
 
 
 
 }
 
-     
