@@ -514,10 +514,10 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
          ctenent_id, cheader_id, ciseqno, cprocesscode, cseq_order, cactivitycode, cactivity_description, 
          ctask_type, cprev_step, cactivityname, cnext_seqno, 
-         lcreated_date, ccreated_by, cmodified_by, lmodified_date, cassignee, cprocess_type) VALUES (
+         lcreated_date, ccreated_by, cmodified_by, lmodified_date, cassignee, cprocess_type,csla) VALUES (
          @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cseq_order, @cactivitycode, @cactivitydescription, 
          @ctasktype, @cprevstep, @cactivityname, @cnextseqno, 
-         @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cprocess_type);";
+         @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cprocess_type,@csla);";
 
                         foreach (var detail in model.ProcessEngineChildItems)
                         {
@@ -540,6 +540,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@cassignee", detail.cassignee ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cprocess_type", detail.cprocess_type ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@csla", detail.csla ?? (object)DBNull.Value);
                                 await cmdDetail.ExecuteNonQueryAsync();
                             }
                             if (detail.ProcessEngineConditionDetails != null)

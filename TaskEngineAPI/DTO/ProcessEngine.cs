@@ -41,7 +41,7 @@
         public string? cnextseqno { get; set; }
         public string? cassignee { get; set; }
         public string? cprocess_type { get; set; }
-
+        public string? csla { get; set; }
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
     }
     public class ProcessEngineMeta
