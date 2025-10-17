@@ -15,8 +15,8 @@ namespace TaskEngineAPI.Interfaces
             Task<string> Gettaskapprove(int cTenantID, string username);
             Task<string> Gettaskhold(int cTenantID, string username);
             Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username);
-            Task<int> Processprivilege_mapping(privilegeMappingDTO model, int tenantId, string username);
-            Task<string> Gettaskinitiator(int cTenantID, string username);
+            Task<int> Processprivilege_mapping(privilegeMappingDTO model, int tenantId, string username);         
+            Task<string> GetTaskInitiator(int cTenantID, string username);
     }
         
 }

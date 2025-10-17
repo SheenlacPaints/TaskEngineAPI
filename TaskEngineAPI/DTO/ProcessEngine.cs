@@ -44,7 +44,6 @@
 
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
     }
-
     public class ProcessEngineMeta
     {
         public string? cinput_type { get; set; }
@@ -71,7 +70,6 @@
         public string? ccolumn_value { get; set; }
 
     }
-
     public class ProcessEngineConditionDetails
     {
         public string? cprocesscode { get; set; }
@@ -118,7 +116,48 @@
         public string?label { get; set; }
     }
 
+    public class TaskList
+    {
+        public int ID { get; set; }
+        public int itaskno { get; set; }
+        public string? ctasktype { get; set; }
+        public string? ctaskname { get; set; }
+        public string? ctaskdescription { get; set; }
+        public string? cstatus { get; set; }  
+        public DateTime? lcompleteddate { get; set; }
+        public string? ccreatedby { get; set; }
+        public DateTime? lcreateddate { get; set; }
+        public string? cmodifiedby { get; set; }
+        public DateTime? lmodifieddate { get; set; }
+        public string? Employeecode { get; set; }
+        public string? EmpDepartment { get; set; }
+        public List<TaskDetails>? TaskChildItems { get; set; }
+    }
 
+    public class TaskDetails
+    {
+        public int? ID { get; set; }
+        public int? iheader_id { get; set; }
+        public int? itaskno { get; set; }
+        public int? iseqno { get; set; }
+        public string? ctasktype { get; set; }
+        public string? cmappingcode { get; set; }
+        public string? ccurrentstatus { get; set; }
+        public DateTime? lcurrentstatusdate { get; set; }
+        public string? cremarks { get; set; }
+        public int? inextseqno { get; set; }
+        public string? cnextseqtype { get; set; }
+        public string? cprevtype { get; set; }
+       
+        public string? SLA { get; set; }
+        public string? cisforwarded { get; set; }
+        public DateTime? lfwddate { get; set; }
+        public string? cfwdto { get; set; }
+        public string? cisreassigned { get; set; }
+        public DateTime? lreassigndt { get; set; }
+        public string? creassignto { get; set; }
+       
+    }
 
 }
 

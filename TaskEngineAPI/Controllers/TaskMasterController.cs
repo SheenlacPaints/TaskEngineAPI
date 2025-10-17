@@ -608,7 +608,10 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
                 string username = usernameClaim;
-                var json = await _TaskMasterService.Gettaskinitiator(cTenantID, username);
+                var json = await _TaskMasterService.GetTaskInitiator(cTenantID, username);
+
+              
+
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
                 var response = new APIResponse
@@ -636,6 +639,11 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptapierrDtls);
             }
         }
+
+
+
+
+
 
 
     }
