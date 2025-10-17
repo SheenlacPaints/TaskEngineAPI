@@ -390,7 +390,6 @@ namespace TaskEngineAPI.Controllers
             return Ok(encrypted);
         }
 
-
         [Authorize]
         [HttpPost]
         [Route("DeptposrolecrudAsync")]
@@ -441,7 +440,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptapierrDtls);
             }
         }
-
 
         [Authorize]
         [HttpPost]
@@ -494,7 +492,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpGet]
         [Route("Gettaskinitiator")]
@@ -545,8 +542,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
         [Authorize]
         [HttpGet]
         [Route("Gettaskinbox")]
@@ -596,9 +591,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptapierrDtls);
             }
         }
-
-
-      
 
 
     }

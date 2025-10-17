@@ -34,7 +34,7 @@ namespace TaskEngineAPI.Services
         public async Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int cTenantID, string username)
         {
             int masterId = 0;
-
+            int detailId = 0;
             using (var conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
@@ -59,13 +59,9 @@ namespace TaskEngineAPI.Services
                         string queryMaster = @"
                     INSERT INTO tbl_taskflow_master (
                         itaskno, ctenent_id, ctask_type, ctask_name, ctask_description, cstatus,  
-                        lcreated_date, ccreated_by, cmodified_by, lmodified_date
-                    ) VALUES (
+                        lcreated_date, ccreated_by, cmodified_by, lmodified_date) VALUES (
                         @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
-                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date
-                    );
-                    SELECT SCOPE_IDENTITY();";
-
+                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date);SELECT SCOPE_IDENTITY();";
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
@@ -78,7 +74,6 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@ccreated_by", username);
                             cmd.Parameters.AddWithValue("@cmodified_by", username);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
@@ -113,15 +108,51 @@ namespace TaskEngineAPI.Services
                                 }
                             }
                         }                    
-                        string queryDetail = @"
-                    INSERT INTO tbl_taskflow_detail (
+                    //    string queryDetail = @"
+                    //INSERT INTO tbl_taskflow_detail (
+                    //    itaskno, iseqno, iheader_id, ctenent_id, ctask_type, cmapping_code, 
+                    //    ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
+                    //    cnext_seqtype, cprevtype, csla
+                    //) VALUES (
+                    //    @itaskno, @iseqno, @iheader_id, @ctenent_id, @ctask_type, @cmapping_code, 
+                    //    @ccurrent_status, @lcurrent_status_date, @cremarks, @inext_seqno, 
+                    //    @cnext_seqtype, @cprevtype, @csla);";
+
+                    //    foreach (var row in detailRows)
+                    //    {
+                    //        using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
+                    //        {
+                    //            cmdInsert.Parameters.AddWithValue("@itaskno", newTaskNo);
+                    //            cmdInsert.Parameters.AddWithValue("@iseqno", row["ciseqno"]);
+                    //            cmdInsert.Parameters.AddWithValue("@iheader_id", masterId);
+                    //            cmdInsert.Parameters.AddWithValue("@ctenent_id", row["ctenentid"]);
+                    //            cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
+                    //            cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cprocesscode"]);
+                    //            cmdInsert.Parameters.AddWithValue("@ccurrent_status", "P");
+                    //            cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
+                    //            cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
+                    //            cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
+                    //            cmdInsert.Parameters.AddWithValue("@cnext_seqtype", DBNull.Value);
+                    //            cmdInsert.Parameters.AddWithValue("@cprevtype", row["cprevstep"]);
+                    //            cmdInsert.Parameters.AddWithValue("@csla", DBNull.Value);
+                    //            await cmdInsert.ExecuteNonQueryAsync();
+                    //        }
+
+
+
+                    //    }
+
+                        string queryDetail = @"INSERT INTO tbl_taskflow_detail (
                         itaskno, iseqno, iheader_id, ctenent_id, ctask_type, cmapping_code, 
                         ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
-                        cnext_seqtype, cprevtype, csla
-                    ) VALUES (
+                        cnext_seqtype, cprevtype, csla) VALUES (
                         @itaskno, @iseqno, @iheader_id, @ctenent_id, @ctask_type, @cmapping_code, 
                         @ccurrent_status, @lcurrent_status_date, @cremarks, @inext_seqno, 
-                        @cnext_seqtype, @cprevtype, @csla);";
+                        @cnext_seqtype, @cprevtype, @csla);SELECT SCOPE_IDENTITY();";
+
+                        string queryStatus = @"INSERT INTO tbl_transaction_taskflow_detail_and_status (
+                        itaskno, ctenent_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date) VALUES 
+                        (@itaskno, @ctenent_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date);";
 
                         foreach (var row in detailRows)
                         {
@@ -130,9 +161,9 @@ namespace TaskEngineAPI.Services
                                 cmdInsert.Parameters.AddWithValue("@itaskno", newTaskNo);
                                 cmdInsert.Parameters.AddWithValue("@iseqno", row["ciseqno"]);
                                 cmdInsert.Parameters.AddWithValue("@iheader_id", masterId);
-                                cmdInsert.Parameters.AddWithValue("@ctenent_id", row["ctenentid"]);
+                                cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
                                 cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
-                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cprocesscode"]);
+                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cmapping_code"]);
                                 cmdInsert.Parameters.AddWithValue("@ccurrent_status", "P");
                                 cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
                                 cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
@@ -140,15 +171,25 @@ namespace TaskEngineAPI.Services
                                 cmdInsert.Parameters.AddWithValue("@cnext_seqtype", DBNull.Value);
                                 cmdInsert.Parameters.AddWithValue("@cprevtype", row["cprevstep"]);
                                 cmdInsert.Parameters.AddWithValue("@csla", DBNull.Value);
+                               
+                                var newId = await cmdInsert.ExecuteScalarAsync();
+                                detailId = newId != null ? Convert.ToInt32(newId) : 0;
+                            }
 
-                                await cmdInsert.ExecuteNonQueryAsync();
+                            using (var cmdStatus = new SqlCommand(queryStatus, conn, transaction))
+                            {
+                                cmdStatus.Parameters.AddWithValue("@itaskno", newTaskNo);
+                                cmdStatus.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                                cmdStatus.Parameters.AddWithValue("@cheader_id", 1);
+                                cmdStatus.Parameters.AddWithValue("@cdetail_id", detailId);
+                                cmdStatus.Parameters.AddWithValue("@cstatus", "P");
+                                cmdStatus.Parameters.AddWithValue("@cstatus_with", row["cmapping_code"]); // or a value if applicable
+                                cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
+                                await cmdStatus.ExecuteNonQueryAsync();
                             }
                         }
-
-                        string meta = @"
-                    INSERT INTO tbl_transaction_process_meta_layout (
-                        [cmeta_id],[cprocess_id],[cprocess_code],[ctenent_id],[cdata]
-                    ) VALUES (
+                        string meta = @"INSERT INTO tbl_transaction_process_meta_layout (
+                        [cmeta_id],[cprocess_id],[cprocess_code],[ctenent_id],[cdata]) VALUES (
                         @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata);";
 
                         foreach (var metaData in model.metaData)
@@ -176,8 +217,6 @@ namespace TaskEngineAPI.Services
 
             return masterId;
         }
-
-
 
         public async Task<string> GetAllProcessmetaAsync(int cTenantID, int processid)
         {
@@ -207,7 +246,6 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
         public async Task<string> Getdepartmentroleposition(int cTenantID, string table)
         {
             try
@@ -235,7 +273,6 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-
 
         public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege)
         {
@@ -265,7 +302,6 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-
 
         public async Task<string> Getdropdown(int cTenantID, string @column)
         {
@@ -323,7 +359,6 @@ namespace TaskEngineAPI.Services
         //    }
         //}
 
-
         public async Task<string> Gettaskapprove(int cTenantID, string username)
         {
             try
@@ -351,10 +386,7 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-
-
-        
-
+      
         public async Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username)
         {
             try
