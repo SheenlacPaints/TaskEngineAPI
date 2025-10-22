@@ -80,7 +80,7 @@ namespace TaskEngineAPI.Services
                      
                         string selectQuery = @"
                      SELECT ctenent_id, cprocesscode, ciseqno, cseq_order, cactivitycode, 
-                    cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno 
+                    cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno,cassignee
                     FROM tbl_process_engine_details  
                     WHERE cheader_id = @cprocesscode AND ctenent_id = @ctenent_id";
 
@@ -102,45 +102,14 @@ namespace TaskEngineAPI.Services
                                         ["ctasktype"] = reader["ctask_type"],
                                         ["cprocesscode"] = reader["cprocesscode"],
                                         ["cnextseqno"] = reader["cnext_seqno"],
-                                        ["cprevstep"] = reader["cprev_step"]
+                                        ["cprevstep"] = reader["cprev_step"],
+                                        ["cassignee"] = reader["cassignee"],
                                     };
                                     detailRows.Add(row);
                                 }
                             }
                         }                    
-                    //    string queryDetail = @"
-                    //INSERT INTO tbl_taskflow_detail (
-                    //    itaskno, iseqno, iheader_id, ctenent_id, ctask_type, cmapping_code, 
-                    //    ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
-                    //    cnext_seqtype, cprevtype, csla
-                    //) VALUES (
-                    //    @itaskno, @iseqno, @iheader_id, @ctenent_id, @ctask_type, @cmapping_code, 
-                    //    @ccurrent_status, @lcurrent_status_date, @cremarks, @inext_seqno, 
-                    //    @cnext_seqtype, @cprevtype, @csla);";
-
-                    //    foreach (var row in detailRows)
-                    //    {
-                    //        using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
-                    //        {
-                    //            cmdInsert.Parameters.AddWithValue("@itaskno", newTaskNo);
-                    //            cmdInsert.Parameters.AddWithValue("@iseqno", row["ciseqno"]);
-                    //            cmdInsert.Parameters.AddWithValue("@iheader_id", masterId);
-                    //            cmdInsert.Parameters.AddWithValue("@ctenent_id", row["ctenentid"]);
-                    //            cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
-                    //            cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cprocesscode"]);
-                    //            cmdInsert.Parameters.AddWithValue("@ccurrent_status", "P");
-                    //            cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
-                    //            cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
-                    //            cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
-                    //            cmdInsert.Parameters.AddWithValue("@cnext_seqtype", DBNull.Value);
-                    //            cmdInsert.Parameters.AddWithValue("@cprevtype", row["cprevstep"]);
-                    //            cmdInsert.Parameters.AddWithValue("@csla", DBNull.Value);
-                    //            await cmdInsert.ExecuteNonQueryAsync();
-                    //        }
-
-
-
-                    //    }
+                  
 
                         string queryDetail = @"INSERT INTO tbl_taskflow_detail (
                         itaskno, iseqno, iheader_id, ctenent_id, ctask_type, cmapping_code, 
@@ -163,7 +132,7 @@ namespace TaskEngineAPI.Services
                                 cmdInsert.Parameters.AddWithValue("@iheader_id", masterId);
                                 cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
                                 cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
-                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cmapping_code"]);
+                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cassignee"]);
                                 cmdInsert.Parameters.AddWithValue("@ccurrent_status", "P");
                                 cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
                                 cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
