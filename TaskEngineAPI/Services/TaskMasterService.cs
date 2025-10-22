@@ -183,7 +183,7 @@ namespace TaskEngineAPI.Services
                                 cmdStatus.Parameters.AddWithValue("@cheader_id", 1);
                                 cmdStatus.Parameters.AddWithValue("@cdetail_id", detailId);
                                 cmdStatus.Parameters.AddWithValue("@cstatus", "P");
-                                cmdStatus.Parameters.AddWithValue("@cstatus_with", row["cmapping_code"]); // or a value if applicable
+                                cmdStatus.Parameters.AddWithValue("@cstatus_with", username); // or a value if applicable
                                 cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
                                 await cmdStatus.ExecuteNonQueryAsync();
                             }
