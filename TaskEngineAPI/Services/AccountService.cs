@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 using System.Net;
 using System.Net.Mail;
@@ -933,6 +934,169 @@ VALUES (
             }
         }
 
+        public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using var conn = new SqlConnection(connStr);
+            using var cmd = new SqlCommand("sp_Insert_Users_Bulk", conn);
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            var table = new DataTable();
+            table.Columns.Add("cuserid", typeof(int));
+            table.Columns.Add("ctenant_id", typeof(int));
+            table.Columns.Add("cuser_name", typeof(string));
+            table.Columns.Add("cemail", typeof(string));
+            table.Columns.Add("cpassword", typeof(string));
+            table.Columns.Add("nIs_active", typeof(bool));
+            table.Columns.Add("cfirst_name", typeof(string));
+            table.Columns.Add("clast_name", typeof(string));
+            table.Columns.Add("cphoneno", typeof(string));
+            table.Columns.Add("calternate_phone", typeof(string));
+            table.Columns.Add("ldob", typeof(DateTime));
+            table.Columns.Add("cmarital_status", typeof(string));
+            table.Columns.Add("cnation", typeof(string));
+            table.Columns.Add("cgender", typeof(string));
+            table.Columns.Add("caddress", typeof(string));
+            table.Columns.Add("caddress1", typeof(string));
+            table.Columns.Add("caddress2", typeof(string));
+            table.Columns.Add("cpincode", typeof(string));
+            table.Columns.Add("ccity", typeof(string));
+            table.Columns.Add("cstate_code", typeof(string));
+            table.Columns.Add("cstate_desc", typeof(string));
+            table.Columns.Add("ccountry_code", typeof(string));
+            table.Columns.Add("ProfileImage", typeof(string));
+            table.Columns.Add("cbank_name", typeof(string));
+            table.Columns.Add("caccount_number", typeof(string));
+            table.Columns.Add("ciFSC_code", typeof(string));
+            table.Columns.Add("cpan", typeof(string));
+            table.Columns.Add("ldoj", typeof(DateTime));
+            table.Columns.Add("cemployment_status", typeof(string));
+            table.Columns.Add("nnotice_period_days", typeof(int));
+            table.Columns.Add("lresignation_date", typeof(DateTime));
+            table.Columns.Add("llast_working_date", typeof(DateTime));
+            table.Columns.Add("cemp_category", typeof(string));
+            table.Columns.Add("cwork_loc_code", typeof(string));
+            table.Columns.Add("cwork_loc_name", typeof(string));
+            table.Columns.Add("crole_id", typeof(int));
+            table.Columns.Add("crole_code", typeof(string));
+            table.Columns.Add("crole_name", typeof(string));
+            table.Columns.Add("cgrade_code", typeof(string));
+            table.Columns.Add("cgrade_desc", typeof(string));
+            table.Columns.Add("csub_role_code", typeof(string));
+            table.Columns.Add("cdept_code", typeof(string));
+            table.Columns.Add("cdept_desc", typeof(string));
+            table.Columns.Add("cjob_code", typeof(string));
+            table.Columns.Add("cjob_desc", typeof(string));
+            table.Columns.Add("creport_mgr_code", typeof(string));
+            table.Columns.Add("creport_mgr_name", typeof(string));
+            table.Columns.Add("cRoll_id", typeof(string));
+            table.Columns.Add("cRoll_name", typeof(string));
+            table.Columns.Add("cRoll_Id_mngr", typeof(string));
+            table.Columns.Add("cRoll_Id_mngr_desc", typeof(string));
+            table.Columns.Add("cReportManager_empcode", typeof(string));
+            table.Columns.Add("cReportManager_Poscode", typeof(string));
+            table.Columns.Add("cReportManager_Posdesc", typeof(string));
+            table.Columns.Add("nIsWebAccessEnabled", typeof(bool));
+            table.Columns.Add("nIsEventRead", typeof(bool));
+            table.Columns.Add("lLastLoginAt", typeof(DateTime));
+            table.Columns.Add("nFailedLoginAttempts", typeof(int));
+            table.Columns.Add("cPasswordChangedAt", typeof(DateTime));
+            table.Columns.Add("nIsLocked", typeof(bool));
+            table.Columns.Add("LastLoginIP", typeof(string));
+            table.Columns.Add("LastLoginDevice", typeof(string));
+            table.Columns.Add("ccreated_date", typeof(DateTime));
+            table.Columns.Add("ccreated_by", typeof(string));
+            table.Columns.Add("cmodified_by", typeof(string));
+            table.Columns.Add("lmodified_date", typeof(DateTime));
+            table.Columns.Add("nIsDeleted", typeof(bool));
+            table.Columns.Add("cdeleted_by", typeof(string));
+            table.Columns.Add("ldeleted_date", typeof(DateTime));
+
+            // 🔹 Fill DataTable
+            foreach (var u in users)
+            {
+                table.Rows.Add(
+                    u.cuserid,
+                    u.ctenantID,
+                    u.cusername ?? (object)DBNull.Value,
+                    u.cemail ?? (object)DBNull.Value,
+                    u.cpassword,
+                    u.nIsActive ?? true,
+                    u.cfirstName ?? (object)DBNull.Value,
+                    u.clastName ?? (object)DBNull.Value,
+                    u.cphoneno ?? (object)DBNull.Value,
+                    u.cAlternatePhone ?? (object)DBNull.Value,
+                    u.ldob.HasValue ? (object)u.ldob.Value : DBNull.Value,
+                    u.cMaritalStatus ?? (object)DBNull.Value,
+                    u.cnation ?? (object)DBNull.Value,
+                    u.cgender ?? (object)DBNull.Value,
+                    u.caddress ?? (object)DBNull.Value,
+                    u.caddress1 ?? (object)DBNull.Value,
+                    u.caddress2 ?? (object)DBNull.Value,
+                    u.cpincode ?? (object)DBNull.Value,
+                    u.ccity ?? (object)DBNull.Value,
+                    u.cstatecode ?? (object)DBNull.Value,
+                    u.cstatedesc ?? (object)DBNull.Value,
+                    u.ccountrycode ?? (object)DBNull.Value,
+                    u.ProfileImage ?? (object)DBNull.Value,
+                    u.cbankName ?? (object)DBNull.Value,
+                    u.caccountNumber ?? (object)DBNull.Value,
+                    u.ciFSCCode ?? (object)DBNull.Value,
+                    u.cpAN ?? (object)DBNull.Value,
+                    u.ldoj.HasValue ? (object)u.ldoj.Value : DBNull.Value,
+                    u.cemploymentStatus ?? (object)DBNull.Value,
+                    u.nnoticePeriodDays ?? (object)DBNull.Value,
+                    u.lresignationDate ?? (object)DBNull.Value,
+                    u.llastWorkingDate ?? (object)DBNull.Value,
+                    u.cempcategory ?? (object)DBNull.Value,
+                    u.cworkloccode ?? (object)DBNull.Value,
+                    u.cworklocname ?? (object)DBNull.Value,
+                    u.croleID ?? (object)DBNull.Value,
+                    u.crolecode ?? (object)DBNull.Value,
+                    u.crolename ?? (object)DBNull.Value,
+                    u.cgradecode ?? (object)DBNull.Value,
+                    u.cgradedesc ?? (object)DBNull.Value,
+                    u.csubrolecode ?? (object)DBNull.Value,
+                    u.cdeptcode ?? (object)DBNull.Value,
+                    u.cdeptdesc ?? (object)DBNull.Value,
+                    u.cjobcode ?? (object)DBNull.Value,
+                    u.cjobdesc ?? (object)DBNull.Value,
+                    u.creportmgrcode ?? (object)DBNull.Value,
+                    u.creportmgrname ?? (object)DBNull.Value,
+                    u.cRoll_id ?? (object)DBNull.Value,
+                    u.cRoll_name ?? (object)DBNull.Value,
+                    u.cRoll_Id_mngr ?? (object)DBNull.Value,
+                    u.cRoll_Id_mngr_desc ?? (object)DBNull.Value,
+                    u.cReportManager_empcode ?? (object)DBNull.Value,
+                    u.cReportManager_Poscode ?? (object)DBNull.Value,
+                    u.cReportManager_Posdesc ?? (object)DBNull.Value,
+                    u.nIsWebAccessEnabled ?? false,
+                    u.nIsEventRead ?? false,
+                    u.lLastLoginAt ?? (object)DBNull.Value,
+                    u.nFailedLoginAttempts ?? (object)DBNull.Value,
+                    u.cPasswordChangedAt ?? (object)DBNull.Value,
+                    u.nIsLocked ?? false,
+                    u.LastLoginIP ?? (object)DBNull.Value,
+                    u.LastLoginDevice ?? (object)DBNull.Value,
+                    u.ccreateddate ?? DateTime.Now,
+                    u.ccreatedby ?? (object)DBNull.Value,
+                    u.cmodifiedby ?? (object)DBNull.Value,
+                    u.lmodifieddate ?? DateTime.Now,
+                    u.nIsDeleted ?? false,
+                    u.cDeletedBy ?? (object)DBNull.Value,
+                    u.lDeletedDate ?? (object)DBNull.Value
+                );
+            }
+
+            var param = cmd.Parameters.AddWithValue("@UserList", table);
+            param.SqlDbType = SqlDbType.Structured;
+            param.TypeName = "dbo.UserTableType";
+
+            await conn.OpenAsync();
+            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+            return rowsAffected;
+        }
 
 
 

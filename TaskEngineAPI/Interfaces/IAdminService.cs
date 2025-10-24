@@ -26,6 +26,8 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> CheckuserEmailExistsputAsync(string email, int tenantId,int cuserid);
         Task<bool> CheckuserPhonenoExistsputAsync(string phoneno, int tenantId, int cuserid);
         Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username);
+        Task<int> InsertUsersBulkAsync(List<CreateUserDTO> model);
+
     }
 
 }
