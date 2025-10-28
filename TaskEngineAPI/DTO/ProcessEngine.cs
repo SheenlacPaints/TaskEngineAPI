@@ -119,14 +119,11 @@
         public int? ciseqno { get; set; }
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
-        public string? cuser_id { get; set; }
-        public string? cuser_name { get; set; }
-        public string? crole_code { get; set; }
-        public string? crole_name { get; set; }
-        public string? cposition_code { get; set; }
-        public string? cposition_title { get; set; }
-        public string? cdepartment_code { get; set; }
-        public string? cdepartment_name { get; set; }
+        public string? cvalue { get; set; }
+        public string? cvaluebyid { get; set; }
+        public string? cpriority_label { get; set; }
+        public bool? nshow_timeline { get; set; }
+        public int? cnotification_type { get; set; }
         public string? cstatus { get; set; }
         public int? cmeta_id { get; set; }
         public string? ccreated_by { get; set; }

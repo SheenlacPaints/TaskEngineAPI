@@ -1,5 +1,7 @@
-﻿using System.Data.SqlClient;
+﻿using System.Data;
+using System.Data.SqlClient;
 using System.Net.NetworkInformation;
+using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Extensions.Options;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
@@ -257,20 +259,26 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-                SELECT 
-    m.ID, m.ctenent_id, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, m.cstatus,
-    m.cuser_id, m.cuser_name, m.crole_code, m.crole_name, m.cposition_code, m.cposition_title,
-    m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,
+                SELECT
+    m.ID, m.ctenent_id, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, 
+	m.cvalue,m.cvaluebyid,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
+    m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
+	d.nboard_enabled,d.cassignee,d.cprocess_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
     c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
-    c.remarks1, c.remarks2, c.remarks3,m.cmeta_id
+    c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,c.cdefault_value,c.cmin
+    ,c.cmax,c.cpattern,c.nallow_spaces,c.nallow_numbers,c.nallow_special_chars,c.ntrim,c.nauto_focus,c.ncapitalize
+   ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when
 FROM tbl_process_engine_master m
-LEFT JOIN tbl_process_engine_details d 
-    ON m.cprocesscode = d.cprocesscode AND  m.ID = d.cheader_id
-LEFT JOIN tbl_process_engine_condition c 
-    ON  d.ciseqno = c.ciseqno 
+LEFT JOIN tbl_process_engine_details d
+    ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
+LEFT JOIN tbl_process_engine_condition c
+    ON d.ciseqno = c.ciseqno
 WHERE m.ctenent_id = @TenantID
 ORDER BY m.ID, d.cseq_order, c.icond_seqno";
+
+                
+
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -290,21 +298,18 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             cprocessname = reader.SafeGetString("cprocessname"),
                             ctype = reader.SafeGetString("ctype"),
                             cstatus = reader.SafeGetString("cstatus"),
-                            cuser_id = reader.SafeGetString("cuser_id"),
-                            cuser_name = reader.SafeGetString("cuser_name"),
-                            crole_code = reader.SafeGetString("crole_code"),
-                            crole_name = reader.SafeGetString("crole_name"),
-                            cposition_code = reader.SafeGetString("cposition_code"),
-                            cposition_title = reader.SafeGetString("cposition_title"),
-                            cdepartment_code = reader.SafeGetString("cdepartment_code"),
-                            cdepartment_name = reader.SafeGetString("cdepartment_name"),
+                            cvalue = reader.SafeGetString("cvalue"),
+                            cvaluebyid = reader.SafeGetString("cvaluebyid"),
+                            cpriority_label = reader.SafeGetString("cpriority_label"),
+                            nshow_timeline = reader.GetBoolean("nshow_timeline"),
+                            cnotification_type = reader.SafeGetInt("cnotification_type"),
                             cmeta_id = reader.SafeGetInt("cmeta_id"),
                             ccreated_by = reader.SafeGetString("ccreated_by"),
                             ccreated_date = reader.SafeGetDateTime("lcreated_date"),
                             cmodified_by = reader.SafeGetString("cmodified_by"),
                             lmodified_date = reader.SafeGetDateTime("lmodified_date"),
-                            ProcessEngineChildItems = new List<ProcessEngineChildItems>()
-                        };
+                            ProcessEngineChildItems = new List<ProcessEngineChildItems>()                 
+                     };
                         result[cseq_id] = engine;
                     }
 
@@ -323,7 +328,16 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 cactivityname = reader.SafeGetString("cactivityname"),
                                 cnextseqno = reader.SafeGetString("cnext_seqno"),
                                 cseq_order = reader.SafeGetString("cseq_order"),
+                                cassignee = reader.SafeGetString("cassignee"),
+                                csla_day = reader.SafeGetInt("csla_day"),
+                                csla_Hour = reader.SafeGetInt("csla_Hour"),
+                                ciseqno = reader.SafeGetInt("ciseqno"),
+                                nboard_enabled = reader.GetBoolean("nboard_enabled"),
+                                caction_privilege = reader.SafeGetString("caction_privilege"),
+                                crejection_privilege = reader.SafeGetString("crejection_privilege"),
+                                cprocess_type = reader.SafeGetString("cprocess_type"),
                                 ProcessEngineConditionDetails = new List<ProcessEngineConditionDetails>()
+                           
                             };
                             engine.ProcessEngineChildItems.Add(child);
                         }
@@ -342,7 +356,29 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 ccondition = reader.SafeGetString("ccondition"),
                                 remarks1 = reader.SafeGetString("remarks1"),
                                 remarks2 = reader.SafeGetString("remarks2"),
-                                remarks3 = reader.SafeGetString("remarks3")
+                                remarks3 = reader.SafeGetString("remarks3"),
+                                cplaceholder = reader.SafeGetString("cplaceholder"),
+                                cis_required = reader.GetBoolean("cis_required"),
+                                cis_readonly = reader.GetBoolean("cis_readonly"),
+                                cis_disabled = reader.GetBoolean("cis_disabled"),
+                                cdefault_value = reader.SafeGetString("cdefault_value"),
+                                cmin = reader.SafeGetString("cmin"),
+                                cmax = reader.SafeGetString("cmax"),
+                                cpattern = reader.SafeGetString("cpattern"),
+                                nallow_spaces = reader.GetBoolean("nallow_spaces"),
+                                nallow_numbers = reader.GetBoolean("nallow_numbers"),
+                                nallow_special_chars = reader.GetBoolean("nallow_special_chars"),
+                                ntrim = reader.GetBoolean("ntrim"),
+                                nauto_focus = reader.GetBoolean("nauto_focus"),
+                                ncapitalize = reader.GetBoolean("ncapitalize"),
+                                nto_upper_case = reader.GetBoolean("nto_upper_case"),
+                                nto_lower_case = reader.GetBoolean("nto_lower_case"),
+                                nshow_copy_button = reader.GetBoolean("nshow_copy_button"),
+                                cdepends_on = reader.SafeGetString("cdepends_on"),
+                                cdisabled_when = reader.SafeGetString("cdisabled_when"),
+                                crequired_when = reader.SafeGetString("crequired_when"),
+                                cvisible_when = reader.SafeGetString("cvisible_when"),
+                                
                             });
                         }
                     }
@@ -369,17 +405,20 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                 await conn.OpenAsync();
 
                 string query = @"
-                SELECT 
-     m.ID, m.ctenent_id, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, m.cstatus,
-     m.cuser_id, m.cuser_name, m.crole_code, m.crole_name, m.cposition_code, m.cposition_title,
-     m.cdepartment_code, m.cdepartment_name, m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,
-     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
-     c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
-     c.remarks1, c.remarks2, c.remarks3,m.cmeta_id
- FROM tbl_process_engine_master m
- LEFT JOIN tbl_process_engine_details d 
-     ON m.cprocesscode = d.cprocesscode AND  m.ID = d.ciseqno
- LEFT JOIN tbl_process_engine_condition c 
+                SELECT
+    m.ID, m.ctenent_id, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, 
+	m.cvalue,m.cvaluebyid,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
+    m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
+    d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
+	d.nboard_enabled,d.cassignee,d.cprocess_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
+    c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
+    c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,c.cdefault_value,c.cmin
+    ,c.cmax,c.cpattern,c.nallow_spaces,c.nallow_numbers,c.nallow_special_chars,c.ntrim,c.nauto_focus,c.ncapitalize
+   ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when
+FROM tbl_process_engine_master m
+LEFT JOIN tbl_process_engine_details d
+    ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
+LEFT JOIN tbl_process_engine_condition c 
      ON  d.ciseqno = c.ciseqno 
  WHERE m.ctenent_id = @TenantID and m.id=@id
  ORDER BY m.ID, d.cseq_order, c.icond_seqno";
@@ -402,14 +441,11 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             cprocessname = reader.SafeGetString("cprocessname"),
                             ctype = reader.SafeGetString("ctype"),
                             cstatus = reader.SafeGetString("cstatus"),
-                            cuser_id = reader.SafeGetString("cuser_id"),
-                            cuser_name = reader.SafeGetString("cuser_name"),
-                            crole_code = reader.SafeGetString("crole_code"),
-                            crole_name = reader.SafeGetString("crole_name"),
-                            cposition_code = reader.SafeGetString("cposition_code"),
-                            cposition_title = reader.SafeGetString("cposition_title"),
-                            cdepartment_code = reader.SafeGetString("cdepartment_code"),
-                            cdepartment_name = reader.SafeGetString("cdepartment_name"),
+                            cvalue = reader.SafeGetString("cvalue"),
+                            cvaluebyid = reader.SafeGetString("cvaluebyid"),
+                            cpriority_label = reader.SafeGetString("cpriority_label"),
+                            nshow_timeline = reader.GetBoolean("nshow_timeline"),
+                            cnotification_type = reader.SafeGetInt("cnotification_type"),
                             cmeta_id = reader.SafeGetInt("cmeta_id"),
                             ccreated_by = reader.SafeGetString("ccreated_by"),
                             ccreated_date = reader.SafeGetDateTime("lcreated_date"),
@@ -427,7 +463,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                         if (child == null)
                         {
                             child = new ProcessEngineChildItems
-                            {
+                            {                              
                                 cactivitycode = activityCode,
                                 cactivitydescription = reader.SafeGetString("cactivity_description"),
                                 ctasktype = reader.SafeGetString("ctask_type"),
@@ -435,6 +471,14 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 cactivityname = reader.SafeGetString("cactivityname"),
                                 cnextseqno = reader.SafeGetString("cnext_seqno"),
                                 cseq_order = reader.SafeGetString("cseq_order"),
+                                cassignee = reader.SafeGetString("cassignee"),
+                                csla_day = reader.SafeGetInt("csla_day"),
+                                csla_Hour = reader.SafeGetInt("csla_Hour"),
+                                ciseqno = reader.SafeGetInt("ciseqno"),
+                                nboard_enabled = reader.GetBoolean("nboard_enabled"),
+                                caction_privilege = reader.SafeGetString("caction_privilege"),
+                                crejection_privilege = reader.SafeGetString("crejection_privilege"),
+                                cprocess_type = reader.SafeGetString("cprocess_type"),
                                 ProcessEngineConditionDetails = new List<ProcessEngineConditionDetails>()
                             };
                             engine.ProcessEngineChildItems.Add(child);
@@ -443,7 +487,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                         if (!reader.IsDBNull(reader.GetOrdinal("icondseqno")))
                         {
                             child.ProcessEngineConditionDetails.Add(new ProcessEngineConditionDetails
-                            {
+                            {                             
                                 cprocesscode = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
                                 icondseqno = reader.SafeGetInt("icond_seqno"),
@@ -454,7 +498,28 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 ccondition = reader.SafeGetString("ccondition"),
                                 remarks1 = reader.SafeGetString("remarks1"),
                                 remarks2 = reader.SafeGetString("remarks2"),
-                                remarks3 = reader.SafeGetString("remarks3")
+                                remarks3 = reader.SafeGetString("remarks3"),
+                                cplaceholder = reader.SafeGetString("cplaceholder"),
+                                cis_required = reader.GetBoolean("cis_required"),
+                                cis_readonly = reader.GetBoolean("cis_readonly"),
+                                cis_disabled = reader.GetBoolean("cis_disabled"),
+                                cdefault_value = reader.SafeGetString("cdefault_value"),
+                                cmin = reader.SafeGetString("cmin"),
+                                cmax = reader.SafeGetString("cmax"),
+                                cpattern = reader.SafeGetString("cpattern"),
+                                nallow_spaces = reader.GetBoolean("nallow_spaces"),
+                                nallow_numbers = reader.GetBoolean("nallow_numbers"),
+                                nallow_special_chars = reader.GetBoolean("nallow_special_chars"),
+                                ntrim = reader.GetBoolean("ntrim"),
+                                nauto_focus = reader.GetBoolean("nauto_focus"),
+                                ncapitalize = reader.GetBoolean("ncapitalize"),
+                                nto_upper_case = reader.GetBoolean("nto_upper_case"),
+                                nto_lower_case = reader.GetBoolean("nto_lower_case"),
+                                nshow_copy_button = reader.GetBoolean("nshow_copy_button"),
+                                cdepends_on = reader.SafeGetString("cdepends_on"),
+                                cdisabled_when = reader.SafeGetString("cdisabled_when"),
+                                crequired_when = reader.SafeGetString("crequired_when"),
+                                cvisible_when = reader.SafeGetString("cvisible_when"),
                             });
                         }
                     }
