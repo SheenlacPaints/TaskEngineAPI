@@ -2,13 +2,18 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using TaskEngineAPI.Data;
 using TaskEngineAPI.Interfaces;
-using TaskEngineAPI.Logging;
 using TaskEngineAPI.Middlewares;
 using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
+
+
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<IRoleService, RoleService>();
+//builder.Services.AddDbContext<ApplicationDbContext>(options =>
+ //   options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

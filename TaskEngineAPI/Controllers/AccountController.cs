@@ -1552,6 +1552,121 @@ namespace TaskEngineAPI.Controllers
         //    }
         //}
 
+
+
+        [HttpPost("CreateUsersBulks")]
+        public async Task<IActionResult> CreateUsersBulks([FromBody] pay request)
+        {
+            try
+            {
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
+
+                if (users == null || !users.Any())
+                    return BadRequest("No users provided");
+
+                var validUsers = new List<CreateUserDTO>();
+                var failedUsers = new List<object>();
+
+                // Use your existing service methods instead of GetAllExistingUsersAsync
+                var duplicateUsernames = users.GroupBy(u => u.cuserid)
+                                             .Where(g => g.Count() > 1)
+                                             .Select(g => g.Key)
+                                             .ToList();
+
+                var duplicateEmails = users.GroupBy(u => u.cemail)
+                                          .Where(g => g.Count() > 1)
+                                          .Select(g => g.Key)
+                                          .ToList();
+
+                var duplicatePhones = users.GroupBy(u => u.cphoneno)
+                                          .Where(g => g.Count() > 1)
+                                          .Select(g => g.Key)
+                                          .ToList();
+
+                foreach (var user in users)
+                {
+                    var errors = new List<string>();
+
+                    // Use your existing service methods - they already check the database
+                    bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(user.cuserid, user.ctenantID);
+                    bool emailExists = await _AccountService.CheckuserEmailExistsAsync(user.cemail, user.ctenantID);
+                    bool phoneExists = await _AccountService.CheckuserPhonenoExistsAsync(user.cphoneno, user.ctenantID);
+
+                    if (usernameExists) errors.Add($"Username '{user.cuserid}' already exists in database");
+                    if (emailExists) errors.Add($"Email '{user.cemail}' already exists in database");
+                    if (phoneExists) errors.Add($"Phone '{user.cphoneno}' already exists in database");
+
+                    // Check batch duplicates
+                    if (duplicateUsernames.Contains(user.cuserid)) errors.Add("Duplicate username in this batch");
+                    if (duplicateEmails.Contains(user.cemail)) errors.Add("Duplicate email in this batch");
+                    if (duplicatePhones.Contains(user.cphoneno)) errors.Add("Duplicate phone in this batch");
+
+                    // Data validation
+                    if (user.cuserid <= 0) errors.Add("Valid User ID is required");
+                    if (string.IsNullOrEmpty(user.cemail)) errors.Add("Email is required");
+                    if (string.IsNullOrEmpty(user.cphoneno)) errors.Add("Phone is required");
+
+                    if (errors.Any())
+                    {
+                        failedUsers.Add(new
+                        {
+                            user.cemail,
+                            user.cuserid,
+                            user.cphoneno,
+                            reason = string.Join("; ", errors)
+                        });
+                    }
+                    else
+                    {
+                        validUsers.Add(user);
+                    }
+                };
+
+                foreach (var valid in validUsers)
+                {
+                    Console.WriteLine($"✅ WILL INSERT: UserID={valid.cuserid}, Email={valid.cemail}");
+                }
+
+                foreach (var failed in failedUsers)
+                {
+                    Console.WriteLine($"❌ WILL REJECT: {failed}");
+                }
+
+                int insertedCount = 0;
+                if (validUsers.Any())
+                {
+                    insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers);
+                }
+
+                var response = new
+                {
+                    status = 200,
+                    statusText = "Bulk user creation completed",
+                    body = new
+                    {
+                        total = users.Count,
+                        success = insertedCount,
+                        failure = failedUsers.Count,
+                        inserted = validUsers.Select(u => new { u.cemail, u.cuserid }),
+                        failed = failedUsers,
+                        verification = $"Checked {users.Count} users, prevented {failedUsers.Count} duplicates from being inserted"
+                    },
+                    error = ""
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return Ok(encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new { status = 500, statusText = "Error", error = ex.Message };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
     }
 }
             
