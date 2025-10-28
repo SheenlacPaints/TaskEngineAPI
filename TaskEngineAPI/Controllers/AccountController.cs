@@ -1411,14 +1411,14 @@ namespace TaskEngineAPI.Controllers
                 {
                     status = 200,
                     statusText = "Bulk user creation completed",
-                    body = new
-                    {
-                        total = users.Count,
-                        success = insertedCount,
-                        failure = failedUsers.Count,
-                        inserted = validUsers.Select(u => new { u.cemail }),
-                        failed = failedUsers,
-                    },
+                    //body = new
+                    //{
+                    //    total = users.Count,
+                    //    success = insertedCount,
+                    //    failure = failedUsers.Count,
+                    //    inserted = validUsers.Select(u => new { u.cemail }),
+                    //    failed = failedUsers,
+                    //},
                    
                 };
                 string json = JsonConvert.SerializeObject(response);
