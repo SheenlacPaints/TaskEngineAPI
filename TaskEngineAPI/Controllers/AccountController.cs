@@ -22,6 +22,7 @@ using System.Drawing;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Net.Mail;
+using Microsoft.IdentityModel.Tokens;
 namespace TaskEngineAPI.Controllers
 {
     [ApiController]
@@ -311,219 +312,10 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("Loginwithoutencrypt")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<APIResponse>> Loginwithoutencrypt(User User)
-        {
-
-            APIResponse Objresponse = new APIResponse();
-
-            if (User == null || string.IsNullOrEmpty(User.userName) || string.IsNullOrEmpty(User.password))
-                return BadRequest("Username and password must be provided.");
-
-            var connStr = _config.GetConnectionString("Database");
-            string status = string.Empty;
-            string email = "", TenantID = "", UserID = "", roleid = "", roll_name = "", username = "";
-            Console.WriteLine("DB Connection String: " + connStr);
-
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(connStr))
-                {
-                    await conn.OpenAsync();
-                    using (SqlCommand cmd = new SqlCommand("sp_validate_Admin_login", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@FilterValue1", User.userName);
-                        cmd.Parameters.AddWithValue("@FilterValue2", User.password);
-
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            if (await reader.ReadAsync())
-                            {
-                                status = reader["cstatus"]?.ToString() ?? "";
-                                if (status == "valid user")
-                                {
-                                    username = reader["cusername"]?.ToString();
-                                    roleid = reader["croleID"]?.ToString();
-                                    TenantID = reader["cTenantID"]?.ToString();
-                                    UserID = reader["cuserid"]?.ToString();
-                                    email = reader["cemail"]?.ToString();
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (status == "invalid password")
-                {
-                    Objresponse.statusText = "Incorrect Password";
-                    Objresponse.status = 400;
-                    return BadRequest(Objresponse);
-                }
-
-                if (status == "username not exist")
-                {
-                    Objresponse.statusText = "User does not exist.";
-                    Objresponse.status = 404;
-                    return NotFound(Objresponse);
-                }
-
-                if (status == "valid user")
-                {
-                    if (!int.TryParse(TenantID, out int tenantIdInt))
-                    {
-                        Objresponse.statusText = "Invalid TenantID format.";
-                        Objresponse.status = 400;
-                        return BadRequest(Objresponse);
-                    }
-                    var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);
-                    var refreshToken = _jwtService.GenerateRefreshToken();
-                    var refreshExpiry = DateTime.Now.AddDays(1);
-
-                    var saved = await _jwtService.SaveRefreshTokenToDatabase(User.userName, refreshToken, refreshExpiry);
-                    if (!saved)
-                    {
-                        Objresponse.statusText = "Failed to save refresh token";
-                        Objresponse.status = 500;
-                        return StatusCode(500, Objresponse);
-                    }
-                    var loginDetails = new
-                    {
-                        UserID = UserID,
-                        username = username,
-                        RoleID = roleid,
-                        TenantID = TenantID,
-                        TenantName = TenantID,
-                        email = email,
-                        Token = accessToken,
-                        RefreshToken = refreshToken
-                    };
-                    Objresponse.body = new object[] { loginDetails };
-                    Objresponse.statusText = "Logged in Successfully";
-                    Objresponse.status = 200;
-                    var apiDtls = new APIResponse
-                    {
-                        status = 200,
-                        statusText = "Logged in Successfully",
-                        body = new[] { loginDetails }
-                    };
-                    string json = JsonConvert.SerializeObject(apiDtls);
-
-                    return StatusCode(200, json);
-                }
-
-                Objresponse.statusText = "Unexpected login status";
-                Objresponse.status = 500;
-                return StatusCode(500, (Objresponse));
-            }
-            catch (Exception ex)
-            {
-                Objresponse.statusText = "An error occurred during login: " + ex.Message;
-                Objresponse.status = 500;
-                return StatusCode(500, (Objresponse));
-            }
-
-        }
-
-        private static readonly byte[] IV = Encoding.UTF8.GetBytes("ABCDEFGH12345678");  // 16 bytes IV
-        private static readonly byte[] ENCKey = Encoding.UTF8.GetBytes("#@WORKFLOW!#%!#%$%^&KEY*&%#(@*!#");
-        private static readonly byte[] DECKey = Encoding.UTF8.GetBytes("#@MISPORTAL2025!%^$#$123456789@#");
-        public static string Encrypt(string plainText)
-        {
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = DECKey;
-                aes.IV = IV;
-                aes.Padding = PaddingMode.PKCS7;
-
-                using var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-                using var ms = new MemoryStream();
-                using (var cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write))
-                using (var sw = new StreamWriter(cs))
-                {
-                    sw.Write(plainText);
-                }
-                return Convert.ToBase64String(ms.ToArray());
-            }
-        }
-
-        [HttpPost]
-        [Route("EncryptInput")]
-        public ActionResult<string> EncryptInput([FromBody] User user)
-        {
-            string json = JsonConvert.SerializeObject(user);
-            string encrypted = Encrypt(json);
-            return Ok(encrypted);
-
-        }
-
-        [HttpPost]
-        [Route("EncryptInputint")]
-        public ActionResult<string> EncryptInputint(CreateAdminDTO CreateAdminDTO)
-        {
-            string json = JsonConvert.SerializeObject(CreateAdminDTO);
-            string encrypted = Encrypt(json);
-            return Ok(encrypted);
-
-        }
-
-        public static string Decrypt(string cipherText)
-        {
-            byte[] buffer = Convert.FromBase64String(cipherText);
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = DECKey;
-                aes.IV = IV;
-                aes.Padding = PaddingMode.PKCS7;
-
-                using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-                using var ms = new MemoryStream(buffer);
-                using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
-                using var sr = new StreamReader(cs);
-                return sr.ReadToEnd();
-            }
-        }
-
-        public static string DecryptAPI(string cipherText)
-        {
-            byte[] buffer = Convert.FromBase64String(cipherText);
-            using (Aes aes = Aes.Create())
-            {
-                aes.Key = ENCKey;
-                aes.IV = IV;
-                aes.Padding = PaddingMode.PKCS7;
-
-                using var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-                using var ms = new MemoryStream(buffer);
-                using var cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
-                using var sr = new StreamReader(cs);
-                return sr.ReadToEnd();
-            }
-        }
-
-        [HttpPost]
-        [Route("DecryptedInput")]
-        public ActionResult<string> DecryptInput([FromBody] string encryptedInput)
-        {
-
-            string Decrypted = Decrypt(encryptedInput);
-            return Ok(Decrypted);
-        }
-
-        [HttpPost]
-        [Route("DecryptedInput_API")]
-        public ActionResult<string> DecryptedInput_API([FromBody] string encryptedInput)
-        {
-
-            string Decrypted = DecryptAPI(encryptedInput);
-            return Ok(Decrypted);
-        }
 
         [HttpPost]
         [Route("CreateSuperAdmin")]
-        public async Task<IActionResult> CreateSuperAdmin([FromForm] InputDTO request)
+        public async Task<IActionResult> CreateSuperAdmin([FromBody] pay request)
         {
             try
             {
@@ -546,7 +338,7 @@ namespace TaskEngineAPI.Controllers
                     var encryptedConflict = AesEncryption.Encrypt(conflictJson);
                     return StatusCode(409, encryptedConflict);
                 }
-                bool usernameExists = await _AccountService.CheckUsernameExistsAsync(model.cuser_name, model.ctenant_Id);
+                bool usernameExists = await _AccountService.CheckUsernameExistsAsync(model.cuserid, model.ctenant_Id);
                 if (usernameExists)
                 {
                     var conflictResponse = new
@@ -575,7 +367,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 // Insert into database
-                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model,request.attachment);
+                int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
 
                 if (insertedUserId <= 0)
                 {
@@ -628,7 +420,7 @@ namespace TaskEngineAPI.Controllers
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                  
+
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
@@ -668,7 +460,7 @@ namespace TaskEngineAPI.Controllers
 
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<UpdateAdminDTO>(decryptedJson);
-            bool success = await _AccountService.UpdateSuperAdminAsync(model,request.attachment);
+            bool success = await _AccountService.UpdateSuperAdminAsync(model);
 
             var response = new APIResponse
             {
@@ -695,7 +487,7 @@ namespace TaskEngineAPI.Controllers
             if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
                  string.IsNullOrWhiteSpace(usernameClaim))
 
-                {
+            {
                 var error = new APIResponse
                 {
                     status = 401,
@@ -720,7 +512,7 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, $"\"{encrypted}\"");
         }
-   
+
         [Authorize]
         [HttpGet]
         [Route("GetAllUser")]
@@ -735,7 +527,7 @@ namespace TaskEngineAPI.Controllers
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                  
+
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
@@ -823,11 +615,12 @@ namespace TaskEngineAPI.Controllers
         }
 
         [HttpPost("CreateUser")]
-        public async Task<IActionResult> CreateUser([FromForm] InputDTO request)
+        public async Task<IActionResult> CreateUser([FromBody] pay request)
         {
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
-            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cusername, model.ctenantID);
+
+            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cuserid, model.ctenantID);
             if (usernameExists)
             {
                 var conflictResponse = new
@@ -869,11 +662,13 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(409, encryptedConflict);
             }
 
-            int result = await _AccountService.InsertUserAsync(model,request.attachment);
+            int result = await _AccountService.InsertUserAsync(model);
+            
             var response = new APIResponse
             {
                 status = result > 0 ? 200 : 400,
-                statusText = result > 0 ? "User created successfully" : "User creation failed"
+                statusText = result > 0 ? "User created successfully" : "User creation failed",
+                body = new object[] { new { UserID = result } }               
             };
 
             string json = JsonConvert.SerializeObject(response);
@@ -883,7 +678,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPut("UpdateUser")]
-        public async Task<IActionResult> UpdateUser([FromForm] InputDTO request)
+        public async Task<IActionResult> UpdateUser([FromBody] pay request)
         {
             try
             {
@@ -906,12 +701,11 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var attachment = (request.attachment);
                 var model = JsonConvert.DeserializeObject<UpdateUserDTO>(decryptedJson);
 
                 model.ctenantID = cTenantID;
-          
-                bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID,model.id);
+
+                bool usernameExists = await _AccountService.CheckuserUsernameExistsputAsync(model.cusername, model.ctenantID, model.id);
                 if (usernameExists)
                 {
                     var conflictResponse = new
@@ -955,7 +749,7 @@ namespace TaskEngineAPI.Controllers
 
 
 
-                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID, request.attachment);
+                bool updated = await _AccountService.UpdateUserAsync(model, cTenantID);
 
                 var response = new APIResponse
                 {
@@ -1043,7 +837,7 @@ namespace TaskEngineAPI.Controllers
                     string encrypted = AesEncryption.Encrypt(json);
                     return Ok(encrypted);
                 }
-                string query = "SELECT cphoneno,cuser_name FROM AdminUsers WHERE crole_id = 1 AND ctenant_Id = @tenantID";
+                string query = "SELECT cphoneno,cuserid FROM AdminUsers WHERE crole_id = 1 AND ctenant_Id = @tenantID";
                 DataSet ds1 = new DataSet();
 
                 using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -1066,7 +860,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string mobile = model[0].cphoneno;
-                int id = Convert.ToInt32(model[0].cusername);
+                int id = Convert.ToInt32(model[0].cuserid);
 
                 int otp = new Random().Next(100000, 999999);
 
@@ -1128,7 +922,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost("verifyOtpAndExecute")]
-        public async Task<ActionResult> VerifyOtpAndExecute([FromForm] InputDTO request)
+        public async Task<ActionResult> VerifyOtpAndExecute([FromBody] pay request)
         {
             try
             {
@@ -1203,7 +997,7 @@ namespace TaskEngineAPI.Controllers
                             model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
                             // Insert new admin
-                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model,request.attachment);
+                            int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
 
                             if (insertedUserId <= 0)
                                 return EncryptedError(500, "Failed to create Super Admin");
@@ -1218,6 +1012,12 @@ namespace TaskEngineAPI.Controllers
                             string jsone = JsonConvert.SerializeObject(apierDtls);
                             var encryptapierDtls = AesEncryption.Encrypt(jsone);
                             return StatusCode(200, encryptapierDtls);
+
+
+                            var response1 = new APIResponse { status = 200, statusText = "OTP Sent Successfully" };
+                            string json2 = JsonConvert.SerializeObject(response1);
+
+
                         }
                         catch (Exception ex)
                         {
@@ -1235,12 +1035,12 @@ namespace TaskEngineAPI.Controllers
 
                     case "PUT":
                         var updateModel = JsonConvert.DeserializeObject<OtpActionRequest<UpdateAdminDTO>>(decryptedJson);
-                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload,request.attachment);
+                        bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload);
                         return EncryptedSuccess(updated ? "Update successful" : "Update failed");
 
                     case "DELETE":
                         var deleteModel = JsonConvert.DeserializeObject<OtpActionRequest<DeleteAdminDTO>>(decryptedJson);
-                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID,username);
+                        bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID, username);
                         return EncryptedSuccess(deleted ? "Deleted successfully" : "Not found");
 
                     default:
@@ -1249,7 +1049,7 @@ namespace TaskEngineAPI.Controllers
             }
             catch (Exception ex)
             {
-                
+
                 return EncryptedError(500, "Something went wrong");
             }
         }
@@ -1315,7 +1115,7 @@ namespace TaskEngineAPI.Controllers
                         var response1 = new APIResponse
                         {
                             status = 200,
-                            statusText = "OTP Verified Successfully",                          
+                            statusText = "OTP Verified Successfully",
                             body = new object[] { new { token = accessToken, expiresAt = tokenExpiry } }
 
                         };
@@ -1421,7 +1221,7 @@ namespace TaskEngineAPI.Controllers
 
             var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
             var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-            string username = usernameClaim;        
+            string username = usernameClaim;
             if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
             {
                 var error = new APIResponse
@@ -1448,7 +1248,310 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(response.status, encrypted);
         }
 
-     
+
+        [Authorize]
+        [HttpPost("fileUpload")]
+        public async Task<IActionResult> fileUpload([FromForm] FileUploadDTO model)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(401, encryptedError);
+            }
+
+            try
+            {
+                if (model.file == null || model.file.Length == 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "File not selected."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                // Step 1: Determine upload path
+                          
+                string basePath = model.type switch
+                {
+                    "Superadmin" => _config["UploadSettings:SuperadminUploadPath"],
+                    "user" => _config["UploadSettings:userUploadPath"],
+                    _ => throw new Exception("Invalid type. Must be 'Superadmin' or 'user'.")
+                };
+
+                if (!Directory.Exists(basePath))
+                    Directory.CreateDirectory(basePath);
+
+                string sanitizedFileName = Path.GetFileName(model.file.FileName);
+                string fileName = $"{model.id}_{sanitizedFileName}";
+                string fullPath = Path.Combine(basePath, fileName);
+
+                // Step 2: Save file to disk
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await model.file.CopyToAsync(stream);
+                }
+
+                // Step 3: Update database (optional success)
+                try
+                {
+
+              
+                    string connStr = _config.GetConnectionString("Database");
+                    using (var conn = new SqlConnection(connStr))
+                    {
+                        await conn.OpenAsync();
+
+                        string targetTable = model.type.ToLower() switch
+                        {
+                            "user" => "Users",
+                            "superadmin" => "AdminUsers",
+                            _ => throw new Exception("Invalid type. Must be 'Superadmin' or 'user'.")
+                        };
+
+                        string query = $@"
+                    UPDATE {targetTable}
+                    SET cprofile_image_name = @ProfilePath,
+                        cprofile_image_path = @FilePath
+                    WHERE id = @UserId";
+
+                        using (var cmd = new SqlCommand(query, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@ProfilePath", fileName);
+                            cmd.Parameters.AddWithValue("@FilePath", fullPath);
+                            cmd.Parameters.AddWithValue("@UserId", model.id);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                }
+                catch (Exception dbEx)
+                {
+                    // Log DB error if needed, but don't block success response
+                }
+
+                // Step 4: Return success based on file upload
+                var response = new APIResponse
+                {
+                    status = 200,
+                    statusText = "File uploaded successfully."
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error occurred: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+        [HttpPost("CreateUsersBulk")]
+        public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
+        {
+            try
+            {
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
+
+                if (users == null || !users.Any())
+                    return BadRequest("No users provided");
+
+                var validUsers = new List<CreateUserDTO>();
+                var failedUsers = new List<object>();
+                foreach (var user in users)
+                {
+                    bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(user.cuserid, user.ctenantID);
+                    bool emailExists = await _AccountService.CheckuserEmailExistsAsync(user.cemail, user.ctenantID);
+                    bool phoneExists = await _AccountService.CheckuserPhonenoExistsAsync(user.cphoneno, user.ctenantID);
+                    if (usernameExists || emailExists || phoneExists)
+                    {
+                        failedUsers.Add(new { user.cemail, reason = usernameExists ? "Username exists" : emailExists ? "Email exists" : "Phone number exists" });
+                    }
+                    else
+                    {
+                        validUsers.Add(user);
+                    }
+                }
+
+                int insertedCount = 0;
+                if (validUsers.Any())
+                {
+                    insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers);
+                }
+
+                var response = new
+                {
+                    status = 200,
+                    statusText = "Bulk user creation completed",
+                    body = new
+                    {
+                        total = users.Count,
+                        success = insertedCount,
+                        failure = failedUsers.Count,
+                        inserted = validUsers.Select(u => new { u.cemail }),
+                        failed = failedUsers,
+                    },
+                    error = ""
+                };
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return Ok(encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new { status = 500, statusText = "Error", error = ex.Message };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+        //[HttpPost("CreateUsersBulkold")]
+        //public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
+        //{
+        //    try
+        //    {
+        //        string decryptedJson = AesEncryption.Decrypt(request.payload);
+        //        var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
+
+        //        if (users == null || !users.Any())
+        //            return BadRequest("No users provided");
+
+        //        var validUsers = new List<CreateUserDTO>();
+        //        var failedUsers = new List<object>();
+
+        //        foreach (var user in users)
+        //        {
+        //            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(user.cuserid, user.ctenantID);
+        //            bool emailExists = await _AccountService.CheckuserEmailExistsAsync(user.cemail, user.ctenantID);
+        //            bool phoneExists = await _AccountService.CheckuserPhonenoExistsAsync(user.cphoneno, user.ctenantID);
+
+        //            if (usernameExists || emailExists || phoneExists)
+        //            {
+        //                failedUsers.Add(new { user.cemail, reason = usernameExists ? "Username exists" : emailExists ? "Email exists" : "Phone number exists" });
+        //            }
+        //            else
+        //            {
+        //                validUsers.Add(user);
+        //            }
+        //        }
+
+        //        int insertedCount = 0;
+        //        if (validUsers.Any())
+        //        {
+        //            // Insert only valid users
+        //            insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers);
+        //        }
+        //        var response = new
+        //        {
+        //            status = 200,
+        //            statusText = "Bulk user creation completed",
+        //            summary = new
+        //            {
+        //                total = users.Count,
+        //                success = insertedCount,
+        //                failed = failedUsers.Count
+        //            },
+        //            inserted = validUsers.Select(u => new { u.cemail }),
+        //            failed = failedUsers
+        //        };
+
+        //        string json = JsonConvert.SerializeObject(response);
+        //        string encrypted = AesEncryption.Encrypt(json);
+        //        return Ok(encrypted);
+
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var errorResponse = new { status = 500, statusText = "Error", error = ex.Message };
+        //        string errorJson = JsonConvert.SerializeObject(errorResponse);
+        //        var encryptedError = AesEncryption.Encrypt(errorJson);
+        //        return StatusCode(500, encryptedError);
+        //    }
+        //}
+
+
+        //[HttpPost("CreateUsersBulk")]
+        //public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
+        //{
+        //    try
+        //    {
+        //        string decryptedJson = AesEncryption.Decrypt(request.payload);
+        //        var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
+
+        //        if (users == null || !users.Any())
+        //            return BadRequest("No users provided");
+
+        //        // Use the new transaction-based bulk insert
+        //        var result = await _AccountService.InsertUsersBulkAsync(users);
+
+        //        var response = new
+        //        {
+        //            status = result.Status,
+        //            statusText = result.StatusText,
+        //            summary = new
+        //            {
+        //                total = result.Total,
+        //                success = result.Success,
+        //                failed = result.FailedCount
+        //            },
+        //            inserted = result.Inserted,
+        //            failed = result.Failed.Select(f => new {
+        //                email = f.Email,
+        //                username = f.UserName,
+        //                phone = f.Phone,
+        //                reason = f.Reason
+        //            })
+        //        };
+
+        //        string json = JsonConvert.SerializeObject(response);
+        //        string encrypted = AesEncryption.Encrypt(json);
+        //        return Ok(encrypted);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var errorResponse = new
+        //        {
+        //            status = 500,
+        //            statusText = "Error",
+        //            error = ex.Message,
+        //            stackTrace = ex.StackTrace
+        //        };
+        //        string errorJson = JsonConvert.SerializeObject(errorResponse);
+        //        var encryptedError = AesEncryption.Encrypt(errorJson);
+        //        return StatusCode(500, encryptedError);
+        //    }
+        //}
+
     }
 }
             

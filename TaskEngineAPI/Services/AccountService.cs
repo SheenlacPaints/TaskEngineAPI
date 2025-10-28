@@ -1,12 +1,15 @@
 ﻿using System;
+using System.Data;
 using System.Data.SqlClient;
 using System.Net;
 using System.Net.Mail;
 using System.Reflection.PortableExecutable;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
+using TaskEngineAPI.Models;
 using TaskEngineAPI.Repositories;
 
 namespace TaskEngineAPI.Services
@@ -18,12 +21,13 @@ namespace TaskEngineAPI.Services
         private readonly IAdminRepository _repository;
         private readonly IConfiguration _config;
         private readonly IAdminRepository _AdminRepository;
-
-        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository)
+        private readonly UploadSettings _uploadSettings;
+        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository,IOptions<UploadSettings> uploadSettings)
         {
             _repository = repository;
             _config = _configuration;
             _AdminRepository = AdminRepository;
+            _uploadSettings = uploadSettings.Value;
         }
 
         public Task<APIResponse> CreateSuperAdminAsync(CreateAdminDTO model)
@@ -31,37 +35,22 @@ namespace TaskEngineAPI.Services
             throw new NotImplementedException();
         }
 
-        public async Task<int> InsertSuperAdminAsync(CreateAdminDTO model, IFormFile? attachment)
+        public async Task<int> InsertSuperAdminAsync(CreateAdminDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
-            string? savedFileName = null;
-            string? savedFilePath = null;     
-            if (attachment != null && attachment.Length > 0)
-            {
-                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
-
-                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
-                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
-
-                using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                {
-                    await attachment.CopyToAsync(stream);
-                }
-
-            }
+                         
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
            
                 string query = @"INSERT INTO AdminUsers (
-        ctenant_Id, cfirst_name, clast_name, cuser_name, cemail, cphoneno, 
+        ctenant_Id, cfirst_name, clast_name, cuserid, cemail, cphoneno, 
         cpassword, crole_id, nis_active, llast_login_at, cpassword_changed_at, 
         clast_login_ip, clast_login_device, ccreated_date, ccreated_by, cmodified_by,
-        lmodified_date,cprofile_image_name, cprofile_image_path) VALUES(
-        @TenantID, @FirstName, @LastName, @Username, @Email, @PhoneNo, 
+        lmodified_date) VALUES(
+        @TenantID, @FirstName, @LastName, @cuserid, @Email, @PhoneNo, 
         @Password, @RoleID, @IsActive, @LastLoginAt, @PasswordChangedAt, 
-        @LastLoginIP, @LastLoginDevice, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@ProfileImageName, @ProfileImagePath);
+        @LastLoginIP, @LastLoginDevice, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date);
         SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -71,7 +60,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@TenantID", model.ctenant_Id);
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirst_name ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clast_name ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Username", model.cuser_name);
+                    cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
                     cmd.Parameters.AddWithValue("@Email", model.cemail);
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Password", model.cpassword); // store as plain text
@@ -84,11 +73,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ccreated_by", (object?)model.ccreated_by ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
-
-
+                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);                 
                     var newId = await cmd.ExecuteScalarAsync();
                     return newId != null ? Convert.ToInt32(newId) : 0;
                 }
@@ -114,16 +99,16 @@ namespace TaskEngineAPI.Services
         }
 
 
-        public async Task<bool> CheckUsernameExistsAsync(string username, int tenantId)
+        public async Task<bool> CheckUsernameExistsAsync(int cuserid, int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
-                string query = "SELECT COUNT(1) FROM AdminUsers WHERE cuser_name = @username AND ctenant_Id = @tenantId";
+                string query = "SELECT COUNT(1) FROM AdminUsers WHERE cuserid = @username AND ctenant_Id = @tenantId";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@username", cuserid);
                     cmd.Parameters.AddWithValue("@tenantId", tenantId);
 
                     int count = (int)await cmd.ExecuteScalarAsync();
@@ -162,7 +147,7 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-            SELECT [ID],  [ctenant_Id], [cfirst_name], [clast_name], [cuser_name],
+            SELECT [ID],  [ctenant_Id], [cfirst_name], [clast_name], [cuserid],
                    [cemail], [cphoneno], [cpassword], [crole_id], [nis_active], [llast_login_at],
                    [lfailed_login_attempts], [cpassword_changed_at], [cmust_change_password],
                    [clast_login_ip], [clast_login_device],[nis_locked],[ccreated_date],[ccreated_by],[cmodified_by],
@@ -183,15 +168,15 @@ namespace TaskEngineAPI.Services
 
                               ID = reader.GetInt32(reader.GetOrdinal("ID")),
                               cTenantID = reader.GetInt32(reader.GetOrdinal("ctenant_Id")),
-                              cfirstName = reader.GetString(reader.GetOrdinal("cfirst_name")),
-                              clastName = reader.GetString(reader.GetOrdinal("clast_name")),
-                              cusername = reader.GetString(reader.GetOrdinal("cuser_name")),
-                              cemail = reader.GetString(reader.GetOrdinal("cemail")),
+                              cfirstName = reader.IsDBNull(reader.GetOrdinal("cfirst_name")) ? null : reader.GetString(reader.GetOrdinal("cfirst_name")),
+                              clastName = reader.IsDBNull(reader.GetOrdinal("clast_name")) ? null : reader.GetString(reader.GetOrdinal("clast_name")),                             
+                              cuserid = reader.IsDBNull(reader.GetOrdinal("cuserid"))? 0  : reader.GetInt32(reader.GetOrdinal("cuserid")),
+                              cemail = reader.IsDBNull(reader.GetOrdinal("cemail")) ? null : reader.GetString(reader.GetOrdinal("cemail")),
                               cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
-                              cpassword = reader.GetString(reader.GetOrdinal("cpassword")),
-                              croleID = reader.GetInt32(reader.GetOrdinal("crole_id")),
-                              nisActive = reader.GetBoolean(reader.GetOrdinal("nis_active")),
-                              llastLoginAt = reader.IsDBNull(reader.GetOrdinal("llast_login_at")) ? null : reader.GetDateTime(reader.GetOrdinal("llast_login_at")),
+                              cpassword = reader.IsDBNull(reader.GetOrdinal("cpassword")) ? null : reader.GetString(reader.GetOrdinal("cpassword")),
+                              croleID = reader.IsDBNull(reader.GetOrdinal("crole_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("crole_id")),
+                              nisActive =reader.GetBoolean(reader.GetOrdinal("nis_active")),
+                                llastLoginAt = reader.IsDBNull(reader.GetOrdinal("llast_login_at")) ? null : reader.GetDateTime(reader.GetOrdinal("llast_login_at")),
                               lfailedLoginAttempts = reader.IsDBNull(reader.GetOrdinal("lfailed_login_attempts")) ? null : reader.GetInt32(reader.GetOrdinal("lfailed_login_attempts")),
                               cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cpassword_changed_at")) ? null : reader.GetDateTime(reader.GetOrdinal("cpassword_changed_at")),
                               cMustChangePassword = reader.IsDBNull(reader.GetOrdinal("cmust_change_password")) ? null : reader.GetBoolean(reader.GetOrdinal("cmust_change_password")),
@@ -204,7 +189,7 @@ namespace TaskEngineAPI.Services
                               lmodified_date = reader.IsDBNull(reader.GetOrdinal("lmodified_date")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
                               nIs_deleted = reader.IsDBNull(reader.GetOrdinal("nIs_deleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_deleted")),
                               cdeleted_by = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
-                              ldeleted_date = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetString(reader.GetOrdinal("ldeleted_date")),
+                              ldeleted_date = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date")),
                               cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
                               cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
                             });                        
@@ -215,28 +200,10 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
-        public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model,IFormFile? attachment)
+        public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
         {
             var connStr = _config.GetConnectionString("Database");          
-            string? savedFileName = null;
-            string? savedFilePath = null;
-          
-            if (attachment != null && attachment.Length > 0)
-            {
-                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                savedFilePath = Path.Combine(@"D:\Images\SuperAdmin", savedFileName);
-
-                if (!Directory.Exists(@"D:\Images\SuperAdmin"))
-                    Directory.CreateDirectory(@"D:\Images\SuperAdmin");
-
-                using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                {
-                    await attachment.CopyToAsync(stream);
-                }
-
-            }
-
+                 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
@@ -245,22 +212,20 @@ namespace TaskEngineAPI.Services
              UPDATE AdminUsers SET
             cfirst_name = @FirstName,
             clast_name = @LastName,
-            cuser_name = @Username,
+            cuserid = @Username,
             cemail = @Email,
             cphoneno = @PhoneNo,
             cpassword = @Password,
             nis_active = @IsActive,
             cmodified_by=cmodified_by,
-            lmodified_date=lmodified_date
-            cprofile_image_name = ISNULL(@ProfileImageName, cprofile_image_name),
-            cprofile_image_path = ISNULL(@ProfileImagePath, cprofile_image_path)
+            lmodified_date=lmodified_date          
             WHERE ID = @ID AND  ctenant_Id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Username", (object?)model.cusername ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Username", (object?)model.cuserid ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", (object?)model.cemail ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
@@ -268,9 +233,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ID", model.cid);                 
-                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
-                    cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);          
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
                 }
@@ -302,26 +265,10 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<int> InsertUserAsync(CreateUserDTO model, IFormFile? attachment)
+        public async Task<int> InsertUserAsync(CreateUserDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
-            string? savedFileName = null;      
-            string? savedFilePath = null;          
-            if (attachment != null && attachment.Length > 0)
-            {
-                savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                savedFilePath = Path.Combine(@"D:\Images\User", savedFileName);
-
-                if (!Directory.Exists(@"D:\Images\User"))
-                    Directory.CreateDirectory(@"D:\Images\User");
-
-                using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                {
-                    await attachment.CopyToAsync(stream);
-                }
-
-            }
-
+        
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
 
@@ -339,7 +286,7 @@ INSERT INTO Users (
     [creport_manager_poscode], [creport_manager_pos_desc], [nis_web_access_enabled],
     [nis_event_read], [llast_login_at], [nfailed_logina_attempts], [cpassword_changed_at],
     [nis_locked], [last_login_ip], [last_login_device], [ccreated_date], [ccreated_by],
-    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date],[cprofile_image_name],[cprofile_image_path]
+    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date]
 )
 VALUES (
     @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive,
@@ -354,8 +301,7 @@ VALUES (
     @cReportManager_Poscode, @cReportManager_Posdesc, @nIsWebAccessEnabled,
     @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
     @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby,
-    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate,@ProfileImageName, @ProfileImagePath
-)";
+    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate); SELECT SCOPE_IDENTITY(); ";
 
             using var cmd = new SqlCommand(query, conn);
             model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
@@ -428,34 +374,17 @@ VALUES (
             cmd.Parameters.AddWithValue("@lmodifieddate", (DateTime.Now));
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? false);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
-
+            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);           
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
+            var newId = await cmd.ExecuteScalarAsync();
+            return newId != null ? Convert.ToInt32(newId) : 0;
         }
      
-        public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID,IFormFile? attachment )
+        public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)
         {
             var connStr = _config.GetConnectionString("Database");
-            string? savedFileName = null;
-            string? savedFilePath = null;
-
-            if (attachment != null && attachment.Length > 0)
-            {
-                 savedFileName = $"{Guid.NewGuid()}_{Path.GetFileName(attachment.FileName)}";
-                 savedFilePath = Path.Combine(@"D:\Images\User", savedFileName);
-
-                if (!Directory.Exists(@"D:\Images\User"))
-                    Directory.CreateDirectory(@"D:\Images\User");
-
-                using (var stream = new FileStream(savedFilePath, FileMode.Create))
-                {
-                    await attachment.CopyToAsync(stream);
-                }
-
-            }
+           
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
@@ -524,9 +453,7 @@ VALUES (
             lmodified_date = @lmodifieddate,
             nIs_deleted = @nIsDeleted,
             cdeleted_by = @cDeletedBy,
-            ldeleted_date = @lDeletedDate,
-            cprofile_image_name = ISNULL(@ProfileImageName, cprofile_image_name),
-            cprofile_image_path = ISNULL(@ProfileImagePath, cprofile_image_path)
+            ldeleted_date = @lDeletedDate        
             WHERE ctenant_id = @ctenantID and id=@id";
 
             using var cmd = new SqlCommand(query, conn);
@@ -598,9 +525,7 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)model.ProfileImage ?? DBNull.Value);     
-            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)savedFileName ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImagePath", (object?)savedFilePath ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)model.ProfileImage ?? DBNull.Value);              
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;   
         }
@@ -845,16 +770,16 @@ VALUES (
             }
         }
 
-        public async Task<bool> CheckuserUsernameExistsAsync(string username, int tenantId)
+        public async Task<bool> CheckuserUsernameExistsAsync(int cuserid, int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
                 await conn.OpenAsync();
-                string query = "SELECT COUNT(1) FROM Users WHERE cuser_name = @username AND ctenant_Id = @tenantId";
+                string query = "SELECT COUNT(1) FROM Users WHERE cuserid = @username AND ctenant_Id = @tenantId";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@username", username);
+                    cmd.Parameters.AddWithValue("@username", cuserid);
                     cmd.Parameters.AddWithValue("@tenantId", tenantId);
 
                     int count = (int)await cmd.ExecuteScalarAsync();
@@ -1010,6 +935,679 @@ VALUES (
         }
 
 
+
+        //public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
+        //{
+        //    if (users == null || !users.Any())
+        //        return 0;
+
+        //    var connStr = _config.GetConnectionString("Database");
+
+        //    using var conn = new SqlConnection(connStr);
+        //    using var cmd = new SqlCommand("sp_Insert_Users_Bulk", conn);
+        //    cmd.CommandType = CommandType.StoredProcedure;
+
+        //    var table = new DataTable();
+        //    // Add columns (same as your UserTableType)
+        //    table.Columns.Add("cuserid", typeof(int));
+        //    table.Columns.Add("ctenant_id", typeof(int));
+        //    table.Columns.Add("cuser_name", typeof(string));
+        //    table.Columns.Add("cemail", typeof(string));
+        //    table.Columns.Add("cpassword", typeof(string));
+        //    table.Columns.Add("nIs_active", typeof(bool));
+        //    table.Columns.Add("cfirst_name", typeof(string));
+        //    table.Columns.Add("clast_name", typeof(string));
+        //    table.Columns.Add("cphoneno", typeof(string));
+        //    table.Columns.Add("calternate_phone", typeof(string));
+        //    table.Columns.Add("ldob", typeof(DateTime));
+        //    table.Columns.Add("cmarital_status", typeof(string));
+        //    table.Columns.Add("cnation", typeof(string));
+        //    table.Columns.Add("cgender", typeof(string));
+        //    table.Columns.Add("caddress", typeof(string));
+        //    table.Columns.Add("caddress1", typeof(string));
+        //    table.Columns.Add("caddress2", typeof(string));
+        //    table.Columns.Add("cpincode", typeof(string));
+        //    table.Columns.Add("ccity", typeof(string));
+        //    table.Columns.Add("cstate_code", typeof(string));
+        //    table.Columns.Add("cstate_desc", typeof(string));
+        //    table.Columns.Add("ccountry_code", typeof(string));
+        //    table.Columns.Add("ProfileImage", typeof(string));
+        //    table.Columns.Add("cbank_name", typeof(string));
+        //    table.Columns.Add("caccount_number", typeof(string));
+        //    table.Columns.Add("ciFSC_code", typeof(string));
+        //    table.Columns.Add("cpan", typeof(string));
+        //    table.Columns.Add("ldoj", typeof(DateTime));
+        //    table.Columns.Add("cemployment_status", typeof(string));
+        //    table.Columns.Add("nnotice_period_days", typeof(int));
+        //    table.Columns.Add("lresignation_date", typeof(DateTime));
+        //    table.Columns.Add("llast_working_date", typeof(DateTime));
+        //    table.Columns.Add("cemp_category", typeof(string));
+        //    table.Columns.Add("cwork_loc_code", typeof(string));
+        //    table.Columns.Add("cwork_loc_name", typeof(string));
+        //    table.Columns.Add("crole_id", typeof(int));
+        //    table.Columns.Add("crole_code", typeof(string));
+        //    table.Columns.Add("crole_name", typeof(string));
+        //    table.Columns.Add("cgrade_code", typeof(string));
+        //    table.Columns.Add("cgrade_desc", typeof(string));
+        //    table.Columns.Add("csub_role_code", typeof(string));
+        //    table.Columns.Add("cdept_code", typeof(string));
+        //    table.Columns.Add("cdept_desc", typeof(string));
+        //    table.Columns.Add("cjob_code", typeof(string));
+        //    table.Columns.Add("cjob_desc", typeof(string));
+        //    table.Columns.Add("creport_mgr_code", typeof(string));
+        //    table.Columns.Add("creport_mgr_name", typeof(string));
+        //    table.Columns.Add("cRoll_id", typeof(string));
+        //    table.Columns.Add("cRoll_name", typeof(string));
+        //    table.Columns.Add("cRoll_Id_mngr", typeof(string));
+        //    table.Columns.Add("cRoll_Id_mngr_desc", typeof(string));
+        //    table.Columns.Add("creport_manager_empcode", typeof(string));
+        //    table.Columns.Add("creport_manager_poscode", typeof(string));
+        //    table.Columns.Add("creport_manager_pos_desc", typeof(string));
+        //    table.Columns.Add("nis_web_access_enabled", typeof(bool));
+        //    table.Columns.Add("nis_event_read", typeof(bool));
+        //    table.Columns.Add("llast_login_at", typeof(DateTime));
+        //    table.Columns.Add("nfailed_logina_attempts", typeof(int));
+        //    table.Columns.Add("cpassword_changed_at", typeof(DateTime));
+        //    table.Columns.Add("nis_locked", typeof(bool));
+        //    table.Columns.Add("last_login_ip", typeof(string));
+        //    table.Columns.Add("last_login_device", typeof(string));
+        //    table.Columns.Add("ccreated_date", typeof(DateTime));
+        //    table.Columns.Add("ccreated_by", typeof(string));
+        //    table.Columns.Add("cmodified_by", typeof(string));
+        //    table.Columns.Add("lmodified_date", typeof(DateTime));
+        //    table.Columns.Add("nIsDeleted", typeof(bool));
+        //    table.Columns.Add("cdeleted_by", typeof(string));
+        //    table.Columns.Add("ldeleted_date", typeof(DateTime));
+
+        //    // Fill DataTable safely
+        //    foreach (var u in users)
+        //    {
+        //        var row = table.NewRow();
+        //        row["cuserid"] = u.cuserid;
+        //        row["ctenant_id"] = u.ctenantID;
+        //        row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
+        //        row["cemail"] = u.cemail ?? (object)DBNull.Value;
+        //        row["cpassword"] = u.cpassword ?? (object)DBNull.Value;
+        //        row["nIs_active"] = u.nIsActive ?? true;
+        //        row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value;
+        //        row["clast_name"] = u.clastName ?? (object)DBNull.Value;
+        //        row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
+        //        row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
+        //        row["ldob"] = u.ldob ?? (object)DBNull.Value;
+        //        row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
+        //        row["cnation"] = u.cnation ?? (object)DBNull.Value;
+        //        row["cgender"] = u.cgender ?? (object)DBNull.Value;
+        //        row["caddress"] = u.caddress ?? (object)DBNull.Value;
+        //        row["caddress1"] = u.caddress1 ?? (object)DBNull.Value;
+        //        row["caddress2"] = u.caddress2 ?? (object)DBNull.Value;
+        //        row["cpincode"] = u.cpincode ?? (object)DBNull.Value;
+        //        row["ccity"] = u.ccity ?? (object)DBNull.Value;
+        //        row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value;
+        //        row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value;
+        //        row["ccountry_code"] = u.ccountrycode ?? (object)DBNull.Value;
+        //        row["ProfileImage"] = u.ProfileImage ?? (object)DBNull.Value;
+        //        row["cbank_name"] = u.cbankName ?? (object)DBNull.Value;
+        //        row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value;
+        //        row["ciFSC_code"] = u.ciFSCCode ?? (object)DBNull.Value;
+        //        row["cpan"] = u.cpAN ?? (object)DBNull.Value;
+        //        row["ldoj"] = u.ldoj ?? (object)DBNull.Value;
+        //        row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
+        //        row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
+        //        row["lresignation_date"] = u.lresignationDate ?? (object)DBNull.Value;
+        //        row["llast_working_date"] = u.llastWorkingDate ?? (object)DBNull.Value;
+        //        row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value;
+        //        row["cwork_loc_code"] = u.cworkloccode ?? (object)DBNull.Value;
+        //        row["cwork_loc_name"] = u.cworklocname ?? (object)DBNull.Value;
+        //        row["crole_id"] = u.croleID ?? (object)DBNull.Value;
+        //        row["crole_code"] = u.crolecode ?? (object)DBNull.Value;
+        //        row["crole_name"] = u.crolename ?? (object)DBNull.Value;
+        //        row["cgrade_code"] = u.cgradecode ?? (object)DBNull.Value;
+        //        row["cgrade_desc"] = u.cgradedesc ?? (object)DBNull.Value;
+        //        row["csub_role_code"] = u.csubrolecode ?? (object)DBNull.Value;
+        //        row["cdept_code"] = u.cdeptcode ?? (object)DBNull.Value;
+        //        row["cdept_desc"] = u.cdeptdesc ?? (object)DBNull.Value;
+        //        row["cjob_code"] = u.cjobcode ?? (object)DBNull.Value;
+        //        row["cjob_desc"] = u.cjobdesc ?? (object)DBNull.Value;
+        //        row["creport_mgr_code"] = u.creportmgrcode ?? (object)DBNull.Value;
+        //        row["creport_mgr_name"] = u.creportmgrname ?? (object)DBNull.Value;
+        //        row["cRoll_id"] = u.cRoll_id ?? (object)DBNull.Value;
+        //        row["cRoll_name"] = u.cRoll_name ?? (object)DBNull.Value;
+        //        row["cRoll_Id_mngr"] = u.cRoll_Id_mngr ?? (object)DBNull.Value;
+        //        row["cRoll_Id_mngr_desc"] = u.cRoll_Id_mngr_desc ?? (object)DBNull.Value;
+        //        row["creport_manager_empcode"] = u.cReportManager_empcode ?? (object)DBNull.Value;
+        //        row["creport_manager_poscode"] = u.cReportManager_Poscode ?? (object)DBNull.Value;
+        //        row["creport_manager_pos_desc"] = u.cReportManager_Posdesc ?? (object)DBNull.Value;
+        //        row["nis_web_access_enabled"] = u.nIsWebAccessEnabled ?? false;
+        //        row["nis_event_read"] = u.nIsEventRead ?? false;
+        //        row["llast_login_at"] = u.lLastLoginAt ?? (object)DBNull.Value;
+        //        row["nfailed_logina_attempts"] = u.nFailedLoginAttempts ?? (object)DBNull.Value;
+        //        row["cpassword_changed_at"] = u.cPasswordChangedAt ?? (object)DBNull.Value;
+        //        row["nis_locked"] = u.nIsLocked ?? false;
+        //        row["last_login_ip"] = u.LastLoginIP ?? (object)DBNull.Value;
+        //        row["last_login_device"] = u.LastLoginDevice ?? (object)DBNull.Value;
+        //        row["ccreated_date"] = u.ccreateddate ?? DateTime.Now;
+        //        row["ccreated_by"] = u.ccreatedby ?? (object)DBNull.Value;
+        //        row["cmodified_by"] = u.cmodifiedby ?? (object)DBNull.Value;
+        //        row["lmodified_date"] = u.lmodifieddate ?? DateTime.Now;
+        //        row["nIsDeleted"] = u.nIsDeleted ?? false;
+        //        row["cdeleted_by"] = u.cDeletedBy ?? (object)DBNull.Value;
+        //        row["ldeleted_date"] = u.lDeletedDate ?? (object)DBNull.Value;
+
+        //        table.Rows.Add(row);
+        //    }
+
+        //    // Add TVP parameter
+        //    cmd.Parameters.Add("@UserList", SqlDbType.Structured).Value = table;
+        //    cmd.Parameters["@UserList"].TypeName = "dbo.UserTableType";
+
+        //    // Add OUTPUT parameter
+        //    var outputParam = new SqlParameter("@InsertedCount", SqlDbType.Int) { Direction = ParameterDirection.Output };
+        //    cmd.Parameters.Add(outputParam);
+
+        //    await conn.OpenAsync();
+        //    await cmd.ExecuteNonQueryAsync();
+
+        //    return outputParam.Value != DBNull.Value ? (int)outputParam.Value : 0;
+        //}
+
+
+
+        public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
+        {
+            if (users == null || !users.Any())
+                return 0;
+
+            var connStr = _config.GetConnectionString("Database");
+
+            var table = new DataTable();
+            table.Columns.Add("cuserid", typeof(int));
+            table.Columns.Add("ctenant_id", typeof(int));
+            table.Columns.Add("cuser_name", typeof(string));
+            table.Columns.Add("cpassword", typeof(string));
+            table.Columns.Add("cemail", typeof(string));
+            table.Columns.Add("nIs_active", typeof(bool));
+            table.Columns.Add("cfirst_name", typeof(string));
+            table.Columns.Add("clast_name", typeof(string));
+            table.Columns.Add("cphoneno", typeof(string));
+            table.Columns.Add("calternate_phone", typeof(string));
+            table.Columns.Add("ldob", typeof(DateTime));
+            table.Columns.Add("cmarital_status", typeof(string));
+            table.Columns.Add("cnation", typeof(string));
+            table.Columns.Add("cgender", typeof(string));
+            table.Columns.Add("caddress", typeof(string));
+            table.Columns.Add("caddress1", typeof(string));
+            table.Columns.Add("caddress2", typeof(string));
+            table.Columns.Add("cpincode", typeof(string));
+            table.Columns.Add("ccity", typeof(string));
+            table.Columns.Add("cstate_code", typeof(string));
+            table.Columns.Add("cstate_desc", typeof(string));
+            table.Columns.Add("ccountry_code", typeof(string));
+            table.Columns.Add("profile_image", typeof(string));  // lowercase
+            table.Columns.Add("cbank_name", typeof(string));
+            table.Columns.Add("caccount_number", typeof(string));
+            table.Columns.Add("ciFSC_code", typeof(string));
+            table.Columns.Add("cpan", typeof(string));
+            table.Columns.Add("ldoj", typeof(DateTime));
+            table.Columns.Add("cemployment_status", typeof(string));
+            //table.Columns.Add("nnotice_period_days", typeof(int));
+            //table.Columns.Add("lresignation_date", typeof(DateTime));
+            //table.Columns.Add("llast_working_date", typeof(DateTime));
+            table.Columns.Add("cemp_category", typeof(string));
+            table.Columns.Add("cwork_loc_code", typeof(string));
+            table.Columns.Add("cwork_loc_name", typeof(string));
+            table.Columns.Add("crole_id", typeof(int));
+            table.Columns.Add("crole_code", typeof(string));
+            table.Columns.Add("crole_name", typeof(string));
+            table.Columns.Add("cgrade_code", typeof(string));
+            table.Columns.Add("cgrade_desc", typeof(string));
+            table.Columns.Add("csub_role_code", typeof(string));
+            table.Columns.Add("cdept_code", typeof(string));
+            table.Columns.Add("cdept_desc", typeof(string));
+            table.Columns.Add("cjob_code", typeof(string));
+            table.Columns.Add("cjob_desc", typeof(string));
+            table.Columns.Add("creport_mgr_code", typeof(string));
+            table.Columns.Add("creport_mgr_name", typeof(string));
+            table.Columns.Add("cRoll_id", typeof(string));
+            table.Columns.Add("cRoll_name", typeof(string));
+            table.Columns.Add("cRoll_Id_mngr", typeof(string));
+            table.Columns.Add("cRoll_Id_mngr_desc", typeof(string));
+            table.Columns.Add("creport_manager_empcode", typeof(string));
+            table.Columns.Add("creport_manager_poscode", typeof(string));
+            table.Columns.Add("creport_manager_pos_desc", typeof(string));
+            //table.Columns.Add("nis_web_access_enabled", typeof(bool));
+            //table.Columns.Add("nis_event_read", typeof(bool));
+            //table.Columns.Add("llast_login_at", typeof(DateTime));
+            //table.Columns.Add("nfailed_logina_attempts", typeof(int));
+            //table.Columns.Add("cpassword_changed_at", typeof(DateTime));
+            //table.Columns.Add("nis_locked", typeof(bool));
+            //table.Columns.Add("last_login_ip", typeof(string));
+            //table.Columns.Add("last_login_device", typeof(string));
+            table.Columns.Add("ccreated_date", typeof(DateTime));
+            table.Columns.Add("ccreated_by", typeof(string));
+            table.Columns.Add("cmodified_by", typeof(string));
+            table.Columns.Add("lmodified_date", typeof(DateTime));
+            table.Columns.Add("nIs_deleted", typeof(bool));
+            table.Columns.Add("cdeleted_by", typeof(string));
+            table.Columns.Add("ldeleted_date", typeof(DateTime));
+
+            foreach (var u in users)
+            {
+                var row = table.NewRow();
+                row["cuserid"] = u.cuserid;
+                row["ctenant_id"] = u.ctenantID;
+                row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
+                row["cpassword"] = u.cpassword ?? (object)DBNull.Value;
+                row["cemail"] = u.cemail ?? (object)DBNull.Value;
+                row["nIs_active"] = u.nIsActive ?? true;
+                row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value;
+                row["clast_name"] = u.clastName ?? (object)DBNull.Value;
+                row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
+                row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
+                row["ldob"] = u.ldob ?? (object)DBNull.Value;
+                row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
+                row["cnation"] = u.cnation ?? (object)DBNull.Value;
+                row["cgender"] = u.cgender ?? (object)DBNull.Value;
+                row["caddress"] = u.caddress ?? (object)DBNull.Value;
+                row["caddress1"] = u.caddress1 ?? (object)DBNull.Value;
+                row["caddress2"] = u.caddress2 ?? (object)DBNull.Value;
+                row["cpincode"] = u.cpincode ?? (object)DBNull.Value;
+                row["ccity"] = u.ccity ?? (object)DBNull.Value;
+                row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value;
+                row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value;
+                row["ccountry_code"] = u.ccountrycode ?? (object)DBNull.Value;
+                row["profile_image"] = u.ProfileImage ?? (object)DBNull.Value;  // FIXED: lowercase to match DataTable
+                row["cbank_name"] = u.cbankName ?? (object)DBNull.Value;
+                row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value;
+                row["ciFSC_code"] = u.ciFSCCode ?? (object)DBNull.Value;
+                row["cpan"] = u.cpAN ?? (object)DBNull.Value;
+                row["ldoj"] = u.ldoj ?? (object)DBNull.Value;
+                row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
+                //row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
+                //row["lresignation_date"] = u.lresignationDate ?? (object)DBNull.Value;
+                //row["llast_working_date"] = u.llastWorkingDate ?? (object)DBNull.Value;
+                row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value;
+                row["cwork_loc_code"] = u.cworkloccode ?? (object)DBNull.Value;
+                row["cwork_loc_name"] = u.cworklocname ?? (object)DBNull.Value;
+                row["crole_id"] = u.croleID ?? (object)DBNull.Value;
+                row["crole_code"] = u.crolecode ?? (object)DBNull.Value;
+                row["crole_name"] = u.crolename ?? (object)DBNull.Value;
+                row["cgrade_code"] = u.cgradecode ?? (object)DBNull.Value;
+                row["cgrade_desc"] = u.cgradedesc ?? (object)DBNull.Value;
+                row["csub_role_code"] = u.csubrolecode ?? (object)DBNull.Value;
+                row["cdept_code"] = u.cdeptcode ?? (object)DBNull.Value;
+                row["cdept_desc"] = u.cdeptdesc ?? (object)DBNull.Value;
+                row["cjob_code"] = u.cjobcode ?? (object)DBNull.Value;
+                row["cjob_desc"] = u.cjobdesc ?? (object)DBNull.Value;
+                row["creport_mgr_code"] = u.creportmgrcode ?? (object)DBNull.Value;
+                row["creport_mgr_name"] = u.creportmgrname ?? (object)DBNull.Value;
+                row["cRoll_id"] = u.cRoll_id ?? (object)DBNull.Value;
+                row["cRoll_name"] = u.cRoll_name ?? (object)DBNull.Value;
+                row["cRoll_Id_mngr"] = u.cRoll_Id_mngr ?? (object)DBNull.Value;
+                row["cRoll_Id_mngr_desc"] = u.cRoll_Id_mngr_desc ?? (object)DBNull.Value;
+                row["creport_manager_empcode"] = u.cReportManager_empcode ?? (object)DBNull.Value;
+                row["creport_manager_poscode"] = u.cReportManager_Poscode ?? (object)DBNull.Value;
+                row["creport_manager_pos_desc"] = u.cReportManager_Posdesc ?? (object)DBNull.Value;
+                //row["nis_web_access_enabled"] = u.nIsWebAccessEnabled ?? false;
+                //row["nis_event_read"] = u.nIsEventRead ?? false;
+                //row["llast_login_at"] = u.lLastLoginAt ?? (object)DBNull.Value;
+                //row["nfailed_logina_attempts"] = u.nFailedLoginAttempts ?? (object)DBNull.Value;
+                //row["cpassword_changed_at"] = u.cPasswordChangedAt ?? (object)DBNull.Value;
+                //row["nis_locked"] = u.nIsLocked ?? false;
+                //row["last_login_ip"] = u.LastLoginIP ?? (object)DBNull.Value;
+                //row["last_login_device"] = u.LastLoginDevice ?? (object)DBNull.Value;
+                row["ccreated_date"] = u.ccreateddate ?? DateTime.Now;
+                row["ccreated_by"] = u.ccreatedby ?? (object)DBNull.Value;
+                row["cmodified_by"] = u.cmodifiedby ?? (object)DBNull.Value;
+                row["lmodified_date"] = u.lmodifieddate ?? DateTime.Now;
+                row["nIs_deleted"] = u.nIsDeleted ?? false;
+                row["cdeleted_by"] = u.cDeletedBy ?? (object)DBNull.Value;
+                row["ldeleted_date"] = u.lDeletedDate ?? (object)DBNull.Value;
+                table.Rows.Add(row);
+            }
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            using var bulkCopy = new SqlBulkCopy(conn)
+            {
+                DestinationTableName = "Users"
+            };
+
+            // Use consistent casing - all source names should match DataTable column names exactly
+            bulkCopy.ColumnMappings.Add("cuserid", "cuserid");
+            bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id");
+            bulkCopy.ColumnMappings.Add("cuser_name", "cuser_name");
+            bulkCopy.ColumnMappings.Add("cpassword", "cpassword");
+            bulkCopy.ColumnMappings.Add("cemail", "cemail");
+            bulkCopy.ColumnMappings.Add("nIs_active", "nIs_active");
+            bulkCopy.ColumnMappings.Add("cfirst_name", "cfirst_name");
+            bulkCopy.ColumnMappings.Add("clast_name", "clast_name");
+            bulkCopy.ColumnMappings.Add("cphoneno", "cphoneno");
+            bulkCopy.ColumnMappings.Add("calternate_phone", "calternate_phone");
+            bulkCopy.ColumnMappings.Add("ldob", "ldob");
+            bulkCopy.ColumnMappings.Add("cmarital_status", "cmarital_status");
+            bulkCopy.ColumnMappings.Add("cnation", "cnation");
+            bulkCopy.ColumnMappings.Add("cgender", "cgender");
+            bulkCopy.ColumnMappings.Add("caddress", "caddress");
+            bulkCopy.ColumnMappings.Add("caddress1", "caddress1");
+            bulkCopy.ColumnMappings.Add("caddress2", "caddress2");
+            bulkCopy.ColumnMappings.Add("cpincode", "cpincode");
+            bulkCopy.ColumnMappings.Add("ccity", "ccity");
+            bulkCopy.ColumnMappings.Add("cstate_code", "cstate_code");
+            bulkCopy.ColumnMappings.Add("cstate_desc", "cstate_desc");
+            bulkCopy.ColumnMappings.Add("ccountry_code", "ccountry_code");
+            bulkCopy.ColumnMappings.Add("cpan", "cpan");
+            bulkCopy.ColumnMappings.Add("ldoj", "ldoj");
+            bulkCopy.ColumnMappings.Add("crole_id", "crole_id");
+            bulkCopy.ColumnMappings.Add("crole_name", "crole_name");
+            bulkCopy.ColumnMappings.Add("crole_code", "crole_code");
+            bulkCopy.ColumnMappings.Add("cdept_code", "cdept_code");
+            bulkCopy.ColumnMappings.Add("cdept_desc", "cdept_desc");
+            bulkCopy.ColumnMappings.Add("creport_mgr_code", "creport_mgr_code");
+            bulkCopy.ColumnMappings.Add("creport_mgr_name", "creport_mgr_name");
+            bulkCopy.ColumnMappings.Add("cwork_loc_code", "cwork_loc_code");
+            bulkCopy.ColumnMappings.Add("cwork_loc_name", "cwork_loc_name");
+            bulkCopy.ColumnMappings.Add("cbank_name", "cbank_name");
+            bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
+
+
+            //bulkCopy.ColumnMappings.Add("profile_image", "Profile_Image");  // DataTable -> Database
+            //bulkCopy.ColumnMappings.Add("cbank_name", "cbank_name");
+            //bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
+            //bulkCopy.ColumnMappings.Add("ciFSC_code", "ciFSC_code");      
+            //bulkCopy.ColumnMappings.Add("cemployment_status", "cemployment_status");
+            //bulkCopy.ColumnMappings.Add("nnotice_period_days", "nnotice_period_days");
+            //bulkCopy.ColumnMappings.Add("lresignation_date", "lresignation_date");
+            //bulkCopy.ColumnMappings.Add("llast_working_date", "llast_working_date");
+            //bulkCopy.ColumnMappings.Add("cemp_category", "cemp_category");
+            //bulkCopy.ColumnMappings.Add("cgrade_code", "cgrade_code");
+            //bulkCopy.ColumnMappings.Add("cgrade_desc", "cgrade_desc");
+            //bulkCopy.ColumnMappings.Add("csub_role_code", "csub_role_code");     
+            //bulkCopy.ColumnMappings.Add("cjob_code", "cjob_code");
+            //bulkCopy.ColumnMappings.Add("cjob_desc", "cjob_desc");
+            //bulkCopy.ColumnMappings.Add("cRoll_id", "cRoll_id");
+            //bulkCopy.ColumnMappings.Add("cRoll_name", "cRoll_name");
+            //bulkCopy.ColumnMappings.Add("cRoll_Id_mngr", "cRoll_Id_mngr");
+            //bulkCopy.ColumnMappings.Add("cRoll_Id_mngr_desc", "cRoll_Id_mngr_desc");
+            //bulkCopy.ColumnMappings.Add("creport_manager_empcode", "creport_manager_empcode");
+            //bulkCopy.ColumnMappings.Add("creport_manager_poscode", "creport_manager_poscode");
+            //bulkCopy.ColumnMappings.Add("creport_manager_pos_desc", "creport_manager_pos_desc");
+            // bulkCopy.ColumnMappings.Add("nis_web_access_enabled", "nis_web_access_enabled");
+            // bulkCopy.ColumnMappings.Add("nis_event_read", "nis_event_read");
+            // bulkCopy.ColumnMappings.Add("llast_login_at", "llast_login_at");
+            //  bulkCopy.ColumnMappings.Add("nfailed_logina_attempts", "nfailed_logina_attempts");
+            // bulkCopy.ColumnMappings.Add("cpassword_changed_at", "cpassword_changed_at");
+            // bulkCopy.ColumnMappings.Add("nis_locked", "nis_locked");
+            //  bulkCopy.ColumnMappings.Add("last_login_ip", "last_login_ip");
+            // bulkCopy.ColumnMappings.Add("last_login_device", "last_login_device");
+            //bulkCopy.ColumnMappings.Add("ccreated_date", "ccreated_date");
+            //bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
+            //bulkCopy.ColumnMappings.Add("cmodified_by", "cmodified_by");
+            //bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
+            //bulkCopy.ColumnMappings.Add("nIs_deleted", "nIs_deleted");
+            //bulkCopy.ColumnMappings.Add("cdeleted_by", "cdeleted_by");
+            //bulkCopy.ColumnMappings.Add("ldeleted_date", "ldeleted_date");
+
+            await bulkCopy.WriteToServerAsync(table);
+            return table.Rows.Count;
+        }
+
+
+        // In your AccountService class
+        //public async Task<BulkInsertResult> InsertUsersBulkAsync(List<CreateUserDTO> users)
+        //{
+        //    var result = new BulkInsertResult
+        //    {
+        //        Total = users.Count,
+        //        Inserted = new List<object>(),
+        //        Failed = new List<FailedUser>()
+        //    };
+
+        //    if (users == null || !users.Any())
+        //        return result;
+
+        //    using var conn = new SqlConnection(_config.GetConnectionString("Database"));
+        //    await conn.OpenAsync();
+
+        //    using var transaction = await conn.BeginTransactionAsync();
+
+        //    try
+        //    {
+        //        // Step 1: Check all duplicates in one query (more efficient)
+        //        var duplicateInfo = await CheckAllDuplicatesAsync(conn, transaction, users);
+
+        //        // Step 2: Insert only non-duplicates using your existing DataTable approach
+        //        var usersToInsert = users.Where(u => !duplicateInfo.IsDuplicate(u.cemail, u.cusername, u.cphoneno)).ToList();
+
+        //        if (usersToInsert.Any())
+        //        {
+        //            var insertedCount = await BulkInsertNonDuplicatesAsync(conn, transaction, usersToInsert);
+        //            result.Success = insertedCount;
+
+        //            // Add inserted records to result
+        //            result.Inserted = usersToInsert.Select(u => new {
+        //                u.cemail,
+        //                u.cusername,
+        //                u.cfirstName,
+        //                u.clastName
+        //            }).Cast<object>().ToList();
+        //        }
+
+        //        // Step 3: Build failed list with specific reasons
+        //        foreach (var user in users)
+        //        {
+        //            if (duplicateInfo.IsDuplicate(user.cemail, user.cusername, user.cphoneno))
+        //            {
+        //                result.Failed.Add(new FailedUser
+        //                {
+        //                    Email = user.cemail,
+        //                    UserName = user.cusername,
+        //                    Phone = user.cphoneno,
+        //                    Reason = duplicateInfo.GetReason(user.cemail, user.cusername, user.cphoneno)
+        //                });
+        //            }
+        //        }
+
+        //        await transaction.CommitAsync();
+
+        //        result.Status = result.Success == result.Total ? 200 : 207;
+        //        result.StatusText = result.Success == result.Total ? "Success" : "Partial success";
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        await transaction.RollbackAsync();
+        //        result.Status = 500;
+        //        result.StatusText = $"Error: {ex.Message}";
+        //        return result;
+        //    }
+        //}
+
+        //private async Task<DuplicateInfo> CheckAllDuplicatesAsync(SqlConnection conn, SqlTransaction transaction, List<CreateUserDTO> users)
+        //{
+        //    var duplicateInfo = new DuplicateInfo();
+
+        //    // Get existing emails, usernames, and phones in one query (much more efficient)
+        //    var sql = @"
+        //SELECT cemail, 'email' as Type FROM Users WHERE cemail IN @Emails AND ctenant_id = @TenantId
+        //UNION ALL
+        //SELECT cuser_name, 'username' as Type FROM Users WHERE cuser_name IN @UserNames AND ctenant_id = @TenantId
+        //UNION ALL
+        //SELECT cphoneno, 'phone' as Type FROM Users WHERE cphoneno IN @Phones AND ctenant_id = @TenantId";
+
+        //    var existingEmails = users.Select(u => u.cemail).Where(e => !string.IsNullOrEmpty(e)).Distinct().ToList();
+        //    var existingUserNames = users.Select(u => u.cusername).Where(u => !string.IsNullOrEmpty(u)).Distinct().ToList();
+        //    var existingPhones = users.Select(u => u.cphoneno).Where(p => !string.IsNullOrEmpty(p)).Distinct().ToList();
+        //    var tenantId = users.First().ctenantID; // Assuming all users have same tenant
+
+        //    using var command = new SqlCommand(sql, conn, transaction);
+        //    command.Parameters.AddWithValue("@Emails", existingEmails.Any() ? existingEmails : new[] { "" });
+        //    command.Parameters.AddWithValue("@UserNames", existingUserNames.Any() ? existingUserNames : new[] { "" });
+        //    command.Parameters.AddWithValue("@Phones", existingPhones.Any() ? existingPhones : new[] { "" });
+        //    command.Parameters.AddWithValue("@TenantId", tenantId);
+
+        //    using var reader = await command.ExecuteReaderAsync();
+        //    while (await reader.ReadAsync())
+        //    {
+        //        var value = reader.GetString(0);
+        //        var type = reader.GetString(1);
+
+        //        if (type == "email")
+        //            duplicateInfo.DuplicateEmails.Add(value);
+        //        else if (type == "username")
+        //            duplicateInfo.DuplicateUserNames.Add(value);
+        //        else if (type == "phone")
+        //            duplicateInfo.DuplicatePhones.Add(value);
+        //    }
+
+        //    return duplicateInfo;
+        //}
+
+        //private async Task<int> BulkInsertNonDuplicatesAsync(SqlConnection conn, SqlTransaction transaction, List<CreateUserDTO> users)
+        //{
+        //    var table = new DataTable();
+
+        //    // Add all columns (your existing code)
+        //    table.Columns.Add("cuserid", typeof(int));
+        //    table.Columns.Add("ctenant_id", typeof(int));
+        //    table.Columns.Add("cuser_name", typeof(string));
+        //    table.Columns.Add("cpassword", typeof(string));
+        //    table.Columns.Add("cemail", typeof(string));
+        //    table.Columns.Add("nIs_active", typeof(bool));
+        //    table.Columns.Add("cfirst_name", typeof(string));
+        //    table.Columns.Add("clast_name", typeof(string));
+        //    table.Columns.Add("cphoneno", typeof(string));
+        //    table.Columns.Add("calternate_phone", typeof(string));
+        //    table.Columns.Add("ldob", typeof(DateTime));
+        //    table.Columns.Add("cmarital_status", typeof(string));
+        //    table.Columns.Add("cnation", typeof(string));
+        //    table.Columns.Add("cgender", typeof(string));
+        //    table.Columns.Add("caddress", typeof(string));
+        //    table.Columns.Add("caddress1", typeof(string));
+        //    table.Columns.Add("caddress2", typeof(string));
+        //    table.Columns.Add("cpincode", typeof(string));
+        //    table.Columns.Add("ccity", typeof(string));
+        //    table.Columns.Add("cstate_code", typeof(string));
+        //    table.Columns.Add("cstate_desc", typeof(string));
+        //    table.Columns.Add("ccountry_code", typeof(string));
+        //    table.Columns.Add("profile_image", typeof(string));
+        //    table.Columns.Add("cbank_name", typeof(string));
+        //    table.Columns.Add("caccount_number", typeof(string));
+        //    table.Columns.Add("ciFSC_code", typeof(string));
+        //    table.Columns.Add("cpan", typeof(string));
+        //    table.Columns.Add("ldoj", typeof(DateTime));
+        //    table.Columns.Add("cemployment_status", typeof(string));
+        //    table.Columns.Add("cemp_category", typeof(string));
+        //    table.Columns.Add("cwork_loc_code", typeof(string));
+        //    table.Columns.Add("cwork_loc_name", typeof(string));
+        //    table.Columns.Add("crole_id", typeof(int));
+        //    table.Columns.Add("crole_code", typeof(string));
+        //    table.Columns.Add("crole_name", typeof(string));
+        //    table.Columns.Add("cgrade_code", typeof(string));
+        //    table.Columns.Add("cgrade_desc", typeof(string));
+        //    table.Columns.Add("csub_role_code", typeof(string));
+        //    table.Columns.Add("cdept_code", typeof(string));
+        //    table.Columns.Add("cdept_desc", typeof(string));
+        //    table.Columns.Add("cjob_code", typeof(string));
+        //    table.Columns.Add("cjob_desc", typeof(string));
+        //    table.Columns.Add("creport_mgr_code", typeof(string));
+        //    table.Columns.Add("creport_mgr_name", typeof(string));
+        //    table.Columns.Add("cRoll_id", typeof(string));
+        //    table.Columns.Add("cRoll_name", typeof(string));
+        //    table.Columns.Add("cRoll_Id_mngr", typeof(string));
+        //    table.Columns.Add("cRoll_Id_mngr_desc", typeof(string));
+        //    table.Columns.Add("creport_manager_empcode", typeof(string));
+        //    table.Columns.Add("creport_manager_poscode", typeof(string));
+        //    table.Columns.Add("creport_manager_pos_desc", typeof(string));
+        //    table.Columns.Add("ccreated_date", typeof(DateTime));
+        //    table.Columns.Add("ccreated_by", typeof(string));
+        //    table.Columns.Add("cmodified_by", typeof(string));
+        //    table.Columns.Add("lmodified_date", typeof(DateTime));
+        //    table.Columns.Add("nIs_deleted", typeof(bool));
+        //    table.Columns.Add("cdeleted_by", typeof(string));
+        //    table.Columns.Add("ldeleted_date", typeof(DateTime));
+
+        //    foreach (var u in users)
+        //    {
+        //        var row = table.NewRow();
+        //        // Your existing row population code
+        //        row["cuserid"] = u.cuserid;
+        //        row["ctenant_id"] = u.ctenantID;
+        //        row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
+        //        row["cpassword"] = u.cpassword ?? (object)DBNull.Value;
+        //        row["cemail"] = u.cemail ?? (object)DBNull.Value;
+        //        row["nIs_active"] = u.nIsActive ?? true;
+        //        row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value;
+        //        row["clast_name"] = u.clastName ?? (object)DBNull.Value;
+        //        row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
+        //        row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
+        //        row["ldob"] = u.ldob ?? (object)DBNull.Value;
+        //        row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
+        //        row["cnation"] = u.cnation ?? (object)DBNull.Value;
+        //        row["cgender"] = u.cgender ?? (object)DBNull.Value;
+        //        row["caddress"] = u.caddress ?? (object)DBNull.Value;
+        //        row["caddress1"] = u.caddress1 ?? (object)DBNull.Value;
+        //        row["caddress2"] = u.caddress2 ?? (object)DBNull.Value;
+        //        row["cpincode"] = u.cpincode ?? (object)DBNull.Value;
+        //        row["ccity"] = u.ccity ?? (object)DBNull.Value;
+        //        row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value;
+        //        row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value;
+        //        row["ccountry_code"] = u.ccountrycode ?? (object)DBNull.Value;
+        //        row["profile_image"] = u.ProfileImage ?? (object)DBNull.Value;
+        //        row["cbank_name"] = u.cbankName ?? (object)DBNull.Value;
+        //        row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value;
+        //        row["ciFSC_code"] = u.ciFSCCode ?? (object)DBNull.Value;
+        //        row["cpan"] = u.cpAN ?? (object)DBNull.Value;
+        //        row["ldoj"] = u.ldoj ?? (object)DBNull.Value;
+        //        row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
+        //        row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value;
+        //        row["cwork_loc_code"] = u.cworkloccode ?? (object)DBNull.Value;
+        //        row["cwork_loc_name"] = u.cworklocname ?? (object)DBNull.Value;
+        //        row["crole_id"] = u.croleID ?? (object)DBNull.Value;
+        //        row["crole_code"] = u.crolecode ?? (object)DBNull.Value;
+        //        row["crole_name"] = u.crolename ?? (object)DBNull.Value;
+        //        row["cgrade_code"] = u.cgradecode ?? (object)DBNull.Value;
+        //        row["cgrade_desc"] = u.cgradedesc ?? (object)DBNull.Value;
+        //        row["csub_role_code"] = u.csubrolecode ?? (object)DBNull.Value;
+        //        row["cdept_code"] = u.cdeptcode ?? (object)DBNull.Value;
+        //        row["cdept_desc"] = u.cdeptdesc ?? (object)DBNull.Value;
+        //        row["cjob_code"] = u.cjobcode ?? (object)DBNull.Value;
+        //        row["cjob_desc"] = u.cjobdesc ?? (object)DBNull.Value;
+        //        row["creport_mgr_code"] = u.creportmgrcode ?? (object)DBNull.Value;
+        //        row["creport_mgr_name"] = u.creportmgrname ?? (object)DBNull.Value;
+        //        row["cRoll_id"] = u.cRoll_id ?? (object)DBNull.Value;
+        //        row["cRoll_name"] = u.cRoll_name ?? (object)DBNull.Value;
+        //        row["cRoll_Id_mngr"] = u.cRoll_Id_mngr ?? (object)DBNull.Value;
+        //        row["cRoll_Id_mngr_desc"] = u.cRoll_Id_mngr_desc ?? (object)DBNull.Value;
+        //        row["creport_manager_empcode"] = u.cReportManager_empcode ?? (object)DBNull.Value;
+        //        row["creport_manager_poscode"] = u.cReportManager_Poscode ?? (object)DBNull.Value;
+        //        row["creport_manager_pos_desc"] = u.cReportManager_Posdesc ?? (object)DBNull.Value;
+        //        row["ccreated_date"] = u.ccreateddate ?? DateTime.Now;
+        //        row["ccreated_by"] = u.ccreatedby ?? (object)DBNull.Value;
+        //        row["cmodified_by"] = u.cmodifiedby ?? (object)DBNull.Value;
+        //        row["lmodified_date"] = u.lmodifieddate ?? DateTime.Now;
+        //        row["nIs_deleted"] = u.nIsDeleted ?? false;
+        //        row["cdeleted_by"] = u.cDeletedBy ?? (object)DBNull.Value;
+        //        row["ldeleted_date"] = u.lDeletedDate ?? (object)DBNull.Value;
+        //        table.Rows.Add(row);
+        //    }
+
+        //    using var bulkCopy = new SqlBulkCopy(conn, SqlBulkCopyOptions.Default, transaction)
+        //    {
+        //        DestinationTableName = "Users",
+        //        BatchSize = 1000
+        //    };
+
+        //    // Add all column mappings (your existing mappings)
+        //    foreach (DataColumn column in table.Columns)
+        //    {
+        //        bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
+        //    }
+
+        //    await bulkCopy.WriteToServerAsync(table);
+        //    return table.Rows.Count;
+        //}
 
 
     }

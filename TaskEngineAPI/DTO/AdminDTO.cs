@@ -30,7 +30,7 @@ namespace TaskEngineAPI.DTO
             public DateTime? lmodified_date { get; set; }
             public bool? nIs_deleted { get; set; }
             public string? cdeleted_by { get; set; }
-            public string? ldeleted_date { get; set; }
+            public DateTime? ldeleted_date { get; set; }
             public string? cprofile_image_name { get; set; }
             public string? cprofile_image_path { get; set; }
 
@@ -42,7 +42,7 @@ namespace TaskEngineAPI.DTO
         public int ctenant_Id { get; set; }
         public string? cfirst_name { get; set; }
         public string? clast_name { get; set; }
-        public string cuser_name { get; set; }
+        public int cuserid { get; set; }
         public string cemail { get; set; }
         public string? cphoneno { get; set; }
         public string cpassword { get; set; }
@@ -54,7 +54,7 @@ namespace TaskEngineAPI.DTO
         public string? clast_login_device { get; set; }
         public string? ccreated_by { get; set; }
         public string? cmodified_by { get; set; }
-        public List<IFormFile>? Attachments { get; set; }
+        //public List<IFormFile>? Attachments { get; set; }
     }
     public class UpdateAdminDTO
     {
@@ -62,13 +62,13 @@ namespace TaskEngineAPI.DTO
         public int cTenantID { get; set; }
         public string? cfirstName { get; set; }
         public string? clastName { get; set; }
-        public string? cusername { get; set; }
+        public string? cuserid { get; set; }
         public string? cemail { get; set; }
         public string? cphoneno { get; set; }
         public string? cpassword { get; set; }
         public bool? nisActive { get; set; }
         public string? cmodified_by { get; set; }
-        public List<IFormFile>? Attachments { get; set; }
+       // public List<IFormFile>? Attachments { get; set; }
 
     }
     public class DeleteAdminDTO
@@ -84,7 +84,7 @@ namespace TaskEngineAPI.DTO
     {
         public string? cphoneno { get; set; }
 
-        public string? cusername { get; set; }
+        public int? cuserid { get; set; }
     }
     public class OtpActionRequest
     {

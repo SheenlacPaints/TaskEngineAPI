@@ -25,4 +25,26 @@ namespace TaskEngineAPI.DTO
         public IFormFile? attachment { get; set; } // Single uploaded file
     }
 
+
+    public class pays 
+    { public PayloadWrapper payload { get; set; } 
+    }
+    public class PayloadWrapper 
+    { 
+        public string payload { get; set; } 
+        public IFormFile? attachment { get; set; }
+    }
+
+
+    public class FileUploadDTO
+    {
+        [Required]
+        public string type { get; set; }   
+        [Required]
+        public string id { get; set; }        
+
+        [Required]
+        public IFormFile file { get; set; } 
+    }
+
 }
