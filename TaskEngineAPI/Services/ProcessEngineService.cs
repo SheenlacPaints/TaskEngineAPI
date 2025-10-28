@@ -482,7 +482,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                         string queryMaster = @"INSERT INTO tbl_process_engine_master (
     ctenent_id, ciseqno, cprocesscode, cprocessname, ctype, cstatus,cvalue, cvaluebyid,	cpriority_label, nshow_timeline,
     cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id) VALUES (@TenantID, @ciseqno, @cprocesscode, @cprocessname,@ctype, @cstatus, 
-    @cuser_id, @cuser_name, @crole_code, @crole_name, @cposition_code, @cposition_title,@cdepartment_code,@cdepartment_name, 
+     @cvalue,@cvaluebyid,@cpriority_label,@nshow_timeline,@cnotification_type
     @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id);SELECT SCOPE_IDENTITY();";
                         int masterId;
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
