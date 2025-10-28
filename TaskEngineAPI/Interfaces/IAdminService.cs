@@ -28,6 +28,15 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username);
         Task<int> InsertUsersBulkAsync(List<CreateUserDTO> model);
 
+
+
+
+        //public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
+        //{
+        //    // your bulk insert logic here
+        //    return insertedCount; // make sure you return an int
+        //}
+
     }
 
 }
