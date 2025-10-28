@@ -9,27 +9,25 @@
     }
     public class ProcessEngineDTO
     {
-        public string? ctype { get; set; }
-        public string? ciseqno { get; set; }
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
-        public string? cuser_id { get; set; }
-        public string? cuser_name { get; set; }
-        public string? crole_code { get; set; }
-        public string? crole_name { get; set; }
-        public string? cposition_code { get; set; }
-        public string? cposition_title { get; set; }
-        public string? cdepartment_code { get; set; }
-        public string? cdepartment_name { get; set; } 
+        public string? ctype { get; set; }
+        public string? cvalue { get; set; }
+        public string? cvaluebyid { get; set; }
+        public string? ciseqno { get; set; }
         public string? cstatus { get; set; }
+        public string? cpriority_label { get; set; }
+        public bool? nshow_timeline { get; set; }
+        public int? cnotification_type { get; set; }
         public string? cmetatype { get; set; }
         public int? cmeta_id { get; set; }
+
         public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }
         public List<ProcessEngineMetaMaster> ProcessEngineMetaMaster { get; set; }
         public List<ProcessEngineMeta> ProcessEngineMeta { get; set; }   
     }
     public class ProcessEngineChildItems
-    {
+    {      
         public string? cprocesscode { get; set; }
         public int? ciseqno { get; set; }
         public string? cseq_order { get; set; }
@@ -41,7 +39,12 @@
         public string? cnextseqno { get; set; }
         public string? cassignee { get; set; }
         public string? cprocess_type { get; set; }
-        public string? csla { get; set; }
+        public int? csla_day { get; set; }
+        public int? csla_Hour { get; set; }
+        public bool? nboard_enabled { get; set; }
+        public string? caction_privilege { get; set; }
+        public string? crejection_privilege { get; set; }
+
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
     }
     public class ProcessEngineMeta
@@ -72,17 +75,41 @@
     }
     public class ProcessEngineConditionDetails
     {
+        
         public string? cprocesscode { get; set; }
         public int? ciseqno { get; set; }
         public int? icondseqno { get; set; }
         public int? cseq_order { get; set; }
-        public string ctype { get; set; }
-        public string clabel { get; set; }
-        public string cfieldvalue { get; set; }
-        public string ccondition { get; set; }
-        public string remarks1 { get; set; }
-        public string remarks2 { get; set; }
-        public string remarks3 { get; set; }
+        public string? ctype { get; set; }
+        public string? clabel { get; set; }
+        public string? cplaceholder { get; set; }
+        public bool? cis_required { get; set; }
+        public bool? cis_readonly { get; set; }
+        public bool? cis_disabled { get; set; }
+        public string? cdefault_value { get; set; }
+        public string? cmin { get; set; }
+        public string? cmax { get; set; }
+        public string? cpattern { get; set; }
+        public bool? nallow_spaces { get; set; }
+        public bool? nallow_numbers { get; set; }
+        public bool? nallow_special_chars { get; set; }
+        public bool? ntrim { get; set; }
+        public bool? nauto_focus { get; set; }
+        public bool? ncapitalize { get; set; }
+        public bool? nto_upper_case { get; set; }
+        public bool? nto_lower_case { get; set; }
+        public bool? nshow_copy_button { get; set; }
+        public string? cdepends_on { get; set; }
+        public string? cdisabled_when { get; set; }
+        public string? crequired_when { get; set; }
+        public string? cvisible_when { get; set; }
+        public string? cfieldvalue { get; set; }
+        public string? ccondition { get; set; }
+        public string? remarks1 { get; set; }
+        public string? remarks2 { get; set; }
+        public string? remarks3 { get; set; }
+
+
 
     }
     public class GetProcessEngineDTO
