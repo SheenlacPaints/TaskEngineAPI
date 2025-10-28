@@ -1568,7 +1568,6 @@ namespace TaskEngineAPI.Controllers
                 var validUsers = new List<CreateUserDTO>();
                 var failedUsers = new List<object>();
 
-                // Use your existing service methods instead of GetAllExistingUsersAsync
                 var duplicateUsernames = users.GroupBy(u => u.cuserid)
                                              .Where(g => g.Count() > 1)
                                              .Select(g => g.Key)
@@ -1588,7 +1587,6 @@ namespace TaskEngineAPI.Controllers
                 {
                     var errors = new List<string>();
 
-                    // Use your existing service methods - they already check the database
                     bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(user.cuserid, user.ctenantID);
                     bool emailExists = await _AccountService.CheckuserEmailExistsAsync(user.cemail, user.ctenantID);
                     bool phoneExists = await _AccountService.CheckuserPhonenoExistsAsync(user.cphoneno, user.ctenantID);
@@ -1597,12 +1595,10 @@ namespace TaskEngineAPI.Controllers
                     if (emailExists) errors.Add($"Email '{user.cemail}' already exists in database");
                     if (phoneExists) errors.Add($"Phone '{user.cphoneno}' already exists in database");
 
-                    // Check batch duplicates
                     if (duplicateUsernames.Contains(user.cuserid)) errors.Add("Duplicate username in this batch");
                     if (duplicateEmails.Contains(user.cemail)) errors.Add("Duplicate email in this batch");
                     if (duplicatePhones.Contains(user.cphoneno)) errors.Add("Duplicate phone in this batch");
 
-                    // Data validation
                     if (user.cuserid <= 0) errors.Add("Valid User ID is required");
                     if (string.IsNullOrEmpty(user.cemail)) errors.Add("Email is required");
                     if (string.IsNullOrEmpty(user.cphoneno)) errors.Add("Phone is required");
