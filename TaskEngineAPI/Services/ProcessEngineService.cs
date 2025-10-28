@@ -482,7 +482,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                         string queryMaster = @"INSERT INTO tbl_process_engine_master (
     ctenent_id, ciseqno, cprocesscode, cprocessname, ctype, cstatus,cvalue, cvaluebyid,	cpriority_label, nshow_timeline,
     cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id) VALUES (@TenantID, @ciseqno, @cprocesscode, @cprocessname,@ctype, @cstatus, 
-     @cvalue,@cvaluebyid,@cpriority_label,@nshow_timeline,@cnotification_type
+     @cvalue,@cvaluebyid,@cpriority_label,@nshow_timeline,@cnotification_type,
     @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id);SELECT SCOPE_IDENTITY();";
                         int masterId;
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
@@ -500,6 +500,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             cmd.Parameters.AddWithValue("@cnotification_type", (object?)model.cnotification_type ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ccreated_by", username);
                             cmd.Parameters.AddWithValue("@cmodified_by", username);
+                            cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@cmeta_id", (object?)model.cmeta_id ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
