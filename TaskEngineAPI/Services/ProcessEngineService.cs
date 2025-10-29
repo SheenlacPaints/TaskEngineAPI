@@ -326,8 +326,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 ctasktype = reader.SafeGetString("ctask_type"),
                                 cprevstep = reader.SafeGetString("cprev_step"),
                                 cactivityname = reader.SafeGetString("cactivityname"),
-                                cnextseqno = reader.SafeGetString("cnext_seqno"),
-                                cseq_order = reader.SafeGetString("cseq_order"),
+                                cnextseqno = reader.SafeGetString("cnext_seqno"),                      
                                 cassignee = reader.SafeGetString("cassignee"),
                                 csla_day = reader.SafeGetInt("csla_day"),
                                 csla_Hour = reader.SafeGetInt("csla_Hour"),
@@ -348,8 +347,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                             {
                                 cprocesscode = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                icondseqno = reader.SafeGetInt("icond_seqno"),
-                                cseq_order = reader.SafeGetInt("cond_seq_order"),
+                                icondseqno = reader.SafeGetInt("icond_seqno"),                           
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
                                 cfieldvalue = reader.SafeGetString("cfield_value"),
@@ -469,8 +467,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 ctasktype = reader.SafeGetString("ctask_type"),
                                 cprevstep = reader.SafeGetString("cprev_step"),
                                 cactivityname = reader.SafeGetString("cactivityname"),
-                                cnextseqno = reader.SafeGetString("cnext_seqno"),
-                                cseq_order = reader.SafeGetString("cseq_order"),
+                                cnextseqno = reader.SafeGetString("cnext_seqno"),                            
                                 cassignee = reader.SafeGetString("cassignee"),
                                 csla_day = reader.SafeGetInt("csla_day"),
                                 csla_Hour = reader.SafeGetInt("csla_Hour"),
@@ -490,8 +487,7 @@ LEFT JOIN tbl_process_engine_condition c
                             {                             
                                 cprocesscode = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                icondseqno = reader.SafeGetInt("icond_seqno"),
-                                cseq_order = reader.SafeGetInt("cond_seq_order"),
+                                icondseqno = reader.SafeGetInt("icond_seqno"),                           
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
                                 cfieldvalue = reader.SafeGetString("cfield_value"),
@@ -545,21 +541,20 @@ LEFT JOIN tbl_process_engine_condition c
                     try
                     {
                         string queryMaster = @"INSERT INTO tbl_process_engine_master (
-    ctenent_id, ciseqno, cprocesscode, cprocessname, ctype, cstatus,cvalue, cvaluebyid,	cpriority_label, nshow_timeline,
-    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id) VALUES (@TenantID, @ciseqno, @cprocesscode, @cprocessname,@ctype, @cstatus, 
-     @cvalue,@cvaluebyid,@cpriority_label,@nshow_timeline,@cnotification_type,
+    ctenent_id,cprocesscode, cprocessname, ctype, cstatus,cvalue,cpriority_label, nshow_timeline,
+    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id) VALUES (@TenantID, @cprocesscode, @cprocessname,@ctype, @cstatus, 
+     @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
     @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id);SELECT SCOPE_IDENTITY();";
                         int masterId;
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
-                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-                            cmd.Parameters.AddWithValue("@ciseqno", (object?)model.ciseqno ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);                          
                             cmd.Parameters.AddWithValue("@cprocesscode", (object?)model.cprocesscode ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocessname ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ctype", (object?)model.ctype ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cvalue", (object?)model.cvalue ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@cvaluebyid", (object?)model.cvaluebyid ?? DBNull.Value);
+                     
                             cmd.Parameters.AddWithValue("@cpriority_label", (object?)model.cpriority_label ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@nshow_timeline", (object?)model.nshow_timeline ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cnotification_type", (object?)model.cnotification_type ?? DBNull.Value);
@@ -573,10 +568,10 @@ LEFT JOIN tbl_process_engine_condition c
                         }
                         // Insert Process Engine Details
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
-       ctenent_id, cheader_id, ciseqno, cprocesscode, cseq_order, cactivitycode, cactivity_description, 
+       ctenent_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description, 
          ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cassignee,
 		 cprocess_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege) VALUES (
-         @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cseq_order, @cactivitycode, @cactivitydescription, 
+         @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription, 
          @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cprocess_type,
        @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege);";
 
@@ -594,8 +589,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprevstep ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivityname ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnextseqno ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cseq_order", detail.cseq_order ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                               cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
@@ -611,14 +605,14 @@ LEFT JOIN tbl_process_engine_condition c
                             if (detail.ProcessEngineConditionDetails != null)
                             {
                                 string queryCondition = @"INSERT INTO tbl_process_engine_condition (
-        ctenent_id, cprocesscode, ciseqno, cseq_order, icond_seqno, ctype, 
+        ctenent_id, cprocesscode, ciseqno,icond_seqno, ctype, 
          clabel, cfield_value, ccondition, remarks1, remarks2, remarks3, 
          lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
       ,cis_readonly,cis_disabled,cdefault_value,cmin,cmax
       ,cpattern,nallow_spaces,nallow_numbers,nallow_special_chars,ntrim
       ,nauto_focus,ncapitalize,nto_upper_case
       ,nto_lower_case,nshow_copy_button,cdepends_on,cdisabled_when,crequired_when,cvisible_when) VALUES (
-         @TenantID, @cprocesscode, @ciseqno, @cseq_order, @icondseqno, @ctype, 
+         @TenantID, @cprocesscode, @ciseqno,@icondseqno, @ctype, 
          @clabel, @cfieldvalue, @ccondition, @remarks1, @remarks2, @remarks3,
          @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cplaceholder,@cis_required
       ,@cis_readonly,@cis_disabled,@cdefault_value,@cmin,@cmax
@@ -632,7 +626,6 @@ LEFT JOIN tbl_process_engine_condition c
                                         cmdCond.Parameters.AddWithValue("@TenantID", cTenantID);
                                         cmdCond.Parameters.AddWithValue("@cprocesscode", cond.cprocesscode ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ciseqno", masterId);
-                                        cmdCond.Parameters.AddWithValue("@cseq_order", cond.cseq_order ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@icondseqno", cond.icondseqno ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ctype", cond.ctype ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@clabel", cond.clabel ?? (object)DBNull.Value);
@@ -672,11 +665,10 @@ LEFT JOIN tbl_process_engine_condition c
                                 }
                             }
                         }
-                        if (model.cmetatype == "new" && model.ProcessEngineMetaMaster != null && model.ProcessEngineMetaMaster.Any())
+                        if (model.cmetatype == "new" && model.cmeta_Name != null && model.cmeta_Name.Any())
                         {
                             int metaMasterId = 0;
-                            foreach (var metaMaster in model.ProcessEngineMetaMaster)
-                            {
+                           
                                 string metadatamaster = @"INSERT INTO tbl_process_meta_Master (
     ctenant_id, meta_Name, meta_Description, label, nis_active, ccreated_by,lcreated_date, cmodified_by, lmodified_date)
     VALUES (@TenantID, @meta_Name, @meta_Description, @label, @nis_active, @ccreated_by, 
@@ -685,9 +677,9 @@ LEFT JOIN tbl_process_engine_condition c
                                 using (SqlCommand cmd = new SqlCommand(metadatamaster, conn, transaction))
                                 {
                                     cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-                                    cmd.Parameters.AddWithValue("@meta_Name", (object?)metaMaster.meta_Name ?? DBNull.Value);
-                                    cmd.Parameters.AddWithValue("@meta_Description", (object?)metaMaster.meta_Description ?? DBNull.Value);
-                                    cmd.Parameters.AddWithValue("@label", (object?)metaMaster.label ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@meta_Name", (object?)model.cmeta_Name ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@meta_Description", (object?)model.cmeta_Name ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@label", (object?)model.cmeta_Name ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@nis_active", 1); // Assuming active by default
                                     cmd.Parameters.AddWithValue("@ccreated_by", username);
                                     cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
@@ -696,7 +688,7 @@ LEFT JOIN tbl_process_engine_condition c
                                     var metaId = await cmd.ExecuteScalarAsync();
                                     metaMasterId = metaId != null ? Convert.ToInt32(metaId) : 0;
                                 }
-                            }                         
+                                                    
                             if (metaMasterId > 0)
                             {
                                 string updateMasterQuery = @"UPDATE tbl_process_engine_master SET cmeta_id = @cmeta_id
@@ -715,12 +707,12 @@ LEFT JOIN tbl_process_engine_condition c
     Header_ID, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_autofill, cis_editable,
     cis_validate, cmin_len, cmax_len, cdata_source_type, cfetch_type, cis_req_search, cis_multi_select, 
     cmin_date, cmax_date, cdate_type, cmin_time, cmax_time, ctime_type, cprocess_source, clocation, 
-    ccreated_by, lcreated_date, cmodified_by, lmodified_date, ccolumn_value) VALUES (
+    ccreated_by, lcreated_date, cmodified_by, lmodified_date, ccolumn_value,cfield_value) VALUES (
     @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_autofill, 
     @cis_editable, @cis_validate, @cmin_len, @cmax_len, @cdata_source_type, @cfetch_type, 
     @cis_req_search, @cis_multi_select, @cmin_date, @cmax_date, @cdate_type, @cmin_time, 
     @cmax_time, @ctime_type, @cprocess_source, @clocation, @ccreated_by, @lcreated_date, 
-    @cmodified_by, @lmodified_date, @ccolumn_value);";
+    @cmodified_by, @lmodified_date, @ccolumn_value,@cfield_value);";
                                 foreach (var meta in model.ProcessEngineMeta)
                                 {
                                     using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
@@ -753,7 +745,10 @@ LEFT JOIN tbl_process_engine_condition c
                                         cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
                                         cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                                         cmdMeta.Parameters.AddWithValue("@ccolumn_value", meta.ccolumn_value ?? (object)DBNull.Value);
-                                        await cmdMeta.ExecuteNonQueryAsync();
+                                        cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfield_value ?? (object)DBNull.Value);
+
+                                        
+                                             await cmdMeta.ExecuteNonQueryAsync();
                                     }
                                 }
                             }
