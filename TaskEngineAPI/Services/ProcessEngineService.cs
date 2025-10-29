@@ -269,7 +269,7 @@ namespace TaskEngineAPI.Services
     c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,c.cdefault_value,c.cmin
     ,c.cmax,c.cpattern,c.nallow_spaces,c.nallow_numbers,c.nallow_special_chars,c.ntrim,c.nauto_focus,c.ncapitalize
    ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when,
-   c.cfield_value,c.ccondition
+   c.cfield_value,c.ccondition,c.ciseqno
 FROM tbl_process_engine_master m
 LEFT JOIN tbl_process_engine_details d
     ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
