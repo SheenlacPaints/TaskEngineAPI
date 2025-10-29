@@ -326,8 +326,8 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 ctasktype = reader.SafeGetString("ctask_type"),
                                 cprevstep = reader.SafeGetString("cprev_step"),
                                 cactivityname = reader.SafeGetString("cactivityname"),
-                                cnextseqno = reader.SafeGetString("cnext_seqno"),                      
-                                cassignee = reader.SafeGetString("cassignee"),
+                                cnextseqno = reader.SafeGetString("cnext_seqno"),
+                                cmapping_code = reader.SafeGetString("cassignee"),
                                 csla_day = reader.SafeGetInt("csla_day"),
                                 csla_Hour = reader.SafeGetInt("csla_Hour"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
@@ -467,8 +467,8 @@ LEFT JOIN tbl_process_engine_condition c
                                 ctasktype = reader.SafeGetString("ctask_type"),
                                 cprevstep = reader.SafeGetString("cprev_step"),
                                 cactivityname = reader.SafeGetString("cactivityname"),
-                                cnextseqno = reader.SafeGetString("cnext_seqno"),                            
-                                cassignee = reader.SafeGetString("cassignee"),
+                                cnextseqno = reader.SafeGetString("cnext_seqno"),
+                                cmapping_code = reader.SafeGetString("cassignee"),
                                 csla_day = reader.SafeGetInt("csla_day"),
                                 csla_Hour = reader.SafeGetInt("csla_Hour"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
@@ -569,11 +569,11 @@ LEFT JOIN tbl_process_engine_condition c
                         // Insert Process Engine Details
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
        ctenent_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description, 
-         ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cassignee,
-		 cprocess_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege) VALUES (
+         ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
+		 cprocess_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type) VALUES (
          @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription, 
          @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cprocess_type,
-       @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege);";
+       @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type);";
 
                         foreach (var detail in model.ProcessEngineChildItems)
                         {
@@ -593,7 +593,9 @@ LEFT JOIN tbl_process_engine_condition c
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                                cmdDetail.Parameters.AddWithValue("@cassignee", detail.cassignee ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cassignee", detail.cmapping_code ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cmapping_type", detail.cmapping_type ?? (object)DBNull.Value);
+
                                 cmdDetail.Parameters.AddWithValue("@cprocess_type", detail.cprocess_type ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@nboardenabled", detail.nboard_enabled ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@csladay", detail.csla_day ?? (object)DBNull.Value);

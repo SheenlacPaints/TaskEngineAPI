@@ -43,14 +43,16 @@
         public string? cprevstep { get; set; }
         public string? cactivityname { get; set; }
         public string? cnextseqno { get; set; }
-        public string? cassignee { get; set; }
+        public string? cmapping_code { get; set; }
+        public string? cmapping_type { get; set; }
         public string? cprocess_type { get; set; }
         public int? csla_day { get; set; }
         public int? csla_Hour { get; set; }
         public bool? nboard_enabled { get; set; }
         public string? caction_privilege { get; set; }
         public string? crejection_privilege { get; set; }
-
+       
+        
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
     }
     public class ProcessEngineMeta
