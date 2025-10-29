@@ -260,22 +260,23 @@ namespace TaskEngineAPI.Services
 
                 string query = @"
                 SELECT
-    m.ID, m.ctenent_id, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, 
-	m.cvalue,m.cvaluebyid,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
+    m.ID, m.ctenent_id, m.cprocesscode, m.cprocessname, m.ctype, 
+	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
-    d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
-	d.nboard_enabled,d.cassignee,d.cprocess_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
-    c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
+    d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
+	d.nboard_enabled,d.cmapping_code,d.cmapping_type,d.cprocess_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
+    c.icond_seqno,c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
     c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,c.cdefault_value,c.cmin
     ,c.cmax,c.cpattern,c.nallow_spaces,c.nallow_numbers,c.nallow_special_chars,c.ntrim,c.nauto_focus,c.ncapitalize
-   ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when
+   ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when,
+   c.cfield_value,c.ccondition
 FROM tbl_process_engine_master m
 LEFT JOIN tbl_process_engine_details d
     ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
 LEFT JOIN tbl_process_engine_condition c
     ON d.ciseqno = c.ciseqno
 WHERE m.ctenent_id = @TenantID
-ORDER BY m.ID, d.cseq_order, c.icond_seqno";
+ORDER BY m.ID, d.ciseqno, c.icond_seqno";
 
                 
 
@@ -293,13 +294,12 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                         engine = new GetProcessEngineDTO
                         {
                             ID = cseq_id,
-                            ciseqno = reader.SafeGetInt("ciseqno"),
+                        
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
                             ctype = reader.SafeGetString("ctype"),
                             cstatus = reader.SafeGetString("cstatus"),
-                            cvalue = reader.SafeGetString("cvalue"),
-                            cvaluebyid = reader.SafeGetString("cvaluebyid"),
+                            cvalue = reader.SafeGetString("cvalue"),                         
                             cpriority_label = reader.SafeGetString("cpriority_label"),
                             nshow_timeline = reader.GetBoolean("nshow_timeline"),
                             cnotification_type = reader.SafeGetInt("cnotification_type"),
@@ -327,7 +327,8 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 cprevstep = reader.SafeGetString("cprev_step"),
                                 cactivityname = reader.SafeGetString("cactivityname"),
                                 cnextseqno = reader.SafeGetString("cnext_seqno"),
-                                cmapping_code = reader.SafeGetString("cassignee"),
+                                cmapping_code = reader.SafeGetString("cmapping_code"),
+                                cmapping_type = reader.SafeGetString("cmapping_type"),
                                 csla_day = reader.SafeGetInt("csla_day"),
                                 csla_Hour = reader.SafeGetInt("csla_Hour"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
@@ -376,7 +377,7 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                                 cdisabled_when = reader.SafeGetString("cdisabled_when"),
                                 crequired_when = reader.SafeGetString("crequired_when"),
                                 cvisible_when = reader.SafeGetString("cvisible_when"),
-                                
+                               
                             });
                         }
                     }
@@ -403,23 +404,24 @@ ORDER BY m.ID, d.cseq_order, c.icond_seqno";
                 await conn.OpenAsync();
 
                 string query = @"
-                SELECT
-    m.ID, m.ctenent_id, m.ciseqno, m.cprocesscode, m.cprocessname, m.ctype, 
-	m.cvalue,m.cvaluebyid,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
+             SELECT
+    m.ID, m.ctenent_id,  m.cprocesscode, m.cprocessname, m.ctype, 
+	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
-    d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno, d.cseq_order,
-	d.nboard_enabled,d.cassignee,d.cprocess_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
-    c.icond_seqno, c.cseq_order AS cond_seq_order, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
+    d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
+	d.nboard_enabled,d.cmapping_code,d.cmapping_type,d.cprocess_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
+    c.icond_seqno,  c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
     c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,c.cdefault_value,c.cmin
     ,c.cmax,c.cpattern,c.nallow_spaces,c.nallow_numbers,c.nallow_special_chars,c.ntrim,c.nauto_focus,c.ncapitalize
-   ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when
+   ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when,
+   c.cfield_value,c.ccondition
 FROM tbl_process_engine_master m
 LEFT JOIN tbl_process_engine_details d
     ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
 LEFT JOIN tbl_process_engine_condition c 
      ON  d.ciseqno = c.ciseqno 
  WHERE m.ctenent_id = @TenantID and m.id=@id
- ORDER BY m.ID, d.cseq_order, c.icond_seqno";
+ ORDER BY m.ID, d.ciseqno, c.icond_seqno";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -433,14 +435,12 @@ LEFT JOIN tbl_process_engine_condition c
                     {
                         engine = new GetProcessEngineDTO
                         {
-                            ID = ID,
-                            ciseqno = reader.SafeGetInt("ciseqno"),
+                            ID = ID,                         
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
                             ctype = reader.SafeGetString("ctype"),
                             cstatus = reader.SafeGetString("cstatus"),
-                            cvalue = reader.SafeGetString("cvalue"),
-                            cvaluebyid = reader.SafeGetString("cvaluebyid"),
+                            cvalue = reader.SafeGetString("cvalue"),                        
                             cpriority_label = reader.SafeGetString("cpriority_label"),
                             nshow_timeline = reader.GetBoolean("nshow_timeline"),
                             cnotification_type = reader.SafeGetInt("cnotification_type"),
@@ -468,7 +468,8 @@ LEFT JOIN tbl_process_engine_condition c
                                 cprevstep = reader.SafeGetString("cprev_step"),
                                 cactivityname = reader.SafeGetString("cactivityname"),
                                 cnextseqno = reader.SafeGetString("cnext_seqno"),
-                                cmapping_code = reader.SafeGetString("cassignee"),
+                                cmapping_code = reader.SafeGetString("cmapping_code"),
+                                cmapping_type = reader.SafeGetString("cmapping_type"),
                                 csla_day = reader.SafeGetInt("csla_day"),
                                 csla_Hour = reader.SafeGetInt("csla_Hour"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),

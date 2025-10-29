@@ -123,12 +123,10 @@
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }
-        public string? ctype { get; set; }
-        public int? ciseqno { get; set; }
+        public string? ctype { get; set; }    
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
-        public string? cvalue { get; set; }
-        public string? cvaluebyid { get; set; }
+        public string? cvalue { get; set; }     
         public string? cpriority_label { get; set; }
         public bool? nshow_timeline { get; set; }
         public int? cnotification_type { get; set; }
