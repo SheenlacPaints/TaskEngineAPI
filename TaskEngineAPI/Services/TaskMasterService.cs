@@ -59,9 +59,9 @@ namespace TaskEngineAPI.Services
                         string queryMaster = @"
                     INSERT INTO tbl_taskflow_master (
                         itaskno, ctenent_id, ctask_type, ctask_name, ctask_description, cstatus,  
-                        lcreated_date, ccreated_by, cmodified_by, lmodified_date) VALUES (
+                        lcreated_date, ccreated_by, cmodified_by, lmodified_date,cprocess_id) VALUES (
                         @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
-                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date);SELECT SCOPE_IDENTITY();";
+                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cprocess_id );SELECT SCOPE_IDENTITY();";
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
@@ -74,15 +74,17 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@ccreated_by", username);
                             cmd.Parameters.AddWithValue("@cmodified_by", username);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
                      
-                        string selectQuery = @"
-                     SELECT ctenent_id, cprocesscode, ciseqno, cseq_order, cactivitycode, 
-                    cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno,cassignee
-                    FROM tbl_process_engine_details  
-                    WHERE cheader_id = @cprocesscode AND ctenent_id = @ctenent_id";
+                        string selectQuery = @"                     
+                         SELECT ctenent_id, cprocesscode, ciseqno, cseq_order, cactivitycode, 
+                         cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno,nboard_enabled,cassignee,
+                        cprocess_type,csla_day,csla_Hour,caction_privilege,crejection_privilege
+                        FROM tbl_process_engine_details 
+                        WHERE cheader_id = @cprocesscode AND ctenent_id = @ctenent_id";
 
                         var detailRows = new List<Dictionary<string, object>>();
 
@@ -104,6 +106,14 @@ namespace TaskEngineAPI.Services
                                         ["cnextseqno"] = reader["cnext_seqno"],
                                         ["cprevstep"] = reader["cprev_step"],
                                         ["cassignee"] = reader["cassignee"],
+                                        ["nboard_enabled"]= reader["nboard_enabled"],
+                                        ["cprocess_type"] = reader["cprocess_type"],
+                                        ["csla_day"] = reader["csla_day"],
+                                        ["csla_Hour"] = reader["csla_Hour"],
+                                        ["caction_privilege"] = reader["caction_privilege"],
+                                        ["crejection_privilege"] = reader["crejection_privilege"],
+                                        
+                                        
                                     };
                                     detailRows.Add(row);
                                 }
@@ -114,10 +124,10 @@ namespace TaskEngineAPI.Services
                         string queryDetail = @"INSERT INTO tbl_taskflow_detail (
                         itaskno, iseqno, iheader_id, ctenent_id, ctask_type, cmapping_code, 
                         ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
-                        cnext_seqtype, cprevtype, csla) VALUES (
+                        cnext_seqtype, cprevtype,nboard_enabled cprocess_type,csla_day,csla_Hour,caction_privilege,crejection_privilege,nboard_enabled) VALUES (
                         @itaskno, @iseqno, @iheader_id, @ctenent_id, @ctask_type, @cmapping_code, 
                         @ccurrent_status, @lcurrent_status_date, @cremarks, @inext_seqno, 
-                        @cnext_seqtype, @cprevtype, @csla);SELECT SCOPE_IDENTITY();";
+                        @cnext_seqtype, @cprevtype,@nboard_enabled,@cprocess_type,@csla_day,@csla_Hour,@caction_privilege,@crejection_privilege,@nboard_enabled);SELECT SCOPE_IDENTITY();";
 
                         string queryStatus = @"INSERT INTO tbl_transaction_taskflow_detail_and_status (
                         itaskno, ctenent_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date) VALUES 
@@ -139,8 +149,13 @@ namespace TaskEngineAPI.Services
                                 cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
                                 cmdInsert.Parameters.AddWithValue("@cnext_seqtype", DBNull.Value);
                                 cmdInsert.Parameters.AddWithValue("@cprevtype", row["cprevstep"]);
-                                cmdInsert.Parameters.AddWithValue("@csla", DBNull.Value);
-                               
+                                cmdInsert.Parameters.AddWithValue("@cprocess_type", row["cprocess_type"]);
+                                cmdInsert.Parameters.AddWithValue("@csla_day", row["csla_day"]);
+                                cmdInsert.Parameters.AddWithValue("@csla_Hour", row["csla_Hour"]);
+                                cmdInsert.Parameters.AddWithValue("@caction_privilege", row["caction_privilege"]);
+                                cmdInsert.Parameters.AddWithValue("@crejection_privilege", row["crejection_privilege"]);
+                                cmdInsert.Parameters.AddWithValue("@nboard_enabled", row["nboard_enabled"]);
+
                                 var newId = await cmdInsert.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
