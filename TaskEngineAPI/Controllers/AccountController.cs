@@ -663,12 +663,12 @@ namespace TaskEngineAPI.Controllers
             }
 
             int result = await _AccountService.InsertUserAsync(model);
-            
+
             var response = new APIResponse
             {
                 status = result > 0 ? 200 : 400,
                 statusText = result > 0 ? "User created successfully" : "User creation failed",
-                body = new object[] { new { UserID = result } }               
+                body = new object[] { new { UserID = result } }
             };
 
             string json = JsonConvert.SerializeObject(response);
@@ -1288,7 +1288,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 // Step 1: Determine upload path
-                          
+
                 string basePath = model.type switch
                 {
                     "Superadmin" => _config["UploadSettings:SuperadminUploadPath"],
@@ -1313,7 +1313,7 @@ namespace TaskEngineAPI.Controllers
                 try
                 {
 
-              
+
                     string connStr = _config.GetConnectionString("Database");
                     using (var conn = new SqlConnection(connStr))
                     {
@@ -1553,9 +1553,8 @@ namespace TaskEngineAPI.Controllers
         //}
 
 
-
-        [HttpPost("CreateUsersBulks")]
-        public async Task<IActionResult> CreateUsersBulks([FromBody] pay request)
+        [HttpPost("CreateUsersBulk1")]
+        public async Task<IActionResult> CreateUsersBulk1([FromBody] pay request)
         {
             try
             {
@@ -1587,21 +1586,14 @@ namespace TaskEngineAPI.Controllers
                 {
                     var errors = new List<string>();
 
-                    bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(user.cuserid, user.ctenantID);
-                    bool emailExists = await _AccountService.CheckuserEmailExistsAsync(user.cemail, user.ctenantID);
-                    bool phoneExists = await _AccountService.CheckuserPhonenoExistsAsync(user.cphoneno, user.ctenantID);
 
-                    if (usernameExists) errors.Add($"Username '{user.cuserid}' already exists in database");
-                    if (emailExists) errors.Add($"Email '{user.cemail}' already exists in database");
-                    if (phoneExists) errors.Add($"Phone '{user.cphoneno}' already exists in database");
+                    if (user.cuserid <= 0) errors.Add("User ID is mandatory");
+                    if (string.IsNullOrEmpty(user.cemail)) errors.Add("Email is mandatory");
+                    if (string.IsNullOrEmpty(user.cphoneno)) errors.Add("Phone number is mandatory");
 
                     if (duplicateUsernames.Contains(user.cuserid)) errors.Add("Duplicate username in this batch");
                     if (duplicateEmails.Contains(user.cemail)) errors.Add("Duplicate email in this batch");
                     if (duplicatePhones.Contains(user.cphoneno)) errors.Add("Duplicate phone in this batch");
-
-                    if (user.cuserid <= 0) errors.Add("Valid User ID is required");
-                    if (string.IsNullOrEmpty(user.cemail)) errors.Add("Email is required");
-                    if (string.IsNullOrEmpty(user.cphoneno)) errors.Add("Phone is required");
 
                     if (errors.Any())
                     {
@@ -1617,18 +1609,7 @@ namespace TaskEngineAPI.Controllers
                     {
                         validUsers.Add(user);
                     }
-                };
-
-                foreach (var valid in validUsers)
-                {
-                    Console.WriteLine($"✅ WILL INSERT: UserID={valid.cuserid}, Email={valid.cemail}");
                 }
-
-                foreach (var failed in failedUsers)
-                {
-                    Console.WriteLine($"❌ WILL REJECT: {failed}");
-                }
-
                 int insertedCount = 0;
                 if (validUsers.Any())
                 {
@@ -1646,7 +1627,6 @@ namespace TaskEngineAPI.Controllers
                         failure = failedUsers.Count,
                         inserted = validUsers.Select(u => new { u.cemail, u.cuserid }),
                         failed = failedUsers,
-                        verification = $"Checked {users.Count} users, prevented {failedUsers.Count} duplicates from being inserted"
                     },
                     error = ""
                 };
@@ -1663,11 +1643,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
+
     }
 }
-            
-        
-
-
-  
-
