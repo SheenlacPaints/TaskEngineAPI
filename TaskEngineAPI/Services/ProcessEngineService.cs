@@ -533,6 +533,11 @@ LEFT JOIN tbl_process_engine_condition c
         public async Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
+           
+            DateTime now = DateTime.Now;
+
+            // Format: 1500-2910185301  => tenantId-DDMMHHMMSS
+            string autoprocessCode = $"{cTenantID}-{now:ddM MHHmmss}".Replace(" ", "");
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
@@ -549,7 +554,7 @@ LEFT JOIN tbl_process_engine_condition c
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);                          
-                            cmd.Parameters.AddWithValue("@cprocesscode", (object?)model.cprocesscode ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                             cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocessname ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ctype", (object?)model.ctype ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
@@ -580,7 +585,7 @@ LEFT JOIN tbl_process_engine_condition c
                             using (SqlCommand cmdDetail = new SqlCommand(queryDetail, conn, transaction))
                             {
                                 cmdDetail.Parameters.AddWithValue("@TenantID", cTenantID);
-                                cmdDetail.Parameters.AddWithValue("@cprocesscode", detail.cprocesscode ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                                 cmdDetail.Parameters.AddWithValue("@ciseqno", masterId);
                                 cmdDetail.Parameters.AddWithValue("@cheader_id", masterId);
                                 cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivitycode ?? (object)DBNull.Value);
@@ -626,7 +631,7 @@ LEFT JOIN tbl_process_engine_condition c
                                     using (SqlCommand cmdCond = new SqlCommand(queryCondition, conn, transaction))
                                     {
                                         cmdCond.Parameters.AddWithValue("@TenantID", cTenantID);
-                                        cmdCond.Parameters.AddWithValue("@cprocesscode", cond.cprocesscode ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                                         cmdCond.Parameters.AddWithValue("@ciseqno", masterId);
                                         cmdCond.Parameters.AddWithValue("@icondseqno", cond.icondseqno ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ctype", cond.ctype ?? (object)DBNull.Value);
@@ -667,7 +672,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 }
                             }
                         }
-                        if (model.cmetatype == "new" && model.cmeta_Name != null && model.cmeta_Name.Any())
+                        if (model.cmetatype == "NEW" && model.cmeta_Name != null && model.cmeta_Name.Any())
                         {
                             int metaMasterId = 0;
                            
