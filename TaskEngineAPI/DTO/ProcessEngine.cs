@@ -7,44 +7,49 @@
         public string? privilege { get; set; }
        
     }
+    public class PrivilageDTO
+    {
+        public int? value { get; set; }
+        public string? view_value { get; set; }
+
+    }
+
+
+
     public class ProcessEngineDTO
     {
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
-        public string? ctype { get; set; }
-        public string? cvalue { get; set; }
-        public string? cvaluebyid { get; set; }
-        public string? ciseqno { get; set; }
+        public int? cprocess_type { get; set; }
+        public string? cvalue { get; set; }       
         public string? cstatus { get; set; }
         public string? cpriority_label { get; set; }
         public bool? nshow_timeline { get; set; }
         public int? cnotification_type { get; set; }
         public string? cmetatype { get; set; }
         public int? cmeta_id { get; set; }
-
-        public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }
-        public List<ProcessEngineMetaMaster> ProcessEngineMetaMaster { get; set; }
+        public string? cmeta_Name { get; set; }
+        public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }    
         public List<ProcessEngineMeta> ProcessEngineMeta { get; set; }   
     }
     public class ProcessEngineChildItems
     {      
         public string? cprocesscode { get; set; }
-        public int? ciseqno { get; set; }
-        public string? cseq_order { get; set; }
+        public int? ciseqno { get; set; }     
         public string? cactivitycode { get; set; }
         public string? cactivitydescription { get; set; }
         public string? ctasktype { get; set; }
         public string? cprevstep { get; set; }
         public string? cactivityname { get; set; }
         public string? cnextseqno { get; set; }
-        public string? cassignee { get; set; }
+        public string? cmapping_code { get; set; }
+        public string? cmapping_type { get; set; }
         public string? cprocess_type { get; set; }
         public int? csla_day { get; set; }
         public int? csla_Hour { get; set; }
         public bool? nboard_enabled { get; set; }
         public string? caction_privilege { get; set; }
-        public string? crejection_privilege { get; set; }
-
+        public string? crejection_privilege { get; set; }        
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
     }
     public class ProcessEngineMeta
@@ -71,7 +76,8 @@
         public bool? cprocess_source { get; set; }
         public string? clocation { get; set; }
         public string? ccolumn_value { get; set; }
-
+        public string? cfield_value { get; set; }
+      
     }
     public class ProcessEngineConditionDetails
     {
@@ -79,7 +85,6 @@
         public string? cprocesscode { get; set; }
         public int? ciseqno { get; set; }
         public int? icondseqno { get; set; }
-        public int? cseq_order { get; set; }
         public string? ctype { get; set; }
         public string? clabel { get; set; }
         public string? cplaceholder { get; set; }
@@ -109,18 +114,14 @@
         public string? remarks2 { get; set; }
         public string? remarks3 { get; set; }
 
-
-
     }
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }
-        public string? ctype { get; set; }
-        public int? ciseqno { get; set; }
+        public int? cprocess_type { get; set; }    
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
-        public string? cvalue { get; set; }
-        public string? cvaluebyid { get; set; }
+        public string? cvalue { get; set; }     
         public string? cpriority_label { get; set; }
         public bool? nshow_timeline { get; set; }
         public int? cnotification_type { get; set; }
