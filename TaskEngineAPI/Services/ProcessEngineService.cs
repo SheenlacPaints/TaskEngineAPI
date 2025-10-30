@@ -260,7 +260,7 @@ namespace TaskEngineAPI.Services
 
                 string query = @"
                 SELECT
-    m.ID, m.ctenent_id, m.cprocesscode, m.cprocessname, m.ctype, 
+    m.ID, m.ctenent_id, m.cprocesscode, m.cprocessname, m.cprocess_type, 
 	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
@@ -293,7 +293,7 @@ ORDER BY m.ID desc";
                             ID = cseq_id,                      
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
-                            ctype = reader.SafeGetString("ctype"),
+                            cprocess_type = reader.SafeGetInt("cprocess_type"),
                             cstatus = reader.SafeGetString("cstatus"),
                             cvalue = reader.SafeGetString("cvalue"),                         
                             cpriority_label = reader.SafeGetString("cpriority_label"),
@@ -401,7 +401,7 @@ ORDER BY m.ID desc";
 
                 string query = @"
              SELECT
-    m.ID, m.ctenent_id,  m.cprocesscode, m.cprocessname, m.ctype, 
+    m.ID, m.ctenent_id,  m.cprocesscode, m.cprocessname, m.cprocess_type, 
 	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
@@ -434,7 +434,7 @@ LEFT JOIN tbl_process_engine_condition c
                             ID = ID,                         
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
-                            ctype = reader.SafeGetString("ctype"),
+                            cprocess_type = reader.SafeGetInt("cprocess_type"),
                             cstatus = reader.SafeGetString("cstatus"),
                             cvalue = reader.SafeGetString("cvalue"),                        
                             cpriority_label = reader.SafeGetString("cpriority_label"),
@@ -543,8 +543,8 @@ LEFT JOIN tbl_process_engine_condition c
                     try
                     {
                         string queryMaster = @"INSERT INTO tbl_process_engine_master (
-    ctenent_id,cprocesscode, cprocessname, ctype, cstatus,cvalue,cpriority_label, nshow_timeline,
-    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id) VALUES (@TenantID, @cprocesscode, @cprocessname,@ctype, @cstatus, 
+    ctenent_id,cprocesscode, cprocessname, cprocess_type, cstatus,cvalue,cpriority_label, nshow_timeline,
+    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id) VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocess_type, @cstatus, 
      @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
     @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id);SELECT SCOPE_IDENTITY();";
                         int masterId;
@@ -553,7 +553,7 @@ LEFT JOIN tbl_process_engine_condition c
                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);                          
                             cmd.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                             cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocessname ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@ctype", (object?)model.ctype ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocess_type", (object?)model.cprocess_type ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cvalue", (object?)model.cvalue ?? DBNull.Value);
                      
