@@ -20,7 +20,8 @@
     {
         public string? cprocessCode { get; set; }
         public string? cprocessName { get; set; }
-        public int? cprocessType { get; set; }
+
+        public int? cprivilegeType  { get; set; }
         public string? cvalue { get; set; }       
         public string? cstatus { get; set; }
         public string? cpriorityLabel { get; set; }
@@ -120,7 +121,7 @@
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }
-        public int? cprocess_type { get; set; }    
+        public int? cprivilege_type { get; set; }    
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public string? cvalue { get; set; }     
