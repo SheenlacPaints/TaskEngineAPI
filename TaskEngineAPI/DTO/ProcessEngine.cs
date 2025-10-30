@@ -14,8 +14,6 @@
 
     }
 
-
-
     public class ProcessEngineDTO
     {
         public string? cprocessCode { get; set; }
@@ -47,7 +45,7 @@
         public string? cnextSeqno { get; set; }
         public string? cmappingCode { get; set; }
         public string? cmappingType { get; set; }
-        public string? cprocessType { get; set; }
+        public string? cparticipantType { get; set; }
         public int? cslaDay { get; set; }
         public int? cslaHour { get; set; }
         public bool? nboardEnabled { get; set; }

@@ -264,7 +264,7 @@ namespace TaskEngineAPI.Services
 	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
-	d.nboard_enabled,d.cmapping_code,d.cmapping_type,d.cprocess_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
+	d.nboard_enabled,d.cmapping_code,d.cmapping_type,d.cparticipant_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
     c.icond_seqno,c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
     c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,c.cdefault_value,c.cmin
     ,c.cmax,c.cpattern,c.nallow_spaces,c.nallow_numbers,c.nallow_special_chars,c.ntrim,c.nauto_focus,c.ncapitalize
@@ -331,7 +331,7 @@ ORDER BY m.ID desc";
                                 nboardEnabled = reader.GetBoolean("nboard_enabled"),
                                 cactionPrivilege = reader.SafeGetString("caction_privilege"),
                                 crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
-                                cprocessType = reader.SafeGetString("cprocess_type"),
+                                cparticipantType = reader.SafeGetString("cparticipant_type"),
                                 processEngineConditionDetails = new List<processEngineConditionDetails>()
                            
                             };
@@ -472,7 +472,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 nboardEnabled = reader.GetBoolean("nboard_enabled"),
                                 cactionPrivilege = reader.SafeGetString("caction_privilege"),
                                 crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
-                                cprocessType = reader.SafeGetString("cprocess_type"),
+                                cparticipantType = reader.SafeGetString("cparticipant_type"),
                                 processEngineConditionDetails = new List<processEngineConditionDetails>()
                             };
                             engine.processEngineChildItems.Add(child);
@@ -572,9 +572,9 @@ LEFT JOIN tbl_process_engine_condition c
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
        ctenent_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description, 
          ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
-		 cprocess_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type) VALUES (
+		 cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type) VALUES (
          @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription, 
-         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cprocess_type,
+         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
        @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type);";
 
                         foreach (var detail in model.processEngineChildItems)
@@ -598,7 +598,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 cmdDetail.Parameters.AddWithValue("@cassignee", detail.cmappingCode ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cmapping_type", detail.cmappingType ?? (object)DBNull.Value);
 
-                                cmdDetail.Parameters.AddWithValue("@cprocess_type", detail.cprocessType ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cparticipantType", detail.cparticipantType ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@nboardenabled", detail.nboardEnabled ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@csladay", detail.cslaDay ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cslaHour", detail.cslaHour ?? (object)DBNull.Value);
