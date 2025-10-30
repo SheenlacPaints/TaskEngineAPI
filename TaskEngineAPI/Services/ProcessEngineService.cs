@@ -260,7 +260,7 @@ namespace TaskEngineAPI.Services
 
                 string query = @"
                 SELECT
-    m.ID, m.ctenent_id, m.cprocesscode, m.cprocessname, m.cprivilege_type, 
+    m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, m.cprivilege_type, 
 	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
@@ -275,7 +275,7 @@ LEFT JOIN tbl_process_engine_details d
     ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
 LEFT JOIN tbl_process_engine_condition c
     ON d.ciseqno = c.ciseqno
-WHERE m.ctenent_id = @TenantID
+WHERE m.ctenant_id = @TenantID
 ORDER BY m.ID desc";
               
                 using var cmd = new SqlCommand(query, conn);
@@ -401,7 +401,7 @@ ORDER BY m.ID desc";
 
                 string query = @"
              SELECT
-    m.ID, m.ctenent_id,  m.cprocesscode, m.cprocessname, m.cprivilege_type, 
+    m.ID, m.ctenant_id,  m.cprocesscode, m.cprocessname, m.cprivilege_type, 
 	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
@@ -416,7 +416,7 @@ LEFT JOIN tbl_process_engine_details d
     ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
 LEFT JOIN tbl_process_engine_condition c 
      ON  d.ciseqno = c.ciseqno 
- WHERE m.ctenent_id = @TenantID and m.id=@id
+ WHERE m.ctenant_id = @TenantID and m.id=@id
  ORDER BY m.ID, d.ciseqno, c.icond_seqno";
 
                 using var cmd = new SqlCommand(query, conn);
@@ -543,7 +543,7 @@ LEFT JOIN tbl_process_engine_condition c
                     try
                     {
                         string queryMaster = @"INSERT INTO tbl_process_engine_master (
-    ctenent_id,cprocesscode, cprocessname, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
+    ctenant_id,cprocesscode, cprocessname, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
     cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id) VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocess_type, @cstatus, 
      @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
     @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id);SELECT SCOPE_IDENTITY();";
