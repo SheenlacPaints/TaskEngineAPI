@@ -1112,7 +1112,7 @@ VALUES (
 
 
 
-        public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
+        public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users, int cTenantID)
         {
             if (users == null || !users.Any())
                 return 0;
