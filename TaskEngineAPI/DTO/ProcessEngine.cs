@@ -28,10 +28,10 @@
         public string? cmetaType { get; set; }
         public int? cmetaId { get; set; }
         public string? cmetaName { get; set; }
-        public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }    
+        public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }   
 
-        public List<processEngineChildItems> processEngineChildItems { get; set; }
+        
     }
     public class processEngineChildItems
     {      
