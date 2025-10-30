@@ -35,8 +35,7 @@
     public class ProcessEngineChildItems
     {      
         public string? cprocesscode { get; set; }
-        public int? ciseqno { get; set; }
-      
+        public int? ciseqno { get; set; }     
         public string? cactivitycode { get; set; }
         public string? cactivitydescription { get; set; }
         public string? ctasktype { get; set; }
@@ -50,9 +49,7 @@
         public int? csla_Hour { get; set; }
         public bool? nboard_enabled { get; set; }
         public string? caction_privilege { get; set; }
-        public string? crejection_privilege { get; set; }
-       
-        
+        public string? crejection_privilege { get; set; }        
         public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
     }
     public class ProcessEngineMeta
@@ -116,8 +113,6 @@
         public string? remarks1 { get; set; }
         public string? remarks2 { get; set; }
         public string? remarks3 { get; set; }
-
-
 
     }
     public class GetProcessEngineDTO

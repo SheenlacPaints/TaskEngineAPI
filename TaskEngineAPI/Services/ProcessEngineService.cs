@@ -276,11 +276,8 @@ LEFT JOIN tbl_process_engine_details d
 LEFT JOIN tbl_process_engine_condition c
     ON d.ciseqno = c.ciseqno
 WHERE m.ctenent_id = @TenantID
-ORDER BY m.ID, d.ciseqno, c.icond_seqno";
-
-                
-
-
+ORDER BY m.ID desc";
+              
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
 
@@ -293,8 +290,7 @@ ORDER BY m.ID, d.ciseqno, c.icond_seqno";
                     {
                         engine = new GetProcessEngineDTO
                         {
-                            ID = cseq_id,
-                        
+                            ID = cseq_id,                      
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
                             ctype = reader.SafeGetString("ctype"),
