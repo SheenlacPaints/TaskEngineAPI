@@ -1586,13 +1586,10 @@ namespace TaskEngineAPI.Controllers
                 {
                     var errors = new List<string>();
 
-                    // MANDATORY FIELD VALIDATION
                     if (user.cuserid <= 0) errors.Add("User ID is mandatory");
                     if (string.IsNullOrEmpty(user.cemail)) errors.Add("Email is mandatory");
                     if (string.IsNullOrEmpty(user.cphoneno)) errors.Add("Phone number is mandatory");
 
-                    // ONLY CHECK FOR DUPLICATES IN CURRENT BATCH (JSON RESPONSE)
-                    // REMOVED DATABASE CHECKS
                     if (duplicateUsernames.Contains(user.cuserid)) errors.Add("Duplicate username in this batch");
                     if (duplicateEmails.Contains(user.cemail)) errors.Add("Duplicate email in this batch");
                     if (duplicatePhones.Contains(user.cphoneno)) errors.Add("Duplicate phone in this batch");
