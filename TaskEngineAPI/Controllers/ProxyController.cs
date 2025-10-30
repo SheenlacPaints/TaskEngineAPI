@@ -1098,7 +1098,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
+        [Authorize]
         [HttpPost("CreateUsersBulk")]
         public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
         {
