@@ -304,7 +304,7 @@ ORDER BY m.ID desc";
                             ccreated_date = reader.SafeGetDateTime("lcreated_date"),
                             cmodified_by = reader.SafeGetString("cmodified_by"),
                             lmodified_date = reader.SafeGetDateTime("lmodified_date"),
-                            ProcessEngineChildItems = new List<ProcessEngineChildItems>()                 
+                            processEngineChildItems = new List<processEngineChildItems>()                 
                      };
                         result[cseq_id] = engine;
                     }
@@ -312,67 +312,67 @@ ORDER BY m.ID desc";
                     string activityCode = reader.SafeGetString("cactivitycode");
                     if (!string.IsNullOrEmpty(activityCode))
                     {
-                        var child = engine.ProcessEngineChildItems.FirstOrDefault(x => x.cactivity_code == activityCode);
+                        var child = engine.processEngineChildItems.FirstOrDefault(x => x.cactivityCode == activityCode);
                         if (child == null)
                         {
-                            child = new ProcessEngineChildItems
+                            child = new processEngineChildItems
                             {
-                                cactivity_code = activityCode,
-                                cactivity_description = reader.SafeGetString("cactivity_description"),
-                                ctask_type = reader.SafeGetString("ctask_type"),
-                                cprev_step = reader.SafeGetString("cprev_step"),
-                                cactivity_name = reader.SafeGetString("cactivityname"),
-                                cnext_seqno = reader.SafeGetString("cnext_seqno"),
-                                cmapping_code = reader.SafeGetString("cmapping_code"),
-                                cmapping_type = reader.SafeGetString("cmapping_type"),
-                                csla_day = reader.SafeGetInt("csla_day"),
-                                csla_Hour = reader.SafeGetInt("csla_Hour"),
+                                cactivityCode = activityCode,
+                                cactivityDescription = reader.SafeGetString("cactivity_description"),
+                                ctaskType = reader.SafeGetString("ctask_type"),
+                                cprevStep = reader.SafeGetString("cprev_step"),
+                                cactivityName = reader.SafeGetString("cactivityname"),
+                                cnextSeqno = reader.SafeGetString("cnext_seqno"),
+                                cmappingCode = reader.SafeGetString("cmapping_code"),
+                                cmappingType = reader.SafeGetString("cmapping_type"),
+                                cslaDay = reader.SafeGetInt("csla_day"),
+                                cslaHour = reader.SafeGetInt("csla_Hour"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                nboard_enabled = reader.GetBoolean("nboard_enabled"),
-                                caction_privilege = reader.SafeGetString("caction_privilege"),
-                                crejection_privilege = reader.SafeGetString("crejection_privilege"),
-                                cprocess_type = reader.SafeGetString("cprocess_type"),
-                                ProcessEngineConditionDetails = new List<ProcessEngineConditionDetails>()
+                                nboardEnabled = reader.GetBoolean("nboard_enabled"),
+                                cactionPrivilege = reader.SafeGetString("caction_privilege"),
+                                crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
+                                cprocessType = reader.SafeGetString("cprocess_type"),
+                                processEngineConditionDetails = new List<processEngineConditionDetails>()
                            
                             };
-                            engine.ProcessEngineChildItems.Add(child);
+                            engine.processEngineChildItems.Add(child);
                         }
 
                         if (!reader.IsDBNull(reader.GetOrdinal("icond_seqno")))
                         {
-                            child.ProcessEngineConditionDetails.Add(new ProcessEngineConditionDetails
+                            child.processEngineConditionDetails.Add(new processEngineConditionDetails
                             {
-                                cprocess_code = reader.SafeGetString("cprocesscode"),
+                                cprocessCode = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                icond_seqno = reader.SafeGetInt("icond_seqno"),                           
+                                icondseqno = reader.SafeGetInt("icond_seqno"),                           
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
-                                cfield_value = reader.SafeGetString("cfield_value"),
+                                cfieldValue = reader.SafeGetString("cfield_value"),
                                 ccondition = reader.SafeGetString("ccondition"),
                                 remarks1 = reader.SafeGetString("remarks1"),
                                 remarks2 = reader.SafeGetString("remarks2"),
                                 remarks3 = reader.SafeGetString("remarks3"),
                                 cplaceholder = reader.SafeGetString("cplaceholder"),
-                                cis_required = reader.GetBoolean("cis_required"),
-                                cis_readonly = reader.GetBoolean("cis_readonly"),
+                                cisRequired = reader.GetBoolean("cis_required"),
+                                cisReadonly = reader.GetBoolean("cis_readonly"),
                                 cis_disabled = reader.GetBoolean("cis_disabled"),
-                                cdefault_value = reader.SafeGetString("cdefault_value"),
+                                cdefaultValue = reader.SafeGetString("cdefault_value"),
                                 cmin = reader.SafeGetString("cmin"),
                                 cmax = reader.SafeGetString("cmax"),
                                 cpattern = reader.SafeGetString("cpattern"),
-                                nallow_spaces = reader.GetBoolean("nallow_spaces"),
-                                nallow_numbers = reader.GetBoolean("nallow_numbers"),
-                                nallow_special_chars = reader.GetBoolean("nallow_special_chars"),
+                                nallowSpaces = reader.GetBoolean("nallow_spaces"),
+                                nallowNumbers = reader.GetBoolean("nallow_numbers"),
+                                nallowSpecialChars = reader.GetBoolean("nallow_special_chars"),
                                 ntrim = reader.GetBoolean("ntrim"),
-                                nauto_focus = reader.GetBoolean("nauto_focus"),
+                                nautoFocus = reader.GetBoolean("nauto_focus"),
                                 ncapitalize = reader.GetBoolean("ncapitalize"),
-                                nto_upper_case = reader.GetBoolean("nto_upper_case"),
-                                nto_lower_case = reader.GetBoolean("nto_lower_case"),
-                                nshow_copy_button = reader.GetBoolean("nshow_copy_button"),
-                                cdepends_on = reader.SafeGetString("cdepends_on"),
-                                cdisabled_when = reader.SafeGetString("cdisabled_when"),
-                                crequired_when = reader.SafeGetString("crequired_when"),
-                                cvisible_when = reader.SafeGetString("cvisible_when"),
+                                ntoUpperCase = reader.GetBoolean("nto_upper_case"),
+                                ntoLowerCase = reader.GetBoolean("nto_lower_case"),
+                                nshowCopyButton = reader.GetBoolean("nshow_copy_button"),
+                                cdependsOn = reader.SafeGetString("cdepends_on"),
+                                cdisabledWhen = reader.SafeGetString("cdisabled_when"),
+                                crequiredWhen = reader.SafeGetString("crequired_when"),
+                                cvisibleWhen = reader.SafeGetString("cvisible_when"),
                                
                             });
                         }
@@ -445,7 +445,7 @@ LEFT JOIN tbl_process_engine_condition c
                             ccreated_date = reader.SafeGetDateTime("lcreated_date"),
                             cmodified_by = reader.SafeGetString("cmodified_by"),
                             lmodified_date = reader.SafeGetDateTime("lmodified_date"),
-                            ProcessEngineChildItems = new List<ProcessEngineChildItems>()
+                            processEngineChildItems = new List<processEngineChildItems>()
                         };
                         result[ID] = engine;
                     }
@@ -453,66 +453,66 @@ LEFT JOIN tbl_process_engine_condition c
                     string activityCode = reader.SafeGetString("cactivitycode");
                     if (!string.IsNullOrEmpty(activityCode))
                     {
-                        var child = engine.ProcessEngineChildItems.FirstOrDefault(x => x.cactivity_code == activityCode);
+                        var child = engine.processEngineChildItems.FirstOrDefault(x => x.cactivityCode == activityCode);
                         if (child == null)
                         {
-                            child = new ProcessEngineChildItems
+                            child = new processEngineChildItems
                             {                              
-                                cactivity_code = activityCode,
-                                cactivity_description = reader.SafeGetString("cactivity_description"),
-                                ctask_type = reader.SafeGetString("ctask_type"),
-                                cprev_step = reader.SafeGetString("cprev_step"),
-                                cactivity_name = reader.SafeGetString("cactivityname"),
-                                cnext_seqno = reader.SafeGetString("cnext_seqno"),
-                                cmapping_code = reader.SafeGetString("cmapping_code"),
-                                cmapping_type = reader.SafeGetString("cmapping_type"),
-                                csla_day = reader.SafeGetInt("csla_day"),
-                                csla_Hour = reader.SafeGetInt("csla_Hour"),
+                                cactivityCode = activityCode,
+                                cactivityDescription = reader.SafeGetString("cactivity_description"),
+                                ctaskType = reader.SafeGetString("ctask_type"),
+                                cprevStep = reader.SafeGetString("cprev_step"),
+                                cactivityName = reader.SafeGetString("cactivityname"),
+                                cnextSeqno = reader.SafeGetString("cnext_seqno"),
+                                cmappingCode = reader.SafeGetString("cmapping_code"),
+                                cmappingType = reader.SafeGetString("cmapping_type"),
+                                cslaDay = reader.SafeGetInt("csla_day"),
+                                cslaHour = reader.SafeGetInt("csla_Hour"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                nboard_enabled = reader.GetBoolean("nboard_enabled"),
-                                caction_privilege = reader.SafeGetString("caction_privilege"),
-                                crejection_privilege = reader.SafeGetString("crejection_privilege"),
-                                cprocess_type = reader.SafeGetString("cprocess_type"),
-                                ProcessEngineConditionDetails = new List<ProcessEngineConditionDetails>()
+                                nboardEnabled = reader.GetBoolean("nboard_enabled"),
+                                cactionPrivilege = reader.SafeGetString("caction_privilege"),
+                                crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
+                                cprocessType = reader.SafeGetString("cprocess_type"),
+                                processEngineConditionDetails = new List<processEngineConditionDetails>()
                             };
-                            engine.ProcessEngineChildItems.Add(child);
+                            engine.processEngineChildItems.Add(child);
                         }
 
                         if (!reader.IsDBNull(reader.GetOrdinal("icondseqno")))
                         {
-                            child.ProcessEngineConditionDetails.Add(new ProcessEngineConditionDetails
+                            child.processEngineConditionDetails.Add(new processEngineConditionDetails
                             {                             
-                                cprocess_code = reader.SafeGetString("cprocesscode"),
+                                cprocessCode = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                icond_seqno = reader.SafeGetInt("icond_seqno"),                           
+                                icondseqno = reader.SafeGetInt("icond_seqno"),                           
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
-                                cfield_value = reader.SafeGetString("cfield_value"),
+                                cfieldValue = reader.SafeGetString("cfield_value"),
                                 ccondition = reader.SafeGetString("ccondition"),
                                 remarks1 = reader.SafeGetString("remarks1"),
                                 remarks2 = reader.SafeGetString("remarks2"),
                                 remarks3 = reader.SafeGetString("remarks3"),
                                 cplaceholder = reader.SafeGetString("cplaceholder"),
-                                cis_required = reader.GetBoolean("cis_required"),
-                                cis_readonly = reader.GetBoolean("cis_readonly"),
+                                cisRequired = reader.GetBoolean("cis_required"),
+                                cisReadonly = reader.GetBoolean("cis_readonly"),
                                 cis_disabled = reader.GetBoolean("cis_disabled"),
-                                cdefault_value = reader.SafeGetString("cdefault_value"),
+                                cdefaultValue = reader.SafeGetString("cdefault_value"),
                                 cmin = reader.SafeGetString("cmin"),
                                 cmax = reader.SafeGetString("cmax"),
                                 cpattern = reader.SafeGetString("cpattern"),
-                                nallow_spaces = reader.GetBoolean("nallow_spaces"),
-                                nallow_numbers = reader.GetBoolean("nallow_numbers"),
-                                nallow_special_chars = reader.GetBoolean("nallow_special_chars"),
+                                nallowSpaces = reader.GetBoolean("nallow_spaces"),
+                                nallowNumbers = reader.GetBoolean("nallow_numbers"),
+                                nallowSpecialChars = reader.GetBoolean("nallow_special_chars"),
                                 ntrim = reader.GetBoolean("ntrim"),
-                                nauto_focus = reader.GetBoolean("nauto_focus"),
+                                nautoFocus = reader.GetBoolean("nauto_focus"),
                                 ncapitalize = reader.GetBoolean("ncapitalize"),
-                                nto_upper_case = reader.GetBoolean("nto_upper_case"),
-                                nto_lower_case = reader.GetBoolean("nto_lower_case"),
-                                nshow_copy_button = reader.GetBoolean("nshow_copy_button"),
-                                cdepends_on = reader.SafeGetString("cdepends_on"),
-                                cdisabled_when = reader.SafeGetString("cdisabled_when"),
-                                crequired_when = reader.SafeGetString("crequired_when"),
-                                cvisible_when = reader.SafeGetString("cvisible_when"),
+                                ntoUpperCase = reader.GetBoolean("nto_upper_case"),
+                                ntoLowerCase = reader.GetBoolean("nto_lower_case"),
+                                nshowCopyButton = reader.GetBoolean("nshow_copy_button"),
+                                cdependsOn = reader.SafeGetString("cdepends_on"),
+                                cdisabledWhen = reader.SafeGetString("cdisabled_when"),
+                                crequiredWhen = reader.SafeGetString("crequired_when"),
+                                cvisibleWhen = reader.SafeGetString("cvisible_when"),
                             });
                         }
                     }
@@ -552,19 +552,19 @@ LEFT JOIN tbl_process_engine_condition c
                         {
                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);                          
                             cmd.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
-                            cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocess_name ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@cprocess_type", (object?)model.cprocess_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocessName ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocess_type", (object?)model.cprocessType ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cvalue", (object?)model.cvalue ?? DBNull.Value);
                      
-                            cmd.Parameters.AddWithValue("@cpriority_label", (object?)model.cpriority_label ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@nshow_timeline", (object?)model.nshow_timeline ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@cnotification_type", (object?)model.cnotification_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cpriority_label", (object?)model.cpriorityLabel ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nshow_timeline", (object?)model.nshowTimeline ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cnotification_type", (object?)model.cnotificationType ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ccreated_by", username);
                             cmd.Parameters.AddWithValue("@cmodified_by", username);
                             cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                            cmd.Parameters.AddWithValue("@cmeta_id", (object?)model.cmeta_id ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cmeta_id", (object?)model.cmetaId ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
@@ -577,7 +577,7 @@ LEFT JOIN tbl_process_engine_condition c
          @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cprocess_type,
        @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type);";
 
-                        foreach (var detail in model.ProcessEngineChildItems)
+                        foreach (var detail in model.processEngineChildItems)
                         {
                             using (SqlCommand cmdDetail = new SqlCommand(queryDetail, conn, transaction))
                             {
@@ -585,28 +585,28 @@ LEFT JOIN tbl_process_engine_condition c
                                 cmdDetail.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                                 cmdDetail.Parameters.AddWithValue("@ciseqno", masterId);
                                 cmdDetail.Parameters.AddWithValue("@cheader_id", masterId);
-                                cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivity_code ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivity_description ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@ctasktype", detail.ctask_type ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprev_step ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivity_name ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnext_seqno ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivityCode ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivityDescription ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@ctasktype", detail.ctaskType ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprevStep ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivityName ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnextSeqno ?? (object)DBNull.Value);
                                cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                                cmdDetail.Parameters.AddWithValue("@cassignee", detail.cmapping_code ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cmapping_type", detail.cmapping_type ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cassignee", detail.cmappingCode ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cmapping_type", detail.cmappingType ?? (object)DBNull.Value);
 
-                                cmdDetail.Parameters.AddWithValue("@cprocess_type", detail.cprocess_type ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@nboardenabled", detail.nboard_enabled ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@csladay", detail.csla_day ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cslaHour", detail.csla_Hour ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cactionprivilege", detail.caction_privilege ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@crejectionprivilege", detail.crejection_privilege ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cprocess_type", detail.cprocessType ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nboardenabled", detail.nboardEnabled ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@csladay", detail.cslaDay ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cslaHour", detail.cslaHour ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactionprivilege", detail.cactionPrivilege ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@crejectionprivilege", detail.crejectionPrivilege ?? (object)DBNull.Value);
                                 await cmdDetail.ExecuteNonQueryAsync();
                             }
-                            if (detail.ProcessEngineConditionDetails != null)
+                            if (detail.processEngineConditionDetails != null)
                             {
                                 string queryCondition = @"INSERT INTO tbl_process_engine_condition (
         ctenent_id, cprocesscode, ciseqno,icond_seqno, ctype, 
@@ -623,17 +623,17 @@ LEFT JOIN tbl_process_engine_condition c
       ,@cpattern,@nallow_spaces,@nallow_numbers,@nallow_special_chars,@ntrim,@nauto_focus,@ncapitalize,@nto_upper_case
       ,@nto_lower_case,@nshow_copy_button,@cdepends_on,@cdisabled_when,@crequired_when,@cvisible_when);";
 
-                                foreach (var cond in detail.ProcessEngineConditionDetails)
+                                foreach (var cond in detail.processEngineConditionDetails)
                                 {
                                     using (SqlCommand cmdCond = new SqlCommand(queryCondition, conn, transaction))
                                     {
                                         cmdCond.Parameters.AddWithValue("@TenantID", cTenantID);
                                         cmdCond.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                                         cmdCond.Parameters.AddWithValue("@ciseqno", masterId);
-                                        cmdCond.Parameters.AddWithValue("@icondseqno", cond.icond_seqno ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@icondseqno", cond.icondseqno ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ctype", cond.ctype ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@clabel", cond.clabel ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfield_value ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfieldValue ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ccondition", cond.ccondition ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@remarks1", cond.remarks1 ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@remarks2", cond.remarks2 ?? (object)DBNull.Value);
@@ -643,33 +643,33 @@ LEFT JOIN tbl_process_engine_condition c
                                         cmdCond.Parameters.AddWithValue("@cmodified_by", username);
                                         cmdCond.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                                         cmdCond.Parameters.AddWithValue("@cplaceholder", cond.cplaceholder ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cis_required", cond.cis_required ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cis_readonly", cond.cis_readonly ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cis_required", cond.cisRequired ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cis_readonly", cond.cisReadonly ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_disabled", cond.cis_disabled ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cdefault_value", cond.cdefault_value ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cdefault_value", cond.cdefaultValue ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cmin", cond.cmin ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cmax", cond.cmax ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cpattern", cond.cpattern ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nallow_spaces", cond.nallow_spaces ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nallow_numbers", cond.nallow_numbers ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nallow_special_chars", cond.nallow_special_chars ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@nallow_spaces", cond.nallowSpaces ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@nallow_numbers", cond.nallowNumbers ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@nallow_special_chars", cond.nallowSpecialChars ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ntrim", cond.ntrim ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nauto_focus", cond.nauto_focus ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@nauto_focus", cond.nautoFocus ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ncapitalize", cond.ncapitalize ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nto_upper_case", cond.nto_upper_case ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nto_lower_case", cond.nto_lower_case ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nshow_copy_button", cond.nshow_copy_button ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cdepends_on", cond.cdepends_on ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cdisabled_when", cond.cdisabled_when ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@crequired_when", cond.crequired_when ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cvisible_when", cond.cvisible_when ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@nto_upper_case", cond.ntoUpperCase ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@nto_lower_case", cond.ntoLowerCase ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@nshow_copy_button", cond.nshowCopyButton ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cdepends_on", cond.cdependsOn ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cdisabled_when", cond.cdisabledWhen ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@crequired_when", cond.crequiredWhen ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cvisible_when", cond.cvisibleWhen ?? (object)DBNull.Value);
 
                                         await cmdCond.ExecuteNonQueryAsync();
                                     }
                                 }
                             }
                         }
-                        if (model.cmeta_type == "NEW" && model.cmeta_name != null && model.cmeta_name.Any())
+                        if (model.cmetaType == "NEW" && model.cmetaName != null && model.cmetaName.Any())
                         {
                             int metaMasterId = 0;
                            
@@ -681,9 +681,9 @@ LEFT JOIN tbl_process_engine_condition c
                                 using (SqlCommand cmd = new SqlCommand(metadatamaster, conn, transaction))
                                 {
                                     cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-                                    cmd.Parameters.AddWithValue("@meta_Name", (object?)model.cmeta_name ?? DBNull.Value);
-                                    cmd.Parameters.AddWithValue("@meta_Description", (object?)model.cmeta_name ?? DBNull.Value);
-                                    cmd.Parameters.AddWithValue("@label", (object?)model.cmeta_name ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@meta_Name", (object?)model.cmetaName ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@meta_Description", (object?)model.cmetaName ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@label", (object?)model.cmetaName ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@nis_active", 1); // Assuming active by default
                                     cmd.Parameters.AddWithValue("@ccreated_by", username);
                                     cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
@@ -705,7 +705,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 }
                             }
 
-                            if (model.ProcessEngineMeta != null && model.ProcessEngineMeta.Any())
+                            if (model.processEngineMeta != null && model.processEngineMeta.Any())
                             {
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
     Header_ID, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_autofill, cis_editable,
@@ -717,39 +717,39 @@ LEFT JOIN tbl_process_engine_condition c
     @cis_req_search, @cis_multi_select, @cmin_date, @cmax_date, @cdate_type, @cmin_time, 
     @cmax_time, @ctime_type, @cprocess_source, @clocation, @ccreated_by, @lcreated_date, 
     @cmodified_by, @lmodified_date, @ccolumn_value,@cfield_value);";
-                                foreach (var meta in model.ProcessEngineMeta)
+                                foreach (var meta in model.processEngineMeta)
                                 {
                                     using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
                                     {
                                         cmdMeta.Parameters.AddWithValue("@TenantID", cTenantID);
                                         cmdMeta.Parameters.AddWithValue("@Header_ID", metaMasterId);
-                                        cmdMeta.Parameters.AddWithValue("@cinput_type", meta.cinput_type ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cinput_type", meta.cinputType ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@label", meta.label ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@cplaceholder", meta.cplaceholder ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_required", meta.cis_required ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_autofill", meta.cis_autofill ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_editable", meta.cis_editable ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_validate", meta.cis_validate ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmin_len", meta.cmin_len ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmax_len", meta.cmax_len ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cdata_source_type", meta.cdata_source_type ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cfetch_type", meta.cfetch_type ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_req_search", meta.cis_req_search ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_multi_select", meta.cis_multi_select ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmin_date", meta.cmin_date ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmax_date", meta.cmax_date ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cdate_type", meta.cdate_type ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmin_time", meta.cmin_time ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmax_time", meta.cmax_time ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@ctime_type", meta.ctime_type ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cprocess_source", meta.cprocess_source ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_required", meta.cisRequired ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_autofill", meta.cisAutofill ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_editable", meta.cisEditable ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_validate", meta.cisValidate ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cmin_len", meta.cminLen ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cmax_len", meta.cmaxLen ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cdata_source_type", meta.cdataSourceType ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cfetch_type", meta.cfetchType ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_req_search", meta.cisReqSearch ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_multi_select", meta.cisMultiSelect ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cmin_date", meta.cminDate ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cmax_date", meta.cmaxDate ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cdate_type", meta.cdateType ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cmin_time", meta.cminTime ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cmax_time", meta.cmaxTime ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@ctime_type", meta.ctimeType ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cprocess_source", meta.cprocessSource ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@clocation", meta.clocation ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@ccreated_by", username);
                                         cmdMeta.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                                         cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
                                         cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                                        cmdMeta.Parameters.AddWithValue("@ccolumn_value", meta.ccolumn_value ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfield_value ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@ccolumn_value", meta.ccolumnValue ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
 
                                         
                                              await cmdMeta.ExecuteNonQueryAsync();
@@ -757,14 +757,14 @@ LEFT JOIN tbl_process_engine_condition c
                                 }
                             }
                         }
-                        else if (model.cmeta_type == "old")
+                        else if (model.cmetaType == "old")
                         {
                             string updateMasterQuery = @"UPDATE tbl_process_engine_master
                                             SET cmeta_id = @cmeta_id WHERE id = @masterId";
                             using (var cmd = new SqlCommand(updateMasterQuery, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@masterId", masterId);
-                                cmd.Parameters.AddWithValue("@cmeta_id", model.cmeta_id ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@cmeta_id", model.cmetaId ?? (object)DBNull.Value);
                                 await cmd.ExecuteNonQueryAsync();
                             }
                         }

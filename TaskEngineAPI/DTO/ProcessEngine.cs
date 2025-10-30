@@ -18,97 +18,99 @@
 
     public class ProcessEngineDTO
     {
-        public string? cprocess_code { get; set; }
-        public string? cprocess_name { get; set; }
-        public int? cprocess_type { get; set; }
+        public string? cprocessCode { get; set; }
+        public string? cprocessName { get; set; }
+        public int? cprocessType { get; set; }
         public string? cvalue { get; set; }       
         public string? cstatus { get; set; }
-        public string? cpriority_label { get; set; }
-        public bool? nshow_timeline { get; set; }
-        public int? cnotification_type { get; set; }
-        public string? cmeta_type { get; set; }
-        public int? cmeta_id { get; set; }
-        public string? cmeta_name { get; set; }
-        public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }    
-        public List<ProcessEngineMeta> ProcessEngineMeta { get; set; }   
+        public string? cpriorityLabel { get; set; }
+        public bool? nshowTimeline { get; set; }
+        public int? cnotificationType { get; set; }
+        public string? cmetaType { get; set; }
+        public int? cmetaId { get; set; }
+        public string? cmetaName { get; set; }
+        public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }    
+        public List<processEngineMeta> processEngineMeta { get; set; }   
+
+        public List<processEngineChildItems> processEngineChildItems { get; set; }
     }
-    public class ProcessEngineChildItems
+    public class processEngineChildItems
     {      
-        public string? cprocess_code { get; set; }
+        public string? cprocessCode { get; set; }
         public int? ciseqno { get; set; }     
-        public string? cactivity_code { get; set; }
-        public string? cactivity_description { get; set; }
-        public string? ctask_type { get; set; }
-        public string? cprev_step { get; set; }
-        public string? cactivity_name { get; set; }
-        public string? cnext_seqno { get; set; }
-        public string? cmapping_code { get; set; }
-        public string? cmapping_type { get; set; }
-        public string? cprocess_type { get; set; }
-        public int? csla_day { get; set; }
-        public int? csla_Hour { get; set; }
-        public bool? nboard_enabled { get; set; }
-        public string? caction_privilege { get; set; }
-        public string? crejection_privilege { get; set; }        
-        public List<ProcessEngineConditionDetails> ProcessEngineConditionDetails { get; set; }
+        public string? cactivityCode { get; set; }
+        public string? cactivityDescription { get; set; }
+        public string? ctaskType { get; set; }
+        public string? cprevStep { get; set; }
+        public string? cactivityName { get; set; }
+        public string? cnextSeqno { get; set; }
+        public string? cmappingCode { get; set; }
+        public string? cmappingType { get; set; }
+        public string? cprocessType { get; set; }
+        public int? cslaDay { get; set; }
+        public int? cslaHour { get; set; }
+        public bool? nboardEnabled { get; set; }
+        public string? cactionPrivilege { get; set; }
+        public string? crejectionPrivilege { get; set; }        
+        public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
-    public class ProcessEngineMeta
+    public class processEngineMeta
     {
-        public string? cinput_type { get; set; }
+        public string? cinputType { get; set; }
         public string? label { get; set; }
         public string? cplaceholder { get; set; }
-        public bool? cis_required { get; set; }
-        public bool? cis_autofill { get; set; }
-        public bool? cis_editable { get; set; }
-        public bool? cis_validate { get; set; }
-        public int? cmin_len { get; set; }
-        public int? cmax_len { get; set; }
-        public string? cdata_source_type { get; set; }
-        public string? cfetch_type { get; set; }
-        public bool? cis_req_search { get; set; }
-        public bool? cis_multi_select { get; set; }
-        public DateTime? cmin_date { get; set; }
-        public DateTime? cmax_date { get; set; }
-        public string? cdate_type { get; set; }
-        public int? cmin_time { get; set; }
-        public int? cmax_time { get; set; }
-        public string? ctime_type { get; set; }
-        public bool? cprocess_source { get; set; }
+        public bool? cisRequired { get; set; }
+        public bool? cisAutofill { get; set; }
+        public bool? cisEditable { get; set; }
+        public bool? cisValidate { get; set; }
+        public int? cminLen { get; set; }
+        public int? cmaxLen { get; set; }
+        public string? cdataSourceType { get; set; }
+        public string? cfetchType { get; set; }
+        public bool? cisReqSearch { get; set; }
+        public bool? cisMultiSelect { get; set; }
+        public DateTime? cminDate { get; set; }
+        public DateTime? cmaxDate { get; set; }
+        public string? cdateType { get; set; }
+        public int? cminTime { get; set; }
+        public int? cmaxTime { get; set; }
+        public string? ctimeType { get; set; }
+        public bool? cprocessSource { get; set; }
         public string? clocation { get; set; }
-        public string? ccolumn_value { get; set; }
-        public string? cfield_value { get; set; }
+        public string? ccolumnValue { get; set; }
+        public string? cfieldValue { get; set; }
       
     }
-    public class ProcessEngineConditionDetails
+    public class processEngineConditionDetails
     {
         
-        public string? cprocess_code { get; set; }
+        public string? cprocessCode { get; set; }
         public int? ciseqno { get; set; }
-        public int? icond_seqno { get; set; }
+        public int? icondseqno { get; set; }
         public string? ctype { get; set; }
         public string? clabel { get; set; }
         public string? cplaceholder { get; set; }
-        public bool? cis_required { get; set; }
-        public bool? cis_readonly { get; set; }
+        public bool? cisRequired { get; set; }
+        public bool? cisReadonly { get; set; }
         public bool? cis_disabled { get; set; }
-        public string? cdefault_value { get; set; }
+        public string? cdefaultValue { get; set; }
         public string? cmin { get; set; }
         public string? cmax { get; set; }
         public string? cpattern { get; set; }
-        public bool? nallow_spaces { get; set; }
-        public bool? nallow_numbers { get; set; }
-        public bool? nallow_special_chars { get; set; }
+        public bool? nallowSpaces { get; set; }
+        public bool? nallowNumbers { get; set; }
+        public bool? nallowSpecialChars { get; set; }
         public bool? ntrim { get; set; }
-        public bool? nauto_focus { get; set; }
+        public bool? nautoFocus { get; set; }
         public bool? ncapitalize { get; set; }
-        public bool? nto_upper_case { get; set; }
-        public bool? nto_lower_case { get; set; }
-        public bool? nshow_copy_button { get; set; }
-        public string? cdepends_on { get; set; }
-        public string? cdisabled_when { get; set; }
-        public string? crequired_when { get; set; }
-        public string? cvisible_when { get; set; }
-        public string? cfield_value { get; set; }
+        public bool? ntoUpperCase { get; set; }
+        public bool? ntoLowerCase { get; set; }
+        public bool? nshowCopyButton { get; set; }
+        public string? cdependsOn { get; set; }
+        public string? cdisabledWhen { get; set; }
+        public string? crequiredWhen { get; set; }
+        public string? cvisibleWhen { get; set; }
+        public string? cfieldValue { get; set; }
         public string? ccondition { get; set; }
         public string? remarks1 { get; set; }
         public string? remarks2 { get; set; }
@@ -132,7 +134,7 @@
         public string? cmodified_by { get; set; }
         public DateTime? lmodified_date { get; set; }
 
-        public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }
+        public List<processEngineChildItems> processEngineChildItems { get; set; }
     }
     public class ProcessEngineMetaMaster
     {
