@@ -312,17 +312,17 @@ ORDER BY m.ID desc";
                     string activityCode = reader.SafeGetString("cactivitycode");
                     if (!string.IsNullOrEmpty(activityCode))
                     {
-                        var child = engine.ProcessEngineChildItems.FirstOrDefault(x => x.cactivitycode == activityCode);
+                        var child = engine.ProcessEngineChildItems.FirstOrDefault(x => x.cactivity_code == activityCode);
                         if (child == null)
                         {
                             child = new ProcessEngineChildItems
                             {
-                                cactivitycode = activityCode,
-                                cactivitydescription = reader.SafeGetString("cactivity_description"),
-                                ctasktype = reader.SafeGetString("ctask_type"),
-                                cprevstep = reader.SafeGetString("cprev_step"),
-                                cactivityname = reader.SafeGetString("cactivityname"),
-                                cnextseqno = reader.SafeGetString("cnext_seqno"),
+                                cactivity_code = activityCode,
+                                cactivity_description = reader.SafeGetString("cactivity_description"),
+                                ctask_type = reader.SafeGetString("ctask_type"),
+                                cprev_step = reader.SafeGetString("cprev_step"),
+                                cactivity_name = reader.SafeGetString("cactivityname"),
+                                cnext_seqno = reader.SafeGetString("cnext_seqno"),
                                 cmapping_code = reader.SafeGetString("cmapping_code"),
                                 cmapping_type = reader.SafeGetString("cmapping_type"),
                                 csla_day = reader.SafeGetInt("csla_day"),
@@ -342,12 +342,12 @@ ORDER BY m.ID desc";
                         {
                             child.ProcessEngineConditionDetails.Add(new ProcessEngineConditionDetails
                             {
-                                cprocesscode = reader.SafeGetString("cprocesscode"),
+                                cprocess_code = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                icondseqno = reader.SafeGetInt("icond_seqno"),                           
+                                icond_seqno = reader.SafeGetInt("icond_seqno"),                           
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
-                                cfieldvalue = reader.SafeGetString("cfield_value"),
+                                cfield_value = reader.SafeGetString("cfield_value"),
                                 ccondition = reader.SafeGetString("ccondition"),
                                 remarks1 = reader.SafeGetString("remarks1"),
                                 remarks2 = reader.SafeGetString("remarks2"),
@@ -453,17 +453,17 @@ LEFT JOIN tbl_process_engine_condition c
                     string activityCode = reader.SafeGetString("cactivitycode");
                     if (!string.IsNullOrEmpty(activityCode))
                     {
-                        var child = engine.ProcessEngineChildItems.FirstOrDefault(x => x.cactivitycode == activityCode);
+                        var child = engine.ProcessEngineChildItems.FirstOrDefault(x => x.cactivity_code == activityCode);
                         if (child == null)
                         {
                             child = new ProcessEngineChildItems
                             {                              
-                                cactivitycode = activityCode,
-                                cactivitydescription = reader.SafeGetString("cactivity_description"),
-                                ctasktype = reader.SafeGetString("ctask_type"),
-                                cprevstep = reader.SafeGetString("cprev_step"),
-                                cactivityname = reader.SafeGetString("cactivityname"),
-                                cnextseqno = reader.SafeGetString("cnext_seqno"),
+                                cactivity_code = activityCode,
+                                cactivity_description = reader.SafeGetString("cactivity_description"),
+                                ctask_type = reader.SafeGetString("ctask_type"),
+                                cprev_step = reader.SafeGetString("cprev_step"),
+                                cactivity_name = reader.SafeGetString("cactivityname"),
+                                cnext_seqno = reader.SafeGetString("cnext_seqno"),
                                 cmapping_code = reader.SafeGetString("cmapping_code"),
                                 cmapping_type = reader.SafeGetString("cmapping_type"),
                                 csla_day = reader.SafeGetInt("csla_day"),
@@ -482,12 +482,12 @@ LEFT JOIN tbl_process_engine_condition c
                         {
                             child.ProcessEngineConditionDetails.Add(new ProcessEngineConditionDetails
                             {                             
-                                cprocesscode = reader.SafeGetString("cprocesscode"),
+                                cprocess_code = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
-                                icondseqno = reader.SafeGetInt("icond_seqno"),                           
+                                icond_seqno = reader.SafeGetInt("icond_seqno"),                           
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
-                                cfieldvalue = reader.SafeGetString("cfield_value"),
+                                cfield_value = reader.SafeGetString("cfield_value"),
                                 ccondition = reader.SafeGetString("ccondition"),
                                 remarks1 = reader.SafeGetString("remarks1"),
                                 remarks2 = reader.SafeGetString("remarks2"),
@@ -552,7 +552,7 @@ LEFT JOIN tbl_process_engine_condition c
                         {
                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);                          
                             cmd.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
-                            cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocessname ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocess_name ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cprocess_type", (object?)model.cprocess_type ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cvalue", (object?)model.cvalue ?? DBNull.Value);
@@ -585,12 +585,12 @@ LEFT JOIN tbl_process_engine_condition c
                                 cmdDetail.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                                 cmdDetail.Parameters.AddWithValue("@ciseqno", masterId);
                                 cmdDetail.Parameters.AddWithValue("@cheader_id", masterId);
-                                cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivitycode ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivitydescription ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@ctasktype", detail.ctasktype ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprevstep ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivityname ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnextseqno ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivity_code ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivity_description ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@ctasktype", detail.ctask_type ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprev_step ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivity_name ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnext_seqno ?? (object)DBNull.Value);
                                cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
@@ -630,10 +630,10 @@ LEFT JOIN tbl_process_engine_condition c
                                         cmdCond.Parameters.AddWithValue("@TenantID", cTenantID);
                                         cmdCond.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                                         cmdCond.Parameters.AddWithValue("@ciseqno", masterId);
-                                        cmdCond.Parameters.AddWithValue("@icondseqno", cond.icondseqno ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@icondseqno", cond.icond_seqno ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ctype", cond.ctype ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@clabel", cond.clabel ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfieldvalue ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfield_value ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ccondition", cond.ccondition ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@remarks1", cond.remarks1 ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@remarks2", cond.remarks2 ?? (object)DBNull.Value);
@@ -669,7 +669,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 }
                             }
                         }
-                        if (model.cmetatype == "NEW" && model.cmeta_Name != null && model.cmeta_Name.Any())
+                        if (model.cmeta_type == "NEW" && model.cmeta_Name != null && model.cmeta_Name.Any())
                         {
                             int metaMasterId = 0;
                            
@@ -757,7 +757,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 }
                             }
                         }
-                        else if (model.cmetatype == "old")
+                        else if (model.cmeta_type == "old")
                         {
                             string updateMasterQuery = @"UPDATE tbl_process_engine_master
                                             SET cmeta_id = @cmeta_id WHERE id = @masterId";

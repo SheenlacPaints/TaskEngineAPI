@@ -18,15 +18,15 @@
 
     public class ProcessEngineDTO
     {
-        public string? cprocesscode { get; set; }
-        public string? cprocessname { get; set; }
+        public string? cprocess_code { get; set; }
+        public string? cprocess_name { get; set; }
         public int? cprocess_type { get; set; }
         public string? cvalue { get; set; }       
         public string? cstatus { get; set; }
         public string? cpriority_label { get; set; }
         public bool? nshow_timeline { get; set; }
         public int? cnotification_type { get; set; }
-        public string? cmetatype { get; set; }
+        public string? cmeta_type { get; set; }
         public int? cmeta_id { get; set; }
         public string? cmeta_Name { get; set; }
         public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }    
@@ -34,14 +34,14 @@
     }
     public class ProcessEngineChildItems
     {      
-        public string? cprocesscode { get; set; }
+        public string? cprocess_code { get; set; }
         public int? ciseqno { get; set; }     
-        public string? cactivitycode { get; set; }
-        public string? cactivitydescription { get; set; }
-        public string? ctasktype { get; set; }
-        public string? cprevstep { get; set; }
-        public string? cactivityname { get; set; }
-        public string? cnextseqno { get; set; }
+        public string? cactivity_code { get; set; }
+        public string? cactivity_description { get; set; }
+        public string? ctask_type { get; set; }
+        public string? cprev_step { get; set; }
+        public string? cactivity_name { get; set; }
+        public string? cnext_seqno { get; set; }
         public string? cmapping_code { get; set; }
         public string? cmapping_type { get; set; }
         public string? cprocess_type { get; set; }
@@ -82,9 +82,9 @@
     public class ProcessEngineConditionDetails
     {
         
-        public string? cprocesscode { get; set; }
+        public string? cprocess_code { get; set; }
         public int? ciseqno { get; set; }
-        public int? icondseqno { get; set; }
+        public int? icond_seqno { get; set; }
         public string? ctype { get; set; }
         public string? clabel { get; set; }
         public string? cplaceholder { get; set; }
@@ -108,7 +108,7 @@
         public string? cdisabled_when { get; set; }
         public string? crequired_when { get; set; }
         public string? cvisible_when { get; set; }
-        public string? cfieldvalue { get; set; }
+        public string? cfield_value { get; set; }
         public string? ccondition { get; set; }
         public string? remarks1 { get; set; }
         public string? remarks2 { get; set; }
