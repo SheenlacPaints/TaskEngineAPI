@@ -669,7 +669,7 @@ LEFT JOIN tbl_process_engine_condition c
                                 }
                             }
                         }
-                        if (model.cmeta_type == "NEW" && model.cmeta_Name != null && model.cmeta_Name.Any())
+                        if (model.cmeta_type == "NEW" && model.cmeta_name != null && model.cmeta_name.Any())
                         {
                             int metaMasterId = 0;
                            
@@ -681,9 +681,9 @@ LEFT JOIN tbl_process_engine_condition c
                                 using (SqlCommand cmd = new SqlCommand(metadatamaster, conn, transaction))
                                 {
                                     cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-                                    cmd.Parameters.AddWithValue("@meta_Name", (object?)model.cmeta_Name ?? DBNull.Value);
-                                    cmd.Parameters.AddWithValue("@meta_Description", (object?)model.cmeta_Name ?? DBNull.Value);
-                                    cmd.Parameters.AddWithValue("@label", (object?)model.cmeta_Name ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@meta_Name", (object?)model.cmeta_name ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@meta_Description", (object?)model.cmeta_name ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@label", (object?)model.cmeta_name ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@nis_active", 1); // Assuming active by default
                                     cmd.Parameters.AddWithValue("@ccreated_by", username);
                                     cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);

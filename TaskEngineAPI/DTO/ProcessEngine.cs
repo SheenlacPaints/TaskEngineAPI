@@ -28,7 +28,7 @@
         public int? cnotification_type { get; set; }
         public string? cmeta_type { get; set; }
         public int? cmeta_id { get; set; }
-        public string? cmeta_Name { get; set; }
+        public string? cmeta_name { get; set; }
         public List<ProcessEngineChildItems> ProcessEngineChildItems { get; set; }    
         public List<ProcessEngineMeta> ProcessEngineMeta { get; set; }   
     }
