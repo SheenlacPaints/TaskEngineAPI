@@ -1109,7 +1109,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinitiator";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/CreateUsersBulk1";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
