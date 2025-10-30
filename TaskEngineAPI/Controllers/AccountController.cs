@@ -1373,7 +1373,7 @@ namespace TaskEngineAPI.Controllers
         }
 
         [HttpPost("CreateUsersBulk")]
-        public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
+        public async Task<IActionResult> CreateUsersBulk([FromBody] pay request, int ctenantId)
         {
             try
             {
