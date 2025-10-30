@@ -1103,17 +1103,18 @@ namespace TaskEngineAPI.Controllers
         public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
         {
             try
-            {
-                // 🔐 Extract token
+            {               
+                // Extract token from incoming request
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
                 if (string.IsNullOrWhiteSpace(jwtToken))
+                {
                     return Unauthorized("Missing Authorization token.");
-                // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/CreateUsersBulk1";
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                }
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/CreateUsersBulk1");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateUsersBulk1", content);
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
