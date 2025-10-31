@@ -1211,31 +1211,65 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        //[Authorize]
+        //[HttpPut("UpdateSuperAdminpassword")]
+        //public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
+        //{
+        //    var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        //    var handler = new JwtSecurityTokenHandler();
+        //    var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+        //    var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+        //    var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+        //    string username = usernameClaim;
+        //    if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+        //    {
+        //        var error = new APIResponse
+        //        {
+        //            status = 401,
+        //            statusText = "Invalid or missing cTenantID in token."
+        //        };
+        //        string errorJson = JsonConvert.SerializeObject(error);
+        //        string encryptedError = AesEncryption.Encrypt(errorJson);
+        //        return StatusCode(401, $"\"{encryptedError}\"");
+        //    }
+        //    string decryptedJson = AesEncryption.Decrypt(request.payload);
+        //    var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
+        //    bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, username);
+
+        //    var response = new APIResponse
+        //    {
+        //        status = success ? 200 : 204,
+        //        statusText = success ? "Update successful" : "SuperAdmin not found or update failed"
+        //    };
+
+        //    string json = JsonConvert.SerializeObject(response);
+        //    string encrypted = AesEncryption.Encrypt(json);
+        //    return StatusCode(response.status, encrypted);
+        //}
+
+
         [Authorize]
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
         {
-            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            var handler = new JwtSecurityTokenHandler();
-            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-            string username = usernameClaim;
-            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            if (!HttpContext.Items.TryGetValue("cTenantID", out var tenantIdObj) ||
+                !HttpContext.Items.TryGetValue("username", out var usernameObj) ||
+                !(tenantIdObj is int cTenantID) || string.IsNullOrWhiteSpace(usernameObj?.ToString()))
             {
                 var error = new APIResponse
                 {
                     status = 401,
-                    statusText = "Invalid or missing cTenantID in token."
+                    statusText = "Invalid or missing token claims."
                 };
                 string errorJson = JsonConvert.SerializeObject(error);
                 string encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(401, $"\"{encryptedError}\"");
+                return StatusCode(401, encryptedError);
             }
+
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
-            bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, username);
+            bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, usernameObj.ToString());
 
             var response = new APIResponse
             {
@@ -1247,6 +1281,13 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, encrypted);
         }
+
+
+
+
+
+
+
 
 
         [Authorize]
@@ -1372,305 +1413,9 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        //[HttpPost("CreateUsersBulk")]
-        //public async Task<IActionResult> CreateUsersBulk([FromBody] pay request, int ctenantId)
-        //{
-        //    try
-        //    {
-
-        //        string decryptedJson = AesEncryption.Decrypt(request.payload);
-        //        var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
-
-        //        if (users == null || !users.Any())
-        //            return BadRequest("No users provided");
-
-        //        var validUsers = new List<CreateUserDTO>();
-        //        var failedUsers = new List<object>();
-        //        foreach (var user in users)
-        //        {
-        //            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(user.cuserid, user.ctenantID);
-        //            bool emailExists = await _AccountService.CheckuserEmailExistsAsync(user.cemail, user.ctenantID);
-        //            bool phoneExists = await _AccountService.CheckuserPhonenoExistsAsync(user.cphoneno, user.ctenantID);
-        //            if (usernameExists || emailExists || phoneExists)
-        //            {
-        //                failedUsers.Add(new { user.cemail, reason = usernameExists ? "Username exists" : emailExists ? "Email exists" : "Phone number exists" });
-        //            }
-        //            else
-        //            {
-        //                validUsers.Add(user);
-        //            }
-        //        }
-
-        //        int insertedCount = 0;
-        //        if (validUsers.Any())
-        //        {
-        //            insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers);
-        //        }
-
-        //        var response = new
-        //        {
-        //            status = 200,
-        //            statusText = "Bulk user creation completed",
-        //            body = new
-        //            {
-        //                total = users.Count,
-        //                success = insertedCount,
-        //                failure = failedUsers.Count,
-        //                inserted = validUsers.Select(u => new { u.cemail }),
-        //                failed = failedUsers,
-        //            },
-        //            error = ""
-        //        };
-        //        string json = JsonConvert.SerializeObject(response);
-        //        string encrypted = AesEncryption.Encrypt(json);
-        //        return Ok(encrypted);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var errorResponse = new { status = 500, statusText = "Error", error = ex.Message };
-        //        string errorJson = JsonConvert.SerializeObject(errorResponse);
-        //        var encryptedError = AesEncryption.Encrypt(errorJson);
-        //        return StatusCode(500, encryptedError);
-        //    }
-        //}
-
-        //[HttpPost("CreateUsersBulkold")]
-        //public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
-        //{
-        //    try
-        //    {
-        //        string decryptedJson = AesEncryption.Decrypt(request.payload);
-        //        var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
-
-        //        if (users == null || !users.Any())
-        //            return BadRequest("No users provided");
-
-        //        var validUsers = new List<CreateUserDTO>();
-        //        var failedUsers = new List<object>();
-
-        //        foreach (var user in users)
-        //        {
-        //            bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(user.cuserid, user.ctenantID);
-        //            bool emailExists = await _AccountService.CheckuserEmailExistsAsync(user.cemail, user.ctenantID);
-        //            bool phoneExists = await _AccountService.CheckuserPhonenoExistsAsync(user.cphoneno, user.ctenantID);
-
-        //            if (usernameExists || emailExists || phoneExists)
-        //            {
-        //                failedUsers.Add(new { user.cemail, reason = usernameExists ? "Username exists" : emailExists ? "Email exists" : "Phone number exists" });
-        //            }
-        //            else
-        //            {
-        //                validUsers.Add(user);
-        //            }
-        //        }
-
-        //        int insertedCount = 0;
-        //        if (validUsers.Any())
-        //        {
-        //            // Insert only valid users
-        //            insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers);
-        //        }
-        //        var response = new
-        //        {
-        //            status = 200,
-        //            statusText = "Bulk user creation completed",
-        //            summary = new
-        //            {
-        //                total = users.Count,
-        //                success = insertedCount,
-        //                failed = failedUsers.Count
-        //            },
-        //            inserted = validUsers.Select(u => new { u.cemail }),
-        //            failed = failedUsers
-        //        };
-
-        //        string json = JsonConvert.SerializeObject(response);
-        //        string encrypted = AesEncryption.Encrypt(json);
-        //        return Ok(encrypted);
-
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var errorResponse = new { status = 500, statusText = "Error", error = ex.Message };
-        //        string errorJson = JsonConvert.SerializeObject(errorResponse);
-        //        var encryptedError = AesEncryption.Encrypt(errorJson);
-        //        return StatusCode(500, encryptedError);
-        //    }
-        //}
-
-
-        //[HttpPost("CreateUsersBulk")]
-        //public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
-        //{
-        //    try
-        //    {
-        //        string decryptedJson = AesEncryption.Decrypt(request.payload);
-        //        var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
-
-        //        if (users == null || !users.Any())
-        //            return BadRequest("No users provided");
-
-        //        // Use the new transaction-based bulk insert
-        //        var result = await _AccountService.InsertUsersBulkAsync(users);
-
-        //        var response = new
-        //        {
-        //            status = result.Status,
-        //            statusText = result.StatusText,
-        //            summary = new
-        //            {
-        //                total = result.Total,
-        //                success = result.Success,
-        //                failed = result.FailedCount
-        //            },
-        //            inserted = result.Inserted,
-        //            failed = result.Failed.Select(f => new {
-        //                email = f.Email,
-        //                username = f.UserName,
-        //                phone = f.Phone,
-        //                reason = f.Reason
-        //            })
-        //        };
-
-        //        string json = JsonConvert.SerializeObject(response);
-        //        string encrypted = AesEncryption.Encrypt(json);
-        //        return Ok(encrypted);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var errorResponse = new
-        //        {
-        //            status = 500,
-        //            statusText = "Error",
-        //            error = ex.Message,
-        //            stackTrace = ex.StackTrace
-        //        };
-        //        string errorJson = JsonConvert.SerializeObject(errorResponse);
-        //        var encryptedError = AesEncryption.Encrypt(errorJson);
-        //        return StatusCode(500, encryptedError);
-        //    }
-        //}
-
-        //[Authorize]
-        //[HttpPost("CreateUsersBulk1")]
-        //public async Task<IActionResult> CreateUsersBulk1([FromBody] pay request)
-        //{
-
-        //    try
-        //    {
-        //    var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-        //    var handler = new JwtSecurityTokenHandler();
-        //    var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-        //    var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-        //    var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-        //    string username = usernameClaim;
-        //    if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
-        //    {
-        //        var error = new APIResponse
-        //        {
-        //            status = 401,
-        //            statusText = "Invalid or missing cTenantID in token."
-        //        };
-        //        string errorJson = JsonConvert.SerializeObject(error);
-        //        string encryptedError = AesEncryption.Encrypt(errorJson);
-        //        return StatusCode(401, $"\"{encryptedError}\"");
-        //    }
-        //    string decryptedJson = AesEncryption.Decrypt(request.payload);
-        //    var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
-        //    bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, username);
-
-
-        //        var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
-
-        //        if (users == null || !users.Any())
-        //            return BadRequest("No users provided");
-
-        //        var validUsers = new List<CreateUserDTO>();
-        //        var failedUsers = new List<object>();
-
-        //        var duplicateUsernames = users.GroupBy(u => u.cuserid)
-        //                                     .Where(g => g.Count() > 1)
-        //                                     .Select(g => g.Key)
-        //                                     .ToList();
-
-        //        var duplicateEmails = users.GroupBy(u => u.cemail)
-        //                                  .Where(g => g.Count() > 1)
-        //                                  .Select(g => g.Key)
-        //                                  .ToList();
-
-        //        var duplicatePhones = users.GroupBy(u => u.cphoneno)
-        //                                  .Where(g => g.Count() > 1)
-        //                                  .Select(g => g.Key)
-        //                                  .ToList();
-
-        //        foreach (var user in users)
-        //        {
-        //            var errors = new List<string>();
-
-        //            // MANDATORY FIELD VALIDATION
-        //            if (user.cuserid <= 0) errors.Add("User ID is mandatory");
-        //            if (string.IsNullOrEmpty(user.cemail)) errors.Add("Email is mandatory");
-        //            if (string.IsNullOrEmpty(user.cphoneno)) errors.Add("Phone number is mandatory");
-
-        //            // ONLY CHECK FOR DUPLICATES IN CURRENT BATCH (JSON RESPONSE)
-        //            // REMOVED DATABASE CHECKS
-        //            if (duplicateUsernames.Contains(user.cuserid)) errors.Add("Duplicate username in this batch");
-        //            if (duplicateEmails.Contains(user.cemail)) errors.Add("Duplicate email in this batch");
-        //            if (duplicatePhones.Contains(user.cphoneno)) errors.Add("Duplicate phone in this batch");
-
-        //            if (errors.Any())
-        //            {
-        //                failedUsers.Add(new
-        //                {
-        //                    user.cemail,
-        //                    user.cuserid,
-        //                    user.cphoneno,
-        //                    reason = string.Join("; ", errors)
-        //                });
-        //            }
-        //            else
-        //            {
-        //                validUsers.Add(user);
-        //            }
-        //        }
-        //        int insertedCount = 0;
-        //        if (validUsers.Any())
-        //        {
-        //            insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers);
-        //        }
-
-        //        var response = new
-        //        {
-        //            status = 200,
-        //            statusText = "Bulk user creation completed",
-        //            body = new
-        //            {
-        //                total = users.Count,
-        //                success = insertedCount,
-        //                failure = failedUsers.Count,
-        //                inserted = validUsers.Select(u => new { u.cemail, u.cuserid }),
-        //                failed = failedUsers,
-        //            },
-        //            error = ""
-        //        };
-
-        //        string json = JsonConvert.SerializeObject(response);
-        //        string encrypted = AesEncryption.Encrypt(json);
-        //        return Ok(encrypted);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var errorResponse = new { status = 500, statusText = "Error", error = ex.Message };
-        //        string errorJson = JsonConvert.SerializeObject(errorResponse);
-        //        var encryptedError = AesEncryption.Encrypt(errorJson);
-        //        return StatusCode(500, encryptedError);
-        //    }
-        //}
         [Authorize]
-        [HttpPost("CreateUsersBulk1")]
-        public async Task<IActionResult> CreateUsersBulk1([FromBody] pay request)
+        [HttpPost("CreateUsersBulk")]
+        public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
         {
             try
             {
