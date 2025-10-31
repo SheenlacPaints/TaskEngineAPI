@@ -1194,7 +1194,7 @@ VALUES (
             {
                 var row = table.NewRow();
                 row["cuserid"] = u.cuserid;
-                row["ctenant_id"] = u.ctenantID;
+                row["ctenant_id"] = cTenantID;
                 row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
                 row["cpassword"] = u.cpassword ?? (object)DBNull.Value;
                 row["cemail"] = u.cemail ?? (object)DBNull.Value;
@@ -1228,7 +1228,7 @@ VALUES (
                 row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value;
                 row["cwork_loc_code"] = u.cworkloccode ?? (object)DBNull.Value;
                 row["cwork_loc_name"] = u.cworklocname ?? (object)DBNull.Value;
-                row["crole_id"] = u.croleID ?? (object)DBNull.Value;
+                row["crole_id"] = 3 ;
                 row["crole_code"] = u.crolecode ?? (object)DBNull.Value;
                 row["crole_name"] = u.crolename ?? (object)DBNull.Value;
                 row["cgrade_code"] = u.cgradecode ?? (object)DBNull.Value;
