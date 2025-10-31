@@ -118,7 +118,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
-app.UseMiddleware<JwtValidationMiddleware>();
+//app.UseMiddleware<JwtValidationMiddleware>();
 app.UseExceptionHandler("/Error");
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
