@@ -1105,7 +1105,7 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateUsersBulk1", content);
+                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateUsersBulk3", content);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);

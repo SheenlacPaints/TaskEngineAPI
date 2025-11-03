@@ -1112,7 +1112,7 @@ VALUES (
 
 
 
-        public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users, int cTenantID)
+        public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users, int cTenantID, string username)
         {
             if (users == null || !users.Any())
                 return 0;
@@ -1149,9 +1149,9 @@ VALUES (
             table.Columns.Add("cpan", typeof(string));
             table.Columns.Add("ldoj", typeof(DateTime));
             table.Columns.Add("cemployment_status", typeof(string));
-            //table.Columns.Add("nnotice_period_days", typeof(int));
-            //table.Columns.Add("lresignation_date", typeof(DateTime));
-            //table.Columns.Add("llast_working_date", typeof(DateTime));
+            table.Columns.Add("nnotice_period_days", typeof(int));
+            table.Columns.Add("lresignation_date", typeof(DateTime));
+            table.Columns.Add("llast_working_date", typeof(DateTime));
             table.Columns.Add("cemp_category", typeof(string));
             table.Columns.Add("cwork_loc_code", typeof(string));
             table.Columns.Add("cwork_loc_name", typeof(string));
@@ -1174,14 +1174,14 @@ VALUES (
             table.Columns.Add("creport_manager_empcode", typeof(string));
             table.Columns.Add("creport_manager_poscode", typeof(string));
             table.Columns.Add("creport_manager_pos_desc", typeof(string));
-            //table.Columns.Add("nis_web_access_enabled", typeof(bool));
-            //table.Columns.Add("nis_event_read", typeof(bool));
-            //table.Columns.Add("llast_login_at", typeof(DateTime));
-            //table.Columns.Add("nfailed_logina_attempts", typeof(int));
-            //table.Columns.Add("cpassword_changed_at", typeof(DateTime));
-            //table.Columns.Add("nis_locked", typeof(bool));
-            //table.Columns.Add("last_login_ip", typeof(string));
-            //table.Columns.Add("last_login_device", typeof(string));
+            table.Columns.Add("nis_web_access_enabled", typeof(bool));
+            table.Columns.Add("nis_event_read", typeof(bool));
+            table.Columns.Add("llast_login_at", typeof(DateTime));
+            table.Columns.Add("nfailed_logina_attempts", typeof(int));
+            table.Columns.Add("cpassword_changed_at", typeof(DateTime));
+            table.Columns.Add("nis_locked", typeof(bool));
+            table.Columns.Add("last_login_ip", typeof(string));
+            table.Columns.Add("last_login_device", typeof(string));
             table.Columns.Add("ccreated_date", typeof(DateTime));
             table.Columns.Add("ccreated_by", typeof(string));
             table.Columns.Add("cmodified_by", typeof(string));
@@ -1222,9 +1222,9 @@ VALUES (
                 row["cpan"] = u.cpAN ?? (object)DBNull.Value;
                 row["ldoj"] = u.ldoj ?? (object)DBNull.Value;
                 row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
-                //row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
-                //row["lresignation_date"] = u.lresignationDate ?? (object)DBNull.Value;
-                //row["llast_working_date"] = u.llastWorkingDate ?? (object)DBNull.Value;
+                row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
+                row["lresignation_date"] = u.lresignationDate ?? (object)DBNull.Value;
+                row["llast_working_date"] = u.llastWorkingDate ?? (object)DBNull.Value;
                 row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value;
                 row["cwork_loc_code"] = u.cworkloccode ?? (object)DBNull.Value;
                 row["cwork_loc_name"] = u.cworklocname ?? (object)DBNull.Value;
@@ -1247,17 +1247,17 @@ VALUES (
                 row["creport_manager_empcode"] = u.cReportManager_empcode ?? (object)DBNull.Value;
                 row["creport_manager_poscode"] = u.cReportManager_Poscode ?? (object)DBNull.Value;
                 row["creport_manager_pos_desc"] = u.cReportManager_Posdesc ?? (object)DBNull.Value;
-                //row["nis_web_access_enabled"] = u.nIsWebAccessEnabled ?? false;
-                //row["nis_event_read"] = u.nIsEventRead ?? false;
-                //row["llast_login_at"] = u.lLastLoginAt ?? (object)DBNull.Value;
-                //row["nfailed_logina_attempts"] = u.nFailedLoginAttempts ?? (object)DBNull.Value;
-                //row["cpassword_changed_at"] = u.cPasswordChangedAt ?? (object)DBNull.Value;
-                //row["nis_locked"] = u.nIsLocked ?? false;
-                //row["last_login_ip"] = u.LastLoginIP ?? (object)DBNull.Value;
-                //row["last_login_device"] = u.LastLoginDevice ?? (object)DBNull.Value;
+                row["nis_web_access_enabled"] = u.nIsWebAccessEnabled ?? false;
+                row["nis_event_read"] = u.nIsEventRead ?? false;
+                row["llast_login_at"] = u.lLastLoginAt ?? (object)DBNull.Value;
+                row["nfailed_logina_attempts"] = u.nFailedLoginAttempts ?? (object)DBNull.Value;
+                row["cpassword_changed_at"] = u.cPasswordChangedAt ?? (object)DBNull.Value;
+                row["nis_locked"] = u.nIsLocked ?? false;
+                row["last_login_ip"] = u.LastLoginIP ?? (object)DBNull.Value;
+                row["last_login_device"] = u.LastLoginDevice ?? (object)DBNull.Value;
                 row["ccreated_date"] = u.ccreateddate ?? DateTime.Now;
-                row["ccreated_by"] = u.ccreatedby ?? (object)DBNull.Value;
-                row["cmodified_by"] = u.cmodifiedby ?? (object)DBNull.Value;
+                row["ccreated_by"] = username;
+                row["cmodified_by"] = username;
                 row["lmodified_date"] = u.lmodifieddate ?? DateTime.Now;
                 row["nIs_deleted"] = u.nIsDeleted ?? false;
                 row["cdeleted_by"] = u.cDeletedBy ?? (object)DBNull.Value;
@@ -1311,42 +1311,42 @@ VALUES (
             bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
 
 
-            //bulkCopy.ColumnMappings.Add("profile_image", "Profile_Image");  // DataTable -> Database
-            //bulkCopy.ColumnMappings.Add("cbank_name", "cbank_name");
-            //bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
-            //bulkCopy.ColumnMappings.Add("ciFSC_code", "ciFSC_code");      
-            //bulkCopy.ColumnMappings.Add("cemployment_status", "cemployment_status");
-            //bulkCopy.ColumnMappings.Add("nnotice_period_days", "nnotice_period_days");
-            //bulkCopy.ColumnMappings.Add("lresignation_date", "lresignation_date");
-            //bulkCopy.ColumnMappings.Add("llast_working_date", "llast_working_date");
-            //bulkCopy.ColumnMappings.Add("cemp_category", "cemp_category");
-            //bulkCopy.ColumnMappings.Add("cgrade_code", "cgrade_code");
-            //bulkCopy.ColumnMappings.Add("cgrade_desc", "cgrade_desc");
-            //bulkCopy.ColumnMappings.Add("csub_role_code", "csub_role_code");     
-            //bulkCopy.ColumnMappings.Add("cjob_code", "cjob_code");
-            //bulkCopy.ColumnMappings.Add("cjob_desc", "cjob_desc");
-            //bulkCopy.ColumnMappings.Add("cRoll_id", "cRoll_id");
-            //bulkCopy.ColumnMappings.Add("cRoll_name", "cRoll_name");
-            //bulkCopy.ColumnMappings.Add("cRoll_Id_mngr", "cRoll_Id_mngr");
-            //bulkCopy.ColumnMappings.Add("cRoll_Id_mngr_desc", "cRoll_Id_mngr_desc");
-            //bulkCopy.ColumnMappings.Add("creport_manager_empcode", "creport_manager_empcode");
-            //bulkCopy.ColumnMappings.Add("creport_manager_poscode", "creport_manager_poscode");
-            //bulkCopy.ColumnMappings.Add("creport_manager_pos_desc", "creport_manager_pos_desc");
-            // bulkCopy.ColumnMappings.Add("nis_web_access_enabled", "nis_web_access_enabled");
-            // bulkCopy.ColumnMappings.Add("nis_event_read", "nis_event_read");
-            // bulkCopy.ColumnMappings.Add("llast_login_at", "llast_login_at");
-            //  bulkCopy.ColumnMappings.Add("nfailed_logina_attempts", "nfailed_logina_attempts");
-            // bulkCopy.ColumnMappings.Add("cpassword_changed_at", "cpassword_changed_at");
-            // bulkCopy.ColumnMappings.Add("nis_locked", "nis_locked");
-            //  bulkCopy.ColumnMappings.Add("last_login_ip", "last_login_ip");
-            // bulkCopy.ColumnMappings.Add("last_login_device", "last_login_device");
-            //bulkCopy.ColumnMappings.Add("ccreated_date", "ccreated_date");
-            //bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
-            //bulkCopy.ColumnMappings.Add("cmodified_by", "cmodified_by");
-            //bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
-            //bulkCopy.ColumnMappings.Add("nIs_deleted", "nIs_deleted");
-            //bulkCopy.ColumnMappings.Add("cdeleted_by", "cdeleted_by");
-            //bulkCopy.ColumnMappings.Add("ldeleted_date", "ldeleted_date");
+            bulkCopy.ColumnMappings.Add("profile_image", "Profile_Image");  // DataTable -> Database
+            bulkCopy.ColumnMappings.Add("cbank_name", "cbank_name");
+            bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
+            bulkCopy.ColumnMappings.Add("ciFSC_code", "ciFSC_code");
+            bulkCopy.ColumnMappings.Add("cemployment_status", "cemployment_status");
+            bulkCopy.ColumnMappings.Add("nnotice_period_days", "nnotice_period_days");
+            bulkCopy.ColumnMappings.Add("lresignation_date", "lresignation_date");
+            bulkCopy.ColumnMappings.Add("llast_working_date", "llast_working_date");
+            bulkCopy.ColumnMappings.Add("cemp_category", "cemp_category");
+            bulkCopy.ColumnMappings.Add("cgrade_code", "cgrade_code");
+            bulkCopy.ColumnMappings.Add("cgrade_desc", "cgrade_desc");
+            bulkCopy.ColumnMappings.Add("csub_role_code", "csub_role_code");
+            bulkCopy.ColumnMappings.Add("cjob_code", "cjob_code");
+            bulkCopy.ColumnMappings.Add("cjob_desc", "cjob_desc");
+            bulkCopy.ColumnMappings.Add("cRoll_id", "cRoll_id");
+            bulkCopy.ColumnMappings.Add("cRoll_name", "cRoll_name");
+            bulkCopy.ColumnMappings.Add("cRoll_Id_mngr", "cRoll_Id_mngr");
+            bulkCopy.ColumnMappings.Add("cRoll_Id_mngr_desc", "cRoll_Id_mngr_desc");
+            bulkCopy.ColumnMappings.Add("creport_manager_empcode", "creport_manager_empcode");
+            bulkCopy.ColumnMappings.Add("creport_manager_poscode", "creport_manager_poscode");
+            bulkCopy.ColumnMappings.Add("creport_manager_pos_desc", "creport_manager_pos_desc");
+            bulkCopy.ColumnMappings.Add("nis_web_access_enabled", "nis_web_access_enabled");
+            bulkCopy.ColumnMappings.Add("nis_event_read", "nis_event_read");
+            bulkCopy.ColumnMappings.Add("llast_login_at", "llast_login_at");
+            bulkCopy.ColumnMappings.Add("nfailed_logina_attempts", "nfailed_logina_attempts");
+            bulkCopy.ColumnMappings.Add("cpassword_changed_at", "cpassword_changed_at");
+            bulkCopy.ColumnMappings.Add("nis_locked", "nis_locked");
+            bulkCopy.ColumnMappings.Add("last_login_ip", "last_login_ip");
+            bulkCopy.ColumnMappings.Add("last_login_device", "last_login_device");
+            bulkCopy.ColumnMappings.Add("ccreated_date", "ccreated_date");
+            bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
+            bulkCopy.ColumnMappings.Add("cmodified_by", "cmodified_by");
+            bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
+            bulkCopy.ColumnMappings.Add("nIs_deleted", "nIs_deleted");
+            bulkCopy.ColumnMappings.Add("cdeleted_by", "cdeleted_by");
+            bulkCopy.ColumnMappings.Add("ldeleted_date", "ldeleted_date");
 
             await bulkCopy.WriteToServerAsync(table);
             return table.Rows.Count;
