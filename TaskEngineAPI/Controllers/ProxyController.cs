@@ -1103,18 +1103,9 @@ namespace TaskEngineAPI.Controllers
         public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
         {
             try
-            {               
-                // Extract token from incoming request
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(jwtToken))
-                {
-                    return Unauthorized("Missing Authorization token.");
-                }
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/CreateUsersBulk");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.SendAsync(requestMessage);
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateUsersBulk3", content);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
