@@ -1533,6 +1533,7 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+       
         [Authorize]
         [HttpPost("CreateUsersBulk3")]
         public IActionResult CreateUsersBulk3([FromBody] pay request)
@@ -1548,12 +1549,12 @@ namespace TaskEngineAPI.Controllers
 
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
                 {
-                    var error = new APIResponse
+                    var errorResponse = new
                     {
                         status = 401,
                         statusText = "Invalid or missing cTenantID or username in token."
                     };
-                    string errorJson = JsonConvert.SerializeObject(error);
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
                     string encryptedError = AesEncryption.Encrypt(errorJson);
                     return StatusCode(401, $"\"{encryptedError}\"");
                 }
@@ -1562,412 +1563,102 @@ namespace TaskEngineAPI.Controllers
                 var users = JsonConvert.DeserializeObject<List<CreateUserDTO>>(decryptedJson);
 
                 if (users == null || !users.Any())
-                    return BadRequest("No users provided.");
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "No users provided in payload."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest($"\"{encryptedError}\"");
+                }
 
-
-
-                var validationResults = new List<object>();
-                var validUsers = new List<CreateUserDTO>();
                 var failedUsers = new List<object>();
+                var validUsers = new List<CreateUserDTO>();
 
                 foreach (var user in users)
                 {
                     var errors = new List<string>();
 
-                    if (user.cusername == null) errors.Add("cusername: Field is missing from JSON");
-                    if (user.cemail == null) errors.Add("cemail: Field is missing from JSON");
-                    if (user.cpassword == null) errors.Add("cpassword: Field is missing from JSON");
-                    if (user.cfirstName == null) errors.Add("cfirstName: Field is missing from JSON");
-                    if (user.clastName == null) errors.Add("clastName: Field is missing from JSON");
-                    if (user.cphoneno == null) errors.Add("cphoneno: Field is missing from JSON");
-                    if (user.cAlternatePhone == null) errors.Add("cAlternatePhone: Field is missing from JSON");
-                    if (user.cMaritalStatus == null) errors.Add("cMaritalStatus: Field is missing from JSON");
-                    if (user.cnation == null) errors.Add("cnation: Field is missing from JSON");
-                    if (user.cgender == null) errors.Add("cgender: Field is missing from JSON");
-                    if (user.caddress == null) errors.Add("caddress: Field is missing from JSON");
-                    if (user.caddress1 == null) errors.Add("caddress1: Field is missing from JSON");
-                    if (user.caddress2 == null) errors.Add("caddress2: Field is missing from JSON");
-                    if (user.cpincode == null) errors.Add("cpincode: Field is missing from JSON");
-                    if (user.ccity == null) errors.Add("ccity: Field is missing from JSON");
-                    if (user.cstatecode == null) errors.Add("cstatecode: Field is missing from JSON");
-                    if (user.cstatedesc == null) errors.Add("cstatedesc: Field is missing from JSON");
-                    if (user.ccountrycode == null) errors.Add("ccountrycode: Field is missing from JSON");
-                    if (user.ProfileImage == null) errors.Add("ProfileImage: Field is missing from JSON");
-                    if (user.cbankName == null) errors.Add("cbankName: Field is missing from JSON");
-                    if (user.caccountNumber == null) errors.Add("caccountNumber: Field is missing from JSON");
-                    if (user.ciFSCCode == null) errors.Add("ciFSCCode: Field is missing from JSON");
-                    if (user.cpAN == null) errors.Add("cpAN: Field is missing from JSON");
-                    if (user.cemploymentStatus == null) errors.Add("cemploymentStatus: Field is missing from JSON");
-                    if (user.cempcategory == null) errors.Add("cempcategory: Field is missing from JSON");
-                    if (user.cworkloccode == null) errors.Add("cworkloccode: Field is missing from JSON");
-                    if (user.cworklocname == null) errors.Add("cworklocname: Field is missing from JSON");
-                    if (user.crolecode == null) errors.Add("crolecode: Field is missing from JSON");
-                    if (user.crolename == null) errors.Add("crolename: Field is missing from JSON");
-                    if (user.cgradecode == null) errors.Add("cgradecode: Field is missing from JSON");
-                    if (user.cgradedesc == null) errors.Add("cgradedesc: Field is missing from JSON");
-                    if (user.csubrolecode == null) errors.Add("csubrolecode: Field is missing from JSON");
-                    if (user.cdeptcode == null) errors.Add("cdeptcode: Field is missing from JSON");
-                    if (user.cdeptdesc == null) errors.Add("cdeptdesc: Field is missing from JSON");
-                    if (user.cjobcode == null) errors.Add("cjobcode: Field is missing from JSON");
-                    if (user.cjobdesc == null) errors.Add("cjobdesc: Field is missing from JSON");
-                    if (user.creportmgrcode == null) errors.Add("creportmgrcode: Field is missing from JSON");
-                    if (user.creportmgrname == null) errors.Add("creportmgrname: Field is missing from JSON");
-                    if (user.cRoll_id == null) errors.Add("cRoll_id: Field is missing from JSON");
-                    if (user.cRoll_name == null) errors.Add("cRoll_name: Field is missing from JSON");
-                    if (user.cRoll_Id_mngr == null) errors.Add("cRoll_Id_mngr: Field is missing from JSON");
-                    if (user.cRoll_Id_mngr_desc == null) errors.Add("cRoll_Id_mngr_desc: Field is missing from JSON");
-                    if (user.cReportManager_empcode == null) errors.Add("cReportManager_empcode: Field is missing from JSON");
-                    if (user.cReportManager_Poscode == null) errors.Add("cReportManager_Poscode: Field is missing from JSON");
-                    if (user.cReportManager_Posdesc == null) errors.Add("cReportManager_Posdesc: Field is missing from JSON");
-                    if (user.LastLoginIP == null) errors.Add("LastLoginIP: Field is missing from JSON");
-                    if (user.LastLoginDevice == null) errors.Add("LastLoginDevice: Field is missing from JSON");
-                    if (user.ccreatedby == null) errors.Add("ccreatedby: Field is missing from JSON");
-                    if (user.cmodifiedby == null) errors.Add("cmodifiedby: Field is missing from JSON");
-                    if (user.cDeletedBy == null) errors.Add("cDeletedBy: Field is missing from JSON");
-
-                    if (!user.nIsActive.HasValue) errors.Add("nIsActive: Field is missing from JSON");
-                    if (!user.ldob.HasValue) errors.Add("ldob: Field is missing from JSON");
-                    if (!user.ldoj.HasValue) errors.Add("ldoj: Field is missing from JSON");
-                    if (!user.nnoticePeriodDays.HasValue) errors.Add("nnoticePeriodDays: Field is missing from JSON");
-                    if (!user.lresignationDate.HasValue) errors.Add("lresignationDate: Field is missing from JSON");
-                    if (!user.llastWorkingDate.HasValue) errors.Add("llastWorkingDate: Field is missing from JSON");
-                    if (!user.croleID.HasValue) errors.Add("croleID: Field is missing from JSON");
-                    if (!user.nIsWebAccessEnabled.HasValue) errors.Add("nIsWebAccessEnabled: Field is missing from JSON");
-                    if (!user.nIsEventRead.HasValue) errors.Add("nIsEventRead: Field is missing from JSON");
-                    if (!user.lLastLoginAt.HasValue) errors.Add("lLastLoginAt: Field is missing from JSON");
-                    if (!user.nFailedLoginAttempts.HasValue) errors.Add("nFailedLoginAttempts: Field is missing from JSON");
-                    if (!user.cPasswordChangedAt.HasValue) errors.Add("cPasswordChangedAt: Field is missing from JSON");
-                    if (!user.nIsLocked.HasValue) errors.Add("nIsLocked: Field is missing from JSON");
-                    if (!user.ccreateddate.HasValue) errors.Add("ccreateddate: Field is missing from JSON");
-                    if (!user.lmodifieddate.HasValue) errors.Add("lmodifieddate: Field is missing from JSON");
-                    if (!user.nIsDeleted.HasValue) errors.Add("nIsDeleted: Field is missing from JSON");
-                    if (!user.lDeletedDate.HasValue) errors.Add("lDeletedDate: Field is missing from JSON");
-
-
                     if (user.cuserid <= 0) errors.Add("cuserid: Must be positive number");
-                    else if (user.cuserid < 1000 || user.cuserid > 9999999999999) errors.Add("cuserid: Must be between 1000-9999999999999");
-
-                    if (string.IsNullOrWhiteSpace(user.cusername)) errors.Add("cusername: Is mandatory");
-                    else if (user.cusername.ToLower() == "null") errors.Add("cusername: Cannot be 'NULL'");
-                    else if (user.cusername.Length > 100) errors.Add("cusername: Cannot exceed 100 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cemail)) errors.Add("cemail: Is mandatory");
-                    else if (user.cemail.ToLower() == "null") errors.Add("cemail: Cannot be 'NULL'");
-                    else if (user.cemail.Length > 255) errors.Add("cemail: Cannot exceed 255 characters");
-                    else
-                    {
-                        try
-                        {
-                            var addr = new System.Net.Mail.MailAddress(user.cemail);
-                            if (addr.Address != user.cemail) errors.Add("cemail: Invalid email format");
-                        }
-                        catch { errors.Add("cemail: Invalid email format"); }
-                    }
-                    if (string.IsNullOrWhiteSpace(user.cpassword)) errors.Add("cpassword: Is mandatory");
-                    else if (user.cpassword.ToLower() == "null") errors.Add("cpassword: Cannot be 'NULL'");
-                    else if (user.cpassword.Length > 500) errors.Add("cpassword: Cannot exceed 500 characters");
-                    else if (user.cpassword.Length < 15) errors.Add("cpassword: Must be at least 8 characters");
-
-                    if (!user.nIsActive.HasValue) errors.Add("nIsActive: Is mandatory");
-
-                    if (string.IsNullOrWhiteSpace(user.cfirstName)) errors.Add("cfirstName: Is mandatory");
-                    else if (user.cfirstName.ToLower() == "null") errors.Add("cfirstName: Cannot be 'NULL'");
-                    else if (user.cfirstName.Length > 100) errors.Add("cfirstName: Cannot exceed 100 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.clastName)) errors.Add("clastName: Is mandatory");
-                    else if (user.clastName.ToLower() == "null") errors.Add("clastName: Cannot be 'NULL'");
-                    else if (user.clastName.Length > 100) errors.Add("clastName: Cannot exceed 100 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cphoneno)) errors.Add("cphoneno: Is mandatory");
-                    else if (user.cphoneno.ToLower() == "null") errors.Add("cphoneno: Cannot be 'NULL'");
-                    else if (user.cphoneno.Length > 25) errors.Add("cphoneno: Cannot exceed 25 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cAlternatePhone)) errors.Add("cAlternatePhone: Is mandatory");
-                    else if (user.cAlternatePhone.ToLower() == "null") errors.Add("cAlternatePhone: Cannot be 'NULL'");
-                    else if (user.cAlternatePhone.Length > 25) errors.Add("cAlternatePhone: Cannot exceed 25 characters");
-
-                    if (!user.ldob.HasValue) errors.Add("ldob: Is mandatory");
-
-                    if (string.IsNullOrWhiteSpace(user.cMaritalStatus)) errors.Add("cMaritalStatus: Is mandatory");
-                    else if (user.cMaritalStatus.ToLower() == "null") errors.Add("cMaritalStatus: Cannot be 'NULL'");
-                    else if (user.cMaritalStatus.Length > 10) errors.Add("cMaritalStatus: Cannot exceed 10 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cnation)) errors.Add("cnation: Is mandatory");
-                    else if (user.cnation.ToLower() == "null") errors.Add("cnation: Cannot be 'NULL'");
-                    else if (user.cnation.Length > 50) errors.Add("cnation: Cannot exceed 50 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cgender)) errors.Add("cgender: Is mandatory");
-                    else if (user.cgender.ToLower() == "null") errors.Add("cgender: Cannot be 'NULL'");
-                    else if (user.cgender.Length > 10) errors.Add("cgender: Cannot exceed 10 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.caddress)) errors.Add("caddress: Is mandatory");
-                    else if (user.caddress.ToLower() == "null") errors.Add("caddress: Cannot be 'NULL'");
-                    else if (user.caddress.Length > 500) errors.Add("caddress: Cannot exceed 500 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.caddress1)) errors.Add("caddress1: Is mandatory");
-                    else if (user.caddress1.ToLower() == "null") errors.Add("caddress1: Cannot be 'NULL'");
-                    else if (user.caddress1.Length > 500) errors.Add("caddress1: Cannot exceed 500 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.caddress2)) errors.Add("caddress2: Is mandatory");
-                    else if (user.caddress2.ToLower() == "null") errors.Add("caddress2: Cannot be 'NULL'");
-                    else if (user.caddress2.Length > 500) errors.Add("caddress2: Cannot exceed 500 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cpincode)) errors.Add("cpincode: Is mandatory");
-                    else if (user.cpincode.ToLower() == "null") errors.Add("cpincode: Cannot be 'NULL'");
-                    else if (user.cpincode.Length > 10) errors.Add("cpincode: Cannot exceed 10 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.ccity)) errors.Add("ccity: Is mandatory");
-                    else if (user.ccity.ToLower() == "null") errors.Add("ccity: Cannot be 'NULL'");
-                    else if (user.ccity.Length > 250) errors.Add("ccity: Cannot exceed 250 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cstatecode)) errors.Add("cstatecode: Is mandatory");
-                    else if (user.cstatecode.ToLower() == "null") errors.Add("cstatecode: Cannot be 'NULL'");
-                    else if (user.cstatecode.Length > 10) errors.Add("cstatecode: Cannot exceed 10 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cstatedesc)) errors.Add("cstatedesc: Is mandatory");
-                    else if (user.cstatedesc.ToLower() == "null") errors.Add("cstatedesc: Cannot be 'NULL'");
-                    else if (user.cstatedesc.Length > 250) errors.Add("cstatedesc: Cannot exceed 250 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.ccountrycode)) errors.Add("ccountrycode: Is mandatory");
-                    else if (user.ccountrycode.ToLower() == "null") errors.Add("ccountrycode: Cannot be 'NULL'");
-                    else if (user.ccountrycode.Length > 10) errors.Add("ccountrycode: Cannot exceed 10 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.ProfileImage)) errors.Add("ProfileImage: Is mandatory");
-                    else if (user.ProfileImage.ToLower() == "null") errors.Add("ProfileImage: Cannot be 'NULL'");
-
-                    if (string.IsNullOrWhiteSpace(user.cbankName)) errors.Add("cbankName: Is mandatory");
-                    else if (user.cbankName.ToLower() == "null") errors.Add("cbankName: Cannot be 'NULL'");
-                    else if (user.cbankName.Length > 200) errors.Add("cbankName: Cannot exceed 200 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.caccountNumber)) errors.Add("caccountNumber: Is mandatory");
-                    else if (user.caccountNumber.ToLower() == "null") errors.Add("caccountNumber: Cannot be 'NULL'");
-                    else if (user.caccountNumber.Length > 50) errors.Add("caccountNumber: Cannot exceed 50 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.ciFSCCode)) errors.Add("ciFSCCode: Is mandatory");
-                    else if (user.ciFSCCode.ToLower() == "null") errors.Add("ciFSCCode: Cannot be 'NULL'");
-                    else if (user.ciFSCCode.Length > 20) errors.Add("ciFSCCode: Cannot exceed 20 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cpAN)) errors.Add("cpAN: Is mandatory");
-                    else if (user.cpAN.ToLower() == "null") errors.Add("cpAN: Cannot be 'NULL'");
-                    else if (user.cpAN.Length > 20) errors.Add("cpAN: Cannot exceed 20 characters");
-
-                    if (!user.ldoj.HasValue) errors.Add("ldoj: Is mandatory");
-
-                    if (string.IsNullOrWhiteSpace(user.cemploymentStatus)) errors.Add("cemploymentStatus: Is mandatory");
-                    else if (user.cemploymentStatus.ToLower() == "null") errors.Add("cemploymentStatus: Cannot be 'NULL'");
-                    else if (user.cemploymentStatus.Length > 50) errors.Add("cemploymentStatus: Cannot exceed 50 characters");
-
-                    if (!user.nnoticePeriodDays.HasValue) errors.Add("nnoticePeriodDays: Is mandatory");
-                    else if (user.nnoticePeriodDays < 0) errors.Add("nnoticePeriodDays: Cannot be negative");
-
-                    if (!user.lresignationDate.HasValue) errors.Add("lresignationDate: Is mandatory");
-
-                    if (!user.llastWorkingDate.HasValue) errors.Add("llastWorkingDate: Is mandatory");
-
-                    if (string.IsNullOrWhiteSpace(user.cempcategory)) errors.Add("cempcategory: Is mandatory");
-                    else if (user.cempcategory.ToLower() == "null") errors.Add("cempcategory: Cannot be 'NULL'");
-                    else if (user.cempcategory.Length > 100) errors.Add("cempcategory: Cannot exceed 100 characters");
-
-                    if (user.cworkloccode == null)
-                    {
-                        errors.Add("cworkloccode: Field is missing from JSON");
-                    }
-                    else if (string.IsNullOrWhiteSpace(user.cworkloccode))
-                    {
-                        errors.Add("cworkloccode: Cannot be empty or whitespace");
-                    }
-                    else if (user.cworkloccode.ToLower() == "null")
-                    {
-                        errors.Add("cworkloccode: Cannot be 'NULL'");
-                    }
-                    else if (user.cworkloccode.Length > 100)
-                    {
-                        errors.Add("cworkloccode: Cannot exceed 100 characters");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(user.cworklocname)) errors.Add("cworklocname: Is mandatory");
-                    else if (user.cworklocname.ToLower() == "null") errors.Add("cworklocname: Cannot be 'NULL'");
-                    else if (user.cworklocname.Length > 250) errors.Add("cworklocname: Cannot exceed 250 characters");
-
-                    if (!user.croleID.HasValue) errors.Add("croleID: Is mandatory");
-                    else if (user.croleID <= 0) errors.Add("croleID: Must be positive");
-
-
-                    if (string.IsNullOrWhiteSpace(user.crolecode))
-                    {
-                        user.crolecode = "USER"; 
-                    }
-                    else if (user.crolecode.ToLower() == "null")
-                    {
-                        errors.Add("crolecode: Cannot be 'NULL'");
-                    }
-                    else if (user.crolecode.Length > 100)
-                    {
-                        errors.Add("crolecode: Cannot exceed 100 characters");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(user.crolename)) errors.Add("crolename: Is mandatory");
-                    else if (user.crolename.ToLower() == "null") errors.Add("crolename: Cannot be 'NULL'");
-                    else if (user.crolename.Length > 250) errors.Add("crolename: Cannot exceed 250 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cgradecode)) errors.Add("cgradecode: Is mandatory");
-                    else if (user.cgradecode.ToLower() == "null") errors.Add("cgradecode: Cannot be 'NULL'");
-                    else if (user.cgradecode.Length > 100) errors.Add("cgradecode: Cannot exceed 100 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cgradedesc)) errors.Add("cgradedesc: Is mandatory");
-                    else if (user.cgradedesc.ToLower() == "null") errors.Add("cgradedesc: Cannot be 'NULL'");
-                    else if (user.cgradedesc.Length > 500) errors.Add("cgradedesc: Cannot exceed 500 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.csubrolecode)) errors.Add("csubrolecode: Is mandatory");
-                    else if (user.csubrolecode.ToLower() == "null") errors.Add("csubrolecode: Cannot be 'NULL'");
-                    else if (user.csubrolecode.Length > 100) errors.Add("csubrolecode: Cannot exceed 100 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cdeptcode)) errors.Add("cdeptcode: Is mandatory");
-                    else if (user.cdeptcode.ToLower() == "null") errors.Add("cdeptcode: Cannot be 'NULL'");
-                    else if (user.cdeptcode.Length > 100) errors.Add("cdeptcode: Cannot exceed 100 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cdeptdesc)) errors.Add("cdeptdesc: Is mandatory");
-                    else if (user.cdeptdesc.ToLower() == "null") errors.Add("cdeptdesc: Cannot be 'NULL'");
-                    else if (user.cdeptdesc.Length > 250) errors.Add("cdeptdesc: Cannot exceed 250 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cjobcode)) errors.Add("cjobcode: Is mandatory");
-                    else if (user.cjobcode.ToLower() == "null") errors.Add("cjobcode: Cannot be 'NULL'");
-                    else if (user.cjobcode.Length > 250) errors.Add("cjobcode: Cannot exceed 250 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cjobdesc)) errors.Add("cjobdesc: Is mandatory");
-                    else if (user.cjobdesc.ToLower() == "null") errors.Add("cjobdesc: Cannot be 'NULL'");
-                    else if (user.cjobdesc.Length > 250) errors.Add("cjobdesc: Cannot exceed 250 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.creportmgrcode)) errors.Add("creportmgrcode: Is mandatory");
-                    else if (user.creportmgrcode.ToLower() == "null") errors.Add("creportmgrcode: Cannot be 'NULL'");
-                    else if (user.creportmgrcode.Length > 500) errors.Add("creportmgrcode: Cannot exceed 500 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.creportmgrname)) errors.Add("creportmgrname: Is mandatory");
-                    else if (user.creportmgrname.ToLower() == "null") errors.Add("creportmgrname: Cannot be 'NULL'");
-                    else if (user.creportmgrname.Length > 500) errors.Add("creportmgrname: Cannot exceed 500 characters");
-
-                    if (user.cRoll_id == null)
-                    {
-                        errors.Add("cRoll_id: Field is missing from JSON");
-                    }
-                    else if (string.IsNullOrWhiteSpace(user.cRoll_id))
-                    {
-                        errors.Add("cRoll_id: Cannot be empty or whitespace");
-                    }
-                    else if (user.cRoll_id.ToLower() == "null")
-                    {
-                        errors.Add("cRoll_id: Cannot be 'NULL'");
-                    }
-                    else if (user.cRoll_id.Length > 100)
-                    {
-                        errors.Add("cRoll_id: Cannot exceed 100 characters");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(user.cRoll_name)) errors.Add("cRoll_name: Is mandatory");
-                    else if (user.cRoll_name.ToLower() == "null") errors.Add("cRoll_name: Cannot be 'NULL'");
-                    else if (user.cRoll_name.Length > 250) errors.Add("cRoll_name: Cannot exceed 250 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cRoll_Id_mngr)) errors.Add("cRoll_Id_mngr: Is mandatory");
-                    else if (user.cRoll_Id_mngr.ToLower() == "null") errors.Add("cRoll_Id_mngr: Cannot be 'NULL'");
-                    else if (user.cRoll_Id_mngr.Length > 100) errors.Add("cRoll_Id_mngr: Cannot exceed 100 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cRoll_Id_mngr_desc)) errors.Add("cRoll_Id_mngr_desc: Is mandatory");
-                    else if (user.cRoll_Id_mngr_desc.ToLower() == "null") errors.Add("cRoll_Id_mngr_desc: Cannot be 'NULL'");
-                    else if (user.cRoll_Id_mngr_desc.Length > 250) errors.Add("cRoll_Id_mngr_desc: Cannot exceed 250 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cReportManager_empcode)) errors.Add("cReportManager_empcode: Is mandatory");
-                    else if (user.cReportManager_empcode.ToLower() == "null") errors.Add("cReportManager_empcode: Cannot be 'NULL'");
-                    else if (user.cReportManager_empcode.Length > 1000) errors.Add("cReportManager_empcode: Cannot exceed 1000 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cReportManager_Poscode)) errors.Add("cReportManager_Poscode: Is mandatory");
-                    else if (user.cReportManager_Poscode.ToLower() == "null") errors.Add("cReportManager_Poscode: Cannot be 'NULL'");
-                    else if (user.cReportManager_Poscode.Length > 1000) errors.Add("cReportManager_Poscode: Cannot exceed 1000 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.cReportManager_Posdesc)) errors.Add("cReportManager_Posdesc: Is mandatory");
-                    else if (user.cReportManager_Posdesc.ToLower() == "null") errors.Add("cReportManager_Posdesc: Cannot be 'NULL'");
-                    else if (user.cReportManager_Posdesc.Length > 1000) errors.Add("cReportManager_Posdesc: Cannot exceed 1000 characters");
-
-                    if (!user.nIsWebAccessEnabled.HasValue) errors.Add("nIsWebAccessEnabled: Is mandatory");
-
-                    if (!user.nIsEventRead.HasValue) errors.Add("nIsEventRead: Is mandatory");
-
-                    if (!user.lLastLoginAt.HasValue) errors.Add("lLastLoginAt: Is mandatory");
-
-                    if (!user.nFailedLoginAttempts.HasValue) errors.Add("nFailedLoginAttempts: Is mandatory");
-                    else if (user.nFailedLoginAttempts < 0) errors.Add("nFailedLoginAttempts: Cannot be negative");
-
-                    if (!user.cPasswordChangedAt.HasValue) errors.Add("cPasswordChangedAt: Is mandatory");
-
-                    if (!user.nIsLocked.HasValue) errors.Add("nIsLocked: Is mandatory");
-
-                    if (string.IsNullOrWhiteSpace(user.LastLoginIP)) errors.Add("LastLoginIP: Is mandatory");
-                    else if (user.LastLoginIP.ToLower() == "null") errors.Add("LastLoginIP: Cannot be 'NULL'");
-                    else if (user.LastLoginIP.Length > 50) errors.Add("LastLoginIP: Cannot exceed 50 characters");
-
-                    if (string.IsNullOrWhiteSpace(user.LastLoginDevice)) errors.Add("LastLoginDevice: Is mandatory");
-                    else if (user.LastLoginDevice.ToLower() == "null") errors.Add("LastLoginDevice: Cannot be 'NULL'");
-                    else if (user.LastLoginDevice.Length > 200) errors.Add("LastLoginDevice: Cannot exceed 200 characters");
-
-                     if (string.IsNullOrWhiteSpace(usernameClaim))
-                    {
-                        errors.Add("ccreatedby: Cannot get creator from token - token username is missing");
-                    }
-                    else if (usernameClaim.ToLower() == "null")
-                    {
-                        errors.Add("ccreatedby: Creator from token cannot be 'NULL'");
-                    }
-                    else if (usernameClaim.Length > 50)
-                    {
-                        errors.Add("ccreatedby: Creator name from token exceeds 50 characters");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(usernameClaim))
-                    {
-                        errors.Add("cmodifiedby: Cannot get modifier from token");
-                    }
-                    else if (usernameClaim.Length > 50)
-                    {
-                        errors.Add("cmodifiedby: Modifier name from token exceeds 50 characters");
-                    }
-                    if (!user.lmodifieddate.HasValue) errors.Add("lmodifieddate: Is mandatory");
-
-                   
-                    if (user.cDeletedBy == null)
-                    {
-                        errors.Add("cDeletedBy: Field is missing from JSON");
-                    }
-                    else if (string.IsNullOrWhiteSpace(user.cDeletedBy))
-                    {
-                        user.cDeletedBy = "";
-                    }
-                    else if (user.cDeletedBy.ToLower() == "null")
-                    {
-                        errors.Add("cDeletedBy: Cannot be 'NULL'");
-                    }
-                    else if (user.cDeletedBy.Length > 50)
-                    {
-                        errors.Add("cDeletedBy: Cannot exceed 50 characters");
-                    }
-
-                    var userValidation = new
-                    {
-                        Email = user.cemail ?? "Not provided",
-                        UserID = user.cuserid,
-                        Phone = user.cphoneno ?? "Not provided",
-                        IsValid = !errors.Any(),
-                        Errors = errors.Take(50).ToList()
-                    };
-
-                    validationResults.Add(userValidation);
+                    if (user.cusername == null) errors.Add("cusername: Field is null");
+                    if (user.cemail == null) errors.Add("cemail: Field is null");
+                    if (user.cpassword == null) errors.Add("cpassword: Field is null");
+                    if (user.cfirstName == null) errors.Add("cfirstName: Field is null");
+                    if (user.clastName == null) errors.Add("clastName: Field is null");
+                    if (user.cphoneno == null) errors.Add("cphoneno: Field is null");
+                    if (user.cAlternatePhone == null) errors.Add("cAlternatePhone: Field is null");
+                    if (user.cMaritalStatus == null) errors.Add("cMaritalStatus: Field is null");
+                    if (user.cnation == null) errors.Add("cnation: Field is null");
+                    if (user.cgender == null) errors.Add("cgender: Field is null");
+                    if (user.caddress == null) errors.Add("caddress: Field is null");
+                    if (user.caddress1 == null) errors.Add("caddress1: Field is null");
+                    if (user.caddress2 == null) errors.Add("caddress2: Field is null");
+                    if (user.cpincode == null) errors.Add("cpincode: Field is null");
+                    if (user.ccity == null) errors.Add("ccity: Field is null");
+                    if (user.cstatecode == null) errors.Add("cstatecode: Field is null");
+                    if (user.cstatedesc == null) errors.Add("cstatedesc: Field is null");
+                    if (user.ccountrycode == null) errors.Add("ccountrycode: Field is null");
+                    if (user.ProfileImage == null) errors.Add("ProfileImage: Field is null");
+                    if (user.cbankName == null) errors.Add("cbankName: Field is null");
+                    if (user.caccountNumber == null) errors.Add("caccountNumber: Field is null");
+                    if (user.ciFSCCode == null) errors.Add("ciFSCCode: Field is null");
+                    if (user.cpAN == null) errors.Add("cpAN: Field is null");
+                    if (user.cemploymentStatus == null) errors.Add("cemploymentStatus: Field is null");
+                    if (user.cempcategory == null) errors.Add("cempcategory: Field is null");
+                    if (user.cworkloccode == null) errors.Add("cworkloccode: Field is null");
+                    if (user.cworklocname == null) errors.Add("cworklocname: Field is null");
+                    if (user.crolecode == null) errors.Add("crolecode: Field is null");
+                    if (user.crolename == null) errors.Add("crolename: Field is null");
+                    if (user.cgradecode == null) errors.Add("cgradecode: Field is null");
+                    if (user.cgradedesc == null) errors.Add("cgradedesc: Field is null");
+                    if (user.csubrolecode == null) errors.Add("csubrolecode: Field is null");
+                    if (user.cdeptcode == null) errors.Add("cdeptcode: Field is null");
+                    if (user.cdeptdesc == null) errors.Add("cdeptdesc: Field is null");
+                    if (user.cjobcode == null) errors.Add("cjobcode: Field is null");
+                    if (user.cjobdesc == null) errors.Add("cjobdesc: Field is null");
+                    if (user.creportmgrcode == null) errors.Add("creportmgrcode: Field is null");
+                    if (user.creportmgrname == null) errors.Add("creportmgrname: Field is null");
+                    if (user.cRoll_id == null) errors.Add("cRoll_id: Field is null");
+                    if (user.cRoll_name == null) errors.Add("cRoll_name: Field is null");
+                    if (user.cRoll_Id_mngr == null) errors.Add("cRoll_Id_mngr: Field is null");
+                    if (user.cRoll_Id_mngr_desc == null) errors.Add("cRoll_Id_mngr_desc: Field is null");
+                    if (user.cReportManager_empcode == null) errors.Add("cReportManager_empcode: Field is null");
+                    if (user.cReportManager_Poscode == null) errors.Add("cReportManager_Poscode: Field is null");
+                    if (user.cReportManager_Posdesc == null) errors.Add("cReportManager_Posdesc: Field is null");
+                    if (user.LastLoginIP == null) errors.Add("LastLoginIP: Field is null");
+                    if (user.LastLoginDevice == null) errors.Add("LastLoginDevice: Field is null");
+                    if (user.ccreatedby == null) errors.Add("ccreatedby: Field is null");
+                    if (user.cmodifiedby == null) errors.Add("cmodifiedby: Field is null");
+                    if (user.cDeletedBy == null) errors.Add("cDeletedBy: Field is null");
+
+                    if (!user.nIsActive.HasValue) errors.Add("nIsActive: Field is null");
+                    if (!user.ldob.HasValue) errors.Add("ldob: Field is null");
+                    if (!user.ldoj.HasValue) errors.Add("ldoj: Field is null");
+                    if (!user.nnoticePeriodDays.HasValue) errors.Add("nnoticePeriodDays: Field is null");
+                    if (!user.lresignationDate.HasValue) errors.Add("lresignationDate: Field is null");
+                    if (!user.llastWorkingDate.HasValue) errors.Add("llastWorkingDate: Field is null");
+                    if (!user.croleID.HasValue) errors.Add("croleID: Field is null");
+                    if (!user.nIsWebAccessEnabled.HasValue) errors.Add("nIsWebAccessEnabled: Field is null");
+                    if (!user.nIsEventRead.HasValue) errors.Add("nIsEventRead: Field is null");
+                    if (!user.lLastLoginAt.HasValue) errors.Add("lLastLoginAt: Field is null");
+                    if (!user.nFailedLoginAttempts.HasValue) errors.Add("nFailedLoginAttempts: Field is null");
+                    if (!user.cPasswordChangedAt.HasValue) errors.Add("cPasswordChangedAt: Field is null");
+                    if (!user.nIsLocked.HasValue) errors.Add("nIsLocked: Field is null");
+                    if (!user.ccreateddate.HasValue) errors.Add("ccreateddate: Field is null");
+                    if (!user.lmodifieddate.HasValue) errors.Add("lmodifieddate: Field is null");
+                    if (!user.nIsDeleted.HasValue) errors.Add("nIsDeleted: Field is null");
+                    if (!user.lDeletedDate.HasValue) errors.Add("lDeletedDate: Field is null");
 
                     if (errors.Any())
                     {
                         failedUsers.Add(new
                         {
-                            user.cemail,
-                            user.cuserid,
-                            user.cphoneno,
-                            reason = string.Join("; ", errors.Take(3))
+                            cemail = user.cemail ?? "NULL",
+                            cuserid = user.cuserid,
+                            cphoneno = user.cphoneno ?? "NULL",
+                            reason = string.Join("; ", errors.Take(5)) 
                         });
                     }
                     else
@@ -1976,40 +1667,10 @@ namespace TaskEngineAPI.Controllers
                     }
                 }
 
-                var duplicateUserIds = validUsers.GroupBy(u => u.cuserid).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
-                var duplicateEmails = validUsers.GroupBy(u => u.cemail).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
-                var duplicatePhones = validUsers.GroupBy(u => u.cphoneno).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
-
-                var duplicateErrors = new List<object>();
-                var finalValidUsers = new List<CreateUserDTO>();
-
-                foreach (var user in validUsers)
-                {
-                    var errors = new List<string>();
-
-                    if (duplicateUserIds.Contains(user.cuserid)) errors.Add("Duplicate User ID in JSON");
-                    if (duplicateEmails.Contains(user.cemail)) errors.Add("Duplicate Email in JSON");
-                    if (duplicatePhones.Contains(user.cphoneno)) errors.Add("Duplicate Phone in JSON");
-
-                    if (errors.Any())
-                    {
-                        duplicateErrors.Add(new
-                        {
-                            user.cemail,
-                            user.cuserid,
-                            user.cphoneno,
-                            reason = string.Join("; ", errors)
-                        });
-                    }
-                    else
-                    {
-                        finalValidUsers.Add(user);
-                    }
-                }
                 var response = new
                 {
                     status = 400,
-                    statusText = "JSON Validation Completed",
+                    statusText = "JSON Validation Failed - Null Fields Detected",
                     body = new
                     {
                         validation_type = "JSON_ONLY_VALIDATION",
@@ -2020,27 +1681,24 @@ namespace TaskEngineAPI.Controllers
                             u.cemail,
                             u.cuserid,
                             u.cphoneno,
-                            all_fields = u.GetType().GetProperties()
-                                .ToDictionary(p => p.Name, p => p.GetValue(u))
+                            all_fields = u
                         }),
-
                         json_structure_valid = true,
                         validation_results = new
                         {
-                            total_valid_users = finalValidUsers.Count,
-                            total_failed_users = failedUsers.Count + duplicateErrors.Count,
-                            valid_users = finalValidUsers.Select(u => new { u.cemail, u.cuserid, u.cphoneno }),
+                            total_valid_users = validUsers.Count,
+                            total_failed_users = failedUsers.Count,
+                            valid_users = validUsers.Select(u => new { u.cemail, u.cuserid, u.cphoneno }),
                             field_validation_failures = failedUsers,
-                            duplicate_failures = duplicateErrors
+                            duplicate_failures = new List<object>()
                         }
                     },
-                    message = "Pure JSON validation completed successfully. No database operations performed."
+                    message = "Validation completed. No database operations performed due to null fields."
                 };
-
 
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
-                return Ok($"\"{encrypted}\"");
+                return StatusCode(400, $"\"{encrypted}\"");
             }
             catch (Exception ex)
             {
@@ -2056,7 +1714,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
-
 
     }
 }
