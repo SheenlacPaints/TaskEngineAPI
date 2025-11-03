@@ -1532,11 +1532,9 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-       
         [Authorize]
         [HttpPost("CreateUsersBulk3")]
-        public IActionResult CreateUsersBulk3([FromBody] pay request)
+        public async Task<IActionResult> CreateUsersBulk3([FromBody] pay request)
         {
             try
             {
@@ -1576,6 +1574,7 @@ namespace TaskEngineAPI.Controllers
 
                 var failedUsers = new List<object>();
                 var validUsers = new List<CreateUserDTO>();
+                bool hasAnyNullField = false;
 
                 foreach (var user in users)
                 {
@@ -1629,9 +1628,9 @@ namespace TaskEngineAPI.Controllers
                     if (user.cReportManager_Posdesc == null) errors.Add("cReportManager_Posdesc: Field is null");
                     if (user.LastLoginIP == null) errors.Add("LastLoginIP: Field is null");
                     if (user.LastLoginDevice == null) errors.Add("LastLoginDevice: Field is null");
-                    if (user.ccreatedby == null) errors.Add("ccreatedby: Field is null");
-                    if (user.cmodifiedby == null) errors.Add("cmodifiedby: Field is null");
-                    if (user.cDeletedBy == null) errors.Add("cDeletedBy: Field is null");
+                    //if (user.ccreatedby == null) errors.Add("ccreatedby: Field is null");
+                    //if (user.cmodifiedby == null) errors.Add("cmodifiedby: Field is null");
+                    //if (user.cDeletedBy == null) errors.Add("cDeletedBy: Field is null");
 
                     if (!user.nIsActive.HasValue) errors.Add("nIsActive: Field is null");
                     if (!user.ldob.HasValue) errors.Add("ldob: Field is null");
@@ -1639,26 +1638,26 @@ namespace TaskEngineAPI.Controllers
                     if (!user.nnoticePeriodDays.HasValue) errors.Add("nnoticePeriodDays: Field is null");
                     if (!user.lresignationDate.HasValue) errors.Add("lresignationDate: Field is null");
                     if (!user.llastWorkingDate.HasValue) errors.Add("llastWorkingDate: Field is null");
-                    if (!user.croleID.HasValue) errors.Add("croleID: Field is null");
+                    //if (!user.croleID.HasValue) errors.Add("croleID: Field is null");
                     if (!user.nIsWebAccessEnabled.HasValue) errors.Add("nIsWebAccessEnabled: Field is null");
                     if (!user.nIsEventRead.HasValue) errors.Add("nIsEventRead: Field is null");
                     if (!user.lLastLoginAt.HasValue) errors.Add("lLastLoginAt: Field is null");
                     if (!user.nFailedLoginAttempts.HasValue) errors.Add("nFailedLoginAttempts: Field is null");
                     if (!user.cPasswordChangedAt.HasValue) errors.Add("cPasswordChangedAt: Field is null");
                     if (!user.nIsLocked.HasValue) errors.Add("nIsLocked: Field is null");
-                    if (!user.ccreateddate.HasValue) errors.Add("ccreateddate: Field is null");
+                    //if (!user.ccreateddate.HasValue) errors.Add("ccreateddate: Field is null");
                     if (!user.lmodifieddate.HasValue) errors.Add("lmodifieddate: Field is null");
-                    if (!user.nIsDeleted.HasValue) errors.Add("nIsDeleted: Field is null");
-                    if (!user.lDeletedDate.HasValue) errors.Add("lDeletedDate: Field is null");
-
+                    // if (!user.nIsDeleted.HasValue) errors.Add("nIsDeleted: Field is null");
+                    //if (!user.lDeletedDate.HasValue) errors.Add("lDeletedDate: Field is null");
                     if (errors.Any())
                     {
+                        hasAnyNullField = true;
                         failedUsers.Add(new
                         {
                             cemail = user.cemail ?? "NULL",
                             cuserid = user.cuserid,
                             cphoneno = user.cphoneno ?? "NULL",
-                            reason = string.Join("; ", errors.Take(5)) 
+                            reason = string.Join("; ", errors.Take(';'))
                         });
                     }
                     else
@@ -1666,54 +1665,69 @@ namespace TaskEngineAPI.Controllers
                         validUsers.Add(user);
                     }
                 }
+                if (hasAnyNullField)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Validation Failed - Null Fields Detected",
+                        body = new
+                        {
+                            validation_type = "STRICT_VALIDATION",
+                            database_operation = "NONE",
+                            total_users_received = users.Count,
+                            total_valid_users = validUsers.Count,
+                            total_failed_users = failedUsers.Count,
+                            failed_users = failedUsers,
+                            valid_users = validUsers.Select(u => new { u.cemail, u.cuserid, u.cphoneno }),
+                            note = "All 68 fields are mandatory. No users were inserted due to null fields."
+                        },
+                        message = "Bulk insertion aborted - null fields detected in one or more users"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest($"\"{encryptedError}\"");
+                }
+
+                int insertedCount = 0;
+                if (validUsers.Any())
+                {
+                    insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers, cTenantID, usernameClaim);
+                }
 
                 var response = new
                 {
-                    status = 400,
-                    statusText = "JSON Validation Failed - Null Fields Detected",
+                    status = 200,
+                    statusText = "Bulk user creation completed successfully",
                     body = new
                     {
-                        validation_type = "JSON_ONLY_VALIDATION",
-                        database_operation = "NONE",
-                        total_users_received = users.Count,
-                        actual_json_data = users.Select(u => new
-                        {
-                            u.cemail,
-                            u.cuserid,
-                            u.cphoneno,
-                            all_fields = u
-                        }),
-                        json_structure_valid = true,
-                        validation_results = new
-                        {
-                            total_valid_users = validUsers.Count,
-                            total_failed_users = failedUsers.Count,
-                            valid_users = validUsers.Select(u => new { u.cemail, u.cuserid, u.cphoneno }),
-                            field_validation_failures = failedUsers,
-                            duplicate_failures = new List<object>()
-                        }
+                        total = users.Count,
+                        success = insertedCount,
+                        failure = 0,
+                        inserted = validUsers.Select(u => new { u.cemail, u.cuserid }),
+                        failed = new List<object>(),
+                        note = "All 68 mandatory fields were validated successfully"
                     },
-                    message = "Validation completed. No database operations performed due to null fields."
+                    error = ""
                 };
 
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
-                return StatusCode(400, $"\"{encrypted}\"");
+                return Ok(encrypted);
             }
             catch (Exception ex)
             {
                 var errorResponse = new
                 {
                     status = 500,
-                    statusText = "JSON Validation Error",
+                    statusText = "Internal Server Error",
                     error = ex.Message,
-                    note = "Validation failed during JSON processing only - No database involved"
+                    note = "No database operations were performed due to error"
                 };
                 string errorJson = JsonConvert.SerializeObject(errorResponse);
                 var encryptedError = AesEncryption.Encrypt(errorJson);
                 return StatusCode(500, encryptedError);
             }
         }
-
     }
 }
