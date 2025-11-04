@@ -1104,6 +1104,13 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateUsersBulk3", content);
                 var body = await response.Content.ReadAsStringAsync();
