@@ -1112,7 +1112,7 @@ VALUES (
 
 
 
-        public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users, int cTenantID, string username)
+        public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users, int cTenantID, string usernameClaim)
         {
             if (users == null || !users.Any())
                 return 0;
@@ -1256,8 +1256,8 @@ VALUES (
                 row["last_login_ip"] = u.LastLoginIP ?? (object)DBNull.Value;
                 row["last_login_device"] = u.LastLoginDevice ?? (object)DBNull.Value;
                 row["ccreated_date"] = u.ccreateddate ?? DateTime.Now;
-                row["ccreated_by"] = username;
-                row["cmodified_by"] = username;
+                row["ccreated_by"] = usernameClaim;
+                row["cmodified_by"] = usernameClaim;
                 row["lmodified_date"] = u.lmodifieddate ?? DateTime.Now;
                 row["nIs_deleted"] = u.nIsDeleted ?? false;
                 row["cdeleted_by"] = u.cDeletedBy ?? (object)DBNull.Value;
