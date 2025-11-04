@@ -1098,21 +1098,58 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        //[Authorize]
+        //[HttpPost("CreateUsersBulk")]
+        //public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
+        //{
+        //    try
+        //    {
+
+        //        var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+        //        if (string.IsNullOrWhiteSpace(jwtToken))
+        //        {
+        //            return Unauthorized("Missing Authorization token.");
+        //        }
+        //        var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+        //        var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateUsersBulk3", content);
+        //        var body = await response.Content.ReadAsStringAsync();
+        //        string json = $"\"{body}\"";
+        //        return StatusCode((int)response.StatusCode, json);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var err = new APIResponse
+        //        {
+        //            status = 500,
+        //            statusText = $"Error calling external API: {ex.Message}"
+        //        };
+        //        string jsonn = JsonConvert.SerializeObject(err);
+        //        string enc = AesEncryption.Encrypt(jsonn);
+        //        string encc = $"\"{enc}\"";
+        //        return StatusCode(500, encc);
+        //    }
+        //}
+
+
         [Authorize]
         [HttpPost("CreateUsersBulk")]
         public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
         {
             try
             {
-
+                // Extract token from incoming request
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
 
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return Unauthorized("Missing Authorization token.");
                 }
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateUsersBulk3", content);
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/CreateUsersBulk3");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
@@ -1130,6 +1167,12 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+
+
+
+
+
 
     }
 }
