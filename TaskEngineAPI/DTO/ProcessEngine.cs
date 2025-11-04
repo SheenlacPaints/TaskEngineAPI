@@ -201,6 +201,7 @@
         public DateTime? lmodifieddate { get; set; }
         public string? Employeecode { get; set; }
         public string? EmpDepartment { get; set; }
+        public int? cprocess_id { get; set; }
         public List<GetTaskDetails>? TaskChildItems { get; set; }
     }
 
