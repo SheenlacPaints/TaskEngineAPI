@@ -1554,7 +1554,7 @@ namespace TaskEngineAPI.Controllers
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
                     string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return StatusCode(401, $"\"{encryptedError}\"");
+                    return StatusCode(401, $"{encryptedError}");
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
@@ -1569,7 +1569,7 @@ namespace TaskEngineAPI.Controllers
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
                     string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return BadRequest($"\"{encryptedError}\"");
+                    return BadRequest($"{encryptedError}");
                 }
 
                 var failedUsers = new List<object>();
@@ -1686,7 +1686,7 @@ namespace TaskEngineAPI.Controllers
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
                     string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return BadRequest($"\"{encryptedError}\"");
+                    return BadRequest($"{encryptedError}");
                 }
 
                 int insertedCount = 0;
