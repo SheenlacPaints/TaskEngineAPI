@@ -78,6 +78,15 @@ namespace TaskEngineAPI.Helpers
             int ordinal = reader.GetOrdinal(column);
             return reader.IsDBNull(ordinal) ? null : reader.GetDateTime(ordinal);
         }
+
+
+        public static bool SafeGetBoolean(this SqlDataReader reader, string column)
+        {
+            int ordinal = reader.GetOrdinal(column);
+            return !reader.IsDBNull(ordinal) && reader.GetBoolean(ordinal);
+        }
+
+
     }
 
 

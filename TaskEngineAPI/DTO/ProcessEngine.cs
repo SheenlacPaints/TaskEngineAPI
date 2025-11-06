@@ -104,8 +104,34 @@
         public string? cmodified_by { get; set; }
         public DateTime? lmodified_date { get; set; }
 
-        public List<processEngineChildItems> processEngineChildItems { get; set; }
+        public List<GetprocessEngineChildItems> processEngineChildItems { get; set; }
     }
+
+
+    public class GetprocessEngineChildItems
+    {
+        public int? cheader_id { get; set; }
+       
+        public string? cprocessCode { get; set; }
+        public int? ciseqno { get; set; }
+        public string? cactivityCode { get; set; }
+        public string? cactivityDescription { get; set; }
+        public string? ctaskType { get; set; }
+        public string? cprevStep { get; set; }
+        public string? cactivityName { get; set; }
+        public string? cnextSeqno { get; set; }
+        public string? cmappingCode { get; set; }
+        public string? cmappingType { get; set; }
+        public string? cparticipantType { get; set; }
+        public int? cslaDay { get; set; }
+        public int? cslaHour { get; set; }
+        public bool? nboardEnabled { get; set; }
+        public string? cactionPrivilege { get; set; }
+        public string? crejectionPrivilege { get; set; }
+        public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
+    }
+
+
     public class ProcessEngineMetaMaster
     {
         public string? meta_Name { get; set; }
