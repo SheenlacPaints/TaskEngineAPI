@@ -229,11 +229,11 @@
         public string? caction_privilege { get; set; }
         public string? crejection_privilege { get; set; }                              
         public string? cisforwarded { get; set; }
-        public DateTime? lfwddate { get; set; }
-        public string? cfwdto { get; set; }
-        public string? cisreassigned { get; set; }
-        public DateTime? lreassigndt { get; set; }
-        public string? creassignto { get; set; }
+        public DateTime? lfwd_date { get; set; }
+        public string? cfwd_to { get; set; }
+        public string? cis_reassigned { get; set; }
+        public DateTime? lreassign_date { get; set; }
+        public string? creassign_to { get; set; }
 
     }
 }
