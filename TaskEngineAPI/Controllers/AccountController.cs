@@ -1532,7 +1532,6 @@ namespace TaskEngineAPI.Controllers
         //    }
         //}
 
-        
 
         [Authorize]
         [HttpPost("CreateUsersBulk3")]
@@ -1706,9 +1705,6 @@ namespace TaskEngineAPI.Controllers
                     if (!string.IsNullOrEmpty(user.cphoneno) && !System.Text.RegularExpressions.Regex.IsMatch(user.cphoneno, @"^[0-9]{10}$"))
                         errors.Add("cphoneno: Invalid phone number format (must be 10 digits)");
 
-                    //if (!string.IsNullOrEmpty(user.cpan) && !System.Text.RegularExpressions.Regex.IsMatch(user.cpan, @"^[A-Z]{5}[0-9]{4}[A-Z]{1}$"))
-                    //    errors.Add("cpAN: Invalid PAN format");
-
                     if (errors.Any())
                     {
                         hasValidationErrors = true;
@@ -1758,12 +1754,32 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 int insertedCount = 0;
+                List<BulkUserDTO> successfullyInsertedUsers = new List<BulkUserDTO>();
+                List<object> databaseFailedUsers = new List<object>();
+
                 if (validUsers.Any())
                 {
-                    insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers, cTenantID, usernameClaim);
+                    try
+                    {
+                        insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers, cTenantID, usernameClaim);
+
+                        successfullyInsertedUsers = validUsers;
+                    }
+                    catch (Exception dbEx)
+                    {
+                        databaseFailedUsers.Add(new
+                        {
+                            error_type = "DATABASE_CONSTRAINT_VIOLATION",
+                            message = dbEx.Message,
+                            note = "Some users may already exist in the database. Check unique constraints (cuserid, cusername, cemail, cphoneno)."
+                        });
+
+                        insertedCount = 0;
+                        successfullyInsertedUsers = new List<BulkUserDTO>();
+                    }
                 }
 
-                var insertedUsersWithDetails = validUsers.Select(u => new
+                var insertedUsersWithDetails = successfullyInsertedUsers.Select(u => new
                 {
                     u.cemail,
                     u.cuserid,
@@ -1806,8 +1822,6 @@ namespace TaskEngineAPI.Controllers
                 { "cjobdesc", u.cjobdesc },
                 { "creportmgrcode", u.creportmgrcode },
                 { "creportmgrname", u.creportmgrname },
-               // { "croll_id", u.croll_id },
-               // {"crolecode",u.crolecode },
                 { "croll_name", u.croll_name },
                 { "croll_id_mngr", u.croll_id_mngr },
                 { "croll_id_mngr_desc" , u.croll_id_mngr_desc },
@@ -1820,75 +1834,70 @@ namespace TaskEngineAPI.Controllers
                     .ToList()
                 }).ToList();
 
-                if (hasValidationErrors)
+                object response;
+
+                if (databaseFailedUsers.Any())
                 {
-                    var errorResponse = new
+                    response = new
                     {
-                        status = 400,
-                        statusText = "Validation Failed - Missing or Invalid Fields",
+                        status = 500,
+                        statusText = "Database Insertion Failed",
                         body = new
                         {
-                            validation_type = "FIELD_VALIDATION",
-                            database_operation = "NONE",
                             total_users_received = users.Count,
-                            total_valid_users = validUsers.Count,
-                            total_failed_users = failedUsers.Count,
-                            failed_users = failedUsers,
-                            valid_users = validUsers.Select(u => new {
-                                u.cemail,
-                                u.cuserid,
-                                u.cphoneno,
-                                validation_status = "PASSED"
-                            }),
-                            note = "Mandatory fields validated. Shows exactly which fields are null or invalid."
+                            successful_inserts = insertedCount,
+                            database_errors = databaseFailedUsers,
+                            note = "Database insertion failed due to constraint violations. Some users may already exist."
                         },
-                        error = "Bulk insertion aborted - validation failed"
+                        error = "Check unique constraints (cuserid, cusername, cemail, cphoneno)"
                     };
-
-                    string errorJson = JsonConvert.SerializeObject(errorResponse);
-                    string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return BadRequest(encryptedError); // Return 400 for errors
                 }
-
-                var response = new
+                else if (insertedCount == validUsers.Count)
                 {
-                    status = 200,
-                    statusText = "Bulk user creation completed successfully",
-                    body = new
+                    response = new
                     {
-                        total = users.Count,
-                        success = insertedCount,
-                        failure = users.Count - insertedCount,
-                        inserted = insertedUsersWithDetails,
-                        failed = failedUsers.Any() ? failedUsers : new List<object> { new { message = "No validation failures" } },
-                        note = "All users passed JSON validation and were inserted successfully."
-                    },
-                    error = ""
-                };
+                        status = 200,
+                        statusText = "Bulk user creation completed successfully",
+                        body = new
+                        {
+                            total = users.Count,
+                            success = insertedCount,
+                            failure = users.Count - insertedCount,
+                            inserted = insertedUsersWithDetails,
+                            failed = failedUsers.Any() ? failedUsers : new List<object> { new { message = "No validation failures" } },
+                            note = "All users passed JSON validation and were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+                else
+                {
+                    response = new
+                    {
+                        status = 207,
+                        statusText = "Partial completion",
+                        body = new
+                        {
+                            total = users.Count,
+                            success = insertedCount,
+                            failure = users.Count - insertedCount,
+                            inserted = insertedUsersWithDetails,
+                            failed = failedUsers,
+                            note = "Some users were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
 
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
-                return Ok(encrypted); // Return 200 for success
 
-                //var response = new
-                //{
-                //    status = 400,
-                //    statusText = "Bulk user creation completed successfully",
-                //    body = new
-                //    {
-                //        total = users.Count,
-                //        success = insertedCount,
-                //        failure = users.Count - insertedCount,
-                //        inserted = insertedUsersWithDetails,
-                //        failed = failedUsers.Any() ? failedUsers : new List<object> { new { message = "No validation failures" } },
-                //        note = "All users passed JSON validation and were inserted successfully."
-                //    },
-                //    error = ""
-                //};
-
-                //string json = JsonConvert.SerializeObject(response);
-                //string encrypted = AesEncryption.Encrypt(json);
-                //return Ok(encrypted);
+                if (((dynamic)response).status == 500)
+                    return StatusCode(500, encrypted);
+                else if (((dynamic)response).status == 207)
+                    return StatusCode(207, encrypted);
+                else
+                    return Ok(encrypted);
             }
             catch (Exception ex)
             {
@@ -1897,7 +1906,7 @@ namespace TaskEngineAPI.Controllers
                     status = 500,
                     statusText = "Internal Server Error",
                     error = ex.Message,
-                    note = "No database operations were performed due to error"
+                    note = "Operation failed due to unexpected error"
                 };
                 string errorJson = JsonConvert.SerializeObject(errorResponse);
                 var encryptedError = AesEncryption.Encrypt(errorJson);
