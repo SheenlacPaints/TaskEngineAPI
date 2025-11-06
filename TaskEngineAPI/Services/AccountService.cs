@@ -212,7 +212,7 @@ namespace TaskEngineAPI.Services
              UPDATE AdminUsers SET
             cfirst_name = @FirstName,
             clast_name = @LastName,
-            cuserid = @Username,
+            cuserid = @userid,
             cemail = @Email,
             cphoneno = @PhoneNo,
             cpassword = @Password,
