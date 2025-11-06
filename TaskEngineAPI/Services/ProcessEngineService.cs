@@ -511,7 +511,6 @@ LEFT JOIN tbl_process_engine_condition c
                             cmd.Parameters.AddWithValue("@cprocess_type", (object?)model.cprivilegeType ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cvalue", (object?)model.cvalue ?? DBNull.Value);
-                     
                             cmd.Parameters.AddWithValue("@cpriority_label", (object?)model.cpriorityLabel ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@nshow_timeline", (object?)model.nshowTimeline ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cnotification_type", (object?)model.cnotificationType ?? DBNull.Value);
@@ -546,13 +545,12 @@ LEFT JOIN tbl_process_engine_condition c
                                 cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprevStep ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivityName ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnextSeqno ?? (object)DBNull.Value);
-                               cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                                cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@cassignee", detail.cmappingCode ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cmapping_type", detail.cmappingType ?? (object)DBNull.Value);
-
                                 cmdDetail.Parameters.AddWithValue("@cparticipantType", detail.cparticipantType ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@nboardenabled", detail.nboardEnabled ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@csladay", detail.cslaDay ?? (object)DBNull.Value);
@@ -638,7 +636,7 @@ LEFT JOIN tbl_process_engine_condition c
                             if (model.processEngineMeta != null && model.processEngineMeta.Any())
                             {
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
-    Header_ID, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled, 
+    cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled, 
     ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value) VALUES (
     @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_readonly, 
     @cis_disabled,@ccreated_by, @lcreated_date, 
