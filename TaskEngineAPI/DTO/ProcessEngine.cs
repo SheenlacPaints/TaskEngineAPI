@@ -53,33 +53,7 @@
         public string? crejectionPrivilege { get; set; }        
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
-    public class processEngineMeta
-    {
-        public string? cinputType { get; set; }
-        public string? label { get; set; }
-        public string? cplaceholder { get; set; }
-        public bool? cisRequired { get; set; }
-        public bool? cisAutofill { get; set; }
-        public bool? cisEditable { get; set; }
-        public bool? cisValidate { get; set; }
-        public int? cminLen { get; set; }
-        public int? cmaxLen { get; set; }
-        public string? cdataSourceType { get; set; }
-        public string? cfetchType { get; set; }
-        public bool? cisReqSearch { get; set; }
-        public bool? cisMultiSelect { get; set; }
-        public DateTime? cminDate { get; set; }
-        public DateTime? cmaxDate { get; set; }
-        public string? cdateType { get; set; }
-        public int? cminTime { get; set; }
-        public int? cmaxTime { get; set; }
-        public string? ctimeType { get; set; }
-        public bool? cprocessSource { get; set; }
-        public string? clocation { get; set; }
-        public string? ccolumnValue { get; set; }
-        public string? cfieldValue { get; set; }
-      
-    }
+   
     public class processEngineConditionDetails
     {
         
@@ -92,30 +66,27 @@
         public bool? cisRequired { get; set; }
         public bool? cisReadonly { get; set; }
         public bool? cis_disabled { get; set; }
-        public string? cdefaultValue { get; set; }
-        public string? cmin { get; set; }
-        public string? cmax { get; set; }
-        public string? cpattern { get; set; }
-        public bool? nallowSpaces { get; set; }
-        public bool? nallowNumbers { get; set; }
-        public bool? nallowSpecialChars { get; set; }
-        public bool? ntrim { get; set; }
-        public bool? nautoFocus { get; set; }
-        public bool? ncapitalize { get; set; }
-        public bool? ntoUpperCase { get; set; }
-        public bool? ntoLowerCase { get; set; }
-        public bool? nshowCopyButton { get; set; }
-        public string? cdependsOn { get; set; }
-        public string? cdisabledWhen { get; set; }
-        public string? crequiredWhen { get; set; }
-        public string? cvisibleWhen { get; set; }
         public string? cfieldValue { get; set; }
         public string? ccondition { get; set; }
-        public string? remarks1 { get; set; }
-        public string? remarks2 { get; set; }
-        public string? remarks3 { get; set; }
+        //public string? remarks1 { get; set; }
+        //public string? remarks2 { get; set; }
+        //public string? remarks3 { get; set; }
 
     }
+
+
+    public class processEngineMeta
+    {
+        public string? cinputType { get; set; }
+        public string? label { get; set; }
+        public string? cplaceholder { get; set; }
+        public bool? cisRequired { get; set; }
+        public bool? cisReadonly { get; set; }
+        public bool? cisDisabled { get; set; }   
+        public string? cfieldValue { get; set; }
+
+    }
+
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }

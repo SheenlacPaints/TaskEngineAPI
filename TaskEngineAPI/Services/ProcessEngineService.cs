@@ -259,16 +259,14 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
-                SELECT
+                 SELECT
     m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, m.cprivilege_type, 
 	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
 	d.nboard_enabled,d.cmapping_code,d.cmapping_type,d.cparticipant_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
     c.icond_seqno,c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
-    c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,c.cdefault_value,c.cmin
-    ,c.cmax,c.cpattern,c.nallow_spaces,c.nallow_numbers,c.nallow_special_chars,c.ntrim,c.nauto_focus,c.ncapitalize
-   ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when,
+    c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,  
    c.cfield_value,c.ccondition,c.ciseqno
 FROM tbl_process_engine_master m
 LEFT JOIN tbl_process_engine_details d
@@ -348,32 +346,11 @@ ORDER BY m.ID desc";
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
                                 cfieldValue = reader.SafeGetString("cfield_value"),
-                                ccondition = reader.SafeGetString("ccondition"),
-                                remarks1 = reader.SafeGetString("remarks1"),
-                                remarks2 = reader.SafeGetString("remarks2"),
-                                remarks3 = reader.SafeGetString("remarks3"),
+                                ccondition = reader.SafeGetString("ccondition"),                             
                                 cplaceholder = reader.SafeGetString("cplaceholder"),
                                 cisRequired = reader.GetBoolean("cis_required"),
                                 cisReadonly = reader.GetBoolean("cis_readonly"),
-                                cis_disabled = reader.GetBoolean("cis_disabled"),
-                                cdefaultValue = reader.SafeGetString("cdefault_value"),
-                                cmin = reader.SafeGetString("cmin"),
-                                cmax = reader.SafeGetString("cmax"),
-                                cpattern = reader.SafeGetString("cpattern"),
-                                nallowSpaces = reader.GetBoolean("nallow_spaces"),
-                                nallowNumbers = reader.GetBoolean("nallow_numbers"),
-                                nallowSpecialChars = reader.GetBoolean("nallow_special_chars"),
-                                ntrim = reader.GetBoolean("ntrim"),
-                                nautoFocus = reader.GetBoolean("nauto_focus"),
-                                ncapitalize = reader.GetBoolean("ncapitalize"),
-                                ntoUpperCase = reader.GetBoolean("nto_upper_case"),
-                                ntoLowerCase = reader.GetBoolean("nto_lower_case"),
-                                nshowCopyButton = reader.GetBoolean("nshow_copy_button"),
-                                cdependsOn = reader.SafeGetString("cdepends_on"),
-                                cdisabledWhen = reader.SafeGetString("cdisabled_when"),
-                                crequiredWhen = reader.SafeGetString("crequired_when"),
-                                cvisibleWhen = reader.SafeGetString("cvisible_when"),
-                               
+                                cis_disabled = reader.GetBoolean("cis_disabled")                                                           
                             });
                         }
                     }
@@ -405,11 +382,9 @@ ORDER BY m.ID desc";
 	m.cvalue,m.cpriority_label,m.nshow_timeline,m.cnotification_type,m.cstatus,
     m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date,m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
-	d.nboard_enabled,d.cmapping_code,d.cmapping_type,d.cprocess_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
+	d.nboard_enabled,d.cmapping_code,d.cmapping_type,d.cparticipant_type,d.csla_day,d.csla_Hour,d.caction_privilege,d.crejection_privilege,
     c.icond_seqno,  c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
-    c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,c.cdefault_value,c.cmin
-    ,c.cmax,c.cpattern,c.nallow_spaces,c.nallow_numbers,c.nallow_special_chars,c.ntrim,c.nauto_focus,c.ncapitalize
-   ,c.nto_upper_case,c.nto_lower_case,c.nshow_copy_button,c.cdepends_on,c.cdisabled_when,c.crequired_when,c.cvisible_when,
+    c.remarks1, c.remarks2, c.remarks3,c.cplaceholder,c.cis_required,c.cis_readonly,c.cis_disabled,  
    c.cfield_value,c.ccondition
 FROM tbl_process_engine_master m
 LEFT JOIN tbl_process_engine_details d
@@ -488,31 +463,11 @@ LEFT JOIN tbl_process_engine_condition c
                                 ctype = reader.SafeGetString("cond_type"),
                                 clabel = reader.SafeGetString("clabel"),
                                 cfieldValue = reader.SafeGetString("cfield_value"),
-                                ccondition = reader.SafeGetString("ccondition"),
-                                remarks1 = reader.SafeGetString("remarks1"),
-                                remarks2 = reader.SafeGetString("remarks2"),
-                                remarks3 = reader.SafeGetString("remarks3"),
+                                ccondition = reader.SafeGetString("ccondition"),                              
                                 cplaceholder = reader.SafeGetString("cplaceholder"),
                                 cisRequired = reader.GetBoolean("cis_required"),
                                 cisReadonly = reader.GetBoolean("cis_readonly"),
-                                cis_disabled = reader.GetBoolean("cis_disabled"),
-                                cdefaultValue = reader.SafeGetString("cdefault_value"),
-                                cmin = reader.SafeGetString("cmin"),
-                                cmax = reader.SafeGetString("cmax"),
-                                cpattern = reader.SafeGetString("cpattern"),
-                                nallowSpaces = reader.GetBoolean("nallow_spaces"),
-                                nallowNumbers = reader.GetBoolean("nallow_numbers"),
-                                nallowSpecialChars = reader.GetBoolean("nallow_special_chars"),
-                                ntrim = reader.GetBoolean("ntrim"),
-                                nautoFocus = reader.GetBoolean("nauto_focus"),
-                                ncapitalize = reader.GetBoolean("ncapitalize"),
-                                ntoUpperCase = reader.GetBoolean("nto_upper_case"),
-                                ntoLowerCase = reader.GetBoolean("nto_lower_case"),
-                                nshowCopyButton = reader.GetBoolean("nshow_copy_button"),
-                                cdependsOn = reader.SafeGetString("cdepends_on"),
-                                cdisabledWhen = reader.SafeGetString("cdisabled_when"),
-                                crequiredWhen = reader.SafeGetString("crequired_when"),
-                                cvisibleWhen = reader.SafeGetString("cvisible_when"),
+                                cis_disabled = reader.GetBoolean("cis_disabled")                               
                             });
                         }
                     }
@@ -610,18 +565,13 @@ LEFT JOIN tbl_process_engine_condition c
                             {
                                 string queryCondition = @"INSERT INTO tbl_process_engine_condition (
         ctenent_id, cprocesscode, ciseqno,icond_seqno, ctype, 
-         clabel, cfield_value, ccondition, remarks1, remarks2, remarks3, 
+         clabel, cfield_value, ccondition, 
          lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
-      ,cis_readonly,cis_disabled,cdefault_value,cmin,cmax
-      ,cpattern,nallow_spaces,nallow_numbers,nallow_special_chars,ntrim
-      ,nauto_focus,ncapitalize,nto_upper_case
-      ,nto_lower_case,nshow_copy_button,cdepends_on,cdisabled_when,crequired_when,cvisible_when) VALUES (
+      ,cis_readonly,cis_disabled) VALUES (     
          @TenantID, @cprocesscode, @ciseqno,@icondseqno, @ctype, 
-         @clabel, @cfieldvalue, @ccondition, @remarks1, @remarks2, @remarks3,
+         @clabel, @cfieldvalue, @ccondition,
          @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cplaceholder,@cis_required
-      ,@cis_readonly,@cis_disabled,@cdefault_value,@cmin,@cmax
-      ,@cpattern,@nallow_spaces,@nallow_numbers,@nallow_special_chars,@ntrim,@nauto_focus,@ncapitalize,@nto_upper_case
-      ,@nto_lower_case,@nshow_copy_button,@cdepends_on,@cdisabled_when,@crequired_when,@cvisible_when);";
+      ,@cis_readonly,@cis_disabled);";
 
                                 foreach (var cond in detail.processEngineConditionDetails)
                                 {
@@ -635,9 +585,6 @@ LEFT JOIN tbl_process_engine_condition c
                                         cmdCond.Parameters.AddWithValue("@clabel", cond.clabel ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfieldValue ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ccondition", cond.ccondition ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@remarks1", cond.remarks1 ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@remarks2", cond.remarks2 ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@remarks3", cond.remarks3 ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                         cmdCond.Parameters.AddWithValue("@ccreated_by", username);
                                         cmdCond.Parameters.AddWithValue("@cmodified_by", username);
@@ -646,24 +593,7 @@ LEFT JOIN tbl_process_engine_condition c
                                         cmdCond.Parameters.AddWithValue("@cis_required", cond.cisRequired ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_readonly", cond.cisReadonly ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_disabled", cond.cis_disabled ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cdefault_value", cond.cdefaultValue ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cmin", cond.cmin ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cmax", cond.cmax ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cpattern", cond.cpattern ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nallow_spaces", cond.nallowSpaces ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nallow_numbers", cond.nallowNumbers ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nallow_special_chars", cond.nallowSpecialChars ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@ntrim", cond.ntrim ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nauto_focus", cond.nautoFocus ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@ncapitalize", cond.ncapitalize ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nto_upper_case", cond.ntoUpperCase ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nto_lower_case", cond.ntoLowerCase ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@nshow_copy_button", cond.nshowCopyButton ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cdepends_on", cond.cdependsOn ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cdisabled_when", cond.cdisabledWhen ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@crequired_when", cond.crequiredWhen ?? (object)DBNull.Value);
-                                        cmdCond.Parameters.AddWithValue("@cvisible_when", cond.cvisibleWhen ?? (object)DBNull.Value);
-
+                                       
                                         await cmdCond.ExecuteNonQueryAsync();
                                     }
                                 }
@@ -708,15 +638,11 @@ LEFT JOIN tbl_process_engine_condition c
                             if (model.processEngineMeta != null && model.processEngineMeta.Any())
                             {
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
-    Header_ID, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_autofill, cis_editable,
-    cis_validate, cmin_len, cmax_len, cdata_source_type, cfetch_type, cis_req_search, cis_multi_select, 
-    cmin_date, cmax_date, cdate_type, cmin_time, cmax_time, ctime_type, cprocess_source, clocation, 
-    ccreated_by, lcreated_date, cmodified_by, lmodified_date, ccolumn_value,cfield_value) VALUES (
-    @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_autofill, 
-    @cis_editable, @cis_validate, @cmin_len, @cmax_len, @cdata_source_type, @cfetch_type, 
-    @cis_req_search, @cis_multi_select, @cmin_date, @cmax_date, @cdate_type, @cmin_time, 
-    @cmax_time, @ctime_type, @cprocess_source, @clocation, @ccreated_by, @lcreated_date, 
-    @cmodified_by, @lmodified_date, @ccolumn_value,@cfield_value);";
+    Header_ID, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled, 
+    ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value) VALUES (
+    @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_readonly, 
+    @cis_disabled,@ccreated_by, @lcreated_date, 
+    @cmodified_by, @lmodified_date, @cfield_value);";
                                 foreach (var meta in model.processEngineMeta)
                                 {
                                     using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
@@ -727,32 +653,14 @@ LEFT JOIN tbl_process_engine_condition c
                                         cmdMeta.Parameters.AddWithValue("@label", meta.label ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@cplaceholder", meta.cplaceholder ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@cis_required", meta.cisRequired ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_autofill", meta.cisAutofill ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_editable", meta.cisEditable ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_validate", meta.cisValidate ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmin_len", meta.cminLen ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmax_len", meta.cmaxLen ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cdata_source_type", meta.cdataSourceType ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cfetch_type", meta.cfetchType ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_req_search", meta.cisReqSearch ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cis_multi_select", meta.cisMultiSelect ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmin_date", meta.cminDate ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmax_date", meta.cmaxDate ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cdate_type", meta.cdateType ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmin_time", meta.cminTime ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cmax_time", meta.cmaxTime ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@ctime_type", meta.ctimeType ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@cprocess_source", meta.cprocessSource ?? (object)DBNull.Value);
-                                        cmdMeta.Parameters.AddWithValue("@clocation", meta.clocation ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_readonly", meta.cisReadonly ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_disabled", meta.cisDisabled ?? (object)DBNull.Value);   
                                         cmdMeta.Parameters.AddWithValue("@ccreated_by", username);
                                         cmdMeta.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                                         cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
                                         cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                                        cmdMeta.Parameters.AddWithValue("@ccolumn_value", meta.ccolumnValue ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
-
-                                        
-                                             await cmdMeta.ExecuteNonQueryAsync();
+                                        await cmdMeta.ExecuteNonQueryAsync();
                                     }
                                 }
                             }
