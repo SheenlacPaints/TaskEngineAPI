@@ -33,7 +33,6 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(statusCode, encryptedError);
         }
 
-        #region Notification Type Endpoints
 
         [Authorize]
         [HttpGet]
@@ -204,9 +203,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        #endregion
-
-        #region Process Priority Label Endpoints
 
         [Authorize]
         [HttpGet]
@@ -377,9 +373,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        #endregion
-
-        #region Participant Type Endpoints
 
         [Authorize]
         [HttpGet]
@@ -550,6 +543,5 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        #endregion
     }
 }
