@@ -99,7 +99,8 @@ builder.Services.AddCors(options =>
                 "http://localhost:5000",
                 "https://localhost:7257",
                 "https://devvendor.sheenlac.com",
-                "https://devportal.sheenlac.com"
+                "https://devportal.sheenlac.com",
+                "https://devtaskflow.sheenlac.com"
 
             )
 
