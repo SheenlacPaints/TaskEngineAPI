@@ -99,11 +99,12 @@
         public int? cnotification_type { get; set; }
         public string? cstatus { get; set; }
         public int? cmeta_id { get; set; }
-        public string? ccreated_by { get; set; }
+        public string? created_by { get; set; }
         public DateTime? ccreated_date { get; set; }
-        public string? cmodified_by { get; set; }
+        public string? modified_by { get; set; }
         public DateTime? lmodified_date { get; set; }
-
+        public string? cstatus_description { get; set; }
+        public string? Notification_Description { get; set; }
         public List<GetprocessEngineChildItems> processEngineChildItems { get; set; }
     }
 
