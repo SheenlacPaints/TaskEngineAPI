@@ -380,29 +380,30 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"
+
 SELECT
-    m.ID, m.ctenant_id,  m.cprocesscode, m.cprocessname, m.cprivilege_type, 
+    m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, m.cprivilege_type, 
     m.cvalue, m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
-    u1.cfirst_name + ' ' + u1.clast_name AS ccreated_by, 
+    u1.cfirst_name + ' ' + u1.clast_name AS created_by, 
     m.lcreated_date,     
-    u2.cfirst_name + ' ' + u2.clast_name AS cmodified_by, 
+    u2.cfirst_name + ' ' + u2.clast_name AS modified_by, 
     m.lmodified_date,
     m.cmeta_id,
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
     d.nboard_enabled, d.cmapping_code, d.cmapping_type, d.cparticipant_type, d.csla_day, d.csla_Hour, d.caction_privilege, d.crejection_privilege,
-    n.notification_type AS notification_type_name, 
-    c.icond_seqno,  c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
+    n.notification_type As Notification_Description,
+    c.icond_seqno, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
     c.remarks1, c.remarks2, c.remarks3, c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled,  
-    c.cfield_value, c.ccondition,s.cstatus_description
+    s.cstatus_description
 FROM tbl_process_engine_master m
-LEFT JOIN AdminUsers u1 ON m.ccreated_by = u1.cuserid
-LEFT JOIN AdminUsers u2 ON m.cmodified_by = u2.cuserid
+LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
+LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
 LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
 LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID 
 LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
-Left join tbl_status_master s on s.nis_active =s.ID
+LEFT JOIN tbl_status_master s ON m.cstatus = s.cstatus_id 
 LEFT JOIN tbl_process_engine_condition c ON d.ciseqno = c.ciseqno 
-WHERE m.ctenant_id = @TenantID and m.id=@id
+WHERE m.ctenant_id = 1500 and m.id=@id
 ORDER BY m.ID, d.ciseqno, c.icond_seqno
 ";
 
@@ -428,10 +429,15 @@ ORDER BY m.ID, d.ciseqno, c.icond_seqno
                             nshow_timeline = reader.GetBoolean("nshow_timeline"),
                             cnotification_type = reader.SafeGetInt("cnotification_type"),
                             cmeta_id = reader.SafeGetInt("cmeta_id"),
-                            ccreated_by = reader.SafeGetString("ccreated_by"),
+                            created_by = reader.SafeGetString("created_by"),        // Changed from "ccreated_by"
                             ccreated_date = reader.SafeGetDateTime("lcreated_date"),
-                            cmodified_by = reader.SafeGetString("cmodified_by"),
+                            modified_by = reader.SafeGetString("modified_by"),
+                            //ccreated_by = reader.SafeGetString("ccreated_by"),
+                            //ccreated_date = reader.SafeGetDateTime("lcreated_date"),
+                            //cmodified_by = reader.SafeGetString("cmodified_by"),
                             lmodified_date = reader.SafeGetDateTime("lmodified_date"),
+                            cstatus_description = reader.SafeGetString("cstatus_description"),
+                            Notification_Description = reader.SafeGetString("Notification_Description"),
                             processEngineChildItems = new List<GetprocessEngineChildItems>()
                         };
                         result[ID] = engine;
@@ -479,7 +485,8 @@ ORDER BY m.ID, d.ciseqno, c.icond_seqno
                                 cplaceholder = reader.SafeGetString("cplaceholder"),
                                 cisRequired = reader.GetBoolean("cis_required"),
                                 cisReadonly = reader.GetBoolean("cis_readonly"),
-                                cis_disabled = reader.GetBoolean("cis_disabled")
+                                cis_disabled = reader.GetBoolean("cis_disabled"),
+
                             });
                         }
                     }
@@ -709,22 +716,25 @@ ORDER BY m.ID, d.ciseqno, c.icond_seqno
                 await conn.OpenAsync();
 
                 string query = @"
-            SELECT
-                m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, m.cprivilege_type, 
-                m.cvalue, m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
-                m.ccreated_by, m.lcreated_date, m.cmodified_by, m.lmodified_date, m.cmeta_id,
-                d.cheader_id, d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
-                d.nboard_enabled, d.cmapping_code, d.cmapping_type, d.cparticipant_type, d.csla_day, d.csla_Hour, d.caction_privilege, d.crejection_privilege,
-                d.ciseqno,
-                c.icond_seqno, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
-                c.remarks1, c.remarks2, c.remarks3, c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled
-            FROM tbl_process_engine_master m
-            LEFT JOIN tbl_process_engine_details d
-                ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
-            LEFT JOIN tbl_process_engine_condition c
-                ON d.ciseqno = c.ciseqno
-            WHERE m.ctenant_id = @TenantID
-            ORDER BY m.ID DESC";
+        SELECT
+            m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, m.cprivilege_type, 
+            m.cvalue, m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
+            u1.cfirst_name + ' ' + u1.clast_name AS created_by, 
+            m.lcreated_date,     
+            u2.cfirst_name + ' ' + u2.clast_name AS modified_by,  
+            m.lmodified_date, m.cmeta_id,
+            d.cheader_id, d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
+            d.nboard_enabled, d.cmapping_code, d.cmapping_type, d.cparticipant_type, d.csla_day, d.csla_Hour, d.caction_privilege, d.crejection_privilege,
+            d.ciseqno,
+            c.icond_seqno, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
+            c.remarks1, c.remarks2, c.remarks3, c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled
+        FROM tbl_process_engine_master m
+        LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
+        LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
+        LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
+        LEFT JOIN tbl_process_engine_condition c ON d.ciseqno = c.ciseqno
+        WHERE m.ctenant_id = @TenantID
+        ORDER BY m.ID DESC";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -748,9 +758,9 @@ ORDER BY m.ID, d.ciseqno, c.icond_seqno
                             nshow_timeline = reader.SafeGetBoolean("nshow_timeline"),
                             cnotification_type = reader.SafeGetInt("cnotification_type"),
                             cmeta_id = reader.SafeGetInt("cmeta_id"),
-                            ccreated_by = reader.SafeGetString("ccreated_by"),
+                            created_by = reader.SafeGetString("created_by"),        
                             ccreated_date = reader.SafeGetDateTime("lcreated_date"),
-                            cmodified_by = reader.SafeGetString("cmodified_by"),
+                            modified_by = reader.SafeGetString("modified_by"),
                             lmodified_date = reader.SafeGetDateTime("lmodified_date"),
                             processEngineChildItems = new List<GetprocessEngineChildItems>()
                         };
