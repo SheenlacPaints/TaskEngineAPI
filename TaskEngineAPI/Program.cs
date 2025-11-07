@@ -82,7 +82,7 @@ builder.Services.AddScoped<IAdminService, AccountService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IProcessEngineService, ProcessEngineService>();
 builder.Services.AddScoped<ITaskMasterService, TaskMasterService>();
-// Configure CORS
+builder.Services.AddScoped<ILookUpService, LookUpService>();
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
