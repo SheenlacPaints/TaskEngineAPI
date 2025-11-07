@@ -81,7 +81,7 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("CreateNotificationType")]
-        public async Task<IActionResult> CreateNotificationType([FromForm] InputDTO request)
+        public async Task<IActionResult> CreateNotificationType([FromForm] pay request)
         {
             try
             {
@@ -115,7 +115,7 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPut]
         [Route("UpdateNotificationType")]
-        public async Task<IActionResult> UpdateNotificationType([FromForm] InputDTO request)
+        public async Task<IActionResult> UpdateNotificationType([FromForm] pay request)
         {
             try
             {
@@ -150,56 +150,48 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpDelete]
         [Route("DeleteNotificationType")]
-        public async Task<IActionResult> DeleteNotificationType([FromQuery] pay request)
+        public async Task<IActionResult> DeleteNotificationType([FromForm] pay request)
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return EncryptedError(400, "Request payload is required");
+
+                // Extract token
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-                string username = usernameClaim;
+
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
-                     string.IsNullOrWhiteSpace(usernameClaim))
+                    string.IsNullOrWhiteSpace(usernameClaim))
+                    return EncryptedError(401, "Invalid or missing cTenantID or username in token.");
 
-                {
-                    var error = new APIResponse
-                    {
-                        status = 401,
-                        statusText = "Invalid or missing cTenantID in token."
-                    };
-                    string errorJson = JsonConvert.SerializeObject(error);
-                    string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return StatusCode(401, $"\"{encryptedError}\"");
-                }
-
+                // Decrypt payload
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<DeleteNotificationTypeDTO>(decryptedJson);
-                bool success = await _lookUpService.DeleteNotificationTypeAsync(model, cTenantID, username);
+
+                if (model == null || model.ID <= 0)
+                    return EncryptedError(400, "Invalid ID provided");
+
+                bool success = await _lookUpService.DeleteNotificationTypeAsync(model, cTenantID, usernameClaim);
 
                 var response = new APIResponse
                 {
                     status = success ? 200 : 404,
-                    statusText = success ? "Notification type deleted successfully" : "Notification type not found"
+                    statusText = success ? "Notification type deleted successfully" : "Notification type not found",
+                    body = Array.Empty<object>()
                 };
 
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
-                return StatusCode(response.status, $"\"{encrypted}\"");
+                return StatusCode(response.status, encrypted);
             }
             catch (Exception ex)
             {
-                var errorResponse = new APIResponse
-                {
-                    status = 500,
-                    statusText = $"Error: {ex.Message}"
-                };
-
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -251,7 +243,7 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("CreateProcessPriorityLabel")]
-        public async Task<IActionResult> CreateProcessPriorityLabel([FromForm] InputDTO request)
+        public async Task<IActionResult> CreateProcessPriorityLabel([FromForm] pay request)
         {
             try
             {
@@ -285,7 +277,7 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPut]
         [Route("UpdateProcessPriorityLabel")]
-        public async Task<IActionResult> UpdateProcessPriorityLabel([FromForm] InputDTO request)
+        public async Task<IActionResult> UpdateProcessPriorityLabel([FromForm] pay request)
         {
             try
             {
@@ -316,62 +308,52 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
-
         [Authorize]
         [HttpDelete]
         [Route("DeleteProcessPriorityLabel")]
-        public async Task<IActionResult> DeleteProcessPriorityLabel([FromQuery] pay request)
+        public async Task<IActionResult> DeleteProcessPriorityLabel([FromForm] pay request)
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return EncryptedError(400, "Request payload is required");
+
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-                string username = usernameClaim;
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
-                     string.IsNullOrWhiteSpace(usernameClaim))
 
-                {
-                    var error = new APIResponse
-                    {
-                        status = 401,
-                        statusText = "Invalid or missing cTenantID in token."
-                    };
-                    string errorJson = JsonConvert.SerializeObject(error);
-                    string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return StatusCode(401, $"\"{encryptedError}\"");
-                }
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                    string.IsNullOrWhiteSpace(usernameClaim))
+                    return EncryptedError(401, "Invalid or missing cTenantID or username in token.");
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<DeleteProcessPriorityLabelDTO>(decryptedJson);
-                bool success = await _lookUpService.DeleteProcessPriorityLabelAsync(model, cTenantID, username);
+
+                if (model == null || model.ID <= 0)
+                    return EncryptedError(400, "Invalid ID provided");
+
+                bool success = await _lookUpService.DeleteProcessPriorityLabelAsync(model, cTenantID, usernameClaim);
 
                 var response = new APIResponse
                 {
                     status = success ? 200 : 404,
-                    statusText = success ? "Process priority label deleted successfully" : "Process priority label not found"
+                    statusText = success ? "Process priority label deleted successfully" : "Process priority label not found",
+                    body = Array.Empty<object>()
                 };
 
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
-                return StatusCode(response.status, $"\"{encrypted}\"");
+                return StatusCode(response.status, encrypted);
             }
             catch (Exception ex)
             {
-                var errorResponse = new APIResponse
-                {
-                    status = 500,
-                    statusText = $"Error: {ex.Message}"
-                };
-
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
             }
         }
+
 
 
         [Authorize]
@@ -421,41 +403,85 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("CreateParticipantType")]
-        public async Task<IActionResult> CreateParticipantType([FromForm] InputDTO request)
+        public async Task<IActionResult> CreateParticipantType([FromForm] pay request)
         {
             try
             {
-                string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var model = JsonConvert.DeserializeObject<CreateParticipantTypeDTO>(decryptedJson);
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request payload is required");
+                }
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                   
+                }
+                catch (Exception decryptEx)
+                {
+                    return EncryptedError(400, $"Decryption failed. Please check your payload format.");
+                }
+
+                if (string.IsNullOrWhiteSpace(decryptedJson) ||
+                    !decryptedJson.Trim().StartsWith("{") ||
+                    !decryptedJson.Trim().EndsWith("}"))
+                {
+                    return EncryptedError(400, "Invalid JSON format received");
+                }
+
+                CreateParticipantTypeDTO model;
+                try
+                {
+                    model = JsonConvert.DeserializeObject<CreateParticipantTypeDTO>(decryptedJson);
+                }
+                catch (JsonException jsonEx)
+                {
+                    return EncryptedError(400, $"Invalid JSON structure for participant type. Expected: ctenent_id, participant_type, nis_active, ccreated_by");
+                }
+
+                if (model == null)
+                {
+                    return EncryptedError(400, "Failed to parse participant type data");
+                }
+
+
+                if (string.IsNullOrWhiteSpace(model.participant_type))
+                {
+                    return EncryptedError(400, "Participant type name (participant_type) is required");
+                }
+
+                if (model.ctenent_id <= 0)
+                {
+                    return EncryptedError(400, "Valid tenant ID (ctenent_id) is required");
+                }
+
+                if (string.IsNullOrWhiteSpace(model.ccreated_by))
+                {
+                    return EncryptedError(400, "Created by user (ccreated_by) is required");
+                }
+
                 bool success = await _lookUpService.CreateParticipantTypeAsync(model);
 
                 var response = new APIResponse
                 {
                     status = success ? 200 : 400,
-                    statusText = success ? "Participant type created successfully" : "Failed to create participant type"
+                    statusText = success ? "Participant type created successfully" : "Failed to create participant type",
+                    body = success ? new object[] { new { message = "Created successfully", id = "new" } } : Array.Empty<object>()
                 };
-
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
                 return StatusCode(response.status, encrypted);
             }
             catch (Exception ex)
             {
-                var errorResponse = new APIResponse
-                {
-                    status = 500,
-                    statusText = $"Error: {ex.Message}"
-                };
-
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
             }
         }
 
         [HttpPut]
         [Route("UpdateParticipantType")]
-        public async Task<IActionResult> UpdateParticipantType([FromForm] InputDTO request)
+        public async Task<IActionResult> UpdateParticipantType([FromForm] pay request)
         {
             try
             {
@@ -487,61 +513,53 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
         [Authorize]
         [HttpDelete]
         [Route("DeleteParticipantType")]
-        public async Task<IActionResult> DeleteParticipantType([FromQuery] pay request)
+        public async Task<IActionResult> DeleteParticipantType([FromForm] pay request)
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return EncryptedError(400, "Request payload is required");
+
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-                string username = usernameClaim;
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
-                     string.IsNullOrWhiteSpace(usernameClaim))
 
-                {
-                    var error = new APIResponse
-                    {
-                        status = 401,
-                        statusText = "Invalid or missing cTenantID in token."
-                    };
-                    string errorJson = JsonConvert.SerializeObject(error);
-                    string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return StatusCode(401, $"\"{encryptedError}\"");
-                }
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                    string.IsNullOrWhiteSpace(usernameClaim))
+                    return EncryptedError(401, "Invalid or missing cTenantID or username in token.");
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<DeleteParticipantTypeDTO>(decryptedJson);
-                bool success = await _lookUpService.DeleteParticipantTypeAsync(model, cTenantID, username);
+
+                if (model == null || model.ID <= 0)
+                    return EncryptedError(400, "Invalid ID provided");
+
+                bool success = await _lookUpService.DeleteParticipantTypeAsync(model, cTenantID, usernameClaim);
 
                 var response = new APIResponse
                 {
                     status = success ? 200 : 404,
-                    statusText = success ? "Participant type deleted successfully" : "Participant type not found"
+                    statusText = success ? "Participant type deleted successfully" : "Participant type not found",
+                    body = Array.Empty<object>()
                 };
 
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
-                return StatusCode(response.status, $"\"{encrypted}\"");
+                return StatusCode(response.status, encrypted);
             }
             catch (Exception ex)
             {
-                var errorResponse = new APIResponse
-                {
-                    status = 500,
-                    statusText = $"Error: {ex.Message}"
-                };
-
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
             }
         }
+       
 
     }
 }
