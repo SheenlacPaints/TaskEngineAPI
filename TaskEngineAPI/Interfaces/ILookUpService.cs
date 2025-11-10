@@ -1,24 +1,26 @@
-﻿using TaskEngineAPI.DTO.LookUpDTO;
+﻿
+using TaskEngineAPI.DTO.LookUpDTO;
 
 namespace TaskEngineAPI.Interfaces
 {
     public interface ILookUpService
     {
+
         Task<IEnumerable<NotificationTypeDTO>> GetAllNotificationTypesAsync(int tenantID);
-        Task<bool> CreateNotificationTypeAsync(CreateNotificationTypeDTO notificationType);
-        Task<bool> UpdateNotificationTypeAsync(UpdateNotificationTypeDTO notificationType);
+        Task<bool> CreateNotificationTypeAsync(CreateNotificationTypeDTO model);
+        Task<bool> UpdateNotificationTypeAsync(UpdateNotificationTypeDTO model);
         Task<bool> DeleteNotificationTypeAsync(DeleteNotificationTypeDTO model, int tenantID, string username);
 
-        Task<IEnumerable<ProcessPriorityLabelDTO>> GetAllProcessPriorityLabelsAsync(int tenantID);
-        
-        Task<bool> CreateProcessPriorityLabelAsync(CreateProcessPriorityLabelDTO priorityLabel);
-        Task<bool> UpdateProcessPriorityLabelAsync(UpdateProcessPriorityLabelDTO priorityLabel);
-        Task<bool> DeleteProcessPriorityLabelAsync(DeleteProcessPriorityLabelDTO model, int tenantID, string username);
 
         Task<IEnumerable<ParticipantTypeDTO>> GetAllParticipantTypesAsync(int tenantID);
-        
-        Task<bool> CreateParticipantTypeAsync(CreateParticipantTypeDTO participantType);
-        Task<bool> UpdateParticipantTypeAsync(UpdateParticipantTypeDTO participantType);
+        Task<bool> CreateParticipantTypeAsync(CreateParticipantTypeDTO model);
+        Task<bool> UpdateParticipantTypeAsync(UpdateParticipantTypeDTO model);
         Task<bool> DeleteParticipantTypeAsync(DeleteParticipantTypeDTO model, int tenantID, string username);
+
+
+        Task<IEnumerable<ProcessPrivilegeTypeDTO>> GetAllProcessPrivilegeTypesAsync(int tenantID);
+        Task<bool> CreateProcessPrivilegeTypeAsync(CreateProcessPrivilegeTypeDTO model);
+        Task<bool> UpdateProcessPrivilegeTypeAsync(UpdateProcessPrivilegeTypeDTO model);
+        Task<bool> DeleteProcessPrivilegeTypeAsync(DeleteProcessPrivilegeTypeDTO model, int tenantID, string username);
     }
 }

@@ -1,8 +1,9 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 using TaskEngineAPI.Interfaces;
+using TaskEngineAPI.Middleware;
 using TaskEngineAPI.Middlewares;
 using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
@@ -13,8 +14,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 //builder.Services.AddScoped<IRoleService, RoleService>();
 //builder.Services.AddDbContext<ApplicationDbContext>(options =>
- //   options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+//   options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddMemoryCache();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -120,10 +121,12 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 //app.UseMiddleware<JwtValidationMiddleware>();
+
 app.UseExceptionHandler("/Error");
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseLookUpMiddleware();
 app.MapControllers();
 
 app.Run();
