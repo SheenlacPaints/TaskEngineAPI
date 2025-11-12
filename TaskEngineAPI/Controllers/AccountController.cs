@@ -20,6 +20,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using TaskEngineAPI.Data;
 using TaskEngineAPI.DTO;
+using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Repositories;
@@ -1913,5 +1914,46 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
+
+
+
+        [HttpPost]
+        [Route("usersapisyncconfig")]
+        public async Task<IActionResult> usersapisyncconfig([FromBody] pay request)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+            {
+                throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+            }
+
+            if (request == null || string.IsNullOrWhiteSpace(request.payload))
+            {
+                throw new ArgumentException("Request payload is required");
+            }
+
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<usersapisyncDTO>(decryptedJson);        
+
+            bool success = await _AccountService.InsertusersapisyncconfigAsync(model, cTenantID, usernameClaim);
+
+            var response = new APIResponse
+            {
+                status = success ? 200 : 400,
+                statusText = success ? "Notification type created successfully" : "Failed to create notification type"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, encrypted);
+        }
+
+
     }
 }

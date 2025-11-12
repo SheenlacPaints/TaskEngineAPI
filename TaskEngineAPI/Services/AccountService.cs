@@ -22,7 +22,7 @@ namespace TaskEngineAPI.Services
         private readonly IConfiguration _config;
         private readonly IAdminRepository _AdminRepository;
         private readonly UploadSettings _uploadSettings;
-        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository,IOptions<UploadSettings> uploadSettings)
+        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository, IOptions<UploadSettings> uploadSettings)
         {
             _repository = repository;
             _config = _configuration;
@@ -38,11 +38,11 @@ namespace TaskEngineAPI.Services
         public async Task<int> InsertSuperAdminAsync(CreateAdminDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
-                         
+
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
-           
+
                 string query = @"INSERT INTO AdminUsers (
         ctenant_Id, cfirst_name, clast_name, cuserid, cemail, cphoneno, 
         cpassword, crole_id, nis_active, llast_login_at, cpassword_changed_at, 
@@ -73,7 +73,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ccreated_by", (object?)model.ccreated_by ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);                 
+                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                     var newId = await cmd.ExecuteScalarAsync();
                     return newId != null ? Convert.ToInt32(newId) : 0;
                 }
@@ -154,7 +154,7 @@ namespace TaskEngineAPI.Services
                    [lmodified_date],[nIs_deleted],[cdeleted_by],[ldeleted_date],[cprofile_image_name],[cprofile_image_path]
             FROM [dbo].[AdminUsers] WHERE crole_id = 2 AND ctenant_Id = @TenantID and nis_deleted=0";
 
-    
+
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -166,33 +166,33 @@ namespace TaskEngineAPI.Services
                             result.Add(new AdminUserDTO
                             {
 
-                              ID = reader.GetInt32(reader.GetOrdinal("ID")),
-                              cTenantID = reader.GetInt32(reader.GetOrdinal("ctenant_Id")),
-                              cfirstName = reader.IsDBNull(reader.GetOrdinal("cfirst_name")) ? null : reader.GetString(reader.GetOrdinal("cfirst_name")),
-                              clastName = reader.IsDBNull(reader.GetOrdinal("clast_name")) ? null : reader.GetString(reader.GetOrdinal("clast_name")),                             
-                              cuserid = reader.IsDBNull(reader.GetOrdinal("cuserid"))? 0  : reader.GetInt32(reader.GetOrdinal("cuserid")),
-                              cemail = reader.IsDBNull(reader.GetOrdinal("cemail")) ? null : reader.GetString(reader.GetOrdinal("cemail")),
-                              cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
-                              cpassword = reader.IsDBNull(reader.GetOrdinal("cpassword")) ? null : reader.GetString(reader.GetOrdinal("cpassword")),
-                              croleID = reader.IsDBNull(reader.GetOrdinal("crole_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("crole_id")),
-                              nisActive =reader.GetBoolean(reader.GetOrdinal("nis_active")),
+                                ID = reader.GetInt32(reader.GetOrdinal("ID")),
+                                cTenantID = reader.GetInt32(reader.GetOrdinal("ctenant_Id")),
+                                cfirstName = reader.IsDBNull(reader.GetOrdinal("cfirst_name")) ? null : reader.GetString(reader.GetOrdinal("cfirst_name")),
+                                clastName = reader.IsDBNull(reader.GetOrdinal("clast_name")) ? null : reader.GetString(reader.GetOrdinal("clast_name")),
+                                cuserid = reader.IsDBNull(reader.GetOrdinal("cuserid")) ? 0 : reader.GetInt32(reader.GetOrdinal("cuserid")),
+                                cemail = reader.IsDBNull(reader.GetOrdinal("cemail")) ? null : reader.GetString(reader.GetOrdinal("cemail")),
+                                cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
+                                cpassword = reader.IsDBNull(reader.GetOrdinal("cpassword")) ? null : reader.GetString(reader.GetOrdinal("cpassword")),
+                                croleID = reader.IsDBNull(reader.GetOrdinal("crole_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("crole_id")),
+                                nisActive = reader.GetBoolean(reader.GetOrdinal("nis_active")),
                                 llastLoginAt = reader.IsDBNull(reader.GetOrdinal("llast_login_at")) ? null : reader.GetDateTime(reader.GetOrdinal("llast_login_at")),
-                              lfailedLoginAttempts = reader.IsDBNull(reader.GetOrdinal("lfailed_login_attempts")) ? null : reader.GetInt32(reader.GetOrdinal("lfailed_login_attempts")),
-                              cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cpassword_changed_at")) ? null : reader.GetDateTime(reader.GetOrdinal("cpassword_changed_at")),
-                              cMustChangePassword = reader.IsDBNull(reader.GetOrdinal("cmust_change_password")) ? null : reader.GetBoolean(reader.GetOrdinal("cmust_change_password")),
-                              cLastLoginIP = reader.IsDBNull(reader.GetOrdinal("clast_login_ip")) ? null : reader.GetString(reader.GetOrdinal("clast_login_ip")),
-                              cLastLoginDevice = reader.IsDBNull(reader.GetOrdinal("clast_login_device")) ? null : reader.GetString(reader.GetOrdinal("clast_login_device")),
-                              nis_locked = reader.IsDBNull(reader.GetOrdinal("nis_locked")) ? null : reader.GetBoolean(reader.GetOrdinal("nis_locked")),
-                              ccreated_date = reader.IsDBNull(reader.GetOrdinal("ccreated_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ccreated_date")),
-                              ccreated_by = reader.IsDBNull(reader.GetOrdinal("ccreated_by")) ? null : reader.GetString(reader.GetOrdinal("ccreated_by")),
-                              cmodified_by = reader.IsDBNull(reader.GetOrdinal("cmodified_by")) ? null : reader.GetString(reader.GetOrdinal("cmodified_by")),
-                              lmodified_date = reader.IsDBNull(reader.GetOrdinal("lmodified_date")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
-                              nIs_deleted = reader.IsDBNull(reader.GetOrdinal("nIs_deleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_deleted")),
-                              cdeleted_by = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
-                              ldeleted_date = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date")),
-                              cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
-                              cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
-                            });                        
+                                lfailedLoginAttempts = reader.IsDBNull(reader.GetOrdinal("lfailed_login_attempts")) ? null : reader.GetInt32(reader.GetOrdinal("lfailed_login_attempts")),
+                                cPasswordChangedAt = reader.IsDBNull(reader.GetOrdinal("cpassword_changed_at")) ? null : reader.GetDateTime(reader.GetOrdinal("cpassword_changed_at")),
+                                cMustChangePassword = reader.IsDBNull(reader.GetOrdinal("cmust_change_password")) ? null : reader.GetBoolean(reader.GetOrdinal("cmust_change_password")),
+                                cLastLoginIP = reader.IsDBNull(reader.GetOrdinal("clast_login_ip")) ? null : reader.GetString(reader.GetOrdinal("clast_login_ip")),
+                                cLastLoginDevice = reader.IsDBNull(reader.GetOrdinal("clast_login_device")) ? null : reader.GetString(reader.GetOrdinal("clast_login_device")),
+                                nis_locked = reader.IsDBNull(reader.GetOrdinal("nis_locked")) ? null : reader.GetBoolean(reader.GetOrdinal("nis_locked")),
+                                ccreated_date = reader.IsDBNull(reader.GetOrdinal("ccreated_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ccreated_date")),
+                                ccreated_by = reader.IsDBNull(reader.GetOrdinal("ccreated_by")) ? null : reader.GetString(reader.GetOrdinal("ccreated_by")),
+                                cmodified_by = reader.IsDBNull(reader.GetOrdinal("cmodified_by")) ? null : reader.GetString(reader.GetOrdinal("cmodified_by")),
+                                lmodified_date = reader.IsDBNull(reader.GetOrdinal("lmodified_date")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
+                                nIs_deleted = reader.IsDBNull(reader.GetOrdinal("nIs_deleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_deleted")),
+                                cdeleted_by = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
+                                ldeleted_date = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date")),
+                                cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
+                                cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
+                            });
                         }
                     }
                 }
@@ -202,8 +202,8 @@ namespace TaskEngineAPI.Services
 
         public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
         {
-            var connStr = _config.GetConnectionString("Database");          
-                 
+            var connStr = _config.GetConnectionString("Database");
+
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
@@ -232,8 +232,8 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
                     cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@ID", model.cid);                 
-                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);          
+                    cmd.Parameters.AddWithValue("@ID", model.cid);
+                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
                 }
@@ -241,7 +241,7 @@ namespace TaskEngineAPI.Services
         }
 
 
-        public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID,string username)
+        public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
 
@@ -268,7 +268,7 @@ namespace TaskEngineAPI.Services
         public async Task<int> InsertUserAsync(CreateUserDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
-        
+
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
 
@@ -313,7 +313,7 @@ VALUES (
             cmd.Parameters.AddWithValue("@cpassword", model.cpassword); // store as plain text
             cmd.Parameters.AddWithValue("@nIsActive", model.nIsActive ?? true);
             cmd.Parameters.AddWithValue("@cfirstName", (object?)model.cfirstName ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@clastName", (object?)model.clastName ?? DBNull.Value);                     
+            cmd.Parameters.AddWithValue("@clastName", (object?)model.clastName ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cphoneno", (object?)model.cphoneno ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cAlternatePhone", (object?)model.cAlternatePhone ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ldob", (object?)model.ldob ?? DBNull.Value);
@@ -370,21 +370,21 @@ VALUES (
             cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.LastLoginDevice ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ccreateddate", (DateTime.Now));
             cmd.Parameters.AddWithValue("@ccreatedby", (object?)model.ccreatedby ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@cmodifiedby", (object?)model.cmodifiedby ??  DBNull.Value);
+            cmd.Parameters.AddWithValue("@cmodifiedby", (object?)model.cmodifiedby ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lmodifieddate", (DateTime.Now));
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? false);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);           
+            cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
             var newId = await cmd.ExecuteScalarAsync();
             return newId != null ? Convert.ToInt32(newId) : 0;
         }
-     
+
         public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)
         {
             var connStr = _config.GetConnectionString("Database");
-           
+
 
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
@@ -525,9 +525,9 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)model.ProfileImage ?? DBNull.Value);              
+            cmd.Parameters.AddWithValue("@ProfileImageName", (object?)model.ProfileImage ?? DBNull.Value);
             int rows = await cmd.ExecuteNonQueryAsync();
-            return rows > 0;   
+            return rows > 0;
         }
 
         public async Task<List<GetUserDTO>> GetAllUserAsync(int cTenantID)
@@ -636,22 +636,22 @@ VALUES (
                                 lmodifieddate = reader.IsDBNull(reader.GetOrdinal("lmodified_date")) ? null : reader.GetDateTime(reader.GetOrdinal("lmodified_date")),
                                 nIsDeleted = reader.IsDBNull(reader.GetOrdinal("nIs_deleted")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_deleted")),
                                 cDeletedBy = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
-                                lDeletedDate=reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date")),
+                                lDeletedDate = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date")),
                                 cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
                                 cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path"))
 
 
-                            });                  
+                            });
                         }
                     }
                 }
                 return result;
 
-     
+
             }
         }
 
-        public async Task<List<GetUserDTO>> GetAllUserIdAsync(int cTenantID,int userid)
+        public async Task<List<GetUserDTO>> GetAllUserIdAsync(int cTenantID, int userid)
         {
             var result = new List<GetUserDTO>();
             var connStr = _config.GetConnectionString("Database");
@@ -826,7 +826,7 @@ VALUES (
             }
         }
 
-        public async Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model,int tenantId, string username)
+        public async Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model, int tenantId, string username)
         {
             var connStr = _config.GetConnectionString("Database");
 
@@ -841,7 +841,7 @@ VALUES (
         WHERE cuser_name = @ID AND  ctenant_Id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
-                {                           
+                {
                     cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@cPasswordChangedAt", DateTime.Now);
                     cmd.Parameters.AddWithValue("@ID", username);
@@ -852,7 +852,7 @@ VALUES (
                 }
             }
         }
-        public async Task<bool> CheckuserUsernameExistsputAsync(string username, int tenantId,int cuserid)
+        public async Task<bool> CheckuserUsernameExistsputAsync(string username, int tenantId, int cuserid)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
@@ -871,7 +871,7 @@ VALUES (
             }
         }
 
-        public async Task<bool> CheckuserEmailExistsputAsync(string email, int tenantId,int cuserid)
+        public async Task<bool> CheckuserEmailExistsputAsync(string email, int tenantId, int cuserid)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
@@ -1388,7 +1388,7 @@ VALUES (
             table.Columns.Add("cbank_name", typeof(string));
             table.Columns.Add("caccount_number", typeof(string));
             // table.Columns.Add("ciFSC_code", typeof(string));
-            table.Columns.Add("ciFSC_code", typeof(string));  
+            table.Columns.Add("ciFSC_code", typeof(string));
             table.Columns.Add("cpan", typeof(string));
             table.Columns.Add("ldoj", typeof(DateTime));
             table.Columns.Add("cemployment_status", typeof(string));
@@ -1856,6 +1856,48 @@ VALUES (
         //    return table.Rows.Count;
         //}
 
+        public async Task<bool> InsertusersapisyncconfigAsync(usersapisyncDTO model, int cTenantID, string username)
+        {
+            {
+                var connStr = _config.GetConnectionString("Database");
+                try
+                {
+                    using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
 
+                    string query = @"INSERT INTO tbl_users_api_sync_config (
+        ctenant_id,capi_method,capi_name,csync_type,csync_starttime,csync_endtime,cstatus,
+        cjson_response,ccreated_by,lcreated_date) VALUES(
+        @TenantID, @capi_method, @capi_name, @csync_type, @csync_starttime, @csync_endtime, 
+        @cstatus, @cjson_response, @ccreated_by, @lcreated_date);
+        SELECT SCOPE_IDENTITY();";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@capi_method", (object?)model.capi_method ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_name", (object?)model.capi_name ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csync_starttime", (object?)model.csync_starttime ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csync_endtime", (object?)model.csync_endtime ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@cjson_response", (object?)model.cjson_response ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ccreated_by", username);
+                        cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                    return true;
+                }
+                }
+                catch (Exception ex)
+                {
+                    
+                    return false; // ✅ failure path
+                }
+            }
+
+
+        }
     }
 }

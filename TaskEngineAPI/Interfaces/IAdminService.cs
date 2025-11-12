@@ -28,6 +28,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username);
         Task<int> InsertUsersBulkAsync(List<BulkUserDTO> model,int cTenantID,string usernameClaim);
 
+        Task<bool> InsertusersapisyncconfigAsync(usersapisyncDTO model, int cTenantID, string username);
 
 
 

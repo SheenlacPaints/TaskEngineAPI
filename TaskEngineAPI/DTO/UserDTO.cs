@@ -300,7 +300,18 @@ namespace TaskEngineAPI.DTO
         public int id { get; set; }
     }
 
-   
 
+    public class usersapisyncDTO
+    {
+
+        public string? capi_method { get; set; }
+        public string? capi_name { get; set; }
+        public string? csync_type { get; set; }
+        public DateTime? csync_starttime { get; set; }
+        public DateTime? csync_endtime { get; set; }
+        public string? cstatus { get; set; }
+        public string? cjson_response { get; set; }
+
+    }
 
 }
