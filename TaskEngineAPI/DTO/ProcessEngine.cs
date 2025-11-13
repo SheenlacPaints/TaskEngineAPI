@@ -90,10 +90,10 @@
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }
-        public string? cprivilege_type { get; set; }    
+        public string? cprocessType { get; set; }    
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
-        public string? cvalue { get; set; }     
+        public string? cprocessvalue { get; set; }     
         public string? cpriority_label { get; set; }
         public bool? nshow_timeline { get; set; }
         public int? cnotification_type { get; set; }
