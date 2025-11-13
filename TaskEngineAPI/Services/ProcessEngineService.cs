@@ -601,40 +601,41 @@ ORDER BY m.ID, d.ciseqno, c.icond_seqno
                         };
                         result[ID] = engine;
                     }
-
-             
                     
                     int childciseqno = reader.SafeGetInt("ciseqno");
 
                     if (childciseqno != 0)
                     {
-                        // ✅ Always create a new child per row
-                        var child = new GetprocessEngineChildItems
+                        var existingChild = engine.processEngineChildItems
+                            .FirstOrDefault(c => c.ciseqno == childciseqno);
+
+                        if (existingChild == null)
                         {
-                            cactivityCode = reader.SafeGetString("cactivity_description"),
-                            cactivityDescription = reader.SafeGetString("cactivity_description"),
-                            ctaskType = reader.SafeGetString("ctask_type"),
-                            cprevStep = reader.SafeGetString("cprev_step"),
-                            cactivityName = reader.SafeGetString("cactivityname"),
-                            cnextSeqno = reader.SafeGetString("cnext_seqno"),
-                            cmappingCode = reader.SafeGetString("cmapping_code"),
-                            cmappingType = reader.SafeGetString("cmapping_type"),
-                            cslaDay = reader.SafeGetInt("csla_day"),
-                            cslaHour = reader.SafeGetInt("csla_Hour"),
-                            ciseqno = reader.SafeGetInt("ciseqno"),
-                            nboardEnabled = reader.SafeGetBoolean("nboard_enabled"),
-                            cactionPrivilege = reader.SafeGetString("caction_privilege"),
-                            crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
-                            cparticipantType = reader.SafeGetString("cparticipant_type"),
-                            processEngineConditionDetails = new List<processEngineConditionDetails>()
-                        };
+                            existingChild = new GetprocessEngineChildItems
+                            {
+                                cactivityCode = reader.SafeGetString("cactivityCode"),
+                                cactivityDescription = reader.SafeGetString("cactivity_description"),
+                                ctaskType = reader.SafeGetString("ctask_type"),
+                                cprevStep = reader.SafeGetString("cprev_step"),
+                                cactivityName = reader.SafeGetString("cactivityname"),
+                                cnextSeqno = reader.SafeGetString("cnext_seqno"),
+                                cmappingCode = reader.SafeGetString("cmapping_code"),
+                                cmappingType = reader.SafeGetString("cmapping_type"),
+                                cslaDay = reader.SafeGetInt("csla_day"),
+                                cslaHour = reader.SafeGetInt("csla_Hour"),
+                                ciseqno = reader.SafeGetInt("ciseqno"),
+                                nboardEnabled = reader.SafeGetBoolean("nboard_enabled"),
+                                cactionPrivilege = reader.SafeGetString("caction_privilege"),
+                                crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
+                                cparticipantType = reader.SafeGetString("cparticipant_type"),
+                                processEngineConditionDetails = new List<processEngineConditionDetails>()
+                            };
 
-                        engine.processEngineChildItems.Add(child);
-
-                        // ✅ Add condition details if present
+                            engine.processEngineChildItems.Add(existingChild);
+                        }
                         if (!reader.IsDBNull(reader.GetOrdinal("icond_seqno")))
                         {
-                            child.processEngineConditionDetails.Add(new processEngineConditionDetails
+                            existingChild.processEngineConditionDetails.Add(new processEngineConditionDetails
                             {
                                 cprocessCode = reader.SafeGetString("cprocesscode"),
                                 ciseqno = reader.SafeGetInt("ciseqno"),
