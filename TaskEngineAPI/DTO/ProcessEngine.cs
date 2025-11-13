@@ -90,7 +90,7 @@
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }
-        public int? cprivilege_type { get; set; }    
+        public string? cprivilege_type { get; set; }    
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public string? cvalue { get; set; }     
