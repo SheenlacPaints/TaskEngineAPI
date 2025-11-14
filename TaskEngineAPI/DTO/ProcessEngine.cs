@@ -105,7 +105,7 @@
         public DateTime? lmodified_date { get; set; }
         public string? cstatus_description { get; set; }
         public string? Notification_Description { get; set; }
-        public List<GetprocessEngineChildItems> processEngineChildItems { get; set; }
+        public int processEngineChildItems { get; set; }
     }
 
 
