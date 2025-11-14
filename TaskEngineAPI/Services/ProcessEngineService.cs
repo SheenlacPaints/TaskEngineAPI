@@ -1,6 +1,8 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
 using System.Net.NetworkInformation;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System.Reflection.Emit;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -249,13 +251,14 @@ ORDER BY m.ID, d.ciseqno, c.icond_seqno
          @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
        @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type);SELECT SCOPE_IDENTITY();";
 
+                        int seqNo = 1;
                         foreach (var detail in model.processEngineChildItems)
                         {
                             using (SqlCommand cmdDetail = new SqlCommand(queryDetail, conn, transaction))
                             {
                                 cmdDetail.Parameters.AddWithValue("@TenantID", cTenantID);
                                 cmdDetail.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
-                                cmdDetail.Parameters.AddWithValue("@ciseqno", masterId);
+                                cmdDetail.Parameters.AddWithValue("@ciseqno", seqNo);
                                 cmdDetail.Parameters.AddWithValue("@cheader_id", masterId);
                                 cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivityCode ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivityDescription ?? (object)DBNull.Value);
@@ -279,6 +282,7 @@ ORDER BY m.ID, d.ciseqno, c.icond_seqno
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                                 await cmdDetail.ExecuteNonQueryAsync();
                             }
+                            seqNo++;
                             if (detail.processEngineConditionDetails != null)
                             {
                                 string queryCondition = @"INSERT INTO tbl_process_engine_condition (
@@ -534,17 +538,138 @@ LEFT JOIN tbl_process_engine_condition c ON d.cheader_id = c.cheader_id and d.ID
         }
 
 
-        public async Task<List<GetProcessEngineDTO>> GetProcessengineAsync(int cTenantID, int id)
+//        public async Task<List<GetIDProcessEngineDTO>> GetProcessengineAsync(int cTenantID, int id)
+//        {
+//            var result = new Dictionary<int, GetIDProcessEngineDTO>();
+//            var connStr = _config.GetConnectionString("Database");
+
+//            try
+//            {
+//                using var conn = new SqlConnection(connStr);
+//                await conn.OpenAsync();
+
+//                string query = @"
+//SELECT
+//    m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, p.cprocess_privilege, 
+//    m.cvalue, m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
+//    ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by, 
+//    m.lcreated_date,     
+//    ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by, 
+//    m.lmodified_date,
+//    m.cmeta_id,
+//    d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
+//    d.nboard_enabled, d.cmapping_code, d.cmapping_type, d.cparticipant_type, d.csla_day, d.csla_Hour, d.caction_privilege, d.crejection_privilege,
+//    n.notification_type As Notification_Description,s.cstatus_description, d.ciseqno,d.cheader_id
+//FROM tbl_process_engine_master m
+//LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
+//LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
+//LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
+//LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID 
+//LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
+//LEFT JOIN tbl_status_master s ON m.cstatus = s.cstatus_id 
+//WHERE m.ctenant_id = @TenantID AND m.id = @id";
+
+//                using var cmd = new SqlCommand(query, conn);
+//                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+//                cmd.Parameters.AddWithValue("@id", id);
+
+//                using var reader = await cmd.ExecuteReaderAsync();
+//                while (await reader.ReadAsync())
+//                {
+//                    int ID = reader.GetInt32(reader.GetOrdinal("ID"));
+
+//                    if (!result.TryGetValue(ID, out var engine))
+//                    {
+//                        engine = new GetIDProcessEngineDTO
+//                        {
+//                            ID = ID,
+//                            cprocesscode = reader.SafeGetString("cprocesscode"),
+//                            cprocessname = reader.SafeGetString("cprocessname"),
+//                            cprocessType = reader.SafeGetString("cprocess_privilege"),
+//                            cstatus = reader.SafeGetString("cstatus"),
+//                            cprocessvalue = reader.SafeGetString("cvalue"),
+//                            cpriority_label = reader.SafeGetString("cpriority_label"),
+//                            nshow_timeline = reader.SafeGetBoolean("nshow_timeline"),
+//                            cnotification_type = reader.SafeGetInt("cnotification_type"),
+//                            cmeta_id = reader.SafeGetInt("cmeta_id"),                         
+//                            cstatus_description = reader.SafeGetString("cstatus_description"),
+//                            Notification_Description = reader.SafeGetString("Notification_Description"),
+//                            processEngineChildItems = new List<GetprocessEngineChildItems>()
+//                        };
+//                        result[ID] = engine;
+//                    }
+                    
+//                    int childciseqno = reader.SafeGetInt("cheader_id");
+
+//                    if (childciseqno != 0)
+//                    {
+//                        var existingChild = engine.processEngineChildItems
+//                            .FirstOrDefault(c => c.cheader_id == childciseqno);
+
+//                        if (existingChild == null)
+//                        {
+//                            existingChild = new GetprocessEngineChildItems
+//                            {
+//                                cactivityCode = reader.SafeGetString("cactivityCode"),
+//                                cactivityDescription = reader.SafeGetString("cactivity_description"),
+//                                ctaskType = reader.SafeGetString("ctask_type"),
+//                                cprevStep = reader.SafeGetString("cprev_step"),
+//                                cactivityName = reader.SafeGetString("cactivityname"),
+//                                cnextSeqno = reader.SafeGetString("cnext_seqno"),
+//                                cmappingCode = reader.SafeGetString("cmapping_code"),
+//                                cmappingType = reader.SafeGetString("cmapping_type"),
+//                                cslaDay = reader.SafeGetInt("csla_day"),
+//                                cslaHour = reader.SafeGetInt("csla_Hour"),
+//                                ciseqno = reader.SafeGetInt("ciseqno"),
+//                                nboardEnabled = reader.SafeGetBoolean("nboard_enabled"),
+//                                cactionPrivilege = reader.SafeGetString("caction_privilege"),
+//                                crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
+//                                cparticipantType = reader.SafeGetString("cparticipant_type"),
+//                                processEngineConditionDetails = new List<processEngineConditionDetails>()
+//                            };
+
+//                            engine.processEngineChildItems.Add(existingChild);
+//                        }
+//                        if (!reader.IsDBNull(reader.GetOrdinal("con_ciseqno")))
+//                        {
+//                            existingChild.processEngineConditionDetails.Add(new processEngineConditionDetails
+//                            {
+//                                cprocessCode = reader.SafeGetString("cprocesscode"),
+//                                ciseqno = reader.SafeGetInt("ciseqno"),
+//                                icondseqno = reader.SafeGetInt("icond_seqno"),
+//                                ctype = reader.SafeGetString("cond_type"),
+//                                clabel = reader.SafeGetString("clabel"),
+//                                cfieldValue = reader.SafeGetString("cfield_value"),
+//                                ccondition = reader.SafeGetString("ccondition"),
+//                                cplaceholder = reader.SafeGetString("cplaceholder"),
+//                                cisRequired = reader.SafeGetBoolean("cis_required"),
+//                                cisReadonly = reader.SafeGetBoolean("cis_readonly"),
+//                                cis_disabled = reader.SafeGetBoolean("cis_disabled"),
+//                            });
+//                        }
+//                    }
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                // _logger.LogError(ex, "Error fetching process engine data for tenant {TenantID}", cTenantID);
+//                throw;
+//            }
+
+//            return result.Values.ToList();
+//        }
+
+
+        public async Task<List<GetIDProcessEngineDTO>> oldGetProcessengineAsync(int cTenantID, int id)
         {
-            var result = new Dictionary<int, GetProcessEngineDTO>();
+            var result = new Dictionary<int, GetIDProcessEngineDTO>();
             var connStr = _config.GetConnectionString("Database");
 
             try
             {
                 using var conn = new SqlConnection(connStr);
-                await conn.OpenAsync();
-
-                string query = @"
+                await conn.OpenAsync();             
+                string mainQuery = @"
 SELECT
     m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, p.cprocess_privilege, 
     m.cvalue, m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
@@ -556,20 +681,19 @@ SELECT
     d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
     d.nboard_enabled, d.cmapping_code, d.cmapping_type, d.cparticipant_type, d.csla_day, d.csla_Hour, d.caction_privilege, d.crejection_privilege,
     n.notification_type As Notification_Description,
-    c.icond_seqno, c.ctype AS cond_type, c.clabel, c.cfield_value, c.ccondition,
-    c.remarks1, c.remarks2, c.remarks3, c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled,  
-    s.cstatus_description, d.ciseqno,d.cheader_id,c.ciseqno as con_ciseqno
+    s.cstatus_description, d.ciseqno, d.cheader_id,meta.meta_Name,meta.meta_Description,d.ID as DetailID
 FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
 LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
 LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID 
 LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
-LEFT JOIN tbl_status_master s ON m.cstatus = s.cstatus_id 
-LEFT JOIN tbl_process_engine_condition c ON d.cheader_id = c.cheader_id and d.ID=c.ciseqno 
-WHERE m.ctenant_id = @TenantID AND m.id = @id";
+LEFT JOIN tbl_status_master s ON m.cstatus = s.id 
+LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
+WHERE m.ctenant_id = @TenantID AND m.id = @id
+ORDER BY m.ID, d.ID  asc;";
 
-                using var cmd = new SqlCommand(query, conn);
+                using var cmd = new SqlCommand(mainQuery, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
                 cmd.Parameters.AddWithValue("@id", id);
 
@@ -580,7 +704,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id";
 
                     if (!result.TryGetValue(ID, out var engine))
                     {
-                        engine = new GetProcessEngineDTO
+                        engine = new GetIDProcessEngineDTO
                         {
                             ID = ID,
                             cprocesscode = reader.SafeGetString("cprocesscode"),
@@ -592,63 +716,83 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id";
                             nshow_timeline = reader.SafeGetBoolean("nshow_timeline"),
                             cnotification_type = reader.SafeGetInt("cnotification_type"),
                             cmeta_id = reader.SafeGetInt("cmeta_id"),
-                            created_by = reader.SafeGetString("created_by"),
-                            ccreated_date = reader.SafeGetDateTime("lcreated_date"),
-                            modified_by = reader.SafeGetString("modified_by"),
-                            lmodified_date = reader.SafeGetDateTime("lmodified_date"),
+                            cmetaname= reader.SafeGetString("meta_Name"),
                             cstatus_description = reader.SafeGetString("cstatus_description"),
                             Notification_Description = reader.SafeGetString("Notification_Description"),
-                            processEngineChildItems = new List<GetprocessEngineChildItems>()
+                            processEngineChildItems = new List<GetIDprocessEngineChildItems>()
                         };
                         result[ID] = engine;
                     }
-                    
-                    int childciseqno = reader.SafeGetInt("cheader_id");
 
-                    if (childciseqno != 0)
+                    int childHeaderId = reader.SafeGetInt("cheader_id");
+                    if (childHeaderId != 0)
                     {
-                        var existingChild = engine.processEngineChildItems
-                            .FirstOrDefault(c => c.cheader_id == childciseqno);
-
-                        if (existingChild == null)
+                        var child = new GetIDprocessEngineChildItems
                         {
-                            existingChild = new GetprocessEngineChildItems
-                            {
-                                cactivityCode = reader.SafeGetString("cactivityCode"),
-                                cactivityDescription = reader.SafeGetString("cactivity_description"),
-                                ctaskType = reader.SafeGetString("ctask_type"),
-                                cprevStep = reader.SafeGetString("cprev_step"),
-                                cactivityName = reader.SafeGetString("cactivityname"),
-                                cnextSeqno = reader.SafeGetString("cnext_seqno"),
-                                cmappingCode = reader.SafeGetString("cmapping_code"),
-                                cmappingType = reader.SafeGetString("cmapping_type"),
-                                cslaDay = reader.SafeGetInt("csla_day"),
-                                cslaHour = reader.SafeGetInt("csla_Hour"),
-                                ciseqno = reader.SafeGetInt("ciseqno"),
-                                nboardEnabled = reader.SafeGetBoolean("nboard_enabled"),
-                                cactionPrivilege = reader.SafeGetString("caction_privilege"),
-                                crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
-                                cparticipantType = reader.SafeGetString("cparticipant_type"),
-                                processEngineConditionDetails = new List<processEngineConditionDetails>()
-                            };
+                            id= reader.SafeGetInt("DetailID"),
+                            cheader_id = childHeaderId,
+                            cprocessCode = reader.SafeGetString("cprocesscode"),
+                            ciseqno = reader.SafeGetInt("ciseqno"),
+                            cactivityCode = reader.SafeGetString("cactivitycode"),
+                            cactivityDescription = reader.SafeGetString("cactivity_description"),
+                            ctaskType = reader.SafeGetString("ctask_type"),
+                            cprevStep = reader.SafeGetString("cprev_step"),
+                            cactivityName = reader.SafeGetString("cactivityname"),
+                            cnextSeqno = reader.SafeGetString("cnext_seqno"),
+                            cmappingCode = reader.SafeGetString("cmapping_code"),
+                            cmappingType = reader.SafeGetString("cmapping_type"),
+                            cparticipantType = reader.SafeGetString("cparticipant_type"),
+                            cslaDay = reader.SafeGetInt("csla_day"),
+                            cslaHour = reader.SafeGetInt("csla_Hour"),
+                            nboardEnabled = reader.SafeGetBoolean("nboard_enabled"),
+                            cactionPrivilege = reader.SafeGetString("caction_privilege"),
+                            crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
+                            processEngineConditionDetails = new List<processEngineConditionDetails>()
+                        };
 
-                            engine.processEngineChildItems.Add(existingChild);
-                        }
-                        if (!reader.IsDBNull(reader.GetOrdinal("con_ciseqno")))
+                        engine.processEngineChildItems.Add(child);
+                    }
+                    
+                }
+                reader.Close();
+
+                // 🔹 Second query: Condition details
+                string condQuery = @"
+SELECT 
+    c.ciseqno, c.icond_seqno, c.ctype, c.clabel, c.cfield_value, c.ccondition,
+    c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, d.cprocesscode, d.cheader_id
+FROM tbl_process_engine_condition c
+INNER JOIN tbl_process_engine_details d ON c.ciseqno = d.ciseqno
+WHERE d.cheader_id = @HeaderID
+ORDER BY c.ciseqno, c.icond_seqno;";
+
+                using var condCmd = new SqlCommand(condQuery, conn);
+                condCmd.Parameters.AddWithValue("@HeaderID", id);
+
+                using var condReader = await condCmd.ExecuteReaderAsync();
+                while (await condReader.ReadAsync())
+                {
+                    int headerId = condReader.SafeGetInt("cheader_id");
+                    int ciseqno = condReader.SafeGetInt("ciseqno");
+
+                    if (result.TryGetValue(headerId, out var engine))
+                    {
+                        var child = engine.processEngineChildItems.FirstOrDefault(x => x.ciseqno == ciseqno);
+                        if (child != null)
                         {
-                            existingChild.processEngineConditionDetails.Add(new processEngineConditionDetails
+                            child.processEngineConditionDetails.Add(new processEngineConditionDetails
                             {
-                                cprocessCode = reader.SafeGetString("cprocesscode"),
-                                ciseqno = reader.SafeGetInt("ciseqno"),
-                                icondseqno = reader.SafeGetInt("icond_seqno"),
-                                ctype = reader.SafeGetString("cond_type"),
-                                clabel = reader.SafeGetString("clabel"),
-                                cfieldValue = reader.SafeGetString("cfield_value"),
-                                ccondition = reader.SafeGetString("ccondition"),
-                                cplaceholder = reader.SafeGetString("cplaceholder"),
-                                cisRequired = reader.SafeGetBoolean("cis_required"),
-                                cisReadonly = reader.SafeGetBoolean("cis_readonly"),
-                                cis_disabled = reader.SafeGetBoolean("cis_disabled"),
+                                cprocessCode = condReader.SafeGetString("cprocesscode"),
+                                ciseqno = ciseqno,
+                                icondseqno = condReader.SafeGetInt("icond_seqno"),
+                                ctype = condReader.SafeGetString("ctype"),
+                                clabel = condReader.SafeGetString("clabel"),
+                                cfieldValue = condReader.SafeGetString("cfield_value"),
+                                ccondition = condReader.SafeGetString("ccondition"),
+                                cplaceholder = condReader.SafeGetString("cplaceholder"),
+                                cisRequired = condReader.SafeGetBoolean("cis_required"),
+                                cisReadonly = condReader.SafeGetBoolean("cis_readonly"),
+                                cis_disabled = condReader.SafeGetBoolean("cis_disabled"),
                             });
                         }
                     }
@@ -656,12 +800,195 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id";
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error fetching process engine data for tenant {TenantID}", cTenantID);
-                throw;
+                throw; // log if needed
             }
 
             return result.Values.ToList();
         }
+
+
+        public async Task<List<GetIDProcessEngineDTO>> GetProcessengineAsync(int cTenantID, int id)
+        {
+            var result = new Dictionary<int, GetIDProcessEngineDTO>();
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using var conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+                // 🔹 First query: Header + Child (no condition join)
+                string mainQuery = @"
+SELECT
+    m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, p.cprocess_privilege, 
+    m.cvalue, m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
+    ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by, 
+    m.lcreated_date,     
+    ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by, 
+    m.lmodified_date,
+    m.cmeta_id,
+    d.cactivitycode, d.cactivity_description, d.ctask_type, d.cprev_step, d.cactivityname, d.cnext_seqno,
+    d.nboard_enabled, d.cmapping_code, d.cmapping_type, d.cparticipant_type, d.csla_day, d.csla_Hour, d.caction_privilege, d.crejection_privilege,
+    n.notification_type As Notification_Description,
+    s.cstatus_description, d.ciseqno, d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID as DetailID  
+FROM tbl_process_engine_master m
+LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
+LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
+LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
+LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID 
+LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
+LEFT JOIN tbl_status_master s ON m.cstatus = s.id 
+LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
+WHERE m.ctenant_id = @TenantID AND m.id = @id
+ORDER BY m.ID, d.ID ASC;";
+
+                using var cmd = new SqlCommand(mainQuery, conn);
+                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                cmd.Parameters.AddWithValue("@id", id);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    int masterId = reader.GetInt32(reader.GetOrdinal("ID"));
+
+                    if (!result.TryGetValue(masterId, out var engine))
+                    {
+                        engine = new GetIDProcessEngineDTO
+                        {
+                            ID = masterId,
+                            cprocesscode = reader.SafeGetString("cprocesscode"),
+                            cprocessname = reader.SafeGetString("cprocessname"),
+                            cprocessType = reader.SafeGetString("cprocess_privilege"),
+                            cstatus = reader.SafeGetString("cstatus"),
+                            cprocessvalue = reader.SafeGetString("cvalue"),
+                            cpriority_label = reader.SafeGetString("cpriority_label"),
+                            nshow_timeline = reader.SafeGetBoolean("nshow_timeline"),
+                            cnotification_type = reader.SafeGetInt("cnotification_type"),
+                            cmeta_id = reader.SafeGetInt("cmeta_id"),
+                            cmetaname = reader.SafeGetString("meta_Name"),
+                            cstatus_description = reader.SafeGetString("cstatus_description"),
+                            Notification_Description = reader.SafeGetString("Notification_Description"),
+                            processEngineChildItems = new List<GetIDprocessEngineChildItems>(),
+                            processEngineMeta = new List<processEngineMeta>()
+                        };
+                        result[masterId] = engine;
+                    }
+                    int childHeaderId = reader.SafeGetInt("cheader_id");
+                    if (childHeaderId != 0)
+                    {
+                        var child = new GetIDprocessEngineChildItems
+                        {
+                            id = reader.SafeGetInt("DetailID"),
+                            cheader_id = childHeaderId,
+                            cprocessCode = reader.SafeGetString("cprocesscode"),
+                            ciseqno = reader.SafeGetInt("ciseqno"),
+                            cactivityCode = reader.SafeGetString("cactivitycode"),
+                            cactivityDescription = reader.SafeGetString("cactivity_description"),
+                            ctaskType = reader.SafeGetString("ctask_type"),
+                            cprevStep = reader.SafeGetString("cprev_step"),
+                            cactivityName = reader.SafeGetString("cactivityname"),
+                            cnextSeqno = reader.SafeGetString("cnext_seqno"),
+                            cmappingCode = reader.SafeGetString("cmapping_code"),
+                            cmappingType = reader.SafeGetString("cmapping_type"),
+                            cparticipantType = reader.SafeGetString("cparticipant_type"),
+                            cslaDay = reader.SafeGetInt("csla_day"),
+                            cslaHour = reader.SafeGetInt("csla_Hour"),
+                            nboardEnabled = reader.SafeGetBoolean("nboard_enabled"),
+                            cactionPrivilege = reader.SafeGetString("caction_privilege"),
+                            crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
+                            processEngineConditionDetails = new List<processEngineConditionDetails>()
+                        };
+                        engine.processEngineChildItems.Add(child);
+                    }
+                }
+                reader.Close();
+
+                // 🔹 Second query: Condition details
+                string condQuery = @"
+SELECT 
+    m.ID as MasterID,
+    c.ciseqno, c.icond_seqno, c.ctype, c.clabel, c.cfield_value, c.ccondition,
+    c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, d.cprocesscode
+FROM tbl_process_engine_condition c
+INNER JOIN tbl_process_engine_details d ON c.ciseqno = d.id
+INNER JOIN tbl_process_engine_master m ON d.cheader_id = m.ID
+WHERE m.ID = @HeaderID
+ORDER BY c.ciseqno, c.icond_seqno;";
+
+                using var condCmd = new SqlCommand(condQuery, conn);
+                condCmd.Parameters.AddWithValue("@HeaderID", id);
+
+                using var condReader = await condCmd.ExecuteReaderAsync();
+                while (await condReader.ReadAsync())
+                {
+                    int masterId = condReader.SafeGetInt("MasterID");
+                    int ciseqno = condReader.SafeGetInt("ciseqno");
+
+                    if (result.TryGetValue(masterId, out var engine))
+                    {
+                        var child = engine.processEngineChildItems.FirstOrDefault(x => x.id == ciseqno);
+                        if (child != null)
+                        {
+                            child.processEngineConditionDetails.Add(new processEngineConditionDetails
+                            {
+                                cprocessCode = condReader.SafeGetString("cprocesscode"),
+                                ciseqno = ciseqno,
+                                icondseqno = condReader.SafeGetInt("icond_seqno"),
+                                ctype = condReader.SafeGetString("ctype"),
+                                clabel = condReader.SafeGetString("clabel"),
+                                cfieldValue = condReader.SafeGetString("cfield_value"),
+                                ccondition = condReader.SafeGetString("ccondition"),
+                                cplaceholder = condReader.SafeGetString("cplaceholder"),
+                                cisRequired = condReader.SafeGetBoolean("cis_required"),
+                                cisReadonly = condReader.SafeGetBoolean("cis_readonly"),
+                                cis_disabled = condReader.SafeGetBoolean("cis_disabled"),
+                            });
+                        }
+                    }
+                }
+                condReader.Close();
+                string metaQuery = @"
+SELECT
+    m.ID as MasterID,
+    m.cmeta_id, meta.meta_Name, meta.meta_Description,
+    metadetail.cinput_type, metadetail.label, metadetail.cplaceholder,
+    metadetail.cis_required, metadetail.cis_readonly, metadetail.cis_disabled,
+    metadetail.cfield_value
+FROM tbl_process_engine_master m
+LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
+LEFT JOIN tbl_process_meta_detail metadetail ON meta.id = metadetail.cheader_id
+WHERE m.ctenant_id = @TenantID AND m.id = @id;";
+                using var metaCmd = new SqlCommand(metaQuery, conn);
+                metaCmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                metaCmd.Parameters.AddWithValue("@id", id);          
+                using var metaReader = await metaCmd.ExecuteReaderAsync();
+                while (await metaReader.ReadAsync())
+                {
+                    int masterId = metaReader.SafeGetInt("MasterID");
+
+                    if (result.TryGetValue(masterId, out var engine))
+                    {
+                        engine.processEngineMeta.Add(new processEngineMeta
+                        {
+                            cinputType = metaReader.SafeGetString("cinput_type"),
+                            label = metaReader.SafeGetString("label"),
+                            cplaceholder = metaReader.SafeGetString("cplaceholder"),
+                            cisRequired = metaReader.SafeGetBoolean("cis_required"),
+                            cisReadonly = metaReader.SafeGetBoolean("cis_readonly"),   // ✅ fixed
+                            cisDisabled = metaReader.SafeGetBoolean("cis_disabled"),   // ✅ fixed
+                            cfieldValue = metaReader.SafeGetString("cfield_value")     // ✅ fixed
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw; // log if needed
+            }
+
+            return result.Values.ToList();
+        }
+
 
     }
 }

@@ -12,6 +12,6 @@ namespace TaskEngineAPI.Interfaces
 
         Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID);
 
-        Task<List<GetProcessEngineDTO>> GetProcessengineAsync(int cTenantID, int id);
+        Task<List<GetIDProcessEngineDTO>> GetProcessengineAsync(int cTenantID, int id);
     }
 }

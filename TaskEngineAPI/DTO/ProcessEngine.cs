@@ -204,9 +204,6 @@
     }
 
 
-
-
-
     public class GetTaskDetails
     {
         public int? ID { get; set; }
@@ -235,5 +232,58 @@
         public string? creassign_to { get; set; }
 
     }
+
+    public class GetIDProcessEngineDTO
+    {
+        public int? ID { get; set; }
+        public string? cprocesscode { get; set; }
+        public string? cprocessname { get; set; }
+        public string? cprocessType { get; set; }   
+        public string? cprocessvalue { get; set; }   
+        public string? cstatus { get; set; }
+        public string? cstatus_description { get; set; }
+        public string? cpriority_label { get; set; }
+        public bool? nshow_timeline { get; set; }
+        public int? cnotification_type { get; set; }
+        public string? Notification_Description { get; set; }
+        public int? cmeta_id { get; set; }
+        public string? cmetaname { get; set; }
+
+        public List<GetIDprocessEngineChildItems> processEngineChildItems { get; set; }
+       
+       public List<processEngineMeta> processEngineMeta { get; set; }
+
+    }
+
+
+    public class GetIDprocessEngineChildItems
+    {
+        public int? id{ get; set; }
+        public int? cheader_id { get; set; }
+        public string? cprocessCode { get; set; }
+        public int? ciseqno { get; set; }
+        public string? cactivityCode { get; set; }
+        public string? cactivityDescription { get; set; }
+        public string? ctaskType { get; set; }
+        public string? cprevStep { get; set; }
+        public string? cactivityName { get; set; }
+        public string? cnextSeqno { get; set; }
+        public string? cmappingCode { get; set; }
+        public string? cmappingType { get; set; }
+        public string? cparticipantType { get; set; }
+        public int? cslaDay { get; set; }
+        public int? cslaHour { get; set; }
+        public bool? nboardEnabled { get; set; }
+        public string? cactionPrivilege { get; set; }
+        public string? crejectionPrivilege { get; set; }
+        public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
+    }
+
+
+
+
+
+
+
 }
 
