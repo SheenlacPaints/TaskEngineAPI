@@ -1,4 +1,5 @@
-﻿using System.Data.SqlClient;
+﻿using System.Data;
+using System.Data.SqlClient;
 using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Interfaces;
 
@@ -449,6 +450,46 @@ namespace TaskEngineAPI.Services
             catch (Exception ex)
             {
                 throw new Exception($"Error deleting process privilege type: {ex.Message}");
+            }
+        }
+
+
+        public async Task<IEnumerable<PrivilegeItemDTO>> GetPrivilegeListAsync(int tenantID)
+        {
+            var result = new List<PrivilegeItemDTO>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+                {
+                    await conn.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand("sp_get_dropdown", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@column", "getPrivilegeList");
+                        cmd.Parameters.AddWithValue("@tenent", tenantID);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                result.Add(new PrivilegeItemDTO
+                                {
+                                    value = reader.IsDBNull(reader.GetOrdinal("value")) ? string.Empty : reader.GetString(reader.GetOrdinal("value")),
+                                    view_value = reader.IsDBNull(reader.GetOrdinal("view_value")) ? string.Empty : reader.GetString(reader.GetOrdinal("view_value"))
+                                });
+                            }
+                        }
+                    }
+                }
+
+                result.Add(new PrivilegeItemDTO { value = "0", view_value = "All" });
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving privilege list: {ex.Message}");
             }
         }
     }
