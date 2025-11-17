@@ -21,10 +21,13 @@ namespace TaskEngineAPI.Interfaces
         Task<IEnumerable<ProcessPrivilegeTypeDTO>> GetAllProcessPrivilegeTypesAsync(int tenantID);
         Task<bool> CreateProcessPrivilegeTypeAsync(CreateProcessPrivilegeTypeDTO model);
         Task<bool> UpdateProcessPrivilegeTypeAsync(UpdateProcessPrivilegeTypeDTO model);
-        Task<bool> DeleteProcessPrivilegeTypeAsync(DeleteProcessPrivilegeTypeDTO model, int tenantID, string username);
-
-        Task<IEnumerable<PrivilegeItemDTO>> GetPrivilegeListAsync(int tenantID);
-
+        Task<bool> DeleteProcessPrivilegeTypeAsync(DeleteProcessPrivilegeTypeDTO model, int tenantID, string username); 
         
+
+
+        Task<IEnumerable<PrivilegeItemDTO>> GetPrivilegeTypeByIdAsync(int privilegeType, int tenantID);
+        Task<IEnumerable<PrivilegeItemDTO>> GetPrivilegeListAsync(int tenantID);
+     
+
     }
 }

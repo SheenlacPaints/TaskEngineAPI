@@ -110,20 +110,4 @@ namespace TaskEngineAPI.DTO.LookUpDTO
         public string view_value { get; set; } = string.Empty;
     }
 
-    public class ProcessMappingDTO
-    {
-        public int processID { get; set; }
-        public int? mappingID { get; set; }
-        public string privilegeType { get; set; } = string.Empty;
-        public List<PrivilegeItemDTO> privilegeList { get; set; } = new List<PrivilegeItemDTO>();
-    }
-
-    public class ProcessMappingResponseDTO
-    {
-        public int processID { get; set; }
-        public int mappingID { get; set; }
-        public string processName { get; set; } = string.Empty;
-        public string privilegeType { get; set; } = string.Empty;
-        public List<string> privilegeList { get; set; } = new List<string>();
-    }
 }
