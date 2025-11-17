@@ -1325,8 +1325,8 @@ namespace TaskEngineAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("GetMappingListAsync")]
-        public async Task<IActionResult> GetMappingListAsync()
+        [HttpGet("GetMappingList")]
+        public async Task<IActionResult> GetMappingList()
         {
             try
             {
@@ -1339,7 +1339,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 // Attach token to outbound request
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}ProcessEngine/GetMappingListAsync");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}ProcessEngine/GetMappingList");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
                 var response = await _httpClient.SendAsync(requestMessage);
