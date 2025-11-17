@@ -18,7 +18,12 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> UpdateProcessenginestatusdeleteAsync(updatestatusdeleteDTO model, int cTenantID, string username);
 
         Task<int> InsertprocessmappingAsync(createprocessmappingDTO model, int cTenantID, string username);
+
+        Task<bool> UpdateprocessmappingAsync(updateprocessmappingDTO model, int cTenantID, string username);
+
+
+
         Task<List<MappingListDTO>> GetMappingListAsync(int cTenantID);
     }
-        
+
 }

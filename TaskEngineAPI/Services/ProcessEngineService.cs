@@ -12,6 +12,8 @@ using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
+using System;
+using System.Diagnostics;
 
 namespace TaskEngineAPI.Services
 {
@@ -602,62 +604,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
         }
 
 
-//        public async Task<int> InsertprocessmappingAsync(createprocessmappingDTO model,int cTenantID, string username)
-//        {
-//            var connStr = _config.GetConnectionString("Database");
-
-//            using (SqlConnection conn = new SqlConnection(connStr))
-//            {
-//                await conn.OpenAsync();
-//                int headerId = 0;
-//                string query = @"INSERT INTO tbl_engine_master_to_process_privilege (cprocess_id,
-//        cprocesscode,ctenent_id,cprocess_privilege,ccreated_by,lcreated_date ,cmodified_by ,lmodified_date)
-//VALUES(@cprocess_id,@cprocesscode,@TenantID, @cprocess_privilege, @ccreated_by,@ccreated_date,@cmodified_by, @lmodified_date);
-//        SELECT SCOPE_IDENTITY();";
-
-//                using (SqlCommand cmd = new SqlCommand(query, conn))
-//                {                   
-//                    cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-//                    cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocessid ?? DBNull.Value);
-//                    cmd.Parameters.AddWithValue("@cprocesscode", (object?)model.cprocesscode ?? DBNull.Value);    
-//                    cmd.Parameters.AddWithValue("@cprocess_privilege", (object?)model.cprivilegeType ?? DBNull.Value);
-//                    cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
-//                    cmd.Parameters.AddWithValue("@ccreated_by", username);
-//                    cmd.Parameters.AddWithValue("@cmodified_by", username);
-//                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-//                    var newId = await cmd.ExecuteScalarAsync();
-//                    return headerId != null ? Convert.ToInt32(newId) : 0;
-//                }
-
-
-//                string detailQuery = @"INSERT INTO tbl_process_privilege_details (
-//                   cheader_id,cprocess_id,entity_id,entity_value,ctenent_id,cis_active,ccreated_by,lcreated_date,cmodified_by,lmodified_date)                 
-//                    VALUES (@cheader_id,@cprocess_id,@entity_id,@entity_value,@ctenent_id,@cis_active,@ccreated_by,@lcreated_date,@cmodified_by,@lmodified_date)";
-
-//                foreach (var detail in model.privilegeList)
-//                {
-//                    using (SqlCommand cmdDetail = new SqlCommand(detailQuery, conn))
-//                    {
-//                        cmdDetail.Parameters.AddWithValue("@cheader_id", headerId);
-//                        cmdDetail.Parameters.AddWithValue("@cprocess_id", (object ?)model.cprocessid ?? DBNull.Value);
-//                        cmdDetail.Parameters.AddWithValue("@entity_id", (object?)detail.value ?? DBNull.Value);
-//                        cmdDetail.Parameters.AddWithValue("@entity_value", (object?)detail.view_value ?? DBNull.Value);
-//                        cmdDetail.Parameters.AddWithValue("@ctenent_id", cTenantID);
-//                        cmdDetail.Parameters.AddWithValue("@cis_active", 1);
-//                        cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
-//                        cmdDetail.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
-//                        cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
-//                        cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-//                        cmdDetail.ExecuteNonQuery();
-//                    }
-//                }
-
-
-
-//            }
-//        }
-
-
 
         public async Task<int> InsertprocessmappingAsync(createprocessmappingDTO model, int cTenantID, string username)
         {
@@ -735,89 +681,74 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
         }
 
 
-        //public async Task<List<MappingListDTO>> GetMappingListAsync(int cTenantID)
-        //{
-        //    var result = new List<MappingListDTO>();
+        public async Task<bool> UpdateprocessmappingAsync(updateprocessmappingDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
 
-        //    try
-        //    {
-        //        var connStr = _config.GetConnectionString("Database");
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
 
-        //        using (SqlConnection conn = new SqlConnection(connStr))
-        //        {
-        //            await conn.OpenAsync();
+                using (SqlTransaction tx = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // 1. Delete old details
+                        string deleteQuery = "DELETE FROM tbl_process_privilege_details WHERE cheader_ID = @cheaderid";
+                        using (SqlCommand cmd = new SqlCommand(deleteQuery, conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@cheaderid", model.cmappingid);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
 
-        //            string query = @"
+                        // 2. Insert new details
+                        string insertQuery = @"
+                    INSERT INTO tbl_process_privilege_details 
+                        (cheader_id, cprocess_id, entity_id, entity_value, ctenent_id, cis_active,
+                         ccreated_by, lcreated_date, cmodified_by, lmodified_date)
+                    VALUES (@cheader_id, @cprocess_id, @entity_id, @entity_value, @ctenent_id, @cis_active,
+                            @ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date)";
 
+                        foreach (var item in model.privilegeList)
+                        {
+                            using (SqlCommand cmd = new SqlCommand(insertQuery, conn, tx))
+                            {
+                                cmd.Parameters.AddWithValue("@cheader_id", model.cmappingid);
+                                cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocessid ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@entity_id", (object?)item.value ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@entity_value", (object?)item.view_value ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                                cmd.Parameters.AddWithValue("@cis_active", 1);
+                                cmd.Parameters.AddWithValue("@ccreated_by", username);
+                                cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                                cmd.Parameters.AddWithValue("@cmodified_by", username);
+                                cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
 
-        //            	  SELECT 
-        //                  h.ID as mappingID,
-        //                  h.cprocess_id as processID,
-        //                  h.cprocesscode as processName,
-        //                  d.entity_id as value,
-        //                  d.entity_value as view_value
-        //              FROM tbl_engine_master_to_process_privilege h
-        //              LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
-        //              WHERE h.ctenent_id = 1500 
-        //              AND (d.ctenent_id = 1500 OR d.ctenent_id IS NULL)
-        //              AND (d.cis_active = 1 OR d.cis_active IS NULL)
-        //              ORDER BY h.ID, d.entity_value";
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
 
-        //            var mappingDict = new Dictionary<int, MappingListDTO>();
+                        string updateQuery = "update tbl_engine_master_to_process_privilege set  cmodified_by=@cmodified_by,lmodified_date=@lmodified_date where id=@cheaderid"; 
+                          
+                        using (SqlCommand cmd = new SqlCommand(updateQuery, conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@cheaderid", model.cmappingid);
+                            cmd.Parameters.AddWithValue("@cmodified_by", username);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
 
-        //            using (SqlCommand cmd = new SqlCommand(query, conn))
-        //            {
-        //                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-
-        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //                {
-        //                    while (await reader.ReadAsync())
-        //                    {
-        //                        var mappingId = reader.GetInt32(reader.GetOrdinal("mappingID"));
-
-        //                        if (!mappingDict.ContainsKey(mappingId))
-        //                        {
-        //                            var mapping = new MappingListDTO
-        //                            {
-        //                                mappingID = mappingId,
-        //                                processID = reader.GetInt32(reader.GetOrdinal("processID")),
-        //                                processName = reader.GetValue(reader.GetOrdinal("processName"))?.ToString() ?? string.Empty,
-        //                                privilegeType = reader.GetValue(reader.GetOrdinal("privilegeType"))?.ToString() ?? string.Empty,
-        //                                privilegeList = new List<PrivilegeItemDTO>()
-        //                            };
-        //                            mappingDict[mappingId] = mapping;
-        //                        }
-
-        //                        if (!reader.IsDBNull(reader.GetOrdinal("value")) && !reader.IsDBNull(reader.GetOrdinal("view_value")))
-        //                        {
-        //                            string value = reader.GetValue(reader.GetOrdinal("value"))?.ToString() ?? string.Empty;
-        //                            string view_value = reader.GetValue(reader.GetOrdinal("view_value"))?.ToString() ?? string.Empty;
-
-        //                            if (!string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(view_value))
-        //                            {
-        //                                var privilegeItem = new PrivilegeItemDTO
-        //                                {
-        //                                    value = value,
-        //                                    view_value = view_value
-        //                                };
-        //                                mappingDict[mappingId].privilegeList.Add(privilegeItem);
-        //                            }
-        //                        }
-        //                    }
-        //                }
-        //            }
-
-        //            result = mappingDict.Values.ToList();
-        //        }
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception($"Error retrieving mapping list: {ex.Message}");
-        //    }
-        //}
-
+                        tx.Commit();
+                        return true; // success
+                    }
+                    catch
+                    {
+                        tx.Rollback();
+                        throw; // bubble up the error
+                    }
+                }
+            }
+        }
 
         public async Task<List<MappingListDTO>> GetMappingListAsync(int cTenantID)
         {

@@ -274,7 +274,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
+        [Authorize]
         [HttpPut]
         [Route("Updateprocessstatusdelete")]
         public async Task<IActionResult> Updateprocessstatusdelete([FromBody] pay request)
@@ -350,14 +350,14 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(500, new APIResponse
                     {
                         status = 500,
-                        statusText = "Failed to create Process"
+                        statusText = "Failed to create Processmapping"
                     });
                 }
                 // Prepare response
                 var apierDtls = new APIResponse
                 {
                     status = 200,
-                    statusText = "Process created successfully",
+                    statusText = "Processmapped successfully",
                     body = new object[] { new { processid = insertedUserId } }
                 };
                 string jsone = JsonConvert.SerializeObject(apierDtls);
@@ -372,7 +372,7 @@ namespace TaskEngineAPI.Controllers
                 var apierrDtls = new APIResponse
                 {
                     status = 500,
-                    statusText = "Error creating Super Admin ",
+                    statusText = "Error in Process mapping ",
                     error = ex.Message
                 };
 
@@ -382,6 +382,43 @@ namespace TaskEngineAPI.Controllers
 
             }
         }
+
+        [Authorize]
+        [HttpPut]
+        [Route("Updateprocessmapping")]
+        public async Task<IActionResult> Updateprocessmapping([FromBody] pay request)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+            {
+                throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+            }
+
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<updateprocessmappingDTO>(decryptedJson);
+            if (model == null || model.cmappingid <= 0)
+            {
+                throw new ArgumentException("Invalid ID provided");
+            }
+            bool success = await _processEngineService.UpdateprocessmappingAsync(model, cTenantID, username);
+
+            var response = new APIResponse
+            {
+                status = success ? 200 : 400,
+                statusText = success ? "updated successfully" : "data not found or update failed"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, encrypted);
+        }
+
 
         [Authorize]
         [HttpGet]
