@@ -19,6 +19,10 @@ namespace TaskEngineAPI.Interfaces
 
         Task<int> InsertprocessmappingAsync(createprocessmappingDTO model, int cTenantID, string username);
 
+        Task<bool> UpdateprocessmappingAsync(updateprocessmappingDTO model, int cTenantID, string username);
+
+
+
     }
-        
+
 }

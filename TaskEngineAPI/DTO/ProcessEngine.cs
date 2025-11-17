@@ -307,8 +307,15 @@
         
     }
 
+    public class updateprocessmappingDTO
+    {
+        public int? cmappingid { get; set; }
+        public int? cprocessid { get; set; }      
+        public int? cprivilegeType { get; set; }
 
-  
+        public List<privilegeList>? privilegeList { get; set; }
+    }
+
 
 }
 
