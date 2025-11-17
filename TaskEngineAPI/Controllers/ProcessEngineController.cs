@@ -350,14 +350,14 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(500, new APIResponse
                     {
                         status = 500,
-                        statusText = "Failed to create Process"
+                        statusText = "Failed to create Processmapping"
                     });
                 }
                 // Prepare response
                 var apierDtls = new APIResponse
                 {
                     status = 200,
-                    statusText = "Process created successfully",
+                    statusText = "Processmapped successfully",
                     body = new object[] { new { processid = insertedUserId } }
                 };
                 string jsone = JsonConvert.SerializeObject(apierDtls);
@@ -372,7 +372,7 @@ namespace TaskEngineAPI.Controllers
                 var apierrDtls = new APIResponse
                 {
                     status = 500,
-                    statusText = "Error creating Super Admin ",
+                    statusText = "Error in Process mapping ",
                     error = ex.Message
                 };
 
