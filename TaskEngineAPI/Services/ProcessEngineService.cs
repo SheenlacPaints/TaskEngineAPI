@@ -10,6 +10,7 @@ using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
+using System;
 
 namespace TaskEngineAPI.Services
 {
@@ -598,6 +599,141 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 }
             }
         }
+
+
+//        public async Task<int> InsertprocessmappingAsync(createprocessmappingDTO model,int cTenantID, string username)
+//        {
+//            var connStr = _config.GetConnectionString("Database");
+
+//            using (SqlConnection conn = new SqlConnection(connStr))
+//            {
+//                await conn.OpenAsync();
+//                int headerId = 0;
+//                string query = @"INSERT INTO tbl_engine_master_to_process_privilege (cprocess_id,
+//        cprocesscode,ctenent_id,cprocess_privilege,ccreated_by,lcreated_date ,cmodified_by ,lmodified_date)
+//VALUES(@cprocess_id,@cprocesscode,@TenantID, @cprocess_privilege, @ccreated_by,@ccreated_date,@cmodified_by, @lmodified_date);
+//        SELECT SCOPE_IDENTITY();";
+
+//                using (SqlCommand cmd = new SqlCommand(query, conn))
+//                {                   
+//                    cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+//                    cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocessid ?? DBNull.Value);
+//                    cmd.Parameters.AddWithValue("@cprocesscode", (object?)model.cprocesscode ?? DBNull.Value);    
+//                    cmd.Parameters.AddWithValue("@cprocess_privilege", (object?)model.cprivilegeType ?? DBNull.Value);
+//                    cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+//                    cmd.Parameters.AddWithValue("@ccreated_by", username);
+//                    cmd.Parameters.AddWithValue("@cmodified_by", username);
+//                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+//                    var newId = await cmd.ExecuteScalarAsync();
+//                    return headerId != null ? Convert.ToInt32(newId) : 0;
+//                }
+
+
+//                string detailQuery = @"INSERT INTO tbl_process_privilege_details (
+//                   cheader_id,cprocess_id,entity_id,entity_value,ctenent_id,cis_active,ccreated_by,lcreated_date,cmodified_by,lmodified_date)                 
+//                    VALUES (@cheader_id,@cprocess_id,@entity_id,@entity_value,@ctenent_id,@cis_active,@ccreated_by,@lcreated_date,@cmodified_by,@lmodified_date)";
+
+//                foreach (var detail in model.privilegeList)
+//                {
+//                    using (SqlCommand cmdDetail = new SqlCommand(detailQuery, conn))
+//                    {
+//                        cmdDetail.Parameters.AddWithValue("@cheader_id", headerId);
+//                        cmdDetail.Parameters.AddWithValue("@cprocess_id", (object ?)model.cprocessid ?? DBNull.Value);
+//                        cmdDetail.Parameters.AddWithValue("@entity_id", (object?)detail.value ?? DBNull.Value);
+//                        cmdDetail.Parameters.AddWithValue("@entity_value", (object?)detail.view_value ?? DBNull.Value);
+//                        cmdDetail.Parameters.AddWithValue("@ctenent_id", cTenantID);
+//                        cmdDetail.Parameters.AddWithValue("@cis_active", 1);
+//                        cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
+//                        cmdDetail.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+//                        cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
+//                        cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+//                        cmdDetail.ExecuteNonQuery();
+//                    }
+//                }
+
+
+
+//            }
+//        }
+
+
+
+        public async Task<int> InsertprocessmappingAsync(createprocessmappingDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                using (SqlTransaction tx = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        int headerId;
+                        // Insert header
+                        string query = @"
+                    INSERT INTO tbl_engine_master_to_process_privilege 
+                        (cprocess_id, cprocesscode, ctenent_id, cprocess_privilege, 
+                         ccreated_by, lcreated_date, cmodified_by, lmodified_date)
+                    VALUES (@cprocess_id, @cprocesscode, @TenantID, @cprocess_privilege, 
+                            @ccreated_by, @ccreated_date, @cmodified_by, @lmodified_date);
+                    SELECT SCOPE_IDENTITY();";
+
+                        using (SqlCommand cmd = new SqlCommand(query, conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                            cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocessid ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocesscode", (object?)model.cprocesscode ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocess_privilege", (object?)model.cprivilegeType ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@ccreated_by", username);
+                            cmd.Parameters.AddWithValue("@cmodified_by", username);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            var newId = await cmd.ExecuteScalarAsync();
+                            headerId = Convert.ToInt32(newId);
+                        }
+
+                        // Insert details
+                        string detailQuery = @"
+                    INSERT INTO tbl_process_privilege_details 
+                        (cheader_id, cprocess_id, entity_id, entity_value, ctenent_id, cis_active, 
+                         ccreated_by, lcreated_date, cmodified_by, lmodified_date)
+                    VALUES (@cheader_id, @cprocess_id, @entity_id, @entity_value, @ctenent_id, @cis_active, 
+                            @ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date)";
+
+                        foreach (var detail in model.privilegeList)
+                        {
+                            using (SqlCommand cmdDetail = new SqlCommand(detailQuery, conn, tx))
+                            {
+                                cmdDetail.Parameters.AddWithValue("@cheader_id", headerId);
+                                cmdDetail.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocessid ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@entity_id", (object?)detail.value ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@entity_value", (object?)detail.view_value ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                                cmdDetail.Parameters.AddWithValue("@cis_active", 1);
+                                cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
+                                cmdDetail.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                                cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
+                                cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+
+                                await cmdDetail.ExecuteNonQueryAsync();
+                            }
+                        }
+
+                        tx.Commit();
+                        return headerId;
+                    }
+                    catch
+                    {
+                        tx.Rollback();
+                        throw; // bubble up the error
+                    }
+                }
+            }
+        }
+
+
 
 
     }

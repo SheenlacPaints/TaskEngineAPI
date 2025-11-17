@@ -25,6 +25,6 @@ namespace TaskEngineAPI.Interfaces
 
         Task<IEnumerable<PrivilegeItemDTO>> GetPrivilegeListAsync(int tenantID);
 
-
+        
     }
 }

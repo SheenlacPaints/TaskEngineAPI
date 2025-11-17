@@ -285,11 +285,30 @@
         public int? ID { get; set; }
         public int? status { get; set; }
         public bool? isDeleted { get; set; }
-       
+
+    }
+
+    public class createprocessmappingDTO
+    {
+        public int? cprocessid { get; set; }
+        public string? cprocesscode { get; set; }
+        public int? cprivilegeType { get; set; }
+        
+
+        public List<privilegeList>? privilegeList { get; set; }
+    }
+
+    public class privilegeList
+    {
+        public int? value { get; set; }
+        public string? view_value { get; set; }
+      
+
+        
     }
 
 
-
+  
 
 }
 
