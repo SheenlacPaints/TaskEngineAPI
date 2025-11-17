@@ -542,9 +542,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             return result.Values.ToList();
         }
 
-
-
-        public async Task<bool> UpdateProcessenginestatusdeleteAsync(updatestatusdeleteDTO model,int cTenantID, string username)
+        public async Task<bool> UpdateProcessenginestatusdeleteAsync(updatestatusdeleteDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
 
@@ -552,26 +550,55 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             {
                 await conn.OpenAsync();
 
-                string query = @"
-             UPDATE tbl_process_engine_master SET
-            nIs_deleted = @nIs_deleted,
-            cdeleted_by = @cdeleted_by,
-            ldeleted_date = @ldeleted_date,
-             cstatus =@cstatus         
-            WHERE ID = @ID ";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                string query;
+                using (SqlCommand cmd = new SqlCommand())
                 {
-                    cmd.Parameters.AddWithValue("@nIs_deleted", model.isDeleted ?? false);
-                    cmd.Parameters.AddWithValue("@cdeleted_by", username);
-                    cmd.Parameters.AddWithValue("@ldeleted_date", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@cstatus", (object?)model.status ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ID", model.ID);               
+                    cmd.Connection = conn;
+
+                    if (model.status == null && model.isDeleted == true)
+                    {
+                        // Case 1: Delete update
+                        query = @"
+                    UPDATE tbl_process_engine_master SET
+                        nIs_deleted = @nIs_deleted,
+                        cdeleted_by = @cdeleted_by,
+                        ldeleted_date = @ldeleted_date
+                    WHERE ID = @ID";
+
+                        cmd.CommandText = query;
+                        cmd.Parameters.AddWithValue("@nIs_deleted", true);
+                        cmd.Parameters.AddWithValue("@cdeleted_by", username);
+                        cmd.Parameters.AddWithValue("@ldeleted_date", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@ID", model.ID);
+                    }
+                    else if (model.isDeleted == null && model.status != null)
+                    {
+                        // Case 2: Status update
+                        query = @"
+                    UPDATE tbl_process_engine_master SET
+                        cstatus = @cstatus,
+                        cmodified_by = @cmodified_by,
+                        lmodified_date = @lmodified_date
+                    WHERE ID = @ID";
+
+                        cmd.CommandText = query;
+                        cmd.Parameters.AddWithValue("@cstatus", model.status);
+                        cmd.Parameters.AddWithValue("@cmodified_by", username);
+                        cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@ID", model.ID);
+                    }
+                    else
+                    {
+                        // No valid update condition
+                        return false;
+                    }
+
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
                 }
             }
         }
+
 
     }
 }
