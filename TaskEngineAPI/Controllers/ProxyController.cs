@@ -1337,14 +1337,14 @@ namespace TaskEngineAPI.Controllers
                 {
                     return Unauthorized("Missing Authorization token.");
                 }
-                // Attach token to outbound request
-                // var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}Account/getAllUser");
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/GetMappingListAsync");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
+                // Attach token to outbound request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}ProcessEngine/GetMappingListAsync");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
+
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }
