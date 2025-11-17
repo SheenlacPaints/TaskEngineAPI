@@ -280,7 +280,15 @@
     }
 
 
+    public class updatestatusdeleteDTO
+    {
+        public int? ID { get; set; }
+        public int? status { get; set; }
+        public bool? isDeleted { get; set; }
+     
 
+      
+    }
 
 
 

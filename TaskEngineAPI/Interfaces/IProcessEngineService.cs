@@ -1,4 +1,5 @@
-﻿using TaskEngineAPI.DTO;
+﻿using System.Data.SqlClient;
+using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 namespace TaskEngineAPI.Interfaces
 {
@@ -13,5 +14,8 @@ namespace TaskEngineAPI.Interfaces
         Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID);
 
         Task<List<GetIDProcessEngineDTO>> GetProcessengineAsync(int cTenantID, int id);
+
+        Task<bool> UpdateProcessenginestatusdeleteAsync(updatestatusdeleteDTO model, int cTenantID, string username);
+        
     }
 }

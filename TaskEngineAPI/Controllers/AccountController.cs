@@ -487,6 +487,7 @@ namespace TaskEngineAPI.Controllers
             var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
             var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
             string username = usernameClaim;
+
             if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
                  string.IsNullOrWhiteSpace(usernameClaim))
 
