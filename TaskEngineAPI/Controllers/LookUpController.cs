@@ -448,6 +448,8 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, encrypted);
         }
+
+
         [Authorize]
         [HttpGet]
         [Route("getPrivilegeList")]
@@ -494,7 +496,52 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+       
+        [Authorize]
+        [HttpGet]
+        [Route("GetPrivilegeTypeById")]
+        public async Task<ActionResult> GetPrivilegeTypeById([FromQuery] int privilegeType)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+                }
+
+                var privilegeItems = await _lookUpService.GetPrivilegeTypeByIdAsync(privilegeType, cTenantID);
+
+                var response = new APIResponse
+                {
+                    body = privilegeItems?.ToArray() ?? Array.Empty<object>(),
+                    statusText = privilegeItems == null || !privilegeItems.Any() ? "No privileges found" : "Successful",
+                    status = privilegeItems == null || !privilegeItems.Any() ? 204 : 200
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = "Error retrieving privileges",
+                    error = ex.Message,
+                    status = 500
+                };
+
+                string json = JsonConvert.SerializeObject(errorResponse);
+                var encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(500, encrypted);
+            }
+        }
     }
 
     public class pay

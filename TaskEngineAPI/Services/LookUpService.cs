@@ -492,5 +492,53 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving privilege list: {ex.Message}");
             }
         }
+
+        public async Task<IEnumerable<PrivilegeItemDTO>> GetPrivilegeTypeByIdAsync(int privilegeType, int tenantID)
+        {
+            var result = new List<PrivilegeItemDTO>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(GetConnectionString()))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                SELECT 
+                    CAST(ID as varchar(10)) as value,
+                    cprocess_privilege as view_value 
+                FROM tbl_process_privilege_type 
+                WHERE ctenent_id = @TenantID 
+                AND nis_active = 1
+                AND (@PrivilegeType = '0' OR ID = @PrivilegeType)
+                ORDER BY cprocess_privilege";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenantID", tenantID);
+                        cmd.Parameters.AddWithValue("@PrivilegeType", privilegeType);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                result.Add(new PrivilegeItemDTO
+                                {
+                                    value = reader.IsDBNull(reader.GetOrdinal("value")) ? string.Empty : reader.GetString(reader.GetOrdinal("value")),
+                                    view_value = reader.IsDBNull(reader.GetOrdinal("view_value")) ? string.Empty : reader.GetString(reader.GetOrdinal("view_value"))
+                                });
+                            }
+                        }
+                    }
+                }
+          
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving privileges: {ex.Message}");
+            }
+        }
+
     }
 }
