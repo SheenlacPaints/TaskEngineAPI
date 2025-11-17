@@ -1,4 +1,6 @@
-﻿namespace TaskEngineAPI.DTO
+﻿using TaskEngineAPI.DTO.LookUpDTO;
+
+namespace TaskEngineAPI.DTO
 {
     
     public class ProcessEngineTypeDTO
@@ -302,13 +304,15 @@
     {
         public int? value { get; set; }
         public string? view_value { get; set; }
-      
-
-        
+   
     }
-
-
-  
-
+    public class MappingListDTO
+    {
+        public int processID { get; set; }
+        public int mappingID { get; set; }
+        public string processName { get; set; } = string.Empty;
+        public string privilegeType { get; set; } = string.Empty;
+        public List<PrivilegeItemDTO> privilegeList { get; set; } = new List<PrivilegeItemDTO>();
+    }
 }
 

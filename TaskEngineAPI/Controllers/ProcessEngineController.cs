@@ -126,8 +126,8 @@ namespace TaskEngineAPI.Controllers
                 }
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<ProcessEngineDTO>(decryptedJson);
-        
-                int insertedUserId = await _processEngineService.InsertProcessEngineAsync(model, cTenantID,username);
+
+                int insertedUserId = await _processEngineService.InsertProcessEngineAsync(model, cTenantID, username);
 
                 if (insertedUserId <= 0)
                 {
@@ -299,7 +299,7 @@ namespace TaskEngineAPI.Controllers
                 throw new ArgumentException("Invalid ID provided");
             }
 
-            bool success = await _processEngineService.UpdateProcessenginestatusdeleteAsync(model, cTenantID,username);
+            bool success = await _processEngineService.UpdateProcessenginestatusdeleteAsync(model, cTenantID, username);
 
             var response = new APIResponse
             {
@@ -383,7 +383,53 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("getMappingList")]
+        public async Task<ActionResult> GetMappingList()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+
+                var mappingList = await _processEngineService.GetMappingListAsync(cTenantID);
+
+                var response = new APIResponse
+                {
+                    body = mappingList?.ToArray() ?? Array.Empty<object>(),
+                    statusText = mappingList == null || !mappingList.Any() ? "No mappings found" : "Successful",
+                    status = mappingList == null || !mappingList.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
 
     }
 }

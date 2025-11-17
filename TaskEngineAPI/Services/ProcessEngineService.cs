@@ -1,16 +1,17 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using System.Net.NetworkInformation;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using System.Reflection.Emit;
+﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.FileSystemGlobbing.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Data;
+using System.Data.SqlClient;
+using System.Net.NetworkInformation;
+using System.Reflection.Emit;
 using TaskEngineAPI.DTO;
+using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
-using System;
 
 namespace TaskEngineAPI.Services
 {
@@ -734,8 +735,171 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
         }
 
 
+        //public async Task<List<MappingListDTO>> GetMappingListAsync(int cTenantID)
+        //{
+        //    var result = new List<MappingListDTO>();
+
+        //    try
+        //    {
+        //        var connStr = _config.GetConnectionString("Database");
+
+        //        using (SqlConnection conn = new SqlConnection(connStr))
+        //        {
+        //            await conn.OpenAsync();
+
+        //            string query = @"
 
 
+        //            	  SELECT 
+        //                  h.ID as mappingID,
+        //                  h.cprocess_id as processID,
+        //                  h.cprocesscode as processName,
+        //                  d.entity_id as value,
+        //                  d.entity_value as view_value
+        //              FROM tbl_engine_master_to_process_privilege h
+        //              LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
+        //              WHERE h.ctenent_id = 1500 
+        //              AND (d.ctenent_id = 1500 OR d.ctenent_id IS NULL)
+        //              AND (d.cis_active = 1 OR d.cis_active IS NULL)
+        //              ORDER BY h.ID, d.entity_value";
+
+        //            var mappingDict = new Dictionary<int, MappingListDTO>();
+
+        //            using (SqlCommand cmd = new SqlCommand(query, conn))
+        //            {
+        //                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+        //                {
+        //                    while (await reader.ReadAsync())
+        //                    {
+        //                        var mappingId = reader.GetInt32(reader.GetOrdinal("mappingID"));
+
+        //                        if (!mappingDict.ContainsKey(mappingId))
+        //                        {
+        //                            var mapping = new MappingListDTO
+        //                            {
+        //                                mappingID = mappingId,
+        //                                processID = reader.GetInt32(reader.GetOrdinal("processID")),
+        //                                processName = reader.GetValue(reader.GetOrdinal("processName"))?.ToString() ?? string.Empty,
+        //                                privilegeType = reader.GetValue(reader.GetOrdinal("privilegeType"))?.ToString() ?? string.Empty,
+        //                                privilegeList = new List<PrivilegeItemDTO>()
+        //                            };
+        //                            mappingDict[mappingId] = mapping;
+        //                        }
+
+        //                        if (!reader.IsDBNull(reader.GetOrdinal("value")) && !reader.IsDBNull(reader.GetOrdinal("view_value")))
+        //                        {
+        //                            string value = reader.GetValue(reader.GetOrdinal("value"))?.ToString() ?? string.Empty;
+        //                            string view_value = reader.GetValue(reader.GetOrdinal("view_value"))?.ToString() ?? string.Empty;
+
+        //                            if (!string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(view_value))
+        //                            {
+        //                                var privilegeItem = new PrivilegeItemDTO
+        //                                {
+        //                                    value = value,
+        //                                    view_value = view_value
+        //                                };
+        //                                mappingDict[mappingId].privilegeList.Add(privilegeItem);
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+
+        //            result = mappingDict.Values.ToList();
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception($"Error retrieving mapping list: {ex.Message}");
+        //    }
+        //}
+
+
+        public async Task<List<MappingListDTO>> GetMappingListAsync(int cTenantID)
+        {
+            var result = new List<MappingListDTO>();
+
+            try
+            {
+                var connStr = _config.GetConnectionString("Database");
+
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                SELECT 
+                    h.ID as mappingID,
+                    h.cprocess_id as processID,
+                    h.cprocesscode as processName,
+                    h.cprocess_privilege as privilegeType,  
+                    d.entity_id as value,
+                    d.entity_value as view_value
+                FROM tbl_engine_master_to_process_privilege h
+                LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
+                WHERE h.ctenent_id = @TenantID  
+                AND (d.ctenent_id = @TenantID OR d.ctenent_id IS NULL)
+                AND (d.cis_active = 1 OR d.cis_active IS NULL)
+                ORDER BY h.ID, d.entity_value";
+
+                    var mappingDict = new Dictionary<int, MappingListDTO>();
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var mappingId = reader.GetInt32(reader.GetOrdinal("mappingID"));
+
+                                if (!mappingDict.ContainsKey(mappingId))
+                                {
+                                    var mapping = new MappingListDTO
+                                    {
+                                        mappingID = mappingId,
+                                        processID = reader.GetInt32(reader.GetOrdinal("processID")),
+                                        processName = reader.GetValue(reader.GetOrdinal("processName"))?.ToString() ?? string.Empty,
+                                        privilegeType = reader.GetValue(reader.GetOrdinal("privilegeType"))?.ToString() ?? string.Empty, 
+                                        privilegeList = new List<PrivilegeItemDTO>()
+                                    };
+                                    mappingDict[mappingId] = mapping;
+                                }
+
+                                if (!reader.IsDBNull(reader.GetOrdinal("value")) && !reader.IsDBNull(reader.GetOrdinal("view_value")))
+                                {
+                                    string value = reader.GetValue(reader.GetOrdinal("value"))?.ToString() ?? string.Empty;
+                                    string view_value = reader.GetValue(reader.GetOrdinal("view_value"))?.ToString() ?? string.Empty;
+
+                                    if (!string.IsNullOrEmpty(value) && !string.IsNullOrEmpty(view_value))
+                                    {
+                                        var privilegeItem = new PrivilegeItemDTO
+                                        {
+                                            value = value,
+                                            view_value = view_value
+                                        };
+                                        mappingDict[mappingId].privilegeList.Add(privilegeItem);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    result = mappingDict.Values.ToList();
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving mapping list: {ex.Message}");
+            }
+        }
     }
 }
 
