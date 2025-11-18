@@ -1435,23 +1435,19 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        [Authorize]
+ 
         [HttpDelete("DeleteProcessMapping")]
         public async Task<IActionResult> DeleteProcessMapping([FromQuery] pay request)
         {
             try
             {
-                // Extract token from incoming request
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(jwtToken))
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var requestMessage = new HttpRequestMessage
                 {
-                    return Unauthorized("Missing Authorization token.");
-                }
-
-                var requestMessage = new HttpRequestMessage(HttpMethod.Delete, $"{_baseUrl}ProcessEngine/DeleteProcessMapping");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                    Method = HttpMethod.Delete,
+                    RequestUri = new Uri($"{_baseUrl}ProcessEngine/DeleteProcessMapping"),
+                    Content = content
+                };
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
@@ -1470,7 +1466,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
 
 
         [Authorize]

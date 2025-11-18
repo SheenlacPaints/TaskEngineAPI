@@ -347,6 +347,7 @@ namespace TaskEngineAPI.DTO
         public int mappingID { get; set; }
         public string processName { get; set; } = string.Empty;
         public string privilegeType { get; set; } = string.Empty;
+        public string privilegeTypevalue { get; set; } = string.Empty;
         public List<PrivilegeItemDTO> privilegeList { get; set; } = new List<PrivilegeItemDTO>();
     }
 

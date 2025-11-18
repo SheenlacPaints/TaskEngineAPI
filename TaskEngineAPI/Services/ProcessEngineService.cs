@@ -1163,10 +1163,12 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     h.ID as mappingID,
                     h.cprocess_id as processID,
                     h.cprocesscode as processName,
-                    h.cprocess_privilege as privilegeType,  
+                    h.cprocess_privilege as privilegeType, 
+                    p.cprocess_privilege as privilegeTypevalue,
                     d.entity_id as value,
                     d.entity_value as view_value
                 FROM tbl_engine_master_to_process_privilege h
+                inner join tbl_process_privilege_type p on h.cprocess_privilege=p.ID
                 LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
                 WHERE h.ctenent_id = @TenantID  
                 AND (d.ctenent_id = @TenantID OR d.ctenent_id IS NULL)
@@ -1192,7 +1194,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                         mappingID = mappingId,
                                         processID = reader.GetInt32(reader.GetOrdinal("processID")),
                                         processName = reader.GetValue(reader.GetOrdinal("processName"))?.ToString() ?? string.Empty,
-                                        privilegeType = reader.GetValue(reader.GetOrdinal("privilegeType"))?.ToString() ?? string.Empty, 
+                                        privilegeType = reader.GetValue(reader.GetOrdinal("privilegeType"))?.ToString() ?? string.Empty,
+                                        privilegeTypevalue= reader.GetValue(reader.GetOrdinal("privilegeTypevalue"))?.ToString() ?? string.Empty,
                                         privilegeList = new List<PrivilegeItemDTO>()
                                     };
                                     mappingDict[mappingId] = mapping;
