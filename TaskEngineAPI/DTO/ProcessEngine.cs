@@ -35,6 +35,30 @@ namespace TaskEngineAPI.DTO
 
         
     }
+
+
+    public class UpdateProcessEngineDTO
+    {
+        public int? ID { get; set; }
+        public string? cprocessCode { get; set; }
+        public string? cprocessName { get; set; }
+        public string? cprocessdescription { get; set; }
+        public int? cprivilegeType { get; set; }
+        public string? cvalue { get; set; }
+        public string? cstatus { get; set; }
+        public string? cpriorityLabel { get; set; }
+        public bool? nshowTimeline { get; set; }
+        public int? cnotificationType { get; set; }
+        public string? cmetaType { get; set; }
+        public int? cmetaId { get; set; }
+        public string? cmetaName { get; set; }
+        public List<processEngineChildItems> processEngineChildItems { get; set; }
+        public List<processEngineMeta> processEngineMeta { get; set; }
+
+
+    }
+
+
     public class processEngineChildItems
     {      
         public string? cprocessCode { get; set; }
@@ -325,6 +349,8 @@ namespace TaskEngineAPI.DTO
 
         public List<privilegeList>? privilegeList { get; set; }
     }
+
+
 
 
 }
