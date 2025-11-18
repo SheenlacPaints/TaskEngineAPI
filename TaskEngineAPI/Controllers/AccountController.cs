@@ -1958,7 +1958,6 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-
         [HttpPost("CreateDepartmentsBulk")]
         public async Task<IActionResult> CreateDepartmentsBulk([FromBody] pay request)
         {
@@ -1997,16 +1996,27 @@ namespace TaskEngineAPI.Controllers
                     string encryptedError = AesEncryption.Encrypt(errorJson);
                     return BadRequest(encryptedError);
                 }
-
                 var duplicateErrors = new List<string>();
 
                 var dupDepartmentCodes = departments.GroupBy(d => d.cdepartment_code)
                     .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
                     .Select(g => g.Key).ToList();
 
-                if (dupDepartmentCodes.Any())
+                var dupDepartmentNames = departments.GroupBy(d => d.cdepartment_name)
+                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
+                    .Select(g => g.Key).ToList();
+
+                // Check for duplicate emails if provided
+                var dupEmails = departments.Where(d => !string.IsNullOrEmpty(d.cdepartment_email))
+                    .GroupBy(d => d.cdepartment_email)
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key).ToList();
+
+                if (dupDepartmentCodes.Any() || dupDepartmentNames.Any() || dupEmails.Any())
                 {
-                    duplicateErrors.Add($"Duplicate department code(s): {string.Join(", ", dupDepartmentCodes)}");
+                    if (dupDepartmentCodes.Any()) duplicateErrors.Add($"Duplicate department code(s): {string.Join(", ", dupDepartmentCodes)}");
+                    if (dupDepartmentNames.Any()) duplicateErrors.Add($"Duplicate department name(s): {string.Join(", ", dupDepartmentNames)}");
+                    if (dupEmails.Any()) duplicateErrors.Add($"Duplicate department email(s): {string.Join(", ", dupEmails)}");
 
                     var errorResponse = new
                     {
@@ -2016,7 +2026,7 @@ namespace TaskEngineAPI.Controllers
                         {
                             validation_type = "DUPLICATE_CHECK",
                             message = string.Join("; ", duplicateErrors),
-                            note = "Duplicates detected for department codes. Remove duplicates before retrying."
+                            note = "Duplicates detected for one or more mandatory fields. Remove duplicates before retrying."
                         }
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
@@ -2045,15 +2055,15 @@ namespace TaskEngineAPI.Controllers
                     }
 
                     var optionalFields = new Dictionary<string, object?>
-                {
-                    { "cdepartment_desc", dept.cdepartment_desc },
-                    { "cdepartmentslug", dept.cdepartmentslug },
-                    { "cdepartment_manager_rolecode", dept.cdepartment_manager_rolecode },
-                    { "cdepartment_manager_position_code", dept.cdepartment_manager_position_code },
-                    { "cdepartment_manager_name", dept.cdepartment_manager_name },
-                    { "cdepartment_email", dept.cdepartment_email },
-                    { "cdepartment_phone", dept.cdepartment_phone }
-                };
+            {
+                { "cdepartment_desc", dept.cdepartment_desc },
+                { "cdepartmentslug", dept.cdepartmentslug },
+                { "cdepartment_manager_rolecode", dept.cdepartment_manager_rolecode },
+                { "cdepartment_manager_position_code", dept.cdepartment_manager_position_code },
+                { "cdepartment_manager_name", dept.cdepartment_manager_name },
+                { "cdepartment_email", dept.cdepartment_email },
+                { "cdepartment_phone", dept.cdepartment_phone }
+            };
 
                     var missingOptionalFields = optionalFields
                         .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
@@ -2156,18 +2166,18 @@ namespace TaskEngineAPI.Controllers
                     validation_status = "PASSED",
                     null_mandatory_fields = new List<string> { "None" },
                     missing_optional_fields = new Dictionary<string, object?>
-                {
-                    { "cdepartment_desc", d.cdepartment_desc },
-                    { "cdepartmentslug", d.cdepartmentslug },
-                    { "cdepartment_manager_rolecode", d.cdepartment_manager_rolecode },
-                    { "cdepartment_manager_position_code", d.cdepartment_manager_position_code },
-                    { "cdepartment_manager_name", d.cdepartment_manager_name },
-                    { "cdepartment_email", d.cdepartment_email },
-                    { "cdepartment_phone", d.cdepartment_phone }
-                }
-                    .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
-                    .Select(f => f.Key)
-                    .ToList()
+            {
+                { "cdepartment_desc", d.cdepartment_desc },
+                { "cdepartmentslug", d.cdepartmentslug },
+                { "cdepartment_manager_rolecode", d.cdepartment_manager_rolecode },
+                { "cdepartment_manager_position_code", d.cdepartment_manager_position_code },
+                { "cdepartment_manager_name", d.cdepartment_manager_name },
+                { "cdepartment_email", d.cdepartment_email },
+                { "cdepartment_phone", d.cdepartment_phone }
+            }
+                        .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                        .Select(f => f.Key)
+                        .ToList()
                 }).ToList();
 
                 object response;
@@ -2274,9 +2284,28 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(401, encryptedError);
                 }
 
-                string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var roles = JsonConvert.DeserializeObject<List<BulkRoleDTO>>(decryptedJson);
+                string decryptedJson;
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(request.payload))
+                        throw new Exception("Payload is empty.");
 
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch (FormatException)
+                {
+                    return BadRequest(AesEncryption.Encrypt("Payload is not valid Base64."));
+                }
+                catch (CryptographicException)
+                {
+                    return BadRequest(AesEncryption.Encrypt("Invalid encrypted payload. Check encryption key/IV or payload integrity."));
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(AesEncryption.Encrypt($"Decryption failed: {ex.Message}"));
+                }
+
+                var roles = JsonConvert.DeserializeObject<List<BulkRoleDTO>>(decryptedJson);
                 if (roles == null || !roles.Any())
                 {
                     var errorResponse = new
@@ -2295,9 +2324,14 @@ namespace TaskEngineAPI.Controllers
                     .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
                     .Select(g => g.Key).ToList();
 
-                if (dupRoleCodes.Any())
+                var dupRoleNames = roles.GroupBy(r => r.crole_name)
+                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
+                    .Select(g => g.Key).ToList();
+
+                if (dupRoleCodes.Any() || dupRoleNames.Any())
                 {
-                    duplicateErrors.Add($"Duplicate role code(s): {string.Join(", ", dupRoleCodes)}");
+                    if (dupRoleCodes.Any()) duplicateErrors.Add($"Duplicate role code(s): {string.Join(", ", dupRoleCodes)}");
+                    if (dupRoleNames.Any()) duplicateErrors.Add($"Duplicate role name(s): {string.Join(", ", dupRoleNames)}");
 
                     var errorResponse = new
                     {
@@ -2307,7 +2341,7 @@ namespace TaskEngineAPI.Controllers
                         {
                             validation_type = "DUPLICATE_CHECK",
                             message = string.Join("; ", duplicateErrors),
-                            note = "Duplicates detected for role codes. Remove duplicates before retrying."
+                            note = "Duplicates detected for one or more mandatory fields. Remove duplicates before retrying."
                         }
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
@@ -2336,14 +2370,14 @@ namespace TaskEngineAPI.Controllers
                     }
 
                     var optionalFields = new Dictionary<string, object?>
-                {
-                    { "cslug", role.cslug },
-                    { "crole_level", role.crole_level },
-                    { "cdepartment_code", role.cdepartment_code },
-                    { "creporting_manager_code", role.creporting_manager_code },
-                    { "creporting_manager_name", role.creporting_manager_name },
-                    { "crole_description", role.crole_description }
-                };
+            {
+                { "cslug", role.cslug },
+                { "crole_level", role.crole_level },
+                { "cdepartment_code", role.cdepartment_code },
+                { "creporting_manager_code", role.creporting_manager_code },
+                { "creporting_manager_name", role.creporting_manager_name },
+                { "crole_description", role.crole_description }
+            };
 
                     var missingOptionalFields = optionalFields
                         .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
@@ -2429,17 +2463,17 @@ namespace TaskEngineAPI.Controllers
                     validation_status = "PASSED",
                     null_mandatory_fields = new List<string> { "None" },
                     missing_optional_fields = new Dictionary<string, object?>
-                {
-                    { "cslug", r.cslug },
-                    { "crole_level", r.crole_level },
-                    { "cdepartment_code", r.cdepartment_code },
-                    { "creporting_manager_code", r.creporting_manager_code },
-                    { "creporting_manager_name", r.creporting_manager_name },
-                    { "crole_description", r.crole_description }
-                }
-                    .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
-                    .Select(f => f.Key)
-                    .ToList()
+            {
+                { "cslug", r.cslug },
+                { "crole_level", r.crole_level },
+                { "cdepartment_code", r.cdepartment_code },
+                { "creporting_manager_code", r.creporting_manager_code },
+                { "creporting_manager_name", r.creporting_manager_name },
+                { "crole_description", r.crole_description }
+            }
+                        .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                        .Select(f => f.Key)
+                        .ToList()
                 }).ToList();
 
                 object response;
@@ -2567,9 +2601,14 @@ namespace TaskEngineAPI.Controllers
                     .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
                     .Select(g => g.Key).ToList();
 
-                if (dupPositionCodes.Any())
+                var dupPositionNames = positions.GroupBy(p => p.cposition_name)
+                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
+                    .Select(g => g.Key).ToList();
+
+                if (dupPositionCodes.Any() || dupPositionNames.Any())
                 {
-                    duplicateErrors.Add($"Duplicate position code(s): {string.Join(", ", dupPositionCodes)}");
+                    if (dupPositionCodes.Any()) duplicateErrors.Add($"Duplicate position code(s): {string.Join(", ", dupPositionCodes)}");
+                    if (dupPositionNames.Any()) duplicateErrors.Add($"Duplicate position name(s): {string.Join(", ", dupPositionNames)}");
 
                     var errorResponse = new
                     {
@@ -2579,7 +2618,7 @@ namespace TaskEngineAPI.Controllers
                         {
                             validation_type = "DUPLICATE_CHECK",
                             message = string.Join("; ", duplicateErrors),
-                            note = "Duplicates detected for position codes. Remove duplicates before retrying."
+                            note = "Duplicates detected for one or more mandatory fields. Remove duplicates before retrying."
                         }
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
@@ -2608,13 +2647,13 @@ namespace TaskEngineAPI.Controllers
                     }
 
                     var optionalFields = new Dictionary<string, object?>
-                {
-                    { "cposition_decsription", position.cposition_decsription },
-                    { "cposition_slug", position.cposition_slug },
-                    { "cdepartment_code", position.cdepartment_code },
-                    { "creporting_manager_positionid", position.creporting_manager_positionid },
-                    { "creporting_manager_name", position.creporting_manager_name }
-                };
+            {
+                { "cposition_decsription", position.cposition_decsription },
+                { "cposition_slug", position.cposition_slug },
+                { "cdepartment_code", position.cdepartment_code },
+                { "creporting_manager_positionid", position.creporting_manager_positionid },
+                { "creporting_manager_name", position.creporting_manager_name }
+            };
 
                     var missingOptionalFields = optionalFields
                         .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
@@ -2700,16 +2739,16 @@ namespace TaskEngineAPI.Controllers
                     validation_status = "PASSED",
                     null_mandatory_fields = new List<string> { "None" },
                     missing_optional_fields = new Dictionary<string, object?>
-                {
-                    { "cposition_decsription", p.cposition_decsription },
-                    { "cposition_slug", p.cposition_slug },
-                    { "cdepartment_code", p.cdepartment_code },
-                    { "creporting_manager_positionid", p.creporting_manager_positionid },
-                    { "creporting_manager_name", p.creporting_manager_name }
-                }
-                    .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
-                    .Select(f => f.Key)
-                    .ToList()
+            {
+                { "cposition_decsription", p.cposition_decsription },
+                { "cposition_slug", p.cposition_slug },
+                { "cdepartment_code", p.cdepartment_code },
+                { "creporting_manager_positionid", p.creporting_manager_positionid },
+                { "creporting_manager_name", p.creporting_manager_name }
+            }
+                        .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                        .Select(f => f.Key)
+                        .ToList()
                 }).ToList();
 
                 object response;
