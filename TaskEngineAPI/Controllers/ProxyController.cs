@@ -1437,7 +1437,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpDelete("DeleteProcessMapping")]
-        public async Task<IActionResult> DeleteProcessMapping([FromBody] pay request)
+        public async Task<IActionResult> DeleteProcessMapping([FromQuery] pay request)
         {
             try
             {
