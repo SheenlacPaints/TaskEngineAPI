@@ -766,6 +766,12 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@cheaderid", model.cmappingid);
                             await cmd.ExecuteNonQueryAsync();
                         }
+                        string deleteMainQuery = "DELETE FROM tbl_engine_master_to_process_privilege WHERE id = @cheaderid";
+                        using (SqlCommand cmd = new SqlCommand(deleteMainQuery, conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@cheaderid", model.cmappingid);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
 
                         // 2. Insert new details
                         string insertQuery = @"
