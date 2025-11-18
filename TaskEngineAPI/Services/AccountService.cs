@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Net.Mail;
 using System.Reflection.PortableExecutable;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using TaskEngineAPI.DTO;
@@ -1863,41 +1864,266 @@ VALUES (
                 try
                 {
                     using (SqlConnection conn = new SqlConnection(connStr))
-                {
-                    await conn.OpenAsync();
+                    {
+                        await conn.OpenAsync();
 
-                    string query = @"INSERT INTO tbl_users_api_sync_config (
+                        string query = @"INSERT INTO tbl_users_api_sync_config (
         ctenant_id,capi_method,capi_name,csync_type,csync_starttime,csync_endtime,cstatus,
         cjson_response,ccreated_by,lcreated_date) VALUES(
         @TenantID, @capi_method, @capi_name, @csync_type, @csync_starttime, @csync_endtime, 
         @cstatus, @cjson_response, @ccreated_by, @lcreated_date);
         SELECT SCOPE_IDENTITY();";
 
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-                        cmd.Parameters.AddWithValue("@capi_method", (object?)model.capi_method ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@capi_name", (object?)model.capi_name ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csync_starttime", (object?)model.csync_starttime ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csync_endtime", (object?)model.csync_endtime ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@cjson_response", (object?)model.cjson_response ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@ccreated_by", username);
-                        cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
-                        await cmd.ExecuteNonQueryAsync();
+                        using (SqlCommand cmd = new SqlCommand(query, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                            cmd.Parameters.AddWithValue("@capi_method", (object?)model.capi_method ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@capi_name", (object?)model.capi_name ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csync_starttime", (object?)model.csync_starttime ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csync_endtime", (object?)model.csync_endtime ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cjson_response", (object?)model.cjson_response ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ccreated_by", username);
+                            cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                        return true;
                     }
-                    return true;
-                }
                 }
                 catch (Exception ex)
                 {
-                    
+
                     return false; // ✅ failure path
                 }
             }
 
 
+        }
+
+        public async Task<int> InsertDepartmentsBulkAsync(List<BulkDepartmentDTO> departments, int cTenantID, string usernameClaim)
+        {
+            if (departments == null || !departments.Any())
+                return 0;
+
+            var connStr = _config.GetConnectionString("Database");
+
+            var table = new DataTable();
+            table.Columns.Add("ctenent_id", typeof(int));
+            table.Columns.Add("cdepartment_code", typeof(string));
+            table.Columns.Add("cdepartment_name", typeof(string));
+            table.Columns.Add("cdepartment_desc", typeof(string));
+            //table.Columns.Add("cdepartmentslug", typeof(string));
+            table.Columns.Add("cdepartment_manager_rolecode", typeof(string));
+            table.Columns.Add("cdepartment_manager_position_code", typeof(string));
+            table.Columns.Add("cdepartment_manager_name", typeof(string));
+            table.Columns.Add("cdepartment_email", typeof(string));
+            table.Columns.Add("cdepartment_phone", typeof(string));
+            table.Columns.Add("nis_active", typeof(bool));
+            table.Columns.Add("ccreated_by", typeof(string));
+            table.Columns.Add("lcreated_date", typeof(DateTime));
+            table.Columns.Add("cmodified_by", typeof(string));
+            table.Columns.Add("lmodified_date", typeof(DateTime));
+            table.Columns.Add("nis_deleted", typeof(bool));
+
+            foreach (var dept in departments)
+            {
+                var row = table.NewRow();
+                row["ctenent_id"] = cTenantID;
+                row["cdepartment_code"] = dept.cdepartment_code ?? (object)DBNull.Value;
+                row["cdepartment_name"] = dept.cdepartment_name ?? (object)DBNull.Value;
+                row["cdepartment_desc"] = dept.cdepartment_desc ?? (object)DBNull.Value;
+                //row["cdepartmentslug"] = dept.cdepartmentslug ?? (object)DBNull.Value;
+                row["cdepartment_manager_rolecode"] = dept.cdepartment_manager_rolecode ?? (object)DBNull.Value;
+                row["cdepartment_manager_position_code"] = dept.cdepartment_manager_position_code ?? (object)DBNull.Value;
+                row["cdepartment_manager_name"] = dept.cdepartment_manager_name ?? (object)DBNull.Value;
+                row["cdepartment_email"] = dept.cdepartment_email ?? (object)DBNull.Value;
+                row["cdepartment_phone"] = dept.cdepartment_phone ?? (object)DBNull.Value;
+                row["nis_active"] = dept.nis_active ?? true; 
+                row["ccreated_by"] = usernameClaim;
+                row["lcreated_date"] = DateTime.Now;
+                row["cmodified_by"] = usernameClaim;
+                row["lmodified_date"] = DateTime.Now;
+                row["nis_deleted"] = false;
+                table.Rows.Add(row);
+            }
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            using var bulkCopy = new SqlBulkCopy(conn)
+            {
+                DestinationTableName = "tbl_department_master",
+                BatchSize = 1000,
+                BulkCopyTimeout = 300
+            };
+
+            bulkCopy.ColumnMappings.Add("ctenent_id", "ctenent_id");
+            bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
+            bulkCopy.ColumnMappings.Add("cdepartment_name", "cdepartment_name");
+            bulkCopy.ColumnMappings.Add("cdepartment_desc", "cdepartment_desc");
+           // bulkCopy.ColumnMappings.Add("cdepartmentslug", "cdepartmentslug");
+            bulkCopy.ColumnMappings.Add("cdepartment_manager_rolecode", "cdepartment_manager_rolecode");
+            bulkCopy.ColumnMappings.Add("cdepartment_manager_position_code", "cdepartment_manager_position_code");
+            bulkCopy.ColumnMappings.Add("cdepartment_manager_name", "cdepartment_manager_name");
+            bulkCopy.ColumnMappings.Add("cdepartment_email", "cdepartment_email");
+            bulkCopy.ColumnMappings.Add("cdepartment_phone", "cdepartment_phone");
+            bulkCopy.ColumnMappings.Add("nis_active", "nis_active");
+            bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
+            bulkCopy.ColumnMappings.Add("lcreated_date", "lcreated_date");
+            bulkCopy.ColumnMappings.Add("cmodified_by", "cmodified_by");
+            bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
+            bulkCopy.ColumnMappings.Add("nis_deleted", "nis_deleted");
+
+            await bulkCopy.WriteToServerAsync(table);
+            return table.Rows.Count;
+        }
+
+        public async Task<int> InsertRolesBulkAsync(List<BulkRoleDTO> roles, int cTenantID, string usernameClaim)
+        {
+            if (roles == null || !roles.Any())
+                return 0;
+
+            var connStr = _config.GetConnectionString("Database");
+
+            var table = new DataTable();
+            table.Columns.Add("ctenent_id", typeof(int));
+            table.Columns.Add("crole_code", typeof(string));
+            table.Columns.Add("crole_name", typeof(string));
+            //table.Columns.Add("cslug", typeof(string));
+            table.Columns.Add("crole_level", typeof(int));
+            table.Columns.Add("cdepartment_code", typeof(string));
+            table.Columns.Add("creporting_manager_code", typeof(string));
+            table.Columns.Add("creporting_manager_name", typeof(string));
+            table.Columns.Add("crole_description", typeof(string));
+            table.Columns.Add("nis_active", typeof(bool));
+            table.Columns.Add("ccreated_by", typeof(string));
+            table.Columns.Add("lcreated_date", typeof(DateTime));
+            table.Columns.Add("cmodified_by", typeof(string));
+            table.Columns.Add("lmodified_date", typeof(DateTime));
+            table.Columns.Add("nis_deleted", typeof(bool));
+
+            foreach (var role in roles)
+            {
+                var row = table.NewRow();
+                row["ctenent_id"] = cTenantID;
+                row["crole_code"] = role.crole_code ?? (object)DBNull.Value;
+                row["crole_name"] = role.crole_name ?? (object)DBNull.Value;
+                //row["cslug"] = role.cslug ?? (object)DBNull.Value;
+                row["crole_level"] = role.cslug ?? (object)DBNull.Value;
+                row["cdepartment_code"] = role.cdepartment_code ?? (object)DBNull.Value;
+                row["creporting_manager_code"] = role.creporting_manager_code ?? (object)DBNull.Value;
+                row["creporting_manager_name"] = role.creporting_manager_name ?? (object)DBNull.Value;
+                row["crole_description"] = role.crole_description ?? (object)DBNull.Value;
+                row["nis_active"] = true; 
+                row["ccreated_by"] = usernameClaim;
+                row["lcreated_date"] = DateTime.Now;
+                row["cmodified_by"] = usernameClaim;
+                row["lmodified_date"] = DateTime.Now;
+                row["nis_deleted"] = false;
+                table.Rows.Add(row);
+            }
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            using var bulkCopy = new SqlBulkCopy(conn)
+            {
+                DestinationTableName = "tbl_role_master",
+                BatchSize = 1000,
+                BulkCopyTimeout = 300
+            };
+
+            bulkCopy.ColumnMappings.Add("ctenent_id", "ctenent_id");
+            bulkCopy.ColumnMappings.Add("crole_code", "crole_code");
+            bulkCopy.ColumnMappings.Add("crole_name", "crole_name");
+            //bulkCopy.ColumnMappings.Add("cslug", "cslug");
+            bulkCopy.ColumnMappings.Add("crole_level", "crole_level");
+            bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
+            bulkCopy.ColumnMappings.Add("creporting_manager_code", "creporting_manager_code");
+            bulkCopy.ColumnMappings.Add("creporting_manager_name", "creporting_manager_name");
+            bulkCopy.ColumnMappings.Add("crole_description", "crole_description");
+            bulkCopy.ColumnMappings.Add("nis_active", "nis_active");
+            bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
+            bulkCopy.ColumnMappings.Add("lcreated_date", "lcreated_date");
+            bulkCopy.ColumnMappings.Add("cmodified_by", "cmodified_by");
+            bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
+            bulkCopy.ColumnMappings.Add("nis_deleted", "nis_deleted");
+
+            await bulkCopy.WriteToServerAsync(table);
+            return table.Rows.Count;
+        }
+
+        public async Task<int> InsertPositionsBulkAsync(List<BulkPositionDTO> positions, int cTenantID, string usernameClaim)
+        {
+            if (positions == null || !positions.Any())
+                return 0;
+
+            var connStr = _config.GetConnectionString("Database");
+
+            var table = new DataTable();
+            table.Columns.Add("ctenent_id", typeof(int));
+            table.Columns.Add("cposition_code", typeof(string));
+            table.Columns.Add("cposition_name", typeof(string));
+            table.Columns.Add("cposition_decsription", typeof(string));
+            //table.Columns.Add("cposition_slug", typeof(string));
+            table.Columns.Add("cdepartment_code", typeof(string));
+            table.Columns.Add("creporting_manager_positionid", typeof(string));
+            table.Columns.Add("creporting_manager_name", typeof(string));
+            table.Columns.Add("nis_active", typeof(bool));
+            table.Columns.Add("ccreated_by", typeof(string));
+            table.Columns.Add("lcreated_date", typeof(DateTime));
+            table.Columns.Add("cmodified_by", typeof(string));
+            table.Columns.Add("lmodified_date", typeof(DateTime));
+            table.Columns.Add("nis_deleted", typeof(bool));
+
+            foreach (var position in positions)
+            {
+                var row = table.NewRow();
+                row["ctenent_id"] = cTenantID;
+                row["cposition_code"] = position.cposition_code ?? (object)DBNull.Value;
+                row["cposition_name"] = position.cposition_name ?? (object)DBNull.Value;
+                row["cposition_decsription"] = position.cposition_decsription ?? (object)DBNull.Value;
+                //row["cposition_slug"] = position.cposition_slug ?? (object)DBNull.Value;
+                row["cdepartment_code"] = position.cdepartment_code ?? (object)DBNull.Value;
+                row["creporting_manager_positionid"] = position.creporting_manager_positionid ?? (object)DBNull.Value;
+                row["creporting_manager_name"] = position.creporting_manager_name ?? (object)DBNull.Value;
+                row["nis_active"] = true; 
+                row["ccreated_by"] = usernameClaim;
+                row["lcreated_date"] = DateTime.Now;
+                row["cmodified_by"] = usernameClaim;
+                row["lmodified_date"] = DateTime.Now;
+                row["nis_deleted"] = false;
+                table.Rows.Add(row);
+            }
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            using var bulkCopy = new SqlBulkCopy(conn)
+            {
+                DestinationTableName = "tbl_position_master",
+                BatchSize = 1000,
+                BulkCopyTimeout = 300
+            };
+
+            bulkCopy.ColumnMappings.Add("ctenent_id", "ctenent_id");
+            bulkCopy.ColumnMappings.Add("cposition_code", "cposition_code");
+            bulkCopy.ColumnMappings.Add("cposition_name", "cposition_name");
+            bulkCopy.ColumnMappings.Add("cposition_decsription", "cposition_decsription");
+            //bulkCopy.ColumnMappings.Add("cposition_slug", "cposition_slug");
+            bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
+            bulkCopy.ColumnMappings.Add("creporting_manager_positionid", "creporting_manager_positionid");
+            bulkCopy.ColumnMappings.Add("creporting_manager_name", "creporting_manager_name");
+            bulkCopy.ColumnMappings.Add("nis_active", "nis_active");
+            bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
+            bulkCopy.ColumnMappings.Add("lcreated_date", "lcreated_date");
+            bulkCopy.ColumnMappings.Add("cmodified_by", "cmodified_by");
+            bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
+            bulkCopy.ColumnMappings.Add("nis_deleted", "nis_deleted");
+
+            await bulkCopy.WriteToServerAsync(table);
+            return table.Rows.Count;
         }
     }
 }
