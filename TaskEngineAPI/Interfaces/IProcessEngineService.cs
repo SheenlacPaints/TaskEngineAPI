@@ -21,7 +21,7 @@ namespace TaskEngineAPI.Interfaces
 
         Task<bool> UpdateprocessmappingAsync(updateprocessmappingDTO model, int cTenantID, string username);
 
-
+        Task<bool> DeleteprocessmappingAsync(int mappingId, int tenantId, string username);
 
         Task<List<MappingListDTO>> GetMappingListAsync(int cTenantID);
     }

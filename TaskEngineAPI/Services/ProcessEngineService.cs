@@ -997,12 +997,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@cheaderid", model.cmappingid);
                             await cmd.ExecuteNonQueryAsync();
                         }
-                        string deleteMainQuery = "DELETE FROM tbl_engine_master_to_process_privilege WHERE id = @cheaderid";
-                        using (SqlCommand cmd = new SqlCommand(deleteMainQuery, conn, tx))
-                        {
-                            cmd.Parameters.AddWithValue("@cheaderid", model.cmappingid);
-                            await cmd.ExecuteNonQueryAsync();
-                        }
+                        
 
                         // 2. Insert new details
                         string insertQuery = @"
@@ -1053,6 +1048,53 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             }
         }
 
+
+        public async Task<bool> DeleteprocessmappingAsync(int mappingId, int tenantId, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                using (SqlTransaction tx = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // Delete from child table first
+                        string deleteDetailsQuery = "DELETE FROM tbl_process_privilege_details WHERE cheader_ID = @cheaderid";
+                        using (SqlCommand cmd = new SqlCommand(deleteDetailsQuery, conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@cheaderid", mappingId);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                        // Delete from parent table
+                        string deleteMainQuery = "DELETE FROM tbl_engine_master_to_process_privilege WHERE id = @cheaderid AND ctenent_id = @tenantid";
+                        using (SqlCommand cmd = new SqlCommand(deleteMainQuery, conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@cheaderid", mappingId);
+                            cmd.Parameters.AddWithValue("@tenantid", tenantId);
+                            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                            if (rowsAffected == 0)
+                            {
+                                tx.Rollback();
+                                return false;
+                            }
+                        }
+
+                        tx.Commit();
+                        return true;
+                    }
+                    catch
+                    {
+                        tx.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
         public async Task<List<MappingListDTO>> GetMappingListAsync(int cTenantID)
         {
             var result = new List<MappingListDTO>();
