@@ -511,6 +511,7 @@ namespace TaskEngineAPI.Controllers
                     };
                     string errorJson = JsonConvert.SerializeObject(error);
                     string encryptedError = AesEncryption.Encrypt(errorJson);
+
                     return StatusCode(400, encryptedError);
                 }
 

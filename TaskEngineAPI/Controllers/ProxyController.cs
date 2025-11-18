@@ -137,6 +137,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
         [HttpDelete("deleteSuperAdmin")]
         public async Task<IActionResult> deleteSuperAdmin([FromQuery] pay request)
         {
@@ -331,8 +332,8 @@ namespace TaskEngineAPI.Controllers
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-
-                return StatusCode((int)response.StatusCode, body);
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
             }
             catch (Exception ex)
             {
@@ -1436,11 +1437,21 @@ namespace TaskEngineAPI.Controllers
 
 
  
+     
+
+        [Authorize]
         [HttpDelete("DeleteProcessMapping")]
         public async Task<IActionResult> DeleteProcessMapping([FromQuery] pay request)
         {
             try
             {
+
+                var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized("Missing or invalid Authorization token.");
+                }
+                var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var requestMessage = new HttpRequestMessage
                 {
@@ -1448,10 +1459,12 @@ namespace TaskEngineAPI.Controllers
                     RequestUri = new Uri($"{_baseUrl}ProcessEngine/DeleteProcessMapping"),
                     Content = content
                 };
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
+
+                return StatusCode((int)response.StatusCode, body);
             }
             catch (Exception ex)
             {
@@ -1462,8 +1475,7 @@ namespace TaskEngineAPI.Controllers
                 };
                 string jsonn = JsonConvert.SerializeObject(err);
                 string enc = AesEncryption.Encrypt(jsonn);
-                string encc = $"\"{enc}\"";
-                return StatusCode(500, encc);
+                return StatusCode(500, $"\"{enc}\"");
             }
         }
 
