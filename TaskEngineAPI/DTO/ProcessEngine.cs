@@ -20,7 +20,7 @@ namespace TaskEngineAPI.DTO
     {
         public string? cprocessCode { get; set; }
         public string? cprocessName { get; set; }
-
+        public string? cprocessdescription { get; set; }
         public int? cprivilegeType  { get; set; }
         public string? cvalue { get; set; }       
         public string? cstatus { get; set; }
@@ -95,6 +95,7 @@ namespace TaskEngineAPI.DTO
         public string? cprocessType { get; set; }    
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
+        public string? cprocessdescription { get; set; }
         public string? cprocessvalue { get; set; }     
         public string? cpriority_label { get; set; }
         public bool? nshow_timeline { get; set; }
@@ -240,6 +241,7 @@ namespace TaskEngineAPI.DTO
         public int? ID { get; set; }
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
+        public string? cprocessdescription { get; set; }
         public string? cprocessType { get; set; }   
         public string? cprocessvalue { get; set; }   
         public string? cstatus { get; set; }

@@ -88,8 +88,8 @@ namespace TaskEngineAPI.Services
                     try
                     {
                         string queryMaster = @"INSERT INTO tbl_process_engine_master (
-    ctenant_id,cprocesscode, cprocessname, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
-    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted) VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocess_type, @cstatus, 
+    ctenant_id,cprocesscode, cprocessname,cprocessdescription, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
+    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted) VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocessdescription,@cprocess_type, @cstatus, 
      @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
     @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id,@nIs_deleted);SELECT SCOPE_IDENTITY();";
                         int masterId;
@@ -99,6 +99,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);
                             cmd.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
                             cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocessName ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocessdescription", (object?)model.cprocessdescription ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cprocess_type", (object?)model.cprivilegeType ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cvalue", (object?)model.cvalue ?? DBNull.Value);
@@ -294,7 +295,7 @@ namespace TaskEngineAPI.Services
                 await conn.OpenAsync();
 
                 string query = @"SELECT
-    m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, p.cprocess_privilege, 
+    m.ID, m.ctenant_id, m.cprocesscode,m.cprocessdescription, m.cprocessname, p.cprocess_privilege, 
     m.cvalue, m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
     ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by, 
     m.lcreated_date,     
@@ -329,6 +330,7 @@ LEFT JOIN tbl_status_master s ON m.cstatus = s.id
                             ID = headerID,
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
+                            cprocessdescription= reader.SafeGetString("cprocessdescription"),
                             cprocessType = reader.SafeGetString("cprocess_privilege"),
                             cstatus = reader.SafeGetString("cstatus"),
                             cprocessvalue = reader.SafeGetString("cvalue"),
@@ -377,7 +379,7 @@ LEFT JOIN tbl_status_master s ON m.cstatus = s.id
                 // 🔹 First query: Header + Child (no condition join)
                 string mainQuery = @"
 SELECT
-    m.ID, m.ctenant_id, m.cprocesscode, m.cprocessname, p.cprocess_privilege, 
+    m.ID, m.ctenant_id, m.cprocesscode,m.cprocessdescription, m.cprocessname, p.cprocess_privilege, 
     m.cvalue, m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
     ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by, 
     m.lcreated_date,     
@@ -415,6 +417,7 @@ ORDER BY m.ID, d.ID ASC;";
                             ID = masterId,
                             cprocesscode = reader.SafeGetString("cprocesscode"),
                             cprocessname = reader.SafeGetString("cprocessname"),
+                            cprocessdescription = reader.SafeGetString("cprocessdescription"),
                             cprocessType = reader.SafeGetString("cprocess_privilege"),
                             cstatus = reader.SafeGetString("cstatus"),
                             cprocessvalue = reader.SafeGetString("cvalue"),
