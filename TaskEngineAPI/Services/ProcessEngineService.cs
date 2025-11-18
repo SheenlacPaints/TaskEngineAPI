@@ -382,11 +382,11 @@ namespace TaskEngineAPI.Services
                             ctenent_id,cheader_id, cprocesscode, ciseqno,icond_seqno, ctype,  
                             clabel, cfield_value, ccondition,  
                             lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
-                            ,cis_readonly,cis_disabled) 
+                            ,cis_readonly,cis_disabled,cdata_source) 
                             VALUES (@TenantID,@cheader_id, @cprocesscode, @ciseqno,@icondseqno, @ctype,  
                             @clabel, @cfieldvalue, @ccondition,
                             @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cplaceholder,@cis_required
-                            ,@cis_readonly,@cis_disabled);";
+                            ,@cis_readonly,@cis_disabled,@cdatasource);";
 
                                 foreach (var cond in detail.processEngineConditionDetails)
                                 {
@@ -401,6 +401,7 @@ namespace TaskEngineAPI.Services
                                         cmdCond.Parameters.AddWithValue("@clabel", cond.clabel ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfieldValue ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ccondition", cond.ccondition ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cdatasource", cond.cdatasource ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                         cmdCond.Parameters.AddWithValue("@ccreated_by", username);
                                         cmdCond.Parameters.AddWithValue("@cmodified_by", username);
@@ -457,9 +458,9 @@ namespace TaskEngineAPI.Services
                             {
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
                             cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled,  
-                            ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value) 
+                            ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value,cdata_source) 
                             VALUES (@Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_readonly,  
-                            @cis_disabled,@ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date, @cfield_value);";
+                            @cis_disabled,@ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date, @cfield_value,@cdatasource);";
 
                                 foreach (var meta in model.processEngineMeta)
                                 {
@@ -473,6 +474,7 @@ namespace TaskEngineAPI.Services
                                         cmdMeta.Parameters.AddWithValue("@cis_required", meta.cisRequired ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@cis_readonly", meta.cisReadonly ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@cis_disabled", meta.cisDisabled ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cdatasource", meta.cdatasource ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@ccreated_by", username);
                                         cmdMeta.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                                         cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
@@ -757,7 +759,7 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0 ORDER BY m.ID DESC;";
 SELECT 
     m.ID as MasterID,
     c.ciseqno, c.icond_seqno, c.ctype, c.clabel, c.cfield_value, c.ccondition,
-    c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, d.cprocesscode
+    c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, d.cprocesscode,c.cdata_source
 FROM tbl_process_engine_condition c
 INNER JOIN tbl_process_engine_details d ON c.ciseqno = d.id
 INNER JOIN tbl_process_engine_master m ON d.cheader_id = m.ID
@@ -787,6 +789,7 @@ ORDER BY c.ciseqno, c.icond_seqno;";
                                 clabel = condReader.SafeGetString("clabel"),
                                 cfieldValue = condReader.SafeGetString("cfield_value"),
                                 ccondition = condReader.SafeGetString("ccondition"),
+                                cdatasource = condReader.SafeGetString("cdata_source"),
                                 cplaceholder = condReader.SafeGetString("cplaceholder"),
                                 cisRequired = condReader.SafeGetBoolean("cis_required"),
                                 cisReadonly = condReader.SafeGetBoolean("cis_readonly"),
@@ -802,7 +805,7 @@ SELECT
     m.cmeta_id, meta.meta_Name, meta.meta_Description,
     metadetail.cinput_type, metadetail.label, metadetail.cplaceholder,
     metadetail.cis_required, metadetail.cis_readonly, metadetail.cis_disabled,
-    metadetail.cfield_value
+    metadetail.cfield_value,metadetail.cdata_source
 FROM tbl_process_engine_master m
 LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
 LEFT JOIN tbl_process_meta_detail metadetail ON meta.id = metadetail.cheader_id
@@ -825,7 +828,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cisRequired = metaReader.SafeGetBoolean("cis_required"),
                             cisReadonly = metaReader.SafeGetBoolean("cis_readonly"),   // ✅ fixed
                             cisDisabled = metaReader.SafeGetBoolean("cis_disabled"),   // ✅ fixed
-                            cfieldValue = metaReader.SafeGetString("cfield_value")     // ✅ fixed
+                            cfieldValue = metaReader.SafeGetString("cfield_value"),
+                            cdatasource = metaReader.SafeGetString("cdata_source")
+                            // ✅ fixed
                         });
                     }
                 }

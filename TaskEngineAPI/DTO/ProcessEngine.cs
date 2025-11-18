@@ -93,6 +93,7 @@ namespace TaskEngineAPI.DTO
         public bool? cisReadonly { get; set; }
         public bool? cis_disabled { get; set; }
         public string? cfieldValue { get; set; }
+        public string? cdatasource { get; set; }
         public string? ccondition { get; set; }
         //public string? remarks1 { get; set; }
         //public string? remarks2 { get; set; }
@@ -111,6 +112,9 @@ namespace TaskEngineAPI.DTO
         public bool? cisDisabled { get; set; }   
         public string? cfieldValue { get; set; }
 
+        public string? cdatasource { get; set; }
+
+        
     }
 
     public class GetProcessEngineDTO
