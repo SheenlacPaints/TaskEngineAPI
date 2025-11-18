@@ -1,5 +1,5 @@
 ﻿using BCrypt.Net;
-using ExcelDataReader;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
