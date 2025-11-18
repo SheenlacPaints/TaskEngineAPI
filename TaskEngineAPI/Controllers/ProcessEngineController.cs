@@ -391,14 +391,14 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
+    
         [Authorize]
         [HttpPost]
         [Route("CreateProcessmapping")]
-        public async Task<IActionResult> createProcessMapping([FromBody] pay request)
+        public async Task<IActionResult> CreateProcessMapping([FromBody] pay request)
         {
             try
             {
-
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
@@ -406,6 +406,7 @@ namespace TaskEngineAPI.Controllers
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
                 string username = usernameClaim;
+
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
                 {
                     var error = new APIResponse
@@ -415,85 +416,138 @@ namespace TaskEngineAPI.Controllers
                     };
                     string errorJson = JsonConvert.SerializeObject(error);
                     string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return StatusCode(401, $"\"{encryptedError}\"");
+                    return StatusCode(401, encryptedError);
                 }
+
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<createprocessmappingDTO>(decryptedJson);
 
                 int insertedUserId = await _processEngineService.InsertprocessmappingAsync(model, cTenantID, username);
+
+                if (insertedUserId == -1)
+                {
+                    var errorResponse = new APIResponse
+                    {
+                        status = 409,
+                        statusText = $"Process privilege '{model.cprivilegeType}' is already assigned to this process. Please choose a different privilege number."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(409, encryptedError);
+                }
 
                 if (insertedUserId <= 0)
                 {
                     return StatusCode(500, new APIResponse
                     {
                         status = 500,
-                        statusText = "Failed to create Processmapping"
+                        statusText = "Failed to create Process mapping"
                     });
                 }
-                // Prepare response
+
                 var apierDtls = new APIResponse
                 {
                     status = 200,
-                    statusText = "Processmapped successfully",
+                    statusText = "Process mapped successfully",
                     body = new object[] { new { processid = insertedUserId } }
                 };
                 string jsone = JsonConvert.SerializeObject(apierDtls);
                 var encryptapierDtls = AesEncryption.Encrypt(jsone);
                 return StatusCode(200, encryptapierDtls);
-                //return StatusCode(200, $"\"{encryptapierDtls}\"");
-
             }
             catch (Exception ex)
             {
-
                 var apierrDtls = new APIResponse
                 {
                     status = 500,
-                    statusText = "Error in Process mapping ",
+                    statusText = "Error in Process mapping",
                     error = ex.Message
                 };
-
                 string jsoner = JsonConvert.SerializeObject(apierrDtls);
                 var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
                 return StatusCode(500, encryptapierrDtls);
-
             }
         }
+
+
 
         [Authorize]
         [HttpPut]
         [Route("Updateprocessmapping")]
         public async Task<IActionResult> Updateprocessmapping([FromBody] pay request)
         {
-            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            var handler = new JwtSecurityTokenHandler();
-            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-            string username = usernameClaim;
-            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+            try
             {
-                throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                string username = usernameClaim;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<updateprocessmappingDTO>(decryptedJson);
+
+                if (model == null || model.cmappingid <= 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Invalid ID provided"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, encryptedError);
+                }
+
+                bool success = await _processEngineService.UpdateprocessmappingAsync(model, cTenantID, username);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ? "Updated successfully" : "Data not found or update failed"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
             }
-
-            string decryptedJson = AesEncryption.Decrypt(request.payload);
-            var model = JsonConvert.DeserializeObject<updateprocessmappingDTO>(decryptedJson);
-            if (model == null || model.cmappingid <= 0)
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already assigned"))
             {
-                throw new ArgumentException("Invalid ID provided");
+                var error = new APIResponse
+                {
+                    status = 409,
+                    statusText = ex.Message
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(409, encryptedError);
             }
-            bool success = await _processEngineService.UpdateprocessmappingAsync(model, cTenantID, username);
-
-            var response = new APIResponse
+            catch (Exception ex)
             {
-                status = success ? 200 : 400,
-                statusText = success ? "updated successfully" : "data not found or update failed"
-            };
-
-            string json = JsonConvert.SerializeObject(response);
-            string encrypted = AesEncryption.Encrypt(json);
-            return StatusCode(response.status, encrypted);
+                var error = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Error updating process mapping",
+                    error = ex.Message
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
         }
 
 

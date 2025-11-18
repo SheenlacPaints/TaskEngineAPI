@@ -909,8 +909,28 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 {
                     try
                     {
+                        string checkDuplicateQuery = @"
+                    SELECT COUNT(1) 
+                    FROM tbl_engine_master_to_process_privilege 
+                    WHERE cprocess_id = @cprocess_id 
+                    AND cprocess_privilege = @cprocess_privilege 
+                    AND ctenent_id = @ctenent_id";
+
+                        using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn, tx))
+                        {
+                            checkCmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
+                            checkCmd.Parameters.AddWithValue("@cprocess_privilege", model.cprivilegeType);
+                            checkCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+
+                            int duplicateCount = (int)await checkCmd.ExecuteScalarAsync();
+
+                            if (duplicateCount > 0)
+                            {
+                                return -1; 
+                            }
+                        }
+
                         int headerId;
-                        // Insert header
                         string query = @"
                     INSERT INTO tbl_engine_master_to_process_privilege 
                         (cprocess_id, cprocesscode, ctenent_id, cprocess_privilege, 
@@ -933,7 +953,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             headerId = Convert.ToInt32(newId);
                         }
 
-                        // Insert details
                         string detailQuery = @"
                     INSERT INTO tbl_process_privilege_details 
                         (cheader_id, cprocess_id, entity_id, entity_value, ctenent_id, cis_active, 
@@ -966,7 +985,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     catch
                     {
                         tx.Rollback();
-                        throw; // bubble up the error
+                        throw;
                     }
                 }
             }
@@ -985,16 +1004,36 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 {
                     try
                     {
-                        // 1. Delete old details
+                        string checkDuplicateQuery = @"
+                    SELECT COUNT(1) 
+                    FROM tbl_engine_master_to_process_privilege 
+                    WHERE cprocess_id = @cprocess_id 
+                    AND cprocess_privilege = @cprocess_privilege 
+                    AND ctenent_id = @ctenent_id
+                    AND id != @current_id";
+
+                        using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn, tx))
+                        {
+                            checkCmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
+                            checkCmd.Parameters.AddWithValue("@cprocess_privilege", model.cprivilegeType);
+                            checkCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                            checkCmd.Parameters.AddWithValue("@current_id", model.cmappingid);
+
+                            int duplicateCount = (int)await checkCmd.ExecuteScalarAsync();
+
+                            if (duplicateCount > 0)
+                            {
+                                throw new InvalidOperationException($"Process privilege '{model.cprivilegeType}' is already assigned to this process. Please choose a different privilege number.");
+                            }
+                        }
+
                         string deleteQuery = "DELETE FROM tbl_process_privilege_details WHERE cheader_ID = @cheaderid";
                         using (SqlCommand cmd = new SqlCommand(deleteQuery, conn, tx))
                         {
                             cmd.Parameters.AddWithValue("@cheaderid", model.cmappingid);
                             await cmd.ExecuteNonQueryAsync();
                         }
-                        
 
-                        // 2. Insert new details
                         string insertQuery = @"
                     INSERT INTO tbl_process_privilege_details 
                         (cheader_id, cprocess_id, entity_id, entity_value, ctenent_id, cis_active,
@@ -1021,29 +1060,41 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             }
                         }
 
-                        string updateQuery = "update tbl_engine_master_to_process_privilege set  cmodified_by=@cmodified_by,lmodified_date=@lmodified_date where id=@cheaderid"; 
-                          
+                        string updateQuery = @"
+                    UPDATE tbl_engine_master_to_process_privilege 
+                    SET cmodified_by = @cmodified_by,
+                        lmodified_date = @lmodified_date,
+                        cprocess_privilege = @cprocess_privilege
+                    WHERE id = @cheaderid AND ctenent_id = @tenantid";
+
                         using (SqlCommand cmd = new SqlCommand(updateQuery, conn, tx))
                         {
                             cmd.Parameters.AddWithValue("@cheaderid", model.cmappingid);
                             cmd.Parameters.AddWithValue("@cmodified_by", username);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                            await cmd.ExecuteNonQueryAsync();
+                            cmd.Parameters.AddWithValue("@cprocess_privilege", model.cprivilegeType);
+                            cmd.Parameters.AddWithValue("@tenantid", cTenantID);
+
+                            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                            if (rowsAffected == 0)
+                            {
+                                tx.Rollback();
+                                return false;
+                            }
                         }
 
                         tx.Commit();
-                        return true; // success
+                        return true;
                     }
                     catch
                     {
                         tx.Rollback();
-                        throw; // bubble up the error
+                        throw;
                     }
                 }
             }
         }
-
-
         public async Task<bool> DeleteprocessmappingAsync(int mappingId, int tenantId, string username)
         {
             var connStr = _config.GetConnectionString("Database");
