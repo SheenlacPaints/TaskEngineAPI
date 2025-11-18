@@ -70,16 +70,232 @@ namespace TaskEngineAPI.Services
                 return result;
             }
         }
-      
-      
+
+
+        //     public async Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID, string username)
+        //     {
+        //         var connStr = _config.GetConnectionString("Database");
+
+        //         DateTime now = DateTime.Now;
+
+        //         // Format: 1500-2910185301  => tenantId-DDMMHHMMSS
+        //         string autoprocessCode = $"{cTenantID}-{now:ddM MHHmmss}".Replace(" ", "");
+        //         using (SqlConnection conn = new SqlConnection(connStr))
+        //         {
+        //             await conn.OpenAsync();
+        //             using (var transaction = conn.BeginTransaction())
+        //             {
+        //                 try
+        //                 {
+        //                     string queryMaster = @"INSERT INTO tbl_process_engine_master (
+        // ctenant_id,cprocesscode, cprocessname,cprocessdescription, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
+        // cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted) VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocessdescription,@cprocess_type, @cstatus, 
+        //  @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
+        // @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id,@nIs_deleted);SELECT SCOPE_IDENTITY();";
+        //                     int masterId;
+        //                     int detailId;
+        //                     using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
+        //                     {
+        //                         cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+        //                         cmd.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
+        //                         cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocessName ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@cprocessdescription", (object?)model.cprocessdescription ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@cprocess_type", (object?)model.cprivilegeType ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@cvalue", (object?)model.cvalue ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@cpriority_label", (object?)model.cpriorityLabel ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@nshow_timeline", (object?)model.nshowTimeline ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@cnotification_type", (object?)model.cnotificationType ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@ccreated_by", username);
+        //                         cmd.Parameters.AddWithValue("@cmodified_by", username);
+        //                         cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+        //                         cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+        //                         cmd.Parameters.AddWithValue("@cmeta_id", (object?)model.cmetaId ?? DBNull.Value);
+        //                         cmd.Parameters.AddWithValue("@nIs_deleted", 0);
+        //                         var newId = await cmd.ExecuteScalarAsync();
+        //                         masterId = newId != null ? Convert.ToInt32(newId) : 0;
+        //                     }
+        //                     // Insert Process Engine Details
+        //                     string queryDetail = @"INSERT INTO tbl_process_engine_details (
+        //    ctenent_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description, 
+        //      ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
+        //cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type) VALUES (
+        //      @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription, 
+        //      @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
+        //    @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type);SELECT SCOPE_IDENTITY();";
+
+        //                     int seqNo = 1;
+        //                     foreach (var detail in model.processEngineChildItems)
+        //                     {
+        //                         using (SqlCommand cmdDetail = new SqlCommand(queryDetail, conn, transaction))
+        //                         {
+        //                             cmdDetail.Parameters.AddWithValue("@TenantID", cTenantID);
+        //                             cmdDetail.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
+        //                             cmdDetail.Parameters.AddWithValue("@ciseqno", seqNo);
+        //                             cmdDetail.Parameters.AddWithValue("@cheader_id", masterId);
+        //                             cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivityCode ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivityDescription ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@ctasktype", detail.ctaskType ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprevStep ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivityName ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnextSeqno ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+        //                             cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
+        //                             cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
+        //                             cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+        //                             cmdDetail.Parameters.AddWithValue("@cassignee", detail.cmappingCode ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@cmapping_type", detail.cmappingType ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@cparticipantType", detail.cparticipantType ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@nboardenabled", detail.nboardEnabled ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@csladay", detail.cslaDay ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@cslaHour", detail.cslaHour ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@cactionprivilege", detail.cactionPrivilege ?? (object)DBNull.Value);
+        //                             cmdDetail.Parameters.AddWithValue("@crejectionprivilege", detail.crejectionPrivilege ?? (object)DBNull.Value);
+        //                             var newId = await cmdDetail.ExecuteScalarAsync();
+        //                             detailId = newId != null ? Convert.ToInt32(newId) : 0;
+
+        //                         }
+        //                         seqNo++;
+        //                         if (detail.processEngineConditionDetails != null)
+        //                         {
+        //                             string queryCondition = @"INSERT INTO tbl_process_engine_condition (
+        //     ctenent_id,cheader_id, cprocesscode, ciseqno,icond_seqno, ctype, 
+        //      clabel, cfield_value, ccondition, 
+        //      lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
+        //   ,cis_readonly,cis_disabled) VALUES (     
+        //      @TenantID,@cheader_id, @cprocesscode, @ciseqno,@icondseqno, @ctype, 
+        //      @clabel, @cfieldvalue, @ccondition,
+        //      @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cplaceholder,@cis_required
+        //   ,@cis_readonly,@cis_disabled);";
+
+        //                             foreach (var cond in detail.processEngineConditionDetails)
+        //                             {
+        //                                 using (SqlCommand cmdCond = new SqlCommand(queryCondition, conn, transaction))
+        //                                 {
+        //                                     cmdCond.Parameters.AddWithValue("@TenantID", cTenantID);
+        //                                     cmdCond.Parameters.AddWithValue("@cheader_id", masterId);
+        //                                     cmdCond.Parameters.AddWithValue("@cprocesscode", autoprocessCode);
+        //                                     cmdCond.Parameters.AddWithValue("@ciseqno", detailId);
+        //                                     cmdCond.Parameters.AddWithValue("@icondseqno", cond.icondseqno ?? (object)DBNull.Value);
+        //                                     cmdCond.Parameters.AddWithValue("@ctype", cond.ctype ?? (object)DBNull.Value);
+        //                                     cmdCond.Parameters.AddWithValue("@clabel", cond.clabel ?? (object)DBNull.Value);
+        //                                     cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfieldValue ?? (object)DBNull.Value);
+        //                                     cmdCond.Parameters.AddWithValue("@ccondition", cond.ccondition ?? (object)DBNull.Value);
+        //                                     cmdCond.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+        //                                     cmdCond.Parameters.AddWithValue("@ccreated_by", username);
+        //                                     cmdCond.Parameters.AddWithValue("@cmodified_by", username);
+        //                                     cmdCond.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+        //                                     cmdCond.Parameters.AddWithValue("@cplaceholder", cond.cplaceholder ?? (object)DBNull.Value);
+        //                                     cmdCond.Parameters.AddWithValue("@cis_required", cond.cisRequired ?? (object)DBNull.Value);
+        //                                     cmdCond.Parameters.AddWithValue("@cis_readonly", cond.cisReadonly ?? (object)DBNull.Value);
+        //                                     cmdCond.Parameters.AddWithValue("@cis_disabled", cond.cis_disabled ?? (object)DBNull.Value);
+
+        //                                     await cmdCond.ExecuteNonQueryAsync();
+        //                                 }
+
+
+        //                             }
+        //                         }
+        //                     }
+        //                     if (model.cmetaType == "NEW" && model.cmetaName != null && model.cmetaName.Any())
+        //                     {
+        //                         int metaMasterId = 0;
+
+        //                         string metadatamaster = @"INSERT INTO tbl_process_meta_Master (
+        // ctenant_id, meta_Name, meta_Description, label, nis_active, ccreated_by,lcreated_date, cmodified_by, lmodified_date)
+        // VALUES (@TenantID, @meta_Name, @meta_Description, @label, @nis_active, @ccreated_by, 
+        // @lcreated_date, @cmodified_by, @lmodified_date);SELECT SCOPE_IDENTITY();";
+
+        //                         using (SqlCommand cmd = new SqlCommand(metadatamaster, conn, transaction))
+        //                         {
+        //                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+        //                             cmd.Parameters.AddWithValue("@meta_Name", (object?)model.cmetaName ?? DBNull.Value);
+        //                             cmd.Parameters.AddWithValue("@meta_Description", (object?)model.cmetaName ?? DBNull.Value);
+        //                             cmd.Parameters.AddWithValue("@label", (object?)model.cmetaName ?? DBNull.Value);
+        //                             cmd.Parameters.AddWithValue("@nis_active", 1); // Assuming active by default
+        //                             cmd.Parameters.AddWithValue("@ccreated_by", username);
+        //                             cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+        //                             cmd.Parameters.AddWithValue("@cmodified_by", username);
+        //                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+        //                             var metaId = await cmd.ExecuteScalarAsync();
+        //                             metaMasterId = metaId != null ? Convert.ToInt32(metaId) : 0;
+        //                         }
+
+        //                         if (metaMasterId > 0)
+        //                         {
+        //                             string updateMasterQuery = @"UPDATE tbl_process_engine_master SET cmeta_id = @cmeta_id
+        //                                                         WHERE id = @masterId";
+        //                             using (var cmd = new SqlCommand(updateMasterQuery, conn, transaction))
+        //                             {
+        //                                 cmd.Parameters.AddWithValue("@masterId", masterId);
+        //                                 cmd.Parameters.AddWithValue("@cmeta_id", metaMasterId);
+        //                                 await cmd.ExecuteNonQueryAsync();
+        //                             }
+        //                         }
+
+        //                         if (model.processEngineMeta != null && model.processEngineMeta.Any())
+        //                         {
+        //                             string metadata = @"INSERT INTO tbl_process_meta_detail (
+        // cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled, 
+        // ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value) VALUES (
+        // @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_readonly, 
+        // @cis_disabled,@ccreated_by, @lcreated_date, 
+        // @cmodified_by, @lmodified_date, @cfield_value);";
+        //                             foreach (var meta in model.processEngineMeta)
+        //                             {
+        //                                 using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
+        //                                 {
+        //                                     cmdMeta.Parameters.AddWithValue("@TenantID", cTenantID);
+        //                                     cmdMeta.Parameters.AddWithValue("@Header_ID", metaMasterId);
+        //                                     cmdMeta.Parameters.AddWithValue("@cinput_type", meta.cinputType ?? (object)DBNull.Value);
+        //                                     cmdMeta.Parameters.AddWithValue("@label", meta.label ?? (object)DBNull.Value);
+        //                                     cmdMeta.Parameters.AddWithValue("@cplaceholder", meta.cplaceholder ?? (object)DBNull.Value);
+        //                                     cmdMeta.Parameters.AddWithValue("@cis_required", meta.cisRequired ?? (object)DBNull.Value);
+        //                                     cmdMeta.Parameters.AddWithValue("@cis_readonly", meta.cisReadonly ?? (object)DBNull.Value);
+        //                                     cmdMeta.Parameters.AddWithValue("@cis_disabled", meta.cisDisabled ?? (object)DBNull.Value);
+        //                                     cmdMeta.Parameters.AddWithValue("@ccreated_by", username);
+        //                                     cmdMeta.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+        //                                     cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
+        //                                     cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+        //                                     cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
+        //                                     await cmdMeta.ExecuteNonQueryAsync();
+        //                                 }
+        //                             }
+        //                         }
+        //                     }
+        //                     else if (model.cmetaType == "old")
+        //                     {
+        //                         string updateMasterQuery = @"UPDATE tbl_process_engine_master
+        //                                         SET cmeta_id = @cmeta_id WHERE id = @masterId";
+        //                         using (var cmd = new SqlCommand(updateMasterQuery, conn, transaction))
+        //                         {
+        //                             cmd.Parameters.AddWithValue("@masterId", masterId);
+        //                             cmd.Parameters.AddWithValue("@cmeta_id", model.cmetaId ?? (object)DBNull.Value);
+        //                             await cmd.ExecuteNonQueryAsync();
+        //                         }
+        //                     }
+        //                     transaction.Commit();
+        //                     return masterId;
+        //                 }
+        //                 catch
+        //                 {
+        //                     transaction.Rollback();
+        //                     throw;
+        //                 }
+        //             }
+        //         }
+        //     }
+
+
         public async Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
 
             DateTime now = DateTime.Now;
 
-            // Format: 1500-2910185301  => tenantId-DDMMHHMMSS
+            // Format: tenantId-DDMMHHMMSS (e.g., 1500-2910185301)
             string autoprocessCode = $"{cTenantID}-{now:ddM MHHmmss}".Replace(" ", "");
+
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
@@ -87,13 +303,16 @@ namespace TaskEngineAPI.Services
                 {
                     try
                     {
-                        string queryMaster = @"INSERT INTO tbl_process_engine_master (
-    ctenant_id,cprocesscode, cprocessname,cprocessdescription, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
-    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted) VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocessdescription,@cprocess_type, @cstatus, 
-     @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
-    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id,@nIs_deleted);SELECT SCOPE_IDENTITY();";
                         int masterId;
-                        int detailId;
+
+                        string queryMaster = @"INSERT INTO tbl_process_engine_master (
+                    ctenant_id,cprocesscode, cprocessname,cprocessdescription, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
+                    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted) 
+                    VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocessdescription,@cprocess_type, @cstatus,  
+                    @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
+                    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id,@nIs_deleted);
+                    SELECT SCOPE_IDENTITY();";
+
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -115,18 +334,19 @@ namespace TaskEngineAPI.Services
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
-                        // Insert Process Engine Details
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
-       ctenent_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description, 
-         ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
-		 cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type) VALUES (
-         @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription, 
-         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
-       @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type);SELECT SCOPE_IDENTITY();";
+                    ctenent_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description,  
+                    ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
+                    cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type) 
+                    VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
+                    @ctasktype, @cprev_step, @cactivityname, @cnext_seqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
+                    @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type);
+                    SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
                         foreach (var detail in model.processEngineChildItems)
                         {
+                            int detailId;
                             using (SqlCommand cmdDetail = new SqlCommand(queryDetail, conn, transaction))
                             {
                                 cmdDetail.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -136,9 +356,9 @@ namespace TaskEngineAPI.Services
                                 cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivityCode ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivityDescription ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@ctasktype", detail.ctaskType ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprevStep ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cprev_step", detail.cprevStep ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivityName ?? (object)DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnextSeqno ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cnext_seqno", detail.cnextSeqno ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
@@ -151,22 +371,22 @@ namespace TaskEngineAPI.Services
                                 cmdDetail.Parameters.AddWithValue("@cslaHour", detail.cslaHour ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cactionprivilege", detail.cactionPrivilege ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@crejectionprivilege", detail.crejectionPrivilege ?? (object)DBNull.Value);
+
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
-                                await cmdDetail.ExecuteNonQueryAsync();
                             }
                             seqNo++;
                             if (detail.processEngineConditionDetails != null)
                             {
                                 string queryCondition = @"INSERT INTO tbl_process_engine_condition (
-        ctenent_id,cheader_id, cprocesscode, ciseqno,icond_seqno, ctype, 
-         clabel, cfield_value, ccondition, 
-         lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
-      ,cis_readonly,cis_disabled) VALUES (     
-         @TenantID,@cheader_id, @cprocesscode, @ciseqno,@icondseqno, @ctype, 
-         @clabel, @cfieldvalue, @ccondition,
-         @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cplaceholder,@cis_required
-      ,@cis_readonly,@cis_disabled);";
+                            ctenent_id,cheader_id, cprocesscode, ciseqno,icond_seqno, ctype,  
+                            clabel, cfield_value, ccondition,  
+                            lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
+                            ,cis_readonly,cis_disabled) 
+                            VALUES (@TenantID,@cheader_id, @cprocesscode, @ciseqno,@icondseqno, @ctype,  
+                            @clabel, @cfieldvalue, @ccondition,
+                            @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cplaceholder,@cis_required
+                            ,@cis_readonly,@cis_disabled);";
 
                                 foreach (var cond in detail.processEngineConditionDetails)
                                 {
@@ -195,14 +415,16 @@ namespace TaskEngineAPI.Services
                                 }
                             }
                         }
+
                         if (model.cmetaType == "NEW" && model.cmetaName != null && model.cmetaName.Any())
                         {
                             int metaMasterId = 0;
 
                             string metadatamaster = @"INSERT INTO tbl_process_meta_Master (
-    ctenant_id, meta_Name, meta_Description, label, nis_active, ccreated_by,lcreated_date, cmodified_by, lmodified_date)
-    VALUES (@TenantID, @meta_Name, @meta_Description, @label, @nis_active, @ccreated_by, 
-    @lcreated_date, @cmodified_by, @lmodified_date);SELECT SCOPE_IDENTITY();";
+                        ctenant_id, meta_Name, meta_Description, label, nis_active, ccreated_by,lcreated_date, cmodified_by, lmodified_date)
+                        VALUES (@TenantID, @meta_Name, @meta_Description, @label, @nis_active, @ccreated_by,  
+                        @lcreated_date, @cmodified_by, @lmodified_date);
+                        SELECT SCOPE_IDENTITY();";
 
                             using (SqlCommand cmd = new SqlCommand(metadatamaster, conn, transaction))
                             {
@@ -210,7 +432,7 @@ namespace TaskEngineAPI.Services
                                 cmd.Parameters.AddWithValue("@meta_Name", (object?)model.cmetaName ?? DBNull.Value);
                                 cmd.Parameters.AddWithValue("@meta_Description", (object?)model.cmetaName ?? DBNull.Value);
                                 cmd.Parameters.AddWithValue("@label", (object?)model.cmetaName ?? DBNull.Value);
-                                cmd.Parameters.AddWithValue("@nis_active", 1); // Assuming active by default
+                                cmd.Parameters.AddWithValue("@nis_active", 1);
                                 cmd.Parameters.AddWithValue("@ccreated_by", username);
                                 cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                                 cmd.Parameters.AddWithValue("@cmodified_by", username);
@@ -222,7 +444,7 @@ namespace TaskEngineAPI.Services
                             if (metaMasterId > 0)
                             {
                                 string updateMasterQuery = @"UPDATE tbl_process_engine_master SET cmeta_id = @cmeta_id
-                                                            WHERE id = @masterId";
+                                                     WHERE id = @masterId";
                                 using (var cmd = new SqlCommand(updateMasterQuery, conn, transaction))
                                 {
                                     cmd.Parameters.AddWithValue("@masterId", masterId);
@@ -234,11 +456,11 @@ namespace TaskEngineAPI.Services
                             if (model.processEngineMeta != null && model.processEngineMeta.Any())
                             {
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
-    cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled, 
-    ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value) VALUES (
-    @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_readonly, 
-    @cis_disabled,@ccreated_by, @lcreated_date, 
-    @cmodified_by, @lmodified_date, @cfield_value);";
+                            cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled,  
+                            ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value) 
+                            VALUES (@Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_readonly,  
+                            @cis_disabled,@ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date, @cfield_value);";
+
                                 foreach (var meta in model.processEngineMeta)
                                 {
                                     using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
@@ -264,7 +486,7 @@ namespace TaskEngineAPI.Services
                         else if (model.cmetaType == "old")
                         {
                             string updateMasterQuery = @"UPDATE tbl_process_engine_master
-                                            SET cmeta_id = @cmeta_id WHERE id = @masterId";
+                                                 SET cmeta_id = @cmeta_id WHERE id = @masterId";
                             using (var cmd = new SqlCommand(updateMasterQuery, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@masterId", masterId);
@@ -272,17 +494,21 @@ namespace TaskEngineAPI.Services
                                 await cmd.ExecuteNonQueryAsync();
                             }
                         }
+
                         transaction.Commit();
                         return masterId;
                     }
                     catch
                     {
+                        // Rollback on any error
                         transaction.Rollback();
                         throw;
                     }
                 }
             }
         }
+
+
 
         public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID)
         {
@@ -903,6 +1129,216 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 throw new Exception($"Error retrieving mapping list: {ex.Message}");
             }
         }
+
+
+
+        public async Task<int> UpdateProcessEngineAsync(UpdateProcessEngineDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+                int detailId;
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        string queryMaster = @"Update tbl_process_engine_master set  
+     cprocessname=@cprocessname,cprocessdescription=@cprocessdescription, cprivilege_type=@cprocess_type, 
+    cstatus=@cstatus,cvalue=@cvalue,cpriority_label=@cpriority_label, nshow_timeline=@nshow_timeline,
+    cnotification_type=@cnotification_type,cmodified_by=@cmodified_by,lmodified_date=@lmodified_date, cmeta_id=@cmeta_id,nIs_deleted=@nIs_deleted
+       where ID=@ID ;";
+                        
+                        using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                            cmd.Parameters.AddWithValue("@ID", (object?)model.ID ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocesscode", (object?)model.cprocessCode ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocessname", (object?)model.cprocessName ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocessdescription", (object?)model.cprocessdescription ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprocess_type", (object?)model.cprivilegeType ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cvalue", (object?)model.cvalue ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cpriority_label", (object?)model.cpriorityLabel ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nshow_timeline", (object?)model.nshowTimeline ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cnotification_type", (object?)model.cnotificationType ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ccreated_by", username);
+                            cmd.Parameters.AddWithValue("@cmodified_by", username);
+                            cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@cmeta_id", (object?)model.cmetaId ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nIs_deleted", 0);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                        // Insert Process Engine Details
+                        string queryDetail = @"INSERT INTO tbl_process_engine_details (
+       ctenent_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description, 
+         ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
+		 cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type) VALUES (
+         @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription, 
+         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
+       @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type);SELECT SCOPE_IDENTITY();";
+
+                        int seqNo = 1;
+                        foreach (var detail in model.processEngineChildItems)
+                        {
+                            using (SqlCommand cmdDetail = new SqlCommand(queryDetail, conn, transaction))
+                            {
+                                cmdDetail.Parameters.AddWithValue("@TenantID", cTenantID);
+                                cmdDetail.Parameters.AddWithValue("@cprocesscode", model.cprocessCode ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@ciseqno", seqNo);
+                                cmdDetail.Parameters.AddWithValue("@cheader_id", model.ID ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivitycode", detail.cactivityCode ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivitydescription", detail.cactivityDescription ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@ctasktype", detail.ctaskType ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cprevstep", detail.cprevStep ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactivityname", detail.cactivityName ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cnextseqno", detail.cnextSeqno ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                                cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
+                                cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
+                                cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                                cmdDetail.Parameters.AddWithValue("@cassignee", detail.cmappingCode ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cmapping_type", detail.cmappingType ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cparticipantType", detail.cparticipantType ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nboardenabled", detail.nboardEnabled ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@csladay", detail.cslaDay ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cslaHour", detail.cslaHour ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cactionprivilege", detail.cactionPrivilege ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@crejectionprivilege", detail.crejectionPrivilege ?? (object)DBNull.Value);
+                                var newId = await cmdDetail.ExecuteScalarAsync();
+                                detailId = newId != null ? Convert.ToInt32(newId) : 0;
+                                await cmdDetail.ExecuteNonQueryAsync();
+                            }
+                            seqNo++;
+                            if (detail.processEngineConditionDetails != null)
+                            {
+                                string queryCondition = @"INSERT INTO tbl_process_engine_condition (
+        ctenent_id,cheader_id, cprocesscode, ciseqno,icond_seqno, ctype, 
+         clabel, cfield_value, ccondition, 
+         lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
+      ,cis_readonly,cis_disabled) VALUES (     
+         @TenantID,@cheader_id, @cprocesscode, @ciseqno,@icondseqno, @ctype, 
+         @clabel, @cfieldvalue, @ccondition,
+         @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cplaceholder,@cis_required
+      ,@cis_readonly,@cis_disabled);";
+
+                                foreach (var cond in detail.processEngineConditionDetails)
+                                {
+                                    using (SqlCommand cmdCond = new SqlCommand(queryCondition, conn, transaction))
+                                    {
+                                        cmdCond.Parameters.AddWithValue("@TenantID", cTenantID);
+                                        cmdCond.Parameters.AddWithValue("@cheader_id", model.ID ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cprocesscode", model.cprocessCode ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@ciseqno", detailId);
+                                        cmdCond.Parameters.AddWithValue("@icondseqno", cond.icondseqno ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@ctype", cond.ctype ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@clabel", cond.clabel ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cfieldvalue", cond.cfieldValue ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@ccondition", cond.ccondition ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                                        cmdCond.Parameters.AddWithValue("@ccreated_by", username);
+                                        cmdCond.Parameters.AddWithValue("@cmodified_by", username);
+                                        cmdCond.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                                        cmdCond.Parameters.AddWithValue("@cplaceholder", cond.cplaceholder ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cis_required", cond.cisRequired ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cis_readonly", cond.cisReadonly ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cis_disabled", cond.cis_disabled ?? (object)DBNull.Value);
+
+                                        await cmdCond.ExecuteNonQueryAsync();
+                                    }
+                                }
+                            }
+                        }
+                        if (model.cmetaType == "NEW" && model.cmetaName != null && model.cmetaName.Any())
+                        {
+                            int metaMasterId = 0;
+
+                            string metadatamaster = @"INSERT INTO tbl_process_meta_Master (
+    ctenant_id, meta_Name, meta_Description, label, nis_active, ccreated_by,lcreated_date, cmodified_by, lmodified_date)
+    VALUES (@TenantID, @meta_Name, @meta_Description, @label, @nis_active, @ccreated_by, 
+    @lcreated_date, @cmodified_by, @lmodified_date);SELECT SCOPE_IDENTITY();";
+
+                            using (SqlCommand cmd = new SqlCommand(metadatamaster, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                                cmd.Parameters.AddWithValue("@meta_Name", (object?)model.cmetaName ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@meta_Description", (object?)model.cmetaName ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@label", (object?)model.cmetaName ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@nis_active", 1); // Assuming active by default
+                                cmd.Parameters.AddWithValue("@ccreated_by", username);
+                                cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                                cmd.Parameters.AddWithValue("@cmodified_by", username);
+                                cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                                var metaId = await cmd.ExecuteScalarAsync();
+                                metaMasterId = metaId != null ? Convert.ToInt32(metaId) : 0;
+                            }
+
+                            if (metaMasterId > 0)
+                            {
+                                string updateMasterQuery = @"UPDATE tbl_process_engine_master SET cmeta_id = @cmeta_id
+                                                            WHERE id = @masterId";
+                                using (var cmd = new SqlCommand(updateMasterQuery, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@masterId", (object?)model.ID ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@cmeta_id", metaMasterId);
+                                    await cmd.ExecuteNonQueryAsync();
+                                }
+                            }
+
+                            if (model.processEngineMeta != null && model.processEngineMeta.Any())
+                            {
+                                string metadata = @"INSERT INTO tbl_process_meta_detail (
+    cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled, 
+    ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value) VALUES (
+    @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_readonly, 
+    @cis_disabled,@ccreated_by, @lcreated_date, 
+    @cmodified_by, @lmodified_date, @cfield_value);";
+                                foreach (var meta in model.processEngineMeta)
+                                {
+                                    using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
+                                    {
+                                        cmdMeta.Parameters.AddWithValue("@TenantID", cTenantID);
+                                        cmdMeta.Parameters.AddWithValue("@Header_ID", metaMasterId);
+                                        cmdMeta.Parameters.AddWithValue("@cinput_type", meta.cinputType ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@label", meta.label ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cplaceholder", meta.cplaceholder ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_required", meta.cisRequired ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_readonly", meta.cisReadonly ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_disabled", meta.cisDisabled ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@ccreated_by", username);
+                                        cmdMeta.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                                        cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
+                                        cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                                        cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
+                                        await cmdMeta.ExecuteNonQueryAsync();
+                                    }
+                                }
+                            }
+                        }
+                        else if (model.cmetaType == "old")
+                        {
+                            string updateMasterQuery = @"UPDATE tbl_process_engine_master
+                                            SET cmeta_id = @cmeta_id WHERE id = @masterId";
+                            using (var cmd = new SqlCommand(updateMasterQuery, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@masterId", (object?)model.ID ?? DBNull.Value);
+                                cmd.Parameters.AddWithValue("@cmeta_id", model.cmetaId ?? (object)DBNull.Value);
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                        transaction.Commit();
+                        return 0;
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
     }
 }
 
