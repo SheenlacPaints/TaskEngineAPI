@@ -362,8 +362,8 @@ namespace TaskEngineAPI.Controllers
                 };
                 string jsone = JsonConvert.SerializeObject(apierDtls);
                 var encryptapierDtls = AesEncryption.Encrypt(jsone);
-                //return StatusCode(200, encryptapierDtls);
-                return StatusCode(200, $"\"{encryptapierDtls}\"");
+                return StatusCode(200, encryptapierDtls);
+                //return StatusCode(200, $"\"{encryptapierDtls}\"");
 
             }
             catch (Exception ex)
