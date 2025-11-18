@@ -1,14 +1,15 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using TaskEngineAPI.Helpers;
-using TaskEngineAPI.Services;
-using Microsoft.AspNetCore.Authorization;
-using TaskEngineAPI.Interfaces;
+using System.Data.SqlClient;
+using System.IdentityModel.Tokens.Jwt;
 using TaskEngineAPI.Data;
 using TaskEngineAPI.DTO;
-using System.Data.SqlClient;
 using TaskEngineAPI.DTO.LookUpDTO;
+using TaskEngineAPI.Helpers;
+using TaskEngineAPI.Interfaces;
+using TaskEngineAPI.Services;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -312,8 +313,84 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(response.status, encrypted);
         }
 
+        [Authorize]
+        [HttpDelete]
+        [Route("DeleteProcessMapping")]
+        public async Task<IActionResult> DeleteProcessMapping([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                string username = usernameClaim;
 
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var deleteModel = JsonConvert.DeserializeObject<DeleteProcessMappingDTO>(decryptedJson);
+
+                if (deleteModel?.MappingId <= 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Invalid mapping ID provided"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, encryptedError);
+                }
+
+                bool success = await _processEngineService.DeleteprocessmappingAsync(deleteModel.MappingId, cTenantID, username);
+
+                if (!success)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 404,
+                        statusText = "Process mapping not found or you don't have permission to delete it"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(404, encryptedError);
+                }
+
+                var response = new APIResponse
+                {
+                    status = 200,
+                    statusText = "Process mapping deleted successfully"
+                };
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var error = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Error deleting process mapping",
+                    error = ex.Message
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
         [Authorize]
         [HttpPost]
         [Route("CreateProcessmapping")]

@@ -356,7 +356,10 @@ namespace TaskEngineAPI.DTO
     }
 
 
-
+    public class DeleteProcessMappingDTO
+    {
+        public int MappingId { get; set; }
+    }
 
 }
 
