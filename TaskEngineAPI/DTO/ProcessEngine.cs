@@ -273,7 +273,7 @@ namespace TaskEngineAPI.DTO
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public string? cprocessdescription { get; set; }
-        public string? cprocessType { get; set; }   
+        
         public string? cprocessvalue { get; set; }   
         public string? cstatus { get; set; }
         public string? cstatus_description { get; set; }
