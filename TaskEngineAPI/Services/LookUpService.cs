@@ -509,16 +509,14 @@ namespace TaskEngineAPI.Services
                             ppt.ID as privilege_id,
                             ppt.ctenent_id as privilege_tenant_id,
                             ppt.cprocess_privilege,
-                            ppt.nis_active as privilege_is_active,
-                           
-                        
+                            ppt.nis_active as privilege_is_active,                                      
                             CASE 
-                                WHEN ppt.cprocess_privilege = 'department' THEN CAST(dm.cdepartment_code as varchar(50))
-                                WHEN ppt.cprocess_privilege = 'position' THEN CAST(pm.cposition_code as varchar(50))
-                                WHEN ppt.cprocess_privilege = 'role' THEN CAST(rm.crole_code as varchar(50))
-                                WHEN ppt.cprocess_privilege = 'user' THEN CAST(u.cuserid as varchar(50))
-                                ELSE CAST(ppt.ID as varchar(10))
-                            END as value,
+        WHEN ppt.cprocess_privilege = 'department' THEN CAST(dm.ID as varchar(50))
+        WHEN ppt.cprocess_privilege = 'position' THEN CAST(pm.id as varchar(50))
+        WHEN ppt.cprocess_privilege = 'role' THEN CAST(rm.ID as varchar(50))
+        WHEN ppt.cprocess_privilege = 'user' THEN CAST(u.cuserid as varchar(50))
+        ELSE CAST(ppt.ID as varchar(10))
+                       END as value,
                             
                             CASE 
                                 WHEN ppt.cprocess_privilege = 'department' THEN dm.cdepartment_name
