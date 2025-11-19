@@ -360,7 +360,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> CreateProcessPrivilegeTypeAsync(CreateProcessPrivilegeTypeDTO model)
+        public async Task<bool> CreateProcessPrivilegeTypeAsync(CreateProcessPrivilegeTypeDTO model, string usernameclaim)
         {
             try
             {
@@ -379,7 +379,7 @@ namespace TaskEngineAPI.Services
                         cmd.Parameters.AddWithValue("@ctenent_id", model.ctenent_id);
                         cmd.Parameters.AddWithValue("@cprocess_privilege", model.cprocess_privilege ?? string.Empty);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
-                        cmd.Parameters.AddWithValue("@ccreated_by", (object?)model.ccreated_by ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ccreated_by", usernameclaim);
 
                         var newId = await cmd.ExecuteScalarAsync();
                         return newId != null && Convert.ToInt32(newId) > 0;
