@@ -344,6 +344,8 @@ namespace TaskEngineAPI.Controllers
             var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
             var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
             if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
             {
                 throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
@@ -362,7 +364,7 @@ namespace TaskEngineAPI.Controllers
                 throw new ArgumentException("Process privilege type name is required");
             }
 
-            bool success = await _lookUpService.CreateProcessPrivilegeTypeAsync(model);
+            bool success = await _lookUpService.CreateProcessPrivilegeTypeAsync(model,usernameClaim);
 
             var response = new APIResponse
             {
