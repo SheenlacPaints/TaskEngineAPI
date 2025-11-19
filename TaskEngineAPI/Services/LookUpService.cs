@@ -533,7 +533,7 @@ namespace TaskEngineAPI.Services
                         LEFT JOIN tbl_position_master pm ON ppt.cprocess_privilege = 'position' AND pm.ctenent_id = ppt.ctenent_id AND pm.nis_active = 1
                         LEFT JOIN tbl_role_master rm ON ppt.cprocess_privilege = 'role' AND rm.ctenent_id = ppt.ctenent_id AND rm.nis_active = 1
                         LEFT JOIN users u ON ppt.cprocess_privilege = 'user' AND u.ctenant_id = ppt.ctenent_id AND u.nis_active = 1 and u.nIs_deleted=0
-                        WHERE ppt.ctenent_id = 1500 
+                        WHERE ppt.ctenent_id = @tenantId 
                         AND ppt.nis_active = 1
                         AND (@PrivilegeType  = '0' OR ppt.ID = @PrivilegeType )
                         ORDER BY view_value;";
