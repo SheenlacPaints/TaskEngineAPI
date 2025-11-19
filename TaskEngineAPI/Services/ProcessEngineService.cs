@@ -915,22 +915,26 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     await conn.OpenAsync();
 
                     string query = @"
-                SELECT 
-                    h.ID as mappingID,
-                    h.cprocess_id as processID,
-                    h.cprocesscode as processName,
-                    h.cprocess_privilege as privilegeType, 
-                    p.cprocess_privilege as privilegeTypevalue,
-                    d.entity_id as value,
-                    d.entity_value as view_value
-                FROM tbl_engine_master_to_process_privilege h
-                inner join tbl_process_privilege_type p on h.cprocess_privilege=p.ID
-                LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
-                WHERE h.ctenent_id = @TenantID  
-                AND (d.ctenent_id = @TenantID OR d.ctenent_id IS NULL)
-                AND (d.cis_active = 1 OR d.cis_active IS NULL)
-                ORDER BY h.ID, d.entity_value";
+                                        SELECT 
+                            h.ID as mappingID,
+                            h.cprocess_id as processID,
+                            h.cprocesscode as processcode,
+                            e.cprocessname as cprocessname,
+                            e.cprocessdescription as cprocessdescription,
+                            h.cprocess_privilege as privilegeType, 
+                            p.cprocess_privilege as privilegeTypevalue,
+                            d.entity_id as value,
+                            d.entity_value as view_value,d.cis_active
+                        FROM tbl_engine_master_to_process_privilege h
+                        inner join tbl_process_engine_master e on e.id=h.cprocess_id
+                        inner join tbl_process_privilege_type p on h.cprocess_privilege=p.ID
+                        LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
+                        WHERE h.ctenent_id =@TenantID  
+                        AND (d.ctenent_id = @TenantID OR d.ctenent_id IS NULL)
+                        AND (d.cis_active = 1 OR d.cis_active IS NULL)
 
+                        ORDER BY h.ID, d.entity_value";
+                        
                     var mappingDict = new Dictionary<int, MappingListDTO>();
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -949,9 +953,14 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                     {
                                         mappingID = mappingId,
                                         processID = reader.GetInt32(reader.GetOrdinal("processID")),
-                                        processName = reader.GetValue(reader.GetOrdinal("processName"))?.ToString() ?? string.Empty,
+                                        cprocessname = reader.GetValue(reader.GetOrdinal("cprocessname"))?.ToString() ?? string.Empty,
+                                        cprocessdescription = reader.GetValue(reader.GetOrdinal("cprocessdescription"))?.ToString() ?? string.Empty,
+                                        cprocesscode = reader.GetValue(reader.GetOrdinal("processcode"))?.ToString() ?? string.Empty,
                                         privilegeType = reader.GetValue(reader.GetOrdinal("privilegeType"))?.ToString() ?? string.Empty,
-                                        privilegeTypevalue= reader.GetValue(reader.GetOrdinal("privilegeTypevalue"))?.ToString() ?? string.Empty,
+                                        privilegeTypevalue = reader.GetValue(reader.GetOrdinal("privilegeTypevalue"))?.ToString() ?? string.Empty,
+                                        cis_active = reader.IsDBNull(reader.GetOrdinal("cis_active"))
+    ? null
+    : reader.GetBoolean(reader.GetOrdinal("cis_active")),
                                         privilegeList = new List<PrivilegeItemDTO>()
                                     };
                                     mappingDict[mappingId] = mapping;
