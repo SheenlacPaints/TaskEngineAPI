@@ -14,6 +14,8 @@ using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
 using System;
 using System.Diagnostics;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Collections.Generic;
 
 namespace TaskEngineAPI.Services
 {
@@ -69,8 +71,7 @@ namespace TaskEngineAPI.Services
                 }
                 return result;
             }
-        }
-       
+        }       
         public async Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -768,8 +769,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         string checkDuplicateQuery = @"
                     SELECT COUNT(1) 
                     FROM tbl_engine_master_to_process_privilege 
-                    WHERE cprocess_id = @cprocess_id 
-                    AND cprocess_privilege = @cprocess_privilege 
+                    WHERE cprocess_id = @cprocess_id                   
                     AND ctenent_id = @ctenent_id
                     AND id != @current_id";
 
@@ -995,7 +995,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 throw new Exception($"Error retrieving mapping list: {ex.Message}");
             }
         }
-        public async Task<int> UpdateProcessEngineAsync(UpdateProcessEngineDTO model, int cTenantID, string username)
+        public async Task<bool> UpdateProcessEngineAsync(UpdateProcessEngineDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
             using (SqlConnection conn = new SqlConnection(connStr))
@@ -1006,12 +1006,51 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 {
                     try
                     {
+                        string checkDuplicateQuery = @"
+                    select count(1) from tbl_taskflow_master a
+                         left join tbl_taskflow_detail b on a.itaskno = b.itaskno
+                        where ccurrent_status in ('P', 'H') and cprocess_id = @cprocess_id";
+                        
+
+                        using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn))
+                        {
+                            checkCmd.Parameters.AddWithValue("@cprocess_id", model.ID);
+                            checkCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+
+                            int duplicateCount = (int)await checkCmd.ExecuteScalarAsync();
+
+                            if (duplicateCount > 0)
+                            {
+                                return -1;
+                            }
+                        }
+
+
+                        string deleteConditionsQuery = @"
+                    DELETE FROM tbl_process_engine_condition 
+                    WHERE cheader_id = @MasterID AND ctenant_id = @TenantID;";
+                        using (SqlCommand cmd = new SqlCommand(deleteConditionsQuery, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@MasterID", model.ID);
+                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                        string deleteDetailsQuery = @"
+                    DELETE FROM tbl_process_engine_details 
+                    WHERE cheader_id = @MasterID AND ctenant_id = @TenantID;";
+                        using (SqlCommand cmd = new SqlCommand(deleteDetailsQuery, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@MasterID", model.ID);
+                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+
                         string queryMaster = @"Update tbl_process_engine_master set  
      cprocessname=@cprocessname,cprocessdescription=@cprocessdescription, cprivilege_type=@cprocess_type, 
     cstatus=@cstatus,cvalue=@cvalue,cpriority_label=@cpriority_label, nshow_timeline=@nshow_timeline,
     cnotification_type=@cnotification_type,cmodified_by=@cmodified_by,lmodified_date=@lmodified_date, cmeta_id=@cmeta_id,nIs_deleted=@nIs_deleted
-       where ID=@ID ;";
-                        
+       where ID=@ID ;";                      
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -1070,8 +1109,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@cactionprivilege", detail.cactionPrivilege ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@crejectionprivilege", detail.crejectionPrivilege ?? (object)DBNull.Value);
                                 var newId = await cmdDetail.ExecuteScalarAsync();
-                                detailId = newId != null ? Convert.ToInt32(newId) : 0;
-                                await cmdDetail.ExecuteNonQueryAsync();
+                                detailId = newId != null ? Convert.ToInt32(newId) : 0;                                                             
                             }
                             seqNo++;
                             if (detail.processEngineConditionDetails != null)
@@ -1201,7 +1239,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 }
             }
         }
-
         public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID, string searchText = null)
         {
             var result = new List<GetProcessEngineDTO>();

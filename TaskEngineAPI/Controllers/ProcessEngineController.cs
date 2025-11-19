@@ -168,6 +168,146 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPut]
+        [Route("UpdateProcessEngine")]
+        public async Task<IActionResult> UpdateProcessEngine([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                string username = usernameClaim;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<UpdateProcessEngineDTO>(decryptedJson);
+
+                if (model == null || model.ID <= 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Invalid ID provided"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, encryptedError);
+                }
+
+                bool success = await _processEngineService.UpdateProcessEngineAsync(model, cTenantID, username);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ? "Updated successfully" : "Data not found or update failed"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already assigned"))
+            {
+                var error = new APIResponse
+                {
+                    status = 409,
+                    statusText = ex.Message
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(409, encryptedError);
+            }
+            catch (Exception ex)
+            {
+                var error = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Error updating process",
+                    error = ex.Message
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+
+        [Authorize]
+        [HttpPut]
+        [Route("Updateprocessmapping")]
+        public async Task<IActionResult> Updateprocessmapping([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+                string username = usernameClaim;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<updateprocessmappingDTO>(decryptedJson);
+
+               
+
+                bool success = await _processEngineService.UpdateprocessmappingAsync(model, cTenantID, username);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ? "Updated successfully" : "Data not found or update failed"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
+            }
+            
+            catch (Exception ex)
+            {
+                var error = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Error updating process mapping",
+                    error = ex.Message
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+
 
         [Authorize]
         [HttpGet]
@@ -393,85 +533,7 @@ namespace TaskEngineAPI.Controllers
 
 
 
-        [Authorize]
-        [HttpPut]
-        [Route("Updateprocessmapping")]
-        public async Task<IActionResult> Updateprocessmapping([FromBody] pay request)
-        {
-            try
-            {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-                string username = usernameClaim;
-
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
-                {
-                    var error = new APIResponse
-                    {
-                        status = 401,
-                        statusText = "Invalid or missing cTenantID in token."
-                    };
-                    string errorJson = JsonConvert.SerializeObject(error);
-                    string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return StatusCode(401, encryptedError);
-                }
-
-                string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var model = JsonConvert.DeserializeObject<updateprocessmappingDTO>(decryptedJson);
-
-                if (model == null || model.cmappingid <= 0)
-                {
-                    var error = new APIResponse
-                    {
-                        status = 400,
-                        statusText = "Invalid ID provided"
-                    };
-                    string errorJson = JsonConvert.SerializeObject(error);
-                    string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return StatusCode(400, encryptedError);
-                }
-
-                bool success = await _processEngineService.UpdateprocessmappingAsync(model, cTenantID, username);
-
-                var response = new APIResponse
-                {
-                    status = success ? 200 : 404,
-                    statusText = success ? "Updated successfully" : "Data not found or update failed"
-                };
-
-                string json = JsonConvert.SerializeObject(response);
-                string encrypted = AesEncryption.Encrypt(json);
-                return StatusCode(response.status, encrypted);
-            }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("already assigned"))
-            {
-                var error = new APIResponse
-                {
-                    status = 409,
-                    statusText = ex.Message
-                };
-                string errorJson = JsonConvert.SerializeObject(error);
-                string encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(409, encryptedError);
-            }
-            catch (Exception ex)
-            {
-                var error = new APIResponse
-                {
-                    status = 500,
-                    statusText = "Error updating process mapping",
-                    error = ex.Message
-                };
-                string errorJson = JsonConvert.SerializeObject(error);
-                string encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
-            }
-        }
-
+      
         [Authorize]
         [HttpDelete]
         [Route("DeleteProcessMapping")]
