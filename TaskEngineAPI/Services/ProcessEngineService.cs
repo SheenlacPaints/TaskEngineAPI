@@ -646,6 +646,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 }
             }
         }
+     
+
+
         public async Task<int> InsertprocessmappingAsync(createprocessmappingDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -662,20 +665,31 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     SELECT COUNT(1) 
                     FROM tbl_engine_master_to_process_privilege 
                     WHERE cprocess_id = @cprocess_id 
-                    AND cprocess_privilege = @cprocess_privilege 
                     AND ctenent_id = @ctenent_id";
 
                         using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn, tx))
                         {
                             checkCmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
-                            checkCmd.Parameters.AddWithValue("@cprocess_privilege", model.cprivilegeType);
                             checkCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
 
-                            int duplicateCount = (int)await checkCmd.ExecuteScalarAsync();
+                            int existingCount = (int)await checkCmd.ExecuteScalarAsync();
 
-                            if (duplicateCount > 0)
+                            if (existingCount > 0)
                             {
-                                return -1; 
+                                string getExistingPrivilegeQuery = @"
+                            SELECT cprocess_privilege 
+                            FROM tbl_engine_master_to_process_privilege 
+                            WHERE cprocess_id = @cprocess_id 
+                            AND ctenent_id = @ctenent_id";
+
+                                using (SqlCommand getPrivilegeCmd = new SqlCommand(getExistingPrivilegeQuery, conn, tx))
+                                {
+                                    getPrivilegeCmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
+                                    getPrivilegeCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+
+                                    var existingPrivilege = await getPrivilegeCmd.ExecuteScalarAsync();
+                                    throw new InvalidOperationException($"Process ID {model.cprocessid} already has privilege {existingPrivilege}. Only one privilege allowed per process.");
+                                }
                             }
                         }
 
