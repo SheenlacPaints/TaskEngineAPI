@@ -1021,7 +1021,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                             if (duplicateCount > 0)
                             {
-                                return true;
+                                return false;
                             }
                         }
 
@@ -1229,7 +1229,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             }
                         }
                         transaction.Commit();
-                        return false;
+                        return true;
                     }
                     catch
                     {
