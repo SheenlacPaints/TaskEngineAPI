@@ -355,7 +355,8 @@ namespace TaskEngineAPI.Controllers
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
                     string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return StatusCode(409, encryptedError);
+                    string encc = $"\"{encryptedError}\"";                 
+                    return StatusCode(409, encc);
                 }
 
                 if (insertedUserId <= 0)
@@ -387,7 +388,8 @@ namespace TaskEngineAPI.Controllers
                 };
                 string jsoner = JsonConvert.SerializeObject(apierrDtls);
                 var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
-                return StatusCode(500, encryptapierrDtls);
+                string encc = $"\"{encryptapierrDtls}\"";
+                return StatusCode(500, encc);
             }
         }
 
