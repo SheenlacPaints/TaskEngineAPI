@@ -70,8 +70,6 @@ namespace TaskEngineAPI.Services
                 return result;
             }
         }
-
-
         //     public async Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID, string username)
         //     {
         //         var connStr = _config.GetConnectionString("Database");
@@ -285,7 +283,6 @@ namespace TaskEngineAPI.Services
         //             }
         //         }
         //     }
-
 
         public async Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID, string username)
         {
@@ -509,10 +506,7 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-
-
-
-        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID)
+        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsyncold(int cTenantID)
         {
             var result = new Dictionary<int, GetProcessEngineDTO>();
             var connStr = _config.GetConnectionString("Database");
@@ -609,9 +603,6 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0 ORDER BY m.ID DESC;";
 
             return result.Values.ToList();
         }
-
-
-
         public async Task<List<GetIDProcessEngineDTO>> GetProcessengineAsync(int cTenantID, int id)
         {
             var result = new Dictionary<int, GetIDProcessEngineDTO>();
@@ -812,7 +803,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
             return result.Values.ToList();
         }
-
         public async Task<bool> UpdateProcessenginestatusdeleteAsync(updatestatusdeleteDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -869,9 +859,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 }
             }
         }
-
-
-
         public async Task<int> InsertprocessmappingAsync(createprocessmappingDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -965,8 +952,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 }
             }
         }
-
-
         public async Task<bool> UpdateprocessmappingAsync(updateprocessmappingDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -1200,9 +1185,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 throw new Exception($"Error retrieving mapping list: {ex.Message}");
             }
         }
-
-
-
         public async Task<int> UpdateProcessEngineAsync(UpdateProcessEngineDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -1410,6 +1392,113 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             }
         }
 
+        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID, string searchText = null)
+        {
+            var result = new List<GetProcessEngineDTO>();
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using var conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+                string query = @"
+        SELECT 
+            m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
+            m.cprivilege_type, p.cprocess_privilege AS privilege_name,
+            CASE  
+                WHEN p.cprocess_privilege = 'role' THEN  
+                    (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = m.cvalue)
+                WHEN p.cprocess_privilege = 'user' THEN  
+                    (SELECT TOP 1 cuser_name FROM users WHERE cuserid = m.cvalue)
+                WHEN p.cprocess_privilege = 'department' THEN
+                    (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = m.cvalue)
+                WHEN p.cprocess_privilege = 'position' THEN  
+                    (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = m.cvalue)
+                ELSE m.cvalue
+            END AS cvalue,
+            m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
+            ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by,  
+            m.lcreated_date,
+            ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,  
+            m.lmodified_date, m.cmeta_id,
+            n.notification_type AS Notification_Description,
+            s.cstatus_description,
+            meta.meta_Name, meta.meta_Description,
+            COUNT(d.ID) AS DetailCount 
+        FROM tbl_process_engine_master m
+        LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
+        LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
+        LEFT JOIN tbl_process_engine_details d ON m.ID = d.cheader_id
+        LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenent_id
+        LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
+        LEFT JOIN tbl_status_master s ON m.cstatus = s.id  
+        LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
+        WHERE m.ctenant_id = @TenantID AND m.nIs_deleted = 0";
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    query += @"
+            AND (
+                m.cprocesscode LIKE '%' + @SearchText + '%' 
+                OR m.cprocessname LIKE '%' + @SearchText + '%'
+                OR m.cprocessdescription LIKE '%' + @SearchText + '%'
+            )";
+                }
+                query += @"
+        GROUP BY 
+            m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
+            m.cprivilege_type, p.cprocess_privilege, m.cvalue, m.cpriority_label, m.nshow_timeline,
+            m.cnotification_type, m.cstatus, ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,''),
+            m.lcreated_date,
+            ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,''),
+            m.lmodified_date, m.cmeta_id,
+            n.notification_type, s.cstatus_description, meta.meta_Name, meta.meta_Description
+        ORDER BY m.ID DESC;";
+
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    cmd.Parameters.AddWithValue("@SearchText", searchText);
+                }
+
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new GetProcessEngineDTO
+                    {
+                        ID = reader.GetInt32(reader.GetOrdinal("ID")),
+                        cprocesscode = reader.SafeGetString("cprocesscode"),
+                        cprocessname = reader.SafeGetString("cprocessname"),
+                        privilege_name = reader.SafeGetString("privilege_name"),
+                        cprivilege_type = reader.SafeGetInt("cprivilege_type"),
+                        cprocessType = reader.SafeGetString("cprocessname"), // FIXED
+                        cprocessdescription = reader.SafeGetString("cprocessdescription"),
+                        cstatus = reader.SafeGetString("cstatus"),
+                        cprocessvalueid = reader.SafeGetString("cvalue"),
+                        cpriority_label = reader.SafeGetString("cpriority_label"),
+                        nshow_timeline = reader.SafeGetBoolean("nshow_timeline"),
+                        cnotification_type = reader.SafeGetInt("cnotification_type"),
+                        cmeta_id = reader.SafeGetInt("cmeta_id"),
+                        created_by = reader.SafeGetString("created_by"),
+                        ccreated_date = reader.SafeGetDateTime("lcreated_date"),
+                        modified_by = reader.SafeGetString("modified_by"),
+                        lmodified_date = reader.SafeGetDateTime("lmodified_date"),
+                        cstatus_description = reader.SafeGetString("cstatus_description"),
+                        processEngineChildItems = reader.SafeGetInt("DetailCount")
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error fetching process engine list", ex);
+            }
+
+            return result;
+        }
     }
 }
 
