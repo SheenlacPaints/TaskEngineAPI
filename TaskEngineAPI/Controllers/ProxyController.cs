@@ -1453,18 +1453,25 @@ namespace TaskEngineAPI.Controllers
                 }
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+                string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
+
+                string forwardingUri = $"{_baseUrl}ProcessEngine/DeleteProcessMapping?payload={encodedPayload}";
+
                 var requestMessage = new HttpRequestMessage
                 {
                     Method = HttpMethod.Delete,
-                    RequestUri = new Uri($"{_baseUrl}ProcessEngine/DeleteProcessMapping"),
-                    Content = content
+                    RequestUri = new Uri(forwardingUri)
+
+
                 };
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-
-                return StatusCode((int)response.StatusCode, body);
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+              
             }
             catch (Exception ex)
             {
@@ -1478,8 +1485,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, $"\"{enc}\"");
             }
         }
-
-
+      
         [Authorize]
         [HttpGet("GetMappingList")]
         public async Task<IActionResult> GetMappingList()
