@@ -522,41 +522,27 @@ namespace TaskEngineAPI.Services
                 using var conn = new SqlConnection(connStr);
                 await conn.OpenAsync();
 
-                string query = @"
-SELECT m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname, m.cprivilege_type,
+                string query = @"SELECT m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
+m.cprivilege_type,p.cprocess_privilege as privilege_name,
     CASE 
-        WHEN m.cprivilege_type = 700 THEN 'department'
-        WHEN m.cprivilege_type = 701 THEN 'position'
-        WHEN m.cprivilege_type = 702 THEN 'role'
-        WHEN m.cprivilege_type = 703 THEN 'user'
-        WHEN m.cprivilege_type = 704 THEN 'all'
-        ELSE 'unknown'
-    END AS privilege_name,
-
-    CASE 
-        WHEN m.cprivilege_type = 702 THEN 
+        WHEN p.cprocess_privilege ='role' THEN 
             (SELECT TOP 1 crole_name 
              FROM tbl_role_master 
              WHERE crole_code = m.cvalue)
-
-        WHEN m.cprivilege_type = 703 THEN 
+        WHEN p.cprocess_privilege = 'user' THEN 
             (SELECT TOP 1 cuser_name 
              FROM users 
              WHERE cuserid = m.cvalue)
-
-        WHEN m.cprivilege_type = 700 THEN
+        WHEN p.cprocess_privilege = 'department' THEN
             (SELECT TOP 1 cdepartment_name
              FROM tbl_department_master
              WHERE cdepartment_code = m.cvalue)
-
-        WHEN m.cprivilege_type = 701 THEN 
+        WHEN p.cprocess_privilege = 'position' THEN 
             (SELECT TOP 1 cposition_name
              FROM tbl_position_master
              WHERE cposition_code = m.cvalue)
-
         ELSE m.cvalue
     END AS cvalue,
-
     m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by, 
     m.lcreated_date,ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by, 
     m.lmodified_date, m.cmeta_id,d.cactivitycode,d.cactivity_description,  d.ctask_type, d.cprev_step, d.cactivityname,  d.cnext_seqno, d.nboard_enabled, 
@@ -566,13 +552,11 @@ FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
 LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
-LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID 
+LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID and m.ctenant_id=p.ctenent_id
 LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
 LEFT JOIN tbl_status_master s ON m.cstatus = s.id 
 LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
-WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0 ORDER BY m.ID DESC;
-
-";
+WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0 ORDER BY m.ID DESC;";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -642,39 +626,26 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0 ORDER BY m.ID DESC;
                 string mainQuery = @"
 
 SELECT m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname, m.cprivilege_type,
+p.cprocess_privilege as privilege_name,
     CASE 
-        WHEN m.cprivilege_type = 700 THEN 'department'
-        WHEN m.cprivilege_type = 701 THEN 'position'
-        WHEN m.cprivilege_type = 702 THEN 'role'
-        WHEN m.cprivilege_type = 703 THEN 'user'
-        WHEN m.cprivilege_type = 704 THEN 'all'
-        ELSE 'unknown'
-    END AS privilege_name,
-
-    CASE 
-        WHEN m.cprivilege_type = 702 THEN 
+        WHEN p.cprocess_privilege ='role' THEN 
             (SELECT TOP 1 crole_name 
              FROM tbl_role_master 
              WHERE crole_code = m.cvalue)
-
-        WHEN m.cprivilege_type = 703 THEN 
+        WHEN p.cprocess_privilege = 'user' THEN 
             (SELECT TOP 1 cuser_name 
              FROM users 
              WHERE cuserid = m.cvalue)
-
-        WHEN m.cprivilege_type = 700 THEN
+        WHEN p.cprocess_privilege = 'department' THEN
             (SELECT TOP 1 cdepartment_name
              FROM tbl_department_master
              WHERE cdepartment_code = m.cvalue)
-
-        WHEN m.cprivilege_type = 701 THEN 
+        WHEN p.cprocess_privilege = 'position' THEN 
             (SELECT TOP 1 cposition_name
              FROM tbl_position_master
              WHERE cposition_code = m.cvalue)
-
         ELSE m.cvalue
     END AS cvalue,
-
     m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by, 
     m.lcreated_date,ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by, 
     m.lmodified_date, m.cmeta_id,d.cactivitycode,d.cactivity_description,  d.ctask_type, d.cprev_step, d.cactivityname,  d.cnext_seqno, d.nboard_enabled, 
@@ -684,11 +655,11 @@ FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
 LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
-LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID 
+LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID and m.ctenant_id=p.ctenent_id
 LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
 LEFT JOIN tbl_status_master s ON m.cstatus = s.id 
 LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
-WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0 ORDER BY m.ID DESC;";
+WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID DESC;";
 
                 using var cmd = new SqlCommand(mainQuery, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);

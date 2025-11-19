@@ -1287,14 +1287,6 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(response.status, encrypted);
         }
 
-
-
-
-
-
-
-
-
         [Authorize]
         [HttpPost("fileUpload")]
         public async Task<IActionResult> fileUpload([FromForm] FileUploadDTO model)
@@ -1917,8 +1909,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
-
-
 
         [HttpPost]
         [Route("usersapisyncconfig")]
