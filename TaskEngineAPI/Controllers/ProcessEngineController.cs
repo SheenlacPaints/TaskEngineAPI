@@ -662,5 +662,62 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetAllProcessEnginenew")]
+        public async Task<ActionResult> GetAllProcessEnginenew(string? searchText, int page ,int pageSize, string created_by,string priority, int? status)
+
+           
+
+        {
+            try
+            {
+                // GET CLAIMS DIRECTLY FROM ASP.NET
+                var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "cTenantID")?.Value;
+                var usernameClaim = User.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) ||
+                    !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                    string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+
+                // SERVICE CALL
+                var engines = await _processEngineService.GetAllProcessengineAsyncnew(cTenantID, searchText);
+
+                // PREPARE RESPONSE
+                var response = new APIResponse
+                {
+                    body = engines?.ToArray() ?? Array.Empty<object>(),
+                    status = engines == null || !engines.Any() ? 204 : 200,
+                    statusText = engines == null || !engines.Any() ? "No process engines found" : "Successful"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(json);
+
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    status = 500,
+                    statusText = $"Error: {ex.Message}"
+                };
+
+                string json = JsonConvert.SerializeObject(errorResponse);
+                var encrypted = AesEncryption.Encrypt(json);
+
+                return StatusCode(500, encrypted);
+            }
+        }
+
+
+
     }
 }

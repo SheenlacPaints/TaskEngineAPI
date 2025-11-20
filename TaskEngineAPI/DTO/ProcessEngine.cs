@@ -140,6 +140,7 @@ namespace TaskEngineAPI.DTO
         public string? cstatus_description { get; set; }
         public string? Notification_Description { get; set; }
         public int processEngineChildItems { get; set; }
+        public string slasum { get; set; }
     }
 
 
