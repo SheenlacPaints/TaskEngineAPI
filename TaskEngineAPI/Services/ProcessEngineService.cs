@@ -698,9 +698,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         string query = @"
                     INSERT INTO tbl_engine_master_to_process_privilege 
                         (cprocess_id, cprocesscode, ctenent_id, cprocess_privilege, 
-                         ccreated_by, lcreated_date, cmodified_by, lmodified_date)
+                         ccreated_by, lcreated_date, cmodified_by, lmodified_date,cis_active)
                     VALUES (@cprocess_id, @cprocesscode, @TenantID, @cprocess_privilege, 
-                            @ccreated_by, @ccreated_date, @cmodified_by, @lmodified_date);
+                            @ccreated_by, @ccreated_date, @cmodified_by, @lmodified_date,@cis_active);
                     SELECT SCOPE_IDENTITY();";
 
                         using (SqlCommand cmd = new SqlCommand(query, conn, tx))
@@ -738,7 +738,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-
+                                cmdDetail.Parameters.AddWithValue("@cis_active", 1);
                                 await cmdDetail.ExecuteNonQueryAsync();
                             }
                         }
@@ -825,7 +825,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     UPDATE tbl_engine_master_to_process_privilege 
                     SET cmodified_by = @cmodified_by,
                         lmodified_date = @lmodified_date,
-                        cprocess_privilege = @cprocess_privilege
+                        cprocess_privilege = @cprocess_privilege,
+                        cis_active=@cisactive
                     WHERE id = @cheaderid AND ctenent_id = @tenantid";
 
                         using (SqlCommand cmd = new SqlCommand(updateQuery, conn, tx))
@@ -835,7 +836,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@cprocess_privilege", model.cprivilegeType);
                             cmd.Parameters.AddWithValue("@tenantid", cTenantID);
-
+                            cmd.Parameters.AddWithValue("@cisactive", model.cisactive);
                             int rowsAffected = await cmd.ExecuteNonQueryAsync();
 
                             if (rowsAffected == 0)
@@ -931,7 +932,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
                         WHERE h.ctenent_id =@TenantID  
                         AND (d.ctenent_id = @TenantID OR d.ctenent_id IS NULL)
-                        AND (d.cis_active = 1 OR d.cis_active IS NULL)
+                        AND (d.cis_active = 1 OR d.cis_active IS NULL) and
+                        (h.cis_active=1 OR h.cis_active IS NULL)
 
                         ORDER BY h.ID, d.entity_value";
                         
