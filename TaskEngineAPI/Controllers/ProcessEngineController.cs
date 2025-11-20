@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
 using System.IdentityModel.Tokens.Jwt;
@@ -312,7 +313,13 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GetAllProcessEngine")]
-        public async Task<ActionResult> GetAllProcessEngine(string? searchText)
+        public async Task<ActionResult> GetAllProcessEngine(
+            string? searchText = null,
+            int page = 1,
+            int pageSize = 10,
+            string? created_by = null,
+            string? priority = null,
+            int? status = null)
         {
             try
             {
@@ -327,8 +334,13 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
+                // Validate pagination parameters
+                if (page < 1) page = 1;
+                if (pageSize < 1 || pageSize > 100) pageSize = 10; // Add reasonable limit
+
                 // SERVICE CALL
-                var engines = await _processEngineService.GetAllProcessengineAsync(cTenantID, searchText);
+                var engines = await _processEngineService.GetAllProcessengineAsync(
+                    cTenantID, searchText, page, pageSize);
 
                 // PREPARE RESPONSE
                 var response = new APIResponse
@@ -358,7 +370,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encrypted);
             }
         }
-
 
 
         [Authorize]
