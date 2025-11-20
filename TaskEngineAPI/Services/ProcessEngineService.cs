@@ -1007,36 +1007,36 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                 string query = @"
         SELECT 
-            m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
-            m.cprivilege_type, p.cprocess_privilege AS privilege_name,
-            CASE  
-                WHEN p.cprocess_privilege = 'role' THEN  
-                    (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = m.cvalue)
-                WHEN p.cprocess_privilege = 'user' THEN  
-                    (SELECT TOP 1 cuser_name FROM users WHERE cuserid = m.cvalue)
-                WHEN p.cprocess_privilege = 'department' THEN
-                    (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = m.cvalue)
-                WHEN p.cprocess_privilege = 'position' THEN  
-                    (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = m.cvalue)
-                ELSE m.cvalue
-            END AS cvalue,
-            m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
-            ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by,  
-            m.lcreated_date,
-            ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,  
-            m.lmodified_date, m.cmeta_id,
-            n.notification_type AS Notification_Description,
-            s.cstatus_description,
-            meta.meta_Name, meta.meta_Description,
-            COUNT(d.ID) AS DetailCount 
-        FROM tbl_process_engine_master m
-        LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
-        LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
-        LEFT JOIN tbl_process_engine_details d ON m.ID = d.cheader_id
-        LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenent_id
-        LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
-        LEFT JOIN tbl_status_master s ON m.cstatus = s.id  
-        LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
+    m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
+    m.cprivilege_type, p.cprocess_privilege AS privilege_name,
+    CASE  
+        WHEN p.cprocess_privilege = 'role' THEN  
+            (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = m.cvalue)
+        WHEN p.cprocess_privilege = 'user' THEN  
+            (SELECT TOP 1 cuser_name FROM users WHERE CAST(cuserid AS VARCHAR(50)) = m.cvalue)
+        WHEN p.cprocess_privilege = 'department' THEN
+            (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = m.cvalue)
+        WHEN p.cprocess_privilege = 'position' THEN  
+            (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = m.cvalue)
+        ELSE m.cvalue
+    END AS cvalue,
+    m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
+    ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by,  
+    m.lcreated_date,
+    ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,  
+    m.lmodified_date, m.cmeta_id,
+    n.notification_type AS Notification_Description,
+    s.cstatus_description,
+    meta.meta_Name, meta.meta_Description,
+    COUNT(d.ID) AS DetailCount 
+FROM tbl_process_engine_master m
+LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = CAST(u1.cuserid AS VARCHAR(50))
+LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = CAST(u2.cuserid AS VARCHAR(50))
+LEFT JOIN tbl_process_engine_details d ON m.ID = d.cheader_id
+LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenent_id
+LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
+LEFT JOIN tbl_status_master s ON m.cstatus = CAST(s.id  AS VARCHAR(50))
+LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
         WHERE m.ctenant_id = @TenantID AND m.nIs_deleted = 0";
 
                 if (!string.IsNullOrWhiteSpace(searchText))
@@ -1374,6 +1374,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             }
         }
 
+
+
+    
 
 
     }
