@@ -91,9 +91,10 @@ namespace TaskEngineAPI.Controllers
                                 tenantID = reader["ctenant_id"]?.ToString();
                                 tenantname = reader["ctenant_code"]?.ToString();
                                 email = reader["cemail"]?.ToString();
-                                hashedPassword = reader["cpassword"]?.ToString();
-                                cposition_code = reader["cposition_code"]?.ToString();
-                                cposition_name = reader["cposition_name"]?.ToString();
+                                hashedPassword = reader["cpassword"]?.ToString();                               
+                                cposition_code = reader["cposition_code"]?.ToString() ?? string.Empty;
+                                cposition_name = reader["cposition_name"]?.ToString() ?? string.Empty;
+                       
                             }
                             else
                             {
