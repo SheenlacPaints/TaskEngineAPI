@@ -323,7 +323,7 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-                // GET CLAIMS DIRECTLY FROM ASP.NET
+                
                 var tenantIdClaim = User.Claims.FirstOrDefault(c => c.Type == "cTenantID")?.Value;
                 var usernameClaim = User.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
 
@@ -334,15 +334,15 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
-                // Validate pagination parameters
+               
                 if (page < 1) page = 1;
                 if (pageSize < 1 || pageSize > 100) pageSize = 10; // Add reasonable limit
 
-                // SERVICE CALL
+                
                 var engines = await _processEngineService.GetAllProcessengineAsync(
-                    cTenantID, searchText, page, pageSize);
+                    cTenantID, searchText, page, pageSize,created_by,priority,status);
 
-                // PREPARE RESPONSE
+              
                 var response = new APIResponse
                 {
                     body = engines?.ToArray() ?? Array.Empty<object>(),
