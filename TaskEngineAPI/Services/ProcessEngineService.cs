@@ -999,7 +999,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
      string searchText = null,
      int page = 1,
      int pageSize = 10,
-     string created_by = null,
+     int? created_by = null,
      string priority = null,
      int? status = null)
         {
@@ -1028,7 +1028,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             ELSE m.cvalue
         END AS cvalue,
         m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
-        ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by,
+        m.ccreated_by,
         m.lcreated_date,
         ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,
         m.lmodified_date, m.cmeta_id,
@@ -1056,10 +1056,11 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 {
                     query += " AND (m.cprocesscode LIKE '%' + @SearchText + '%' OR m.cprocessname LIKE '%' + @SearchText + '%' OR m.cprocessdescription LIKE '%' + @SearchText + '%')";
                 }
-                if (!string.IsNullOrWhiteSpace(created_by))
+                if (created_by.HasValue)
                 {
                     query += " AND m.ccreated_by = @CreatedBy";
                 }
+
 
                 if (!string.IsNullOrWhiteSpace(priority))
                 {
@@ -1074,7 +1075,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 query += @"
     GROUP BY 
         m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
-        m.cprivilege_type, p.cprocess_privilege, m.cvalue, m.cpriority_label, m.nshow_timeline,
+        m.cprivilege_type, p.cprocess_privilege, m.cvalue, m.cpriority_label,m.ccreated_by, m.nshow_timeline,
         m.cnotification_type, m.cstatus, ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,''),
         m.lcreated_date,
         ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,''),
@@ -1093,10 +1094,11 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 {
                     cmd.Parameters.AddWithValue("@SearchText", searchText);
                 }
-                if (!string.IsNullOrWhiteSpace(created_by))
+                if (created_by.HasValue)
                 {
-                    cmd.Parameters.AddWithValue("@CreatedBy", created_by);
+                    cmd.Parameters.AddWithValue("@CreatedBy", created_by.Value.ToString());
                 }
+            
                 if (!string.IsNullOrWhiteSpace(priority))
                 {
                     cmd.Parameters.AddWithValue("@Priority", priority);
@@ -1124,7 +1126,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         nshow_timeline = reader["nshow_timeline"] != DBNull.Value && Convert.ToBoolean(reader["nshow_timeline"]),
                         cnotification_type = reader["cnotification_type"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cnotification_type"]),
                         cmeta_id = reader["cmeta_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmeta_id"]),
-                        created_by = reader["created_by"]?.ToString() ?? "",
+                        created_by =reader["ccreated_by"]?.ToString() ?? "",
                         ccreated_date = reader["lcreated_date"] == DBNull.Value ? null : (DateTime?)reader["lcreated_date"],
                         modified_by = reader["modified_by"]?.ToString() ?? "",
                         lmodified_date = reader["lmodified_date"] == DBNull.Value ? null : (DateTime?)reader["lmodified_date"],

@@ -317,7 +317,7 @@ namespace TaskEngineAPI.Controllers
             string? searchText = null,
             int page = 1,
             int pageSize = 10,
-            string? created_by = null,
+            int? created_by = null,
             string? priority = null,
             int? status = null)
         {
