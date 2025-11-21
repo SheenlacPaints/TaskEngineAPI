@@ -68,7 +68,7 @@ namespace TaskEngineAPI.Controllers
             }
 
             var connStr = _config.GetConnectionString("Database");
-            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "";
+            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "",cposition_name="",cposition_code="";
 
             try
             {
@@ -92,6 +92,8 @@ namespace TaskEngineAPI.Controllers
                                 tenantname = reader["ctenant_code"]?.ToString();
                                 email = reader["cemail"]?.ToString();
                                 hashedPassword = reader["cpassword"]?.ToString();
+                                cposition_code = reader["cposition_code"]?.ToString();
+                                cposition_name = reader["cposition_name"]?.ToString();
                             }
                             else
                             {
