@@ -1126,6 +1126,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         nshow_timeline = reader["nshow_timeline"] != DBNull.Value && Convert.ToBoolean(reader["nshow_timeline"]),
                         cnotification_type = reader["cnotification_type"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cnotification_type"]),
                         cmeta_id = reader["cmeta_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmeta_id"]),
+                        cmetaName = reader["meta_Name"]?.ToString() ?? "",
                         created_by =reader["ccreated_by"]?.ToString() ?? "",
                         ccreated_date = reader["lcreated_date"] == DBNull.Value ? null : (DateTime?)reader["lcreated_date"],
                         modified_by = reader["modified_by"]?.ToString() ?? "",

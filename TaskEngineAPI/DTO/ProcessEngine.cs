@@ -133,6 +133,8 @@ namespace TaskEngineAPI.DTO
         public string? cprocessvalue { get; set; }     
         public string? cstatus { get; set; }
         public int? cmeta_id { get; set; }
+
+        public string? cmetaName { get; set; }
         public string? created_by { get; set; }
         public DateTime? ccreated_date { get; set; }
         public string? modified_by { get; set; }
