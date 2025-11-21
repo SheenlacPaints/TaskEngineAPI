@@ -68,7 +68,7 @@ namespace TaskEngineAPI.Controllers
             }
 
             var connStr = _config.GetConnectionString("Database");
-            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "",cposition_name="",cposition_code="";
+            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "",cposition_name="",cposition_code="", role="", role_name="";
 
             try
             {
@@ -94,7 +94,8 @@ namespace TaskEngineAPI.Controllers
                                 hashedPassword = reader["cpassword"]?.ToString();                               
                                 cposition_code = reader["cposition_code"]?.ToString() ?? string.Empty;
                                 cposition_name = reader["cposition_name"]?.ToString() ?? string.Empty;
-                       
+                                role = reader["role"] == DBNull.Value ? "" : reader["role"]?.ToString() ?? "";
+                                role_name = reader["role_name"] == DBNull.Value ? "" : reader["role_name"]?.ToString() ?? "";
                             }
                             else
                             {
@@ -162,10 +163,13 @@ namespace TaskEngineAPI.Controllers
                     tenantID = tenantID,
                     tenantName = tenantname,
                     email = email,
-                    token = accessToken,
-                    refreshToken = refreshToken,
                     position_name = cposition_name,
-                    position_code = cposition_code
+                    position_code = cposition_code,
+                    role = role,
+                    role_name = role_name,
+                    token = accessToken,
+                    refreshToken = refreshToken
+                    
                 };
 
                 var success = new APIResponse
