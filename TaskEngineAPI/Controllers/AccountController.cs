@@ -1910,6 +1910,389 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost("CreateApiAsync")]
+        public async Task<IActionResult>CreateApiAsync([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var errorResponse = new
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID or username in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var users = JsonConvert.DeserializeObject<List<ApiAsyncDTO>>(decryptedJson);
+
+                if (users == null || !users.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "No users provided in payload."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var duplicateErrors = new List<string>();
+
+                var dupUserIds = users.GroupBy(u => u.cuserid).Where(g => g.Count() > 1 && g.Key > 0).Select(g => g.Key).ToList();
+                var dupUsernames = users.GroupBy(u => u.cusername).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
+                var dupEmails = users.GroupBy(u => u.cemail).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
+                var dupPhones = users.GroupBy(u => u.cphoneno).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
+
+                if (dupUserIds.Any() || dupUsernames.Any() || dupEmails.Any() || dupPhones.Any())
+                {
+                    if (dupUserIds.Any()) duplicateErrors.Add($"Duplicate cuserid(s): {string.Join(", ", dupUserIds)}");
+                    if (dupUsernames.Any()) duplicateErrors.Add($"Duplicate cusername(s): {string.Join(", ", dupUsernames)}");
+                    if (dupEmails.Any()) duplicateErrors.Add($"Duplicate cemail(s): {string.Join(", ", dupEmails)}");
+                    if (dupPhones.Any()) duplicateErrors.Add($"Duplicate cphoneno(s): {string.Join(", ", dupPhones)}");
+
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in JSON payload.",
+                        body = new
+                        {
+                            validation_type = "DUPLICATE_CHECK",
+                            message = string.Join("; ", duplicateErrors),
+                            note = "Duplicates detected for one or more mandatory fields. Remove duplicates before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var failedUsers = new List<object>();
+                var validUsers = new List<ApiAsyncDTO>();
+                bool hasValidationErrors = false;
+
+                foreach (var user in users)
+                {
+                    var errors = new List<string>();
+                    var nullMandatoryFields = new List<string>();
+
+                    if (user.cuserid <= 0)
+                    {
+                        errors.Add("cuserid: Must be positive number");
+                        nullMandatoryFields.Add("cuserid");
+                    }
+                    if (string.IsNullOrEmpty(user.cusername))
+                    {
+                        errors.Add("cusername: Field is required");
+                        nullMandatoryFields.Add("cusername");
+                    }
+                    if (string.IsNullOrEmpty(user.cemail))
+                    {
+                        errors.Add("cemail: Field is required");
+                        nullMandatoryFields.Add("cemail");
+                    }
+                    if (string.IsNullOrEmpty(user.cpassword))
+                    {
+                        errors.Add("cpassword: Field is required");
+                        nullMandatoryFields.Add("cpassword");
+                    }
+                    if (string.IsNullOrEmpty(user.cphoneno))
+                    {
+                        errors.Add("cphoneno: Field is required");
+                        nullMandatoryFields.Add("cphoneno");
+                    }
+
+                    var optionalFields = new Dictionary<string, object?>
+            {
+                { "cfirstName", user.cfirstName },
+                { "clastName", user.clastName },
+                { "cAlternatePhone", user.cAlternatePhone },
+                { "ldob", user.ldob },
+                { "cMaritalStatus", user.cMaritalStatus },
+                { "cnation", user.cnation },
+                { "cgender", user.cgender },
+                { "caddress", user.caddress },
+                { "caddress1", user.caddress1 },
+                { "caddress2", user.caddress2 },
+                { "cpincode", user.cpincode },
+                { "ccity", user.ccity },
+                { "cstatecode", user.cstatecode },
+                { "cstatedesc", user.cstatedesc },
+                { "ccountrycode", user.ccountrycode },
+                { "cbankName", user.cbankName },
+                { "caccountNumber", user.caccountNumber },
+                { "ciFSC_code", user.ciFSC_code },
+                { "cpAN", user.cpAN },
+                { "ldoj", user.ldoj },
+                { "cemploymentStatus", user.cemploymentStatus },
+                { "nnoticePeriodDays", user.nnoticePeriodDays },
+                { "cempcategory", user.cempcategory },
+                { "cworkloccode", user.cworkloccode },
+                { "cworklocname", user.cworklocname },
+                { "cgradecode", user.cgradecode },
+                { "cgradedesc", user.cgradedesc },
+                { "csubrolecode", user.csubrolecode },
+                { "cdeptcode", user.cdeptcode },
+                { "cdeptdesc", user.cdeptdesc },
+                { "cjobcode", user.cjobcode },
+                { "cjobdesc", user.cjobdesc },
+                { "creportmgrcode", user.creportmgrcode },
+                { "creportmgrname", user.creportmgrname },
+                { "croll_id", user.croll_id },
+                { "croll_name", user.croll_name },
+                { "croll_id_mngr", user.croll_id_mngr },
+                { "croll_id_mngr_desc" , user.croll_id_mngr_desc },
+                { "cReportManager_empcode", user.cReportManager_empcode },
+                { "cReportManager_Poscode", user.cReportManager_Poscode },
+                { "cReportManager_Posdesc", user.cReportManager_Posdesc }
+            };
+
+                    var missingOptionalFields = optionalFields
+                        .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                        .Select(f => f.Key)
+                        .ToList();
+
+                    if (!string.IsNullOrEmpty(user.cemail))
+                    {
+                        try
+                        {
+                            var addr = new System.Net.Mail.MailAddress(user.cemail);
+                            if (addr.Address != user.cemail)
+                                errors.Add("cemail: Invalid email format");
+                        }
+                        catch
+                        {
+                            errors.Add("cemail: Invalid email format");
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(user.cphoneno) && !System.Text.RegularExpressions.Regex.IsMatch(user.cphoneno, @"^[0-9]{10}$"))
+                        errors.Add("cphoneno: Invalid phone number format (must be 10 digits)");
+
+                    if (errors.Any())
+                    {
+                        hasValidationErrors = true;
+                        failedUsers.Add(new
+                        {
+                            cemail = user.cemail ?? "NULL",
+                            cuserid = user.cuserid,
+                            cphoneno = user.cphoneno ?? "NULL",
+                            reason = string.Join("; ", errors),
+                            null_mandatory_fields = nullMandatoryFields.Any() ? nullMandatoryFields : new List<string> { "None" },
+                            missing_optional_fields = missingOptionalFields.Any() ? missingOptionalFields : new List<string> { "None" }
+                        });
+                    }
+                    else
+                    {
+                        validUsers.Add(user);
+                    }
+                }
+
+                if (hasValidationErrors)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Validation Failed - Missing or Invalid Fields",
+                        body = new
+                        {
+                            validation_type = "FIELD_VALIDATION",
+                            database_operation = "NONE",
+                            total_users_received = users.Count,
+                            total_valid_users = validUsers.Count,
+                            total_failed_users = failedUsers.Count,
+                            failed_users = failedUsers,
+                            valid_users = validUsers.Select(u => new
+                            {
+                                u.cemail,
+                                u.cuserid,
+                                u.cphoneno,
+                                validation_status = "PASSED"
+                            }),
+                            note = "Mandatory fields validated. Shows exactly which fields are null or invalid."
+                        },
+                        message = "Bulk insertion aborted - validation failed"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                int insertedCount = 0;
+                List<ApiAsyncDTO> successfullyInsertedUsers = new List<ApiAsyncDTO>();
+                List<object> databaseFailedUsers = new List<object>();
+
+                if (validUsers.Any())
+                {
+                    try
+                    {
+                        insertedCount = await _AccountService.InsertApiAsync(validUsers, cTenantID, usernameClaim);
+
+                        successfullyInsertedUsers = validUsers;
+                    }
+                    catch (Exception dbEx)
+                    {
+                        databaseFailedUsers.Add(new
+                        {
+                            error_type = "DATABASE_CONSTRAINT_VIOLATION",
+                            message = dbEx.Message,
+                            note = "Some users may already exist in the database. Check unique constraints (cuserid, cusername, cemail, cphoneno)."
+                        });
+
+                        insertedCount = 0;
+                        successfullyInsertedUsers = new List<ApiAsyncDTO>();
+                    }
+                }
+
+                var insertedUsersWithDetails = successfullyInsertedUsers.Select(u => new
+                {
+                    u.cemail,
+                    u.cuserid,
+                    u.cphoneno,
+                    validation_status = "PASSED",
+                    null_mandatory_fields = new List<string> { "None" },
+                    missing_optional_fields = new Dictionary<string, object?>
+            {
+                { "cfirstName", u.cfirstName },
+                { "clastName", u.clastName },
+                { "cAlternatePhone", u.cAlternatePhone },
+                { "ldob", u.ldob },
+                { "cMaritalStatus", u.cMaritalStatus },
+                { "cnation", u.cnation },
+                { "cgender", u.cgender },
+                { "caddress", u.caddress },
+                { "caddress1", u.caddress1 },
+                { "caddress2", u.caddress2 },
+                { "cpincode", u.cpincode },
+                { "ccity", u.ccity },
+                { "cstatecode", u.cstatecode },
+                { "cstatedesc", u.cstatedesc },
+                { "ccountrycode", u.ccountrycode },
+                { "cbankName", u.cbankName },
+                { "caccountNumber", u.caccountNumber },
+                { "ciFSC_code", u.ciFSC_code },
+                { "cpAN" , u.cpAN },
+                { "ldoj", u.ldoj },
+                { "cemploymentStatus", u.cemploymentStatus },
+                { "nnoticePeriodDays", u.nnoticePeriodDays },
+                { "cempcategory", u.cempcategory },
+                { "cworkloccode", u.cworkloccode },
+                { "cworklocname", u.cworklocname },
+                { "cgradecode", u.cgradecode },
+                { "cgradedesc", u.cgradedesc },
+                { "csubrolecode", u.csubrolecode },
+                { "cdeptcode", u.cdeptcode },
+                { "cdeptdesc", u.cdeptdesc },
+                { "cjobcode", u.cjobcode },
+                { "cjobdesc", u.cjobdesc },
+                { "creportmgrcode", u.creportmgrcode },
+                { "creportmgrname", u.creportmgrname },
+                { "croll_name", u.croll_name },
+                { "croll_id_mngr", u.croll_id_mngr },
+                { "croll_id_mngr_desc" , u.croll_id_mngr_desc },
+                { "cReportManager_empcode", u.cReportManager_empcode },
+                { "cReportManager_Poscode", u.cReportManager_Poscode },
+                { "cReportManager_Posdesc", u.cReportManager_Posdesc }
+            }
+                    .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                    .Select(f => f.Key)
+                    .ToList()
+                }).ToList();
+
+                object response;
+
+                if (databaseFailedUsers.Any())
+                {
+                    response = new
+                    {
+                        status = 500,
+                        statusText = "Database Insertion Failed",
+                        body = new
+                        {
+                            total_users_received = users.Count,
+                            successful_inserts = insertedCount,
+                            database_errors = databaseFailedUsers,
+                            note = "Database insertion failed due to constraint violations. Some users may already exist."
+                        },
+                        error = "Check unique constraints (cuserid, cusername, cemail, cphoneno)"
+                    };
+                }
+                else if (insertedCount == validUsers.Count)
+                {
+                    response = new
+                    {
+                        status = 200,
+                        statusText = "Bulk user creation completed successfully",
+                        body = new
+                        {
+                            total = users.Count,
+                            success = insertedCount,
+                            failure = users.Count - insertedCount,
+                            inserted = insertedUsersWithDetails,
+                            failed = failedUsers.Any() ? failedUsers : new List<object> { new { message = "No validation failures" } },
+                            note = "All users passed JSON validation and were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+                else
+                {
+                    response = new
+                    {
+                        status = 207,
+                        statusText = "Partial completion",
+                        body = new
+                        {
+                            total = users.Count,
+                            success = insertedCount,
+                            failure = users.Count - insertedCount,
+                            inserted = insertedUsersWithDetails,
+                            failed = failedUsers,
+                            note = "Some users were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+
+                if (((dynamic)response).status == 500)
+                    return StatusCode(500, encrypted);
+                else if (((dynamic)response).status == 207)
+                    return StatusCode(207, encrypted);
+                else
+                    return Ok(encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new
+                {
+                    status = 500,
+                    statusText = "Internal Server Error",
+                    error = ex.Message,
+                    note = "Operation failed due to unexpected error"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+
         [HttpPost]
         [Route("usersapisyncconfig")]
         public async Task<IActionResult> usersapisyncconfig([FromBody] pay request)

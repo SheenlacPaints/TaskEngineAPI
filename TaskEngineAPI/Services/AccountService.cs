@@ -1600,6 +1600,253 @@ VALUES (
             return table.Rows.Count;
         }
 
+        
+
+
+        public async Task<int> InsertApiAsync(List<ApiAsyncDTO> users, int cTenantID, string usernameClaim)
+        {
+            if (users == null || !users.Any())
+                return 0;
+
+            var connStr = _config.GetConnectionString("Database");
+
+            var table = new DataTable();
+            table.Columns.Add("cuserid", typeof(int));
+            table.Columns.Add("ctenant_id", typeof(int));
+            table.Columns.Add("cuser_name", typeof(string));
+            table.Columns.Add("cpassword", typeof(string));
+            table.Columns.Add("cemail", typeof(string));
+            table.Columns.Add("nIs_active", typeof(bool));
+            table.Columns.Add("cfirst_name", typeof(string));
+            table.Columns.Add("clast_name", typeof(string));
+            table.Columns.Add("cphoneno", typeof(string));
+            table.Columns.Add("calternate_phone", typeof(string));
+            table.Columns.Add("ldob", typeof(DateTime));
+            table.Columns.Add("cmarital_status", typeof(string));
+            table.Columns.Add("cnation", typeof(string));
+            table.Columns.Add("cgender", typeof(string));
+            table.Columns.Add("caddress", typeof(string));
+            table.Columns.Add("caddress1", typeof(string));
+            table.Columns.Add("caddress2", typeof(string));
+            table.Columns.Add("cpincode", typeof(string));
+            table.Columns.Add("ccity", typeof(string));
+            table.Columns.Add("cstate_code", typeof(string));
+            table.Columns.Add("cstate_desc", typeof(string));
+            table.Columns.Add("ccountry_code", typeof(string));
+            table.Columns.Add("profile_image", typeof(string));  // lowercase
+            table.Columns.Add("cbank_name", typeof(string));
+            table.Columns.Add("caccount_number", typeof(string));
+            // table.Columns.Add("ciFSC_code", typeof(string));
+            table.Columns.Add("ciFSC_code", typeof(string));
+            table.Columns.Add("cpan", typeof(string));
+            table.Columns.Add("ldoj", typeof(DateTime));
+            table.Columns.Add("cemployment_status", typeof(string));
+            table.Columns.Add("nnotice_period_days", typeof(int));
+            table.Columns.Add("lresignation_date", typeof(DateTime));
+            table.Columns.Add("llast_working_date", typeof(DateTime));
+            table.Columns.Add("cemp_category", typeof(string));
+            table.Columns.Add("cwork_loc_code", typeof(string));
+            table.Columns.Add("cwork_loc_name", typeof(string));
+            table.Columns.Add("crole_id", typeof(int));
+            table.Columns.Add("crole_code", typeof(string));
+            table.Columns.Add("crole_name", typeof(string));
+            table.Columns.Add("cgrade_code", typeof(string));
+            table.Columns.Add("cgrade_desc", typeof(string));
+            table.Columns.Add("csub_role_code", typeof(string));
+            table.Columns.Add("cdept_code", typeof(string));
+            table.Columns.Add("cdept_desc", typeof(string));
+            table.Columns.Add("cjob_code", typeof(string));
+            table.Columns.Add("cjob_desc", typeof(string));
+            table.Columns.Add("creport_mgr_code", typeof(string));
+            table.Columns.Add("creport_mgr_name", typeof(string));
+            table.Columns.Add("croll_id", typeof(string));
+            table.Columns.Add("croll_name", typeof(string));
+            table.Columns.Add("croll_id_mngr", typeof(string));
+            table.Columns.Add("croll_id_mngr_desc", typeof(string));
+            table.Columns.Add("creport_manager_empcode", typeof(string));
+            table.Columns.Add("creport_manager_poscode", typeof(string));
+            table.Columns.Add("creport_manager_pos_desc", typeof(string));
+            table.Columns.Add("nis_web_access_enabled", typeof(bool));
+            table.Columns.Add("nis_event_read", typeof(bool));
+            table.Columns.Add("llast_login_at", typeof(DateTime));
+            table.Columns.Add("nfailed_logina_attempts", typeof(int));
+            table.Columns.Add("cpassword_changed_at", typeof(DateTime));
+            table.Columns.Add("nis_locked", typeof(bool));
+            table.Columns.Add("last_login_ip", typeof(string));
+            table.Columns.Add("last_login_device", typeof(string));
+            table.Columns.Add("ccreated_date", typeof(DateTime));
+            table.Columns.Add("ccreated_by", typeof(string));
+            table.Columns.Add("cmodified_by", typeof(string));
+            table.Columns.Add("lmodified_date", typeof(DateTime));
+            table.Columns.Add("nIs_deleted", typeof(bool));
+            table.Columns.Add("cdeleted_by", typeof(string));
+            table.Columns.Add("ldeleted_date", typeof(DateTime));
+
+            foreach (var u in users)
+            {
+                var row = table.NewRow();
+                row["cuserid"] = u.cuserid;
+                row["ctenant_id"] = cTenantID;
+                row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
+                row["cpassword"] = u.cpassword ?? (object)DBNull.Value;
+                row["cemail"] = u.cemail ?? (object)DBNull.Value;
+                row["nIs_active"] = true;// u.nIsActive ?? true;
+                row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value;
+                row["clast_name"] = u.clastName ?? (object)DBNull.Value;
+                row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
+                row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
+                row["ldob"] = u.ldob ?? (object)DBNull.Value;
+                row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
+                row["cnation"] = u.cnation ?? (object)DBNull.Value;
+                row["cgender"] = u.cgender ?? (object)DBNull.Value;
+                row["caddress"] = u.caddress ?? (object)DBNull.Value;
+                row["caddress1"] = u.caddress1 ?? (object)DBNull.Value;
+                row["caddress2"] = u.caddress2 ?? (object)DBNull.Value;
+                row["cpincode"] = u.cpincode ?? (object)DBNull.Value;
+                row["ccity"] = u.ccity ?? (object)DBNull.Value;
+                row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value;
+                row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value;
+                row["ccountry_code"] = u.ccountrycode ?? (object)DBNull.Value;
+                //row["profile_image"] = u.ProfileImage ?? (object)DBNull.Value;  // FIXED: lowercase to match DataTable
+                row["cbank_name"] = u.cbankName ?? (object)DBNull.Value;
+                row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value;
+                row["ciFSC_code"] = u.ciFSC_code ?? (object)DBNull.Value;
+                // row["ciFSC_code"] = u.ciFSC_code ?? (object)DBNull.Value;
+                row["cpAN"] = u.cpAN ?? (object)DBNull.Value;
+                row["ldoj"] = u.ldoj ?? (object)DBNull.Value;
+                row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
+                row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
+                //row["lresignation_date"] = u.lresignationDate ?? (object)DBNull.Value;
+                //row["llast_working_date"] = u.llastWorkingDate ?? (object)DBNull.Value;
+                row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value;
+                row["cwork_loc_code"] = u.cworkloccode ?? (object)DBNull.Value;
+                row["cwork_loc_name"] = u.cworklocname ?? (object)DBNull.Value;
+                row["crole_id"] = 3;
+                row["crole_code"] = usernameClaim;//u.crolecode ?? (object)DBNull.Value;
+                row["crole_name"] = usernameClaim; //u.crolename ?? (object)DBNull.Value;
+                row["cgrade_code"] = u.cgradecode ?? (object)DBNull.Value;
+                row["cgrade_desc"] = u.cgradedesc ?? (object)DBNull.Value;
+                row["csub_role_code"] = u.csubrolecode ?? (object)DBNull.Value;
+                row["cdept_code"] = u.cdeptcode ?? (object)DBNull.Value;
+                row["cdept_desc"] = u.cdeptdesc ?? (object)DBNull.Value;
+                row["cjob_code"] = u.cjobcode ?? (object)DBNull.Value;
+                row["cjob_desc"] = u.cjobdesc ?? (object)DBNull.Value;
+                row["creport_mgr_code"] = u.creportmgrcode ?? (object)DBNull.Value;
+                row["creport_mgr_name"] = u.creportmgrname ?? (object)DBNull.Value;
+                row["croll_id"] = u.croll_id ?? (object)DBNull.Value;
+                row["croll_name"] = u.croll_name ?? (object)DBNull.Value;
+                row["croll_id_mngr"] = u.croll_id_mngr ?? (object)DBNull.Value;
+                row["croll_id_mngr_desc"] = u.croll_id_mngr_desc ?? (object)DBNull.Value;
+                row["creport_manager_empcode"] = u.cReportManager_empcode ?? (object)DBNull.Value;
+                row["creport_manager_poscode"] = u.cReportManager_Poscode ?? (object)DBNull.Value;
+                row["creport_manager_pos_desc"] = u.cReportManager_Posdesc ?? (object)DBNull.Value;
+                row["nis_web_access_enabled"] = true;//u.nIsWebAccessEnabled ?? false;
+                row["nis_event_read"] = true;//u.nIsEventRead ?? false;
+                //row["llast_login_at"] = u.lLastLoginAt ?? (object)DBNull.Value;
+                row["nfailed_logina_attempts"] = 0;// u.nFailedLoginAttempts ?? (object)DBNull.Value;
+                //row["cpassword_changed_at"] = u.cPasswordChangedAt ?? (object)DBNull.Value;
+                row["nis_locked"] = false;//u.nIsLocked ?? false;
+                //row["last_login_ip"] = u.LastLoginIP ?? (object)DBNull.Value;
+                //row["last_login_device"] = u.LastLoginDevice ?? (object)DBNull.Value;
+                //row["ccreated_date"] = u.ccreateddate ?? DateTime.Now;
+                row["ccreated_by"] = usernameClaim;
+                row["cmodified_by"] = usernameClaim;
+                //row["lmodified_date"] = u.lmodifieddate ?? DateTime.Now;
+                row["nIs_deleted"] = false; //u.nIsDeleted ?? false;
+                //row["cdeleted_by"] = u.cDeletedBy ?? (object)DBNull.Value;
+                //row["ldeleted_date"] = u.lDeletedDate ?? (object)DBNull.Value;
+                table.Rows.Add(row);
+            }
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            using var bulkCopy = new SqlBulkCopy(conn)
+            {
+                DestinationTableName = "Users"
+            };
+
+            // Use consistent casing - all source names should match DataTable column names exactly
+            bulkCopy.ColumnMappings.Add("cuserid", "cuserid");
+            bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id");
+            bulkCopy.ColumnMappings.Add("cuser_name", "cuser_name");
+            bulkCopy.ColumnMappings.Add("cpassword", "cpassword");
+            bulkCopy.ColumnMappings.Add("cemail", "cemail");
+            bulkCopy.ColumnMappings.Add("nIs_active", "nIs_active");
+            bulkCopy.ColumnMappings.Add("cfirst_name", "cfirst_name");
+            bulkCopy.ColumnMappings.Add("clast_name", "clast_name");
+            bulkCopy.ColumnMappings.Add("cphoneno", "cphoneno");
+            bulkCopy.ColumnMappings.Add("calternate_phone", "calternate_phone");
+            bulkCopy.ColumnMappings.Add("ldob", "ldob");
+            bulkCopy.ColumnMappings.Add("cmarital_status", "cmarital_status");
+            bulkCopy.ColumnMappings.Add("cnation", "cnation");
+            bulkCopy.ColumnMappings.Add("cgender", "cgender");
+            bulkCopy.ColumnMappings.Add("caddress", "caddress");
+            bulkCopy.ColumnMappings.Add("caddress1", "caddress1");
+            bulkCopy.ColumnMappings.Add("caddress2", "caddress2");
+            bulkCopy.ColumnMappings.Add("cpincode", "cpincode");
+            bulkCopy.ColumnMappings.Add("ccity", "ccity");
+            bulkCopy.ColumnMappings.Add("cstate_code", "cstate_code");
+            bulkCopy.ColumnMappings.Add("cstate_desc", "cstate_desc");
+            bulkCopy.ColumnMappings.Add("ccountry_code", "ccountry_code");
+            bulkCopy.ColumnMappings.Add("cpan", "cpan");
+            bulkCopy.ColumnMappings.Add("ldoj", "ldoj");
+            bulkCopy.ColumnMappings.Add("crole_id", "crole_id");
+            bulkCopy.ColumnMappings.Add("crole_name", "crole_name");
+            bulkCopy.ColumnMappings.Add("crole_code", "crole_code");
+            bulkCopy.ColumnMappings.Add("cdept_code", "cdept_code");
+            bulkCopy.ColumnMappings.Add("cdept_desc", "cdept_desc");
+            bulkCopy.ColumnMappings.Add("creport_mgr_code", "creport_mgr_code");
+            bulkCopy.ColumnMappings.Add("creport_mgr_name", "creport_mgr_name");
+            bulkCopy.ColumnMappings.Add("cwork_loc_code", "cwork_loc_code");
+            bulkCopy.ColumnMappings.Add("cwork_loc_name", "cwork_loc_name");
+            bulkCopy.ColumnMappings.Add("cbank_name", "cbank_name");
+            bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
+
+
+            //bulkCopy.ColumnMappings.Add("profile_image", "Profile_Image");  // DataTable -> Database
+            // bulkCopy.ColumnMappings.Add("cbank_name", "cbank_name");
+            // Add this line with the other column mappings
+            bulkCopy.ColumnMappings.Add("ciFSC_code", "ciFSC_code");
+            //bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
+            //bulkCopy.ColumnMappings.Add("ciFSC_code", "ciFSC_code");
+            bulkCopy.ColumnMappings.Add("cemployment_status", "cemployment_status");
+            bulkCopy.ColumnMappings.Add("nnotice_period_days", "nnotice_period_days");
+            //bulkCopy.ColumnMappings.Add("lresignation_date", "lresignation_date");
+            //bulkCopy.ColumnMappings.Add("llast_working_date", "llast_working_date");
+            bulkCopy.ColumnMappings.Add("cemp_category", "cemp_category");
+            bulkCopy.ColumnMappings.Add("cgrade_code", "cgrade_code");
+            bulkCopy.ColumnMappings.Add("cgrade_desc", "cgrade_desc");
+            bulkCopy.ColumnMappings.Add("csub_role_code", "csub_role_code");
+            bulkCopy.ColumnMappings.Add("cjob_code", "cjob_code");
+            bulkCopy.ColumnMappings.Add("cjob_desc", "cjob_desc");
+            bulkCopy.ColumnMappings.Add("croll_id", "croll_id");
+            bulkCopy.ColumnMappings.Add("croll_name", "croll_name");
+            bulkCopy.ColumnMappings.Add("croll_id_mngr", "croll_id_mngr");
+            bulkCopy.ColumnMappings.Add("croll_id_mngr_desc", "croll_id_mngr_desc");
+            bulkCopy.ColumnMappings.Add("creport_manager_empcode", "creport_manager_empcode");
+            bulkCopy.ColumnMappings.Add("creport_manager_poscode", "creport_manager_poscode");
+            bulkCopy.ColumnMappings.Add("creport_manager_pos_desc", "creport_manager_pos_desc");
+            bulkCopy.ColumnMappings.Add("nis_web_access_enabled", "nis_web_access_enabled");
+            bulkCopy.ColumnMappings.Add("nis_event_read", "nis_event_read");
+            //bulkCopy.ColumnMappings.Add("llast_login_at", "llast_login_at");
+            //bulkCopy.ColumnMappings.Add("nfailed_logina_attempts", "nfailed_logina_attempts");
+            //bulkCopy.ColumnMappings.Add("cpassword_changed_at", "cpassword_changed_at");
+            bulkCopy.ColumnMappings.Add("nis_locked", "nis_locked");
+            ////bulkCopy.ColumnMappings.Add("last_login_ip", "last_login_ip");
+            //bulkCopy.ColumnMappings.Add("last_login_device", "last_login_device");
+            // bulkCopy.ColumnMappings.Add("ccreated_date", "ccreated_date");
+            bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
+            bulkCopy.ColumnMappings.Add("cmodified_by", "cmodified_by");
+            //bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
+            //bulkcopy.Columnmappings.add("nis_deleted", "nis_deleted");
+            bulkCopy.ColumnMappings.Add("nIs_deleted", "nIs_deleted");
+            //bulkCopy.ColumnMappings.Add("cdeleted_by", "cdeleted_by");
+            //bulkCopy.ColumnMappings.Add("ldeleted_date", "ldeleted_date");
+
+            await bulkCopy.WriteToServerAsync(table);
+            return table.Rows.Count;
+        }
 
         // In your AccountService class
         //public async Task<BulkInsertResult> InsertUsersBulkAsync(List<CreateUserDTO> users)
