@@ -91,12 +91,11 @@ namespace TaskEngineAPI.Controllers
                                 tenantID = reader["ctenant_id"]?.ToString();
                                 tenantname = reader["ctenant_code"]?.ToString();
                                 email = reader["cemail"]?.ToString();
-                                hashedPassword = reader["cpassword"] == DBNull.Value ? "" : reader["cpassword"]?.ToString() ?? "";
-                                cposition_code = reader["cposition_code"] == DBNull.Value ? "" : reader["cposition_code"]?.ToString() ?? "";
-                                cposition_name = reader["cposition_name"] == DBNull.Value ? "" : reader["cposition_name"]?.ToString() ?? "";
+                                hashedPassword = reader["cpassword"]?.ToString();                               
+                                cposition_code = reader["cposition_code"]?.ToString() ?? string.Empty;
+                                cposition_name = reader["cposition_name"]?.ToString() ?? string.Empty;
                                 role = reader["role"] == DBNull.Value ? "" : reader["role"]?.ToString() ?? "";
                                 role_name = reader["role_name"] == DBNull.Value ? "" : reader["role_name"]?.ToString() ?? "";
-
                             }
                             else
                             {
@@ -170,7 +169,7 @@ namespace TaskEngineAPI.Controllers
                     role_name = role_name,
                     token = accessToken,
                     refreshToken = refreshToken
-                   
+                    
                 };
 
                 var success = new APIResponse
