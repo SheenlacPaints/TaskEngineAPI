@@ -162,7 +162,9 @@ namespace TaskEngineAPI.Controllers
                     tenantName = tenantname,
                     email = email,
                     token = accessToken,
-                    refreshToken = refreshToken
+                    refreshToken = refreshToken,
+                    position_name = cposition_name,
+                    position_code = cposition_code
                 };
 
                 var success = new APIResponse
