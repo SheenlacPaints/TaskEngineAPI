@@ -585,27 +585,54 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GetAllProcessEngine")]
-        public async Task<IActionResult> GetAllProcessEngine()
+        public async Task<IActionResult> GetAllProcessEngine(
+     [FromQuery] string? searchText = null,
+     [FromQuery] int page = 1,
+     [FromQuery] int pageSize = 10,
+     [FromQuery] int? created_by = null,
+     [FromQuery] string? priority = null,
+     [FromQuery] int? status = null)
         {
             try
-            {
-                // Extract token from incoming request
+            {              
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
 
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return Unauthorized("Missing Authorization token.");
-                }
+                }            
+                var queryParams = new List<string>();
 
-                // Attach token to outbound request
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}ProcessEngine/GetAllProcessEngine");
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    queryParams.Add($"searchText={Uri.EscapeDataString(searchText)}");
+
+                queryParams.Add($"page={page}");
+                queryParams.Add($"pageSize={pageSize}");
+
+                if (created_by.HasValue)
+                    queryParams.Add($"created_by={created_by.Value}");
+
+                if (!string.IsNullOrWhiteSpace(priority))
+                    queryParams.Add($"priority={Uri.EscapeDataString(priority)}");
+
+                if (status.HasValue)
+                    queryParams.Add($"status={status.Value}");
+
+                var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
+             
+                var requestMessage = new HttpRequestMessage(
+                    HttpMethod.Get,
+                    $"{_baseUrl}ProcessEngine/GetAllProcessEngine{queryString}");
+
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
 
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
+
+                string jsonn = JsonConvert.SerializeObject(body);             
+                           
+                return StatusCode((int)response.StatusCode, jsonn);
             }
             catch (Exception ex)
             {
