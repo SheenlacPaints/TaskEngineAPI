@@ -1603,7 +1603,7 @@ VALUES (
         
 
 
-        public async Task<int> InsertApiAsync(List<ApiAsyncDTO> users, int cTenantID, string usernameClaim)
+        public async Task<int> InsertUserApiAsync(List<UserApiDTO> users, int cTenantID, string usernameClaim)
         {
             if (users == null || !users.Any())
                 return 0;

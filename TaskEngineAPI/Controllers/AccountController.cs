@@ -1920,8 +1920,8 @@ namespace TaskEngineAPI.Controllers
         }
 
         [Authorize]
-        [HttpPost("CreateApiAsync")]
-        public async Task<IActionResult>CreateApiAsync([FromBody] pay request)
+        [HttpPost("CreateUserApi")]
+        public async Task<IActionResult> CreateUserApi([FromBody] pay request)
         {
             try
             {
@@ -1945,7 +1945,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var users = JsonConvert.DeserializeObject<List<ApiAsyncDTO>>(decryptedJson);
+                var users = JsonConvert.DeserializeObject<List<UserApiDTO>>(decryptedJson);
 
                 if (users == null || !users.Any())
                 {
@@ -1990,7 +1990,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var failedUsers = new List<object>();
-                var validUsers = new List<ApiAsyncDTO>();
+                var validUsers = new List<UserApiDTO>();
                 bool hasValidationErrors = false;
 
                 foreach (var user in users)
@@ -2141,14 +2141,14 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 int insertedCount = 0;
-                List<ApiAsyncDTO> successfullyInsertedUsers = new List<ApiAsyncDTO>();
+                List<UserApiDTO> successfullyInsertedUsers = new List<UserApiDTO>();
                 List<object> databaseFailedUsers = new List<object>();
 
                 if (validUsers.Any())
                 {
                     try
                     {
-                        insertedCount = await _AccountService.InsertApiAsync(validUsers, cTenantID, usernameClaim);
+                        insertedCount = await _AccountService.InsertUserApiAsync(validUsers, cTenantID, usernameClaim);
 
                         successfullyInsertedUsers = validUsers;
                     }
@@ -2162,7 +2162,7 @@ namespace TaskEngineAPI.Controllers
                         });
 
                         insertedCount = 0;
-                        successfullyInsertedUsers = new List<ApiAsyncDTO>();
+                        successfullyInsertedUsers = new List<UserApiDTO>();
                     }
                 }
 

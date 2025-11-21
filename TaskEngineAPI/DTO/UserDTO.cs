@@ -141,7 +141,7 @@ namespace TaskEngineAPI.DTO
 
 
 
-    public class ApiAsyncDTO
+    public class UserApiDTO
     {
         [JsonProperty("ciFSCCode")]
         public string ciFSC_code { get; set; }
