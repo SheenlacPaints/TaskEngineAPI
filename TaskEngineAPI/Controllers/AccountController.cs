@@ -111,8 +111,9 @@ namespace TaskEngineAPI.Controllers
                             }
                         }
                     }
-                }
-                bool isValid = BCrypt.Net.BCrypt.Verify(User.password.Trim(), hashedPassword);
+                }              
+                bool isValid = BCrypt.Net.BCrypt.Verify(User.password, hashedPassword.Trim());
+
 
                 if (!isValid)
                 {
