@@ -434,7 +434,7 @@ FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
 LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
-LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID and m.ctenant_id=p.ctenent_id
+LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID and m.ctenant_id=p.ctenant_id
 LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
 LEFT JOIN tbl_status_master s ON m.cstatus = s.id 
 LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
@@ -1046,7 +1046,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
     LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = CAST(u1.cuserid AS VARCHAR(50))
     LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = CAST(u2.cuserid AS VARCHAR(50))
     LEFT JOIN tbl_process_engine_details d ON m.ID = d.cheader_id
-    LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenent_id
+    LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenant_id
     LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID
     LEFT JOIN tbl_status_master s ON m.cstatus = CAST(s.id AS VARCHAR(50))
     LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
