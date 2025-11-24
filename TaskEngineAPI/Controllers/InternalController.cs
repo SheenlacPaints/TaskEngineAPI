@@ -57,6 +57,17 @@ namespace TaskEngineAPI.Controllers
         }
 
         [HttpPost]
+        [Route("hashingpasswordcheck")]
+        public ActionResult<string> hashingpasswordcheck([FromQuery] string password, string hashedpassword)
+        {           
+            bool ok = BCrypt.Net.BCrypt.Verify(password.Trim(), hashedpassword.Trim());          
+            return Ok(ok ? "Match" : "No match");
+        }
+        
+
+
+
+        [HttpPost]
         [Route("EncryptInput")]
         public ActionResult<string> EncryptInput([FromBody] UpdateProcessEngineDTO user)
         {
@@ -185,7 +196,8 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        
+
+
 
     }
 }

@@ -56,7 +56,8 @@ namespace TaskEngineAPI.Services
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+                    //model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+                    string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
                     cmd.Parameters.AddWithValue("@TenantID", model.ctenant_Id);
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirst_name ?? DBNull.Value);
@@ -64,7 +65,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
                     cmd.Parameters.AddWithValue("@Email", model.cemail);
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Password", model.cpassword); // store as plain text
+                    cmd.Parameters.AddWithValue("@Password", hashedPassword); // store as plain text
                     cmd.Parameters.AddWithValue("@RoleID", (object?)model.crole_id ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@IsActive", model.nis_active ?? true);
                     cmd.Parameters.AddWithValue("@LastLoginAt", (object?)model.llast_login_at ?? DBNull.Value);
@@ -209,6 +210,8 @@ namespace TaskEngineAPI.Services
             {
                 await conn.OpenAsync();
 
+               
+
                 string query = @"
              UPDATE AdminUsers SET
             cfirst_name = @FirstName,
@@ -224,6 +227,7 @@ namespace TaskEngineAPI.Services
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
+                   // model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@userid", (object?)model.cuserid ?? DBNull.Value);

@@ -336,7 +336,7 @@ namespace TaskEngineAPI.Controllers
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<CreateAdminDTO>(decryptedJson);
                 // Insert into database             
-                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+                //string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
 
                 bool emailExists = await _AccountService.CheckEmailExistsAsync(model.cemail, model.ctenant_Id);
