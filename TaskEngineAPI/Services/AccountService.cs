@@ -220,7 +220,7 @@ namespace TaskEngineAPI.Services
             nis_active = @IsActive,
             cmodified_by=cmodified_by,
             lmodified_date=lmodified_date          
-            WHERE ID = @ID AND  ctenant_Id = @TenantID";
+            WHERE ID = @ID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -233,8 +233,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
                     cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@ID", model.cid);
-                    cmd.Parameters.AddWithValue("@TenantID", model.cTenantID);
+                    cmd.Parameters.AddWithValue("@ID", model.cid);              
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
                 }
