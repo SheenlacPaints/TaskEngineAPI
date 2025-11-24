@@ -201,7 +201,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
+        public async Task<bool> UpdateSuperAdminAsyncold(UpdateAdminDTO model)
         {
             var connStr = _config.GetConnectionString("Database");
 
@@ -242,6 +242,51 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
+
+        public async Task<bool> UpdateSuperAdminAsync(UpdateAdminDTO model)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();           
+                string hashedPassword = null;
+                if (!string.IsNullOrEmpty(model.cpassword))
+                {
+                    hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+                }
+
+                string query = @"
+            UPDATE AdminUsers SET
+                cfirst_name = @FirstName,
+                clast_name = @LastName,
+                cuserid = @userid,
+                cemail = @Email,
+                cphoneno = @PhoneNo,
+                nis_active = @IsActive,
+                cmodified_by = @cmodified_by,
+                lmodified_date = @lmodified_date,
+                cpassword = CASE WHEN @Password IS NOT NULL THEN @Password ELSE cpassword END
+            WHERE ID = @ID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@userid", (object?)model.cuserid ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Email", (object?)model.cemail ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
+                    cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@ID", model.cid);                   
+                    cmd.Parameters.AddWithValue("@Password", (object?)hashedPassword ?? DBNull.Value);
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                    return rowsAffected > 0;
+                }
+            }
+        }
+
 
 
         public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID, string username)
