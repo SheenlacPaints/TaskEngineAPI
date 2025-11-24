@@ -226,7 +226,7 @@ namespace TaskEngineAPI.Services
                 {
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Username", (object?)model.cuserid ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@userid", (object?)model.cuserid ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Email", (object?)model.cemail ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@PhoneNo", (object?)model.cphoneno ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
