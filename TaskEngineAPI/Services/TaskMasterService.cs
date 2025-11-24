@@ -238,7 +238,7 @@ namespace TaskEngineAPI.Services
                 using (var cmd = new SqlCommand("sp_get_department_role_position", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@tenantid", cTenantID);
                     cmd.Parameters.AddWithValue("@table", table);
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);

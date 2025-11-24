@@ -68,9 +68,9 @@ namespace TaskEngineAPI.Controllers
       
         [HttpPost]
         [Route("EncryptInputint")]
-        public ActionResult<string> EncryptInputint(privilegeMappingDTO CreateAdminDTO)
+        public ActionResult<string> EncryptInputint(UpdateAdminDTO UpdateAdminDTO)
         {
-            string json = JsonConvert.SerializeObject(CreateAdminDTO);
+            string json = JsonConvert.SerializeObject(UpdateAdminDTO);
             string encrypted = Encrypt(json);
             return Ok(encrypted);
         }
