@@ -1,4 +1,5 @@
 ﻿using System.Net.Mail;
+using System.Threading.Tasks;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 
@@ -27,17 +28,14 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> CheckuserPhonenoExistsputAsync(string phoneno, int tenantId, int cuserid);
         Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username);
         Task<int> InsertUsersBulkAsync(List<BulkUserDTO> model,int cTenantID,string usernameClaim);
-
         Task<bool> InsertusersapisyncconfigAsync(usersapisyncDTO model, int cTenantID, string username);
-
-
-
         Task<int> InsertDepartmentsBulkAsync(List<BulkDepartmentDTO> departments, int cTenantID, string usernameClaim);
-        Task<int> InsertRolesBulkAsync(List<BulkRoleDTO> roles, int cTenantID, string usernameClaim);
+        Task<List<string>> CheckExistingRoleCodesAsync(List<string> roleCodes, int tenantId);
+        Task<int> InsertRolesBulkAsync(List<BulkRoleDTO> roles, int tenantId, string username);
+        Task<List<string>> CheckExistingPositionCodesAsync(List<string> roleCodes, int tenantId);
         Task<int> InsertPositionsBulkAsync(List<BulkPositionDTO> positions, int cTenantID, string usernameClaim);
-
+        Task<List<string>> CheckExistingDepartmentCodesAsync(List<string> roleCodes, int tenantId);
         Task<int> InsertUserApiAsync(List<UserApiDTO> users, int cTenantID, string usernameClaim);
-
 
         //public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
         //{

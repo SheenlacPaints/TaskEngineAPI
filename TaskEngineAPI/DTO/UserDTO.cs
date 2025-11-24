@@ -376,105 +376,27 @@ namespace TaskEngineAPI.DTO
 
     }
 
-    public class CreateRoleDTO
-    {
-        public int ctenent_id { get; set; }
-        public string crole_code { get; set; }
-        public string crole_name { get; set; }
-        public string cslug { get; set; }
-        public int? crole_level { get; set; }
-        public string? cdepartment_code { get; set; }
-        public string? creporting_manager_code { get; set; }
-        public string? creporting_manager_name { get; set; }
-        public bool nis_active { get; set; }
-        public string? crole_description { get; set; }
-        public string? ccreated_by { get; set; }
-        public DateTime? lcreated_date { get; set; }
-    }
 
     public class BulkRoleDTO
     {
         public string crole_code { get; set; }
         public string crole_name { get; set; }
-        public string cslug { get; set; }
         public string crole_level { get; set; }
         public string? cdepartment_code { get; set; }
         public string? creporting_manager_code { get; set; }
         public string? creporting_manager_name { get; set; }
         public string? crole_description { get; set; }
-    }
-
-    public class GetRoleDTO
-    {
-        public int ID { get; set; }
-        public int ctenent_id { get; set; }
-        public string crole_code { get; set; }
-        public string crole_name { get; set; }
-        public string cslug { get; set; }
-        public int? crole_level { get; set; }
-        public string? cdepartment_code { get; set; }
-        public string? creporting_manager_code { get; set; }
-        public string? creporting_manager_name { get; set; }
-        public bool nis_active { get; set; }
-        public bool? nis_deleted { get; set; }
-        public string? cdeleted_by { get; set; }
-        public DateTime? ldeleted_date { get; set; }
-        public string? ccreated_by { get; set; }
-        public DateTime? lcreated_date { get; set; }
-        public string? cmodified_by { get; set; }
-        public DateTime? lmodified_date { get; set; }
-        public string? crole_description { get; set; }
-    }
-
-    public class UpdateRoleDTO
-    {
-        [Required]
-        public int ID { get; set; }
-
-        public int ctenent_id { get; set; }
-        public string crole_code { get; set; }
-        public string crole_name { get; set; }
-        public string cslug { get; set; }
-        public int? crole_level { get; set; }
-        public string? cdepartment_code { get; set; }
-        public string? creporting_manager_code { get; set; }
-        public string? creporting_manager_name { get; set; }
         public bool? nis_active { get; set; }
-        public string? crole_description { get; set; }
-        public string? cmodified_by { get; set; }
-        public DateTime? lmodified_date { get; set; }
     }
 
-    public class DeleteRoleDTO
-    {
-        public int ID { get; set; }
-        public string? cdeleted_by { get; set; }
-        public DateTime? ldeleted_date { get; set; }
-    }
+    
 
-    public class CreateDepartmentDTO
-    {
-        public int ctenent_id { get; set; }
-        public string cdepartment_code { get; set; }
-        public string cdepartment_name { get; set; }
-        public string? cdepartment_desc { get; set; }
-        public string? cdepartmentslug { get; set; }
-        public string? cdepartment_manager_rolecode { get; set; }
-        public string? cdepartment_manager_position_code { get; set; }
-        public string? cdepartment_manager_name { get; set; }
-        public string? cdepartment_email { get; set; }
-        public string? cdepartment_phone { get; set; }
-        public bool nis_active { get; set; }
-        public string? ccreated_by { get; set; }
-        public DateTime? lcreated_date { get; set; }
-    }
-
+   
     public class BulkDepartmentDTO
     {
         public string cdepartment_code { get; set; }
         public string cdepartment_name { get; set; }
         public string? cdepartment_desc { get; set; }
-        public string? cdepartmentslug { get; set; }
         public string? cdepartment_manager_rolecode { get; set; }
         public string? cdepartment_manager_position_code { get; set; }
         public string? cdepartment_manager_name { get; set; }
@@ -483,123 +405,18 @@ namespace TaskEngineAPI.DTO
         public string? cdepartment_phone { get; set; }
     }
 
-    public class GetDepartmentDTO
-    {
-        public int ID { get; set; }
-        public int ctenent_id { get; set; }
-        public string cdepartment_code { get; set; }
-        public string cdepartment_name { get; set; }
-        public string? cdepartment_desc { get; set; }
-        public string? cdepartmentslug { get; set; }
-        public string? cdepartment_manager_rolecode { get; set; }
-        public string? cdepartment_manager_position_code { get; set; }
-        public string? cdepartment_manager_name { get; set; }
-        public string? cdepartment_email { get; set; }
-        public string? cdepartment_phone { get; set; }
-        public bool nis_active { get; set; }
-        public bool? nis_deleted { get; set; }
-        public string? cdeleted_by { get; set; }
-        public DateTime? ldeleted_date { get; set; }
-        public string? ccreated_by { get; set; }
-        public DateTime? lcreated_date { get; set; }
-        public string? cmodified_by { get; set; }
-        public DateTime? lmodified_date { get; set; }
-    }
-
-    public class UpdateDepartmentDTO
-    {
-        [Required]
-        public int ID { get; set; }
-
-        public string cdepartment_code { get; set; }
-        public string cdepartment_name { get; set; }
-        public string? cdepartment_desc { get; set; }
-        public string? cdepartmentslug { get; set; }
-        public string? cdepartment_manager_rolecode { get; set; }
-        public string? cdepartment_manager_position_code { get; set; }
-        public string? cdepartment_manager_name { get; set; }
-        public string? cdepartment_email { get; set; }
-        public string? cdepartment_phone { get; set; }
-        public bool? nis_active { get; set; }
-        public string? cmodified_by { get; set; }
-        public DateTime? lmodified_date { get; set; }
-    }
-
-    public class DeleteDepartmentDTO
-    {
-        public int ID { get; set; }
-        public string? cdeleted_by { get; set; }
-        public DateTime? ldeleted_date { get; set; }
-    }
-
-    public class CreatePositionDTO
-    {
-        public int ctenent_id { get; set; }
-        public string cposition_code { get; set; }
-        public string cposition_name { get; set; }
-        public string? cposition_decsription { get; set; }
-        public string? cposition_slug { get; set; }
-        public string? cdepartment_code { get; set; }
-        public string? creporting_manager_positionid { get; set; }
-        public string? creporting_manager_name { get; set; }
-        public bool nis_active { get; set; }
-        public string? ccreated_by { get; set; }
-        public DateTime? lcreated_date { get; set; }
-    }
+    
 
     public class BulkPositionDTO
     {
         public string cposition_code { get; set; }
         public string cposition_name { get; set; }
         public string? cposition_decsription { get; set; }
-        public string? cposition_slug { get; set; }
-        public string? cdepartment_code { get; set; }
-        public string? creporting_manager_positionid { get; set; }
-        public string? creporting_manager_name { get; set; }
-    }
-
-    public class GetPositionDTO
-    {
-        public int ID { get; set; }
-        public int ctenent_id { get; set; }
-        public string cposition_code { get; set; }
-        public string cposition_name { get; set; }
-        public string? cposition_decsription { get; set; }
-        public string? cposition_slug { get; set; }
-        public string? cdepartment_code { get; set; }
-        public string? creporting_manager_positionid { get; set; }
-        public string? creporting_manager_name { get; set; }
-        public bool nis_active { get; set; }
-        public bool? nis_deleted { get; set; }
-        public string? cdeleted_by { get; set; }
-        public DateTime? ldeleted_date { get; set; }
-        public string? ccreated_by { get; set; }
-        public DateTime? lcreated_date { get; set; }
-        public string? cmodified_by { get; set; }
-        public DateTime? lmodified_date { get; set; }
-    }
-
-    public class UpdatePositionDTO
-    {
-        [Required]
-        public int ID { get; set; }
-
-        public string cposition_code { get; set; }
-        public string cposition_name { get; set; }
-        public string? cposition_decsription { get; set; }
-        public string? cposition_slug { get; set; }
         public string? cdepartment_code { get; set; }
         public string? creporting_manager_positionid { get; set; }
         public string? creporting_manager_name { get; set; }
         public bool? nis_active { get; set; }
-        public string? cmodified_by { get; set; }
-        public DateTime? lmodified_date { get; set; }
     }
 
-    public class DeletePositionDTO
-    {
-        public int ID { get; set; }
-        public string? cdeleted_by { get; set; }
-        public DateTime? ldeleted_date { get; set; }
-    }
+    
 }

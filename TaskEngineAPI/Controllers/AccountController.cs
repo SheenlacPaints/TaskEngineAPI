@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -2340,6 +2341,7 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [Authorize]
         [HttpPost("CreateDepartmentsBulk")]
         public async Task<IActionResult> CreateDepartmentsBulk([FromBody] pay request)
         {
@@ -2365,6 +2367,79 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                var invalidFields = new List<string>();
+                try
+                {
+                    var validFields = new HashSet<string>
+            {
+                "cdepartment_code",
+                "cdepartment_name",
+                "cdepartment_desc",
+                "cdepartmentslug",
+                "cdepartment_manager_rolecode",
+                "cdepartment_manager_position_code",
+                "cdepartment_manager_name",
+                "cdepartment_email",
+                "cdepartment_phone",
+                "nis_active",
+                 "ID",
+                "ctenent_id",
+                "cdepartmentslug",
+                "nis_deleted",
+                "cdeleted_by",
+                "ldeleted_date",
+                "ccreated_by",
+                "lcreated_date",
+                "cmodified_by",
+                "lmodified_date"
+            };
+
+                    var jArray = JArray.Parse(decryptedJson);
+
+                    foreach (var item in jArray)
+                    {
+                        if (item is JObject jObject)
+                        {
+                            foreach (var property in jObject.Properties())
+                            {
+                                if (!validFields.Contains(property.Name))
+                                {
+                                    invalidFields.Add(property.Name);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON format",
+                        message = $"Invalid JSON format: {ex.Message}",
+                        note = "Please check your JSON syntax."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                if (invalidFields.Any())
+                {
+                    var distinctInvalidFields = invalidFields.Distinct().ToList();
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON fields",
+                        message = $"Invalid field(s) found in JSON: {string.Join(", ", distinctInvalidFields)}",
+                        note = "Please check the field names in your JSON payload."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
                 var departments = JsonConvert.DeserializeObject<List<BulkDepartmentDTO>>(decryptedJson);
 
                 if (departments == null || !departments.Any())
@@ -2378,28 +2453,21 @@ namespace TaskEngineAPI.Controllers
                     string encryptedError = AesEncryption.Encrypt(errorJson);
                     return BadRequest(encryptedError);
                 }
+
                 var duplicateErrors = new List<string>();
 
                 var dupDepartmentCodes = departments.GroupBy(d => d.cdepartment_code)
                     .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
-                    .Select(g => g.Key).ToList();
+                    .Select(g => g.Key)
+                    .ToList();
 
-                var dupDepartmentNames = departments.GroupBy(d => d.cdepartment_name)
-                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
-                    .Select(g => g.Key).ToList();
-
-                // Check for duplicate emails if provided
-                var dupEmails = departments.Where(d => !string.IsNullOrEmpty(d.cdepartment_email))
-                    .GroupBy(d => d.cdepartment_email)
-                    .Where(g => g.Count() > 1)
-                    .Select(g => g.Key).ToList();
-
-                if (dupDepartmentCodes.Any() || dupDepartmentNames.Any() || dupEmails.Any())
+                if (dupDepartmentCodes.Any())
                 {
-                    if (dupDepartmentCodes.Any()) duplicateErrors.Add($"Duplicate department code(s): {string.Join(", ", dupDepartmentCodes)}");
-                    if (dupDepartmentNames.Any()) duplicateErrors.Add($"Duplicate department name(s): {string.Join(", ", dupDepartmentNames)}");
-                    if (dupEmails.Any()) duplicateErrors.Add($"Duplicate department email(s): {string.Join(", ", dupEmails)}");
+                    duplicateErrors.Add($"Duplicate cdepartment_code(s): {string.Join(", ", dupDepartmentCodes)}");
+                }
 
+                if (duplicateErrors.Any())
+                {
                     var errorResponse = new
                     {
                         status = 400,
@@ -2408,7 +2476,7 @@ namespace TaskEngineAPI.Controllers
                         {
                             validation_type = "DUPLICATE_CHECK",
                             message = string.Join("; ", duplicateErrors),
-                            note = "Duplicates detected for one or more mandatory fields. Remove duplicates before retrying."
+                            note = "Duplicates detected for department code. Remove duplicates before retrying."
                         }
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
@@ -2430,44 +2498,27 @@ namespace TaskEngineAPI.Controllers
                         errors.Add("cdepartment_code: Field is required");
                         nullMandatoryFields.Add("cdepartment_code");
                     }
-                    if (string.IsNullOrEmpty(dept.cdepartment_name))
+                    else if (dept.cdepartment_code.Length > 50)
                     {
-                        errors.Add("cdepartment_name: Field is required");
-                        nullMandatoryFields.Add("cdepartment_name");
+                        errors.Add("cdepartment_code: Maximum length is 50 characters");
                     }
 
                     var optionalFields = new Dictionary<string, object?>
             {
+                { "cdepartment_name", dept.cdepartment_name },
                 { "cdepartment_desc", dept.cdepartment_desc },
-                { "cdepartmentslug", dept.cdepartmentslug },
+                { "cdepartment_email", dept.cdepartment_email },
                 { "cdepartment_manager_rolecode", dept.cdepartment_manager_rolecode },
                 { "cdepartment_manager_position_code", dept.cdepartment_manager_position_code },
                 { "cdepartment_manager_name", dept.cdepartment_manager_name },
-                { "cdepartment_email", dept.cdepartment_email },
-                { "cdepartment_phone", dept.cdepartment_phone }
+                { "cdepartment_phone", dept.cdepartment_phone },
+                { "nis_active", dept.nis_active }
             };
 
                     var missingOptionalFields = optionalFields
                         .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
                         .Select(f => f.Key)
                         .ToList();
-
-                    if (!string.IsNullOrEmpty(dept.cdepartment_email))
-                    {
-                        try
-                        {
-                            var addr = new System.Net.Mail.MailAddress(dept.cdepartment_email);
-                            if (addr.Address != dept.cdepartment_email)
-                                errors.Add("cdepartment_email: Invalid email format");
-                        }
-                        catch
-                        {
-                            errors.Add("cdepartment_email: Invalid email format");
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(dept.cdepartment_phone) && !System.Text.RegularExpressions.Regex.IsMatch(dept.cdepartment_phone, @"^[0-9]{10}$"))
-                        errors.Add("cdepartment_phone: Invalid phone number format (must be 10 digits)");
 
                     if (errors.Any())
                     {
@@ -2516,6 +2567,29 @@ namespace TaskEngineAPI.Controllers
                     return BadRequest(encryptedError);
                 }
 
+                var existingDepartmentCodes = await _AccountService.CheckExistingDepartmentCodesAsync(
+                    validDepartments.Select(d => d.cdepartment_code).ToList(),
+                    cTenantID
+                );
+
+                if (existingDepartmentCodes.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in database.",
+                        body = new
+                        {
+                            validation_type = "DATABASE_DUPLICATE_CHECK",
+                            message = $"Department codes already exist in database: {string.Join(", ", existingDepartmentCodes)}",
+                            note = "Remove duplicate department codes before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
                 int insertedCount = 0;
                 List<BulkDepartmentDTO> successfullyInsertedDepartments = new List<BulkDepartmentDTO>();
                 List<object> databaseFailedDepartments = new List<object>();
@@ -2550,16 +2624,16 @@ namespace TaskEngineAPI.Controllers
                     missing_optional_fields = new Dictionary<string, object?>
             {
                 { "cdepartment_desc", d.cdepartment_desc },
-                { "cdepartmentslug", d.cdepartmentslug },
+                { "cdepartment_email", d.cdepartment_email },
                 { "cdepartment_manager_rolecode", d.cdepartment_manager_rolecode },
                 { "cdepartment_manager_position_code", d.cdepartment_manager_position_code },
                 { "cdepartment_manager_name", d.cdepartment_manager_name },
-                { "cdepartment_email", d.cdepartment_email },
-                { "cdepartment_phone", d.cdepartment_phone }
+                { "cdepartment_phone", d.cdepartment_phone },
+                { "nis_active", d.nis_active }
             }
-                        .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
-                        .Select(f => f.Key)
-                        .ToList()
+                    .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                    .Select(f => f.Key)
+                    .ToList()
                 }).ToList();
 
                 object response;
@@ -2593,7 +2667,7 @@ namespace TaskEngineAPI.Controllers
                             failure = departments.Count - insertedCount,
                             inserted = insertedDepartmentsWithDetails,
                             failed = failedDepartments.Any() ? failedDepartments : new List<object> { new { message = "No validation failures" } },
-                            note = "All departments passed JSON validation and were inserted successfully."
+                            note = "All departments passed validation and were inserted successfully."
                         },
                         error = ""
                     };
@@ -2642,6 +2716,8 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
         [HttpPost("CreateRolesBulk")]
         public async Task<IActionResult> CreateRolesBulk([FromBody] pay request)
         {
@@ -2666,28 +2742,78 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(401, encryptedError);
                 }
 
-                string decryptedJson;
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                var invalidfields = new List<string>();
                 try
                 {
-                    if (string.IsNullOrWhiteSpace(request.payload))
-                        throw new Exception("Payload is empty.");
-
-                    decryptedJson = AesEncryption.Decrypt(request.payload);
-                }
-                catch (FormatException)
-                {
-                    return BadRequest(AesEncryption.Encrypt("Payload is not valid Base64."));
-                }
-                catch (CryptographicException)
-                {
-                    return BadRequest(AesEncryption.Encrypt("Invalid encrypted payload. Check encryption key/IV or payload integrity."));
+                    var validFields = new HashSet<string>
+            {
+                "crole_code",
+                "crole_name",
+                "crole_level",
+                "cdepartment_code",
+                "creporting_manager_code",
+                "creporting_manager_name",
+                "crole_description",
+                 "ID","cslug","nis_active",
+                "ctenent_id",
+                "nis_deleted",
+                "cdeleted_by",
+                "ldeleted_date",
+                "ccreated_by",
+                "lcreated_date",
+                "cmodified_by",
+                "lmodified_date"
+            };
+                    var jArray = JArray.Parse(decryptedJson);
+                    foreach (var item in jArray)
+                    {
+                        var jObject = (JObject)item;
+                        foreach (var prop in jObject.Properties())
+                        {
+                            if (!validFields.Contains(prop.Name))
+                            {
+                                invalidfields.Add(prop.Name);
+                            }
+                        }
+                    }
                 }
                 catch (Exception ex)
                 {
-                    return BadRequest(AesEncryption.Encrypt($"Decryption failed: {ex.Message}"));
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON format.",
+                        body = new
+                        {
+                            validation_type = "JSON_FORMAT_VALIDATION",
+                            message = ex.Message,
+                            note = "Ensure the JSON payload is properly formatted."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                if (invalidfields.Any())
+                {
+                    var distinctInvalidFields = invalidfields.Distinct().ToList();
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON structure.",
+                        message = $"Invalid field(s) found in JSON: {string.Join(", ", distinctInvalidFields)}",
+                        note = "Please check the field names in your JSON payload."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
                 }
 
                 var roles = JsonConvert.DeserializeObject<List<BulkRoleDTO>>(decryptedJson);
+
                 if (roles == null || !roles.Any())
                 {
                     var errorResponse = new
@@ -2704,17 +2830,16 @@ namespace TaskEngineAPI.Controllers
 
                 var dupRoleCodes = roles.GroupBy(r => r.crole_code)
                     .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
-                    .Select(g => g.Key).ToList();
+                    .Select(g => g.Key)
+                    .ToList();
 
-                var dupRoleNames = roles.GroupBy(r => r.crole_name)
-                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
-                    .Select(g => g.Key).ToList();
-
-                if (dupRoleCodes.Any() || dupRoleNames.Any())
+                if (dupRoleCodes.Any())
                 {
-                    if (dupRoleCodes.Any()) duplicateErrors.Add($"Duplicate role code(s): {string.Join(", ", dupRoleCodes)}");
-                    if (dupRoleNames.Any()) duplicateErrors.Add($"Duplicate role name(s): {string.Join(", ", dupRoleNames)}");
+                    duplicateErrors.Add($"Duplicate crole_code(s): {string.Join(", ", dupRoleCodes)}");
+                }
 
+                if (duplicateErrors.Any())
+                {
                     var errorResponse = new
                     {
                         status = 400,
@@ -2723,7 +2848,7 @@ namespace TaskEngineAPI.Controllers
                         {
                             validation_type = "DUPLICATE_CHECK",
                             message = string.Join("; ", duplicateErrors),
-                            note = "Duplicates detected for one or more mandatory fields. Remove duplicates before retrying."
+                            note = "Duplicates detected for role code. Remove duplicates before retrying."
                         }
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
@@ -2745,20 +2870,20 @@ namespace TaskEngineAPI.Controllers
                         errors.Add("crole_code: Field is required");
                         nullMandatoryFields.Add("crole_code");
                     }
-                    if (string.IsNullOrEmpty(role.crole_name))
+                    else if (role.crole_code.Length > 50)
                     {
-                        errors.Add("crole_name: Field is required");
-                        nullMandatoryFields.Add("crole_name");
+                        errors.Add("crole_code: Maximum length is 50 characters");
                     }
 
                     var optionalFields = new Dictionary<string, object?>
             {
-                { "cslug", role.cslug },
+                { "crole_name", role.crole_name },
                 { "crole_level", role.crole_level },
                 { "cdepartment_code", role.cdepartment_code },
                 { "creporting_manager_code", role.creporting_manager_code },
                 { "creporting_manager_name", role.creporting_manager_name },
-                { "crole_description", role.crole_description }
+                { "crole_description", role.crole_description },
+                { "nis_active", role.nis_active   }
             };
 
                     var missingOptionalFields = optionalFields
@@ -2813,6 +2938,29 @@ namespace TaskEngineAPI.Controllers
                     return BadRequest(encryptedError);
                 }
 
+                var existingRoleCodes = await _AccountService.CheckExistingRoleCodesAsync(
+                    validRoles.Select(r => r.crole_code).ToList(),
+                    cTenantID
+                );
+
+                if (existingRoleCodes.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in database.",
+                        body = new
+                        {
+                            validation_type = "DATABASE_DUPLICATE_CHECK",
+                            message = $"Role codes already exist in database: {string.Join(", ", existingRoleCodes)}",
+                            note = "Remove duplicate role codes before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
                 int insertedCount = 0;
                 List<BulkRoleDTO> successfullyInsertedRoles = new List<BulkRoleDTO>();
                 List<object> databaseFailedRoles = new List<object>();
@@ -2846,16 +2994,16 @@ namespace TaskEngineAPI.Controllers
                     null_mandatory_fields = new List<string> { "None" },
                     missing_optional_fields = new Dictionary<string, object?>
             {
-                { "cslug", r.cslug },
                 { "crole_level", r.crole_level },
                 { "cdepartment_code", r.cdepartment_code },
                 { "creporting_manager_code", r.creporting_manager_code },
                 { "creporting_manager_name", r.creporting_manager_name },
-                { "crole_description", r.crole_description }
+                { "crole_description", r.crole_description },
+                { "nis_active", r.nis_active    }
             }
-                        .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
-                        .Select(f => f.Key)
-                        .ToList()
+                    .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                    .Select(f => f.Key)
+                    .ToList()
                 }).ToList();
 
                 object response;
@@ -2889,7 +3037,7 @@ namespace TaskEngineAPI.Controllers
                             failure = roles.Count - insertedCount,
                             inserted = insertedRolesWithDetails,
                             failed = failedRoles.Any() ? failedRoles : new List<object> { new { message = "No validation failures" } },
-                            note = "All roles passed JSON validation and were inserted successfully."
+                            note = "All roles passed validation and were inserted successfully."
                         },
                         error = ""
                     };
@@ -2938,6 +3086,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("CreatePositionsBulk")]
         public async Task<IActionResult> CreatePositionsBulk([FromBody] pay request)
         {
@@ -2963,6 +3112,76 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                var invalidfields = new List<string>();
+                try
+                {
+                    var validFields = new HashSet<string>
+            {
+                "cposition_code",
+                "cposition_name",
+                "cposition_decsription",
+                "cdepartment_code",
+                "creporting_manager_positionid",
+                "creporting_manager_name",
+                "nis_active",
+                 "ID",
+                "ctenent_id",
+                "cposition_slug",
+                "nis_deleted",
+                "cdeleted_by",
+                "ldeleted_date",
+                "ccreated_by",
+                "lcreated_date",
+                "cmodified_by",
+                "lmodified_date"
+            };
+                    var jArray = JArray.Parse(decryptedJson);
+                    foreach (var item in jArray)
+                    {
+                        var jObject = (JObject)item;
+                        foreach (var prop in jObject.Properties())
+                        {
+                            if (!validFields.Contains(prop.Name))
+                            {
+                                invalidfields.Add(prop.Name);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON format.",
+                        body = new
+                        {
+                            validation_type = "JSON_FORMAT_VALIDATION",
+                            message = ex.Message,
+                            note = "Ensure the JSON payload is properly formatted."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                if (invalidfields.Any())
+                {
+                    var distinctInvalidFields = invalidfields.Distinct().ToList();
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON structure.",
+                        message = $"Invalid field(s) found in JSON: {string.Join(", ", distinctInvalidFields)}",
+                        note = "Please check the field names in your JSON payload."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
                 var positions = JsonConvert.DeserializeObject<List<BulkPositionDTO>>(decryptedJson);
 
                 if (positions == null || !positions.Any())
@@ -2981,17 +3200,16 @@ namespace TaskEngineAPI.Controllers
 
                 var dupPositionCodes = positions.GroupBy(p => p.cposition_code)
                     .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
-                    .Select(g => g.Key).ToList();
+                    .Select(g => g.Key)
+                    .ToList();
 
-                var dupPositionNames = positions.GroupBy(p => p.cposition_name)
-                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
-                    .Select(g => g.Key).ToList();
-
-                if (dupPositionCodes.Any() || dupPositionNames.Any())
+                if (dupPositionCodes.Any())
                 {
-                    if (dupPositionCodes.Any()) duplicateErrors.Add($"Duplicate position code(s): {string.Join(", ", dupPositionCodes)}");
-                    if (dupPositionNames.Any()) duplicateErrors.Add($"Duplicate position name(s): {string.Join(", ", dupPositionNames)}");
+                    duplicateErrors.Add($"Duplicate cposition_code(s): {string.Join(", ", dupPositionCodes)}");
+                }
 
+                if (duplicateErrors.Any())
+                {
                     var errorResponse = new
                     {
                         status = 400,
@@ -3000,7 +3218,7 @@ namespace TaskEngineAPI.Controllers
                         {
                             validation_type = "DUPLICATE_CHECK",
                             message = string.Join("; ", duplicateErrors),
-                            note = "Duplicates detected for one or more mandatory fields. Remove duplicates before retrying."
+                            note = "Duplicates detected for position code. Remove duplicates before retrying."
                         }
                     };
                     string errorJson = JsonConvert.SerializeObject(errorResponse);
@@ -3022,19 +3240,19 @@ namespace TaskEngineAPI.Controllers
                         errors.Add("cposition_code: Field is required");
                         nullMandatoryFields.Add("cposition_code");
                     }
-                    if (string.IsNullOrEmpty(position.cposition_name))
+                    else if (position.cposition_code.Length > 50)
                     {
-                        errors.Add("cposition_name: Field is required");
-                        nullMandatoryFields.Add("cposition_name");
+                        errors.Add("cposition_code: Maximum length is 50 characters");
                     }
 
                     var optionalFields = new Dictionary<string, object?>
             {
+                { "cposition_name", position.cposition_name },
                 { "cposition_decsription", position.cposition_decsription },
-                { "cposition_slug", position.cposition_slug },
                 { "cdepartment_code", position.cdepartment_code },
                 { "creporting_manager_positionid", position.creporting_manager_positionid },
-                { "creporting_manager_name", position.creporting_manager_name }
+                { "creporting_manager_name", position.creporting_manager_name },
+                { "nis_active", position.nis_active }
             };
 
                     var missingOptionalFields = optionalFields
@@ -3089,6 +3307,29 @@ namespace TaskEngineAPI.Controllers
                     return BadRequest(encryptedError);
                 }
 
+                var existingPositionCodes = await _AccountService.CheckExistingPositionCodesAsync(
+                    validPositions.Select(p => p.cposition_code).ToList(),
+                    cTenantID
+                );
+
+                if (existingPositionCodes.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in database.",
+                        body = new
+                        {
+                            validation_type = "DATABASE_DUPLICATE_CHECK",
+                            message = $"Position codes already exist in database: {string.Join(", ", existingPositionCodes)}",
+                            note = "Remove duplicate position codes before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
                 int insertedCount = 0;
                 List<BulkPositionDTO> successfullyInsertedPositions = new List<BulkPositionDTO>();
                 List<object> databaseFailedPositions = new List<object>();
@@ -3123,14 +3364,14 @@ namespace TaskEngineAPI.Controllers
                     missing_optional_fields = new Dictionary<string, object?>
             {
                 { "cposition_decsription", p.cposition_decsription },
-                { "cposition_slug", p.cposition_slug },
                 { "cdepartment_code", p.cdepartment_code },
                 { "creporting_manager_positionid", p.creporting_manager_positionid },
-                { "creporting_manager_name", p.creporting_manager_name }
+                { "creporting_manager_name", p.creporting_manager_name },
+                        { "nis_active", p.nis_active }
             }
-                        .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
-                        .Select(f => f.Key)
-                        .ToList()
+                    .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                    .Select(f => f.Key)
+                    .ToList()
                 }).ToList();
 
                 object response;
@@ -3164,7 +3405,7 @@ namespace TaskEngineAPI.Controllers
                             failure = positions.Count - insertedCount,
                             inserted = insertedPositionsWithDetails,
                             failed = failedPositions.Any() ? failedPositions : new List<object> { new { message = "No validation failures" } },
-                            note = "All positions passed JSON validation and were inserted successfully."
+                            note = "All positions passed validation and were inserted successfully."
                         },
                         error = ""
                     };
@@ -3212,5 +3453,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
+
     }
 }
