@@ -120,7 +120,7 @@ namespace TaskEngineAPI.Services
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
-                    ctenent_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description,  
+                    ctenant_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description,  
                     ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
                     cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type) 
                     VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
@@ -1198,7 +1198,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                         string deleteDetailsQuery = @"
                     DELETE FROM tbl_process_engine_details 
-                    WHERE cheader_id = @MasterID AND ctenent_id = @TenantID;";
+                    WHERE cheader_id = @MasterID AND ctenant_id = @TenantID;";
                         using (SqlCommand cmd = new SqlCommand(deleteDetailsQuery, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@MasterID", masterId);
@@ -1235,7 +1235,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         }
                         string queryDetail = @"
                     INSERT INTO tbl_process_engine_details (
-                        ctenent_id, cheader_id, ciseqno, cprocesscode, cactivitycode, cactivity_description,  
+                        ctenant_id, cheader_id, ciseqno, cprocesscode, cactivitycode, cactivity_description,  
                         ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, 
                         cmodified_by, lmodified_date, cmapping_code, cparticipant_type, nboard_enabled, 
                         csla_day, csla_Hour, caction_privilege, crejection_privilege, cmapping_type) 
