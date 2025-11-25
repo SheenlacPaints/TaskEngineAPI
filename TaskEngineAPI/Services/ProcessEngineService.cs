@@ -735,8 +735,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
-                                cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                                cmdDetail.Parameters.AddWithValue("@cis_active", 1);
+                                cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);                               
                                 await cmdDetail.ExecuteNonQueryAsync();
                             }
                         }
