@@ -710,6 +710,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@ccreated_by", username);
                             cmd.Parameters.AddWithValue("@cmodified_by", username);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@cis_active", 1);
                             var newId = await cmd.ExecuteScalarAsync();
                             headerId = Convert.ToInt32(newId);
                         }
