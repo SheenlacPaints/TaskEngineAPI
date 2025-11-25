@@ -480,8 +480,11 @@ namespace TaskEngineAPI.Controllers
             var response = new APIResponse
             {
                 status = success ? 200 : 404,
-                statusText = success ? "Update successful" : "SuperAdmin not found or update failed"
+                statusText = success ? "Update successful" : "SuperAdmin not found or update failed",
+                body = new object[] { new { UserID = model.cid } }
             };
+
+           
 
             string json = JsonConvert.SerializeObject(response);
             string encrypted = AesEncryption.Encrypt(json);
@@ -521,7 +524,8 @@ namespace TaskEngineAPI.Controllers
             var response = new APIResponse
             {
                 status = success ? 200 : 404,
-                statusText = success ? "SuperAdmin deleted successfully" : "SuperAdmin not found"
+                statusText = success ? "SuperAdmin deleted successfully" : "SuperAdmin not found",
+                body = new object[] { new { UserID = model.cid } }
             };
 
             string json = JsonConvert.SerializeObject(response);
