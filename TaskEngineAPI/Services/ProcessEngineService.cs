@@ -663,7 +663,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     SELECT COUNT(1) 
                     FROM tbl_engine_master_to_process_privilege 
                     WHERE cprocess_id = @cprocess_id 
-                    AND ctenent_id = @ctenent_id";
+                    AND ctenant_id = @ctenent_id";
 
                         using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn, tx))
                         {
@@ -678,7 +678,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             SELECT cprocess_privilege 
                             FROM tbl_engine_master_to_process_privilege 
                             WHERE cprocess_id = @cprocess_id 
-                            AND ctenent_id = @ctenent_id";
+                            AND ctenant_id = @ctenent_id";
 
                                 using (SqlCommand getPrivilegeCmd = new SqlCommand(getExistingPrivilegeQuery, conn, tx))
                                 {
@@ -694,7 +694,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         int headerId;
                         string query = @"
                     INSERT INTO tbl_engine_master_to_process_privilege 
-                        (cprocess_id, cprocesscode, ctenent_id, cprocess_privilege, 
+                        (cprocess_id, cprocesscode, ctenant_id, cprocess_privilege, 
                          ccreated_by, lcreated_date, cmodified_by, lmodified_date,cis_active)
                     VALUES (@cprocess_id, @cprocesscode, @TenantID, @cprocess_privilege, 
                             @ccreated_by, @ccreated_date, @cmodified_by, @lmodified_date,@cis_active);
@@ -767,7 +767,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     SELECT COUNT(1) 
                     FROM tbl_engine_master_to_process_privilege 
                     WHERE cprocess_id = @cprocess_id                   
-                    AND ctenent_id = @ctenent_id
+                    AND ctenant_id = @ctenent_id
                     AND id != @current_id";
 
                         using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn, tx))
@@ -824,7 +824,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         lmodified_date = @lmodified_date,
                         cprocess_privilege = @cprocess_privilege,
                         cis_active=@cisactive
-                    WHERE id = @cheaderid AND ctenent_id = @tenantid";
+                    WHERE id = @cheaderid AND ctenant_id = @tenantid";
 
                         using (SqlCommand cmd = new SqlCommand(updateQuery, conn, tx))
                         {
@@ -875,7 +875,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         }
 
                         // Delete from parent table
-                        string deleteMainQuery = "DELETE FROM tbl_engine_master_to_process_privilege WHERE id = @cheaderid AND ctenent_id = @tenantid";
+                        string deleteMainQuery = "DELETE FROM tbl_engine_master_to_process_privilege WHERE id = @cheaderid AND ctenant_id = @tenantid";
                         using (SqlCommand cmd = new SqlCommand(deleteMainQuery, conn, tx))
                         {
                             cmd.Parameters.AddWithValue("@cheaderid", mappingId);
@@ -1164,7 +1164,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             LEFT JOIN tbl_taskflow_detail b ON a.itaskno = b.itaskno
             WHERE ccurrent_status IN ('P', 'H') 
             AND cprocess_id = @cprocess_id 
-            AND a.ctenent_id = @ctenent_id;"; 
+            AND a.ctenant_id = @ctenent_id;"; 
 
                 using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn))
                 {
@@ -1188,7 +1188,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         int masterId = model.ID.Value;
                         string deleteConditionsQuery = @"
                     DELETE FROM tbl_process_engine_condition 
-                    WHERE cheader_id = @MasterID AND ctenent_id = @TenantID;";
+                    WHERE cheader_id = @MasterID AND ctenant_id = @TenantID;";
                         using (SqlCommand cmd = new SqlCommand(deleteConditionsQuery, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@MasterID", masterId);
@@ -1285,7 +1285,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             {
                                 string queryCondition = @"
                             INSERT INTO tbl_process_engine_condition (
-                                ctenent_id, cheader_id, cprocesscode, ciseqno, icond_seqno, ctype,  
+                                ctenant_id, cheader_id, cprocesscode, ciseqno, icond_seqno, ctype,  
                                 clabel, cfield_value, ccondition, lcreated_date, ccreated_by, 
                                 cmodified_by, lmodified_date, cplaceholder, cis_required, cis_readonly, cis_disabled) 
                             VALUES (
