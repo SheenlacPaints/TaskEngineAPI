@@ -435,7 +435,7 @@ namespace TaskEngineAPI.Services
                        
                         string queryDetail = @"
                     INSERT INTO tbl_process_privilege_details (
-                        privilege_id, entity_type, entity_id, ctenent_id, cis_active,ccreated_by,lcreated_date, 
+                        privilege_id, entity_type, entity_id, ctenant_id, cis_active,ccreated_by,lcreated_date, 
                     cmodified_by, lmodified_date,cprocess_id) VALUES (
                         @privilege_id, @entity_type, @entity_id, @ctenent_id, @cis_active, @ccreated_by, 
                         @lcreated_date, @cmodified_by, @lmodified_date, @cprocess_id);";

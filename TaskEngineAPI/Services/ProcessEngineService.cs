@@ -716,7 +716,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                         string detailQuery = @"
                     INSERT INTO tbl_process_privilege_details 
-                        (cheader_id, cprocess_id, entity_id, entity_value, ctenent_id, cis_active, 
+                        (cheader_id, cprocess_id, entity_id, entity_value, ctenant_id, cis_active, 
                          ccreated_by, lcreated_date, cmodified_by, lmodified_date)
                     VALUES (@cheader_id, @cprocess_id, @entity_id, @entity_value, @ctenent_id, @cis_active, 
                             @ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date)";
@@ -794,7 +794,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                         string insertQuery = @"
                     INSERT INTO tbl_process_privilege_details 
-                        (cheader_id, cprocess_id, entity_id, entity_value, ctenent_id, cis_active,
+                        (cheader_id, cprocess_id, entity_id, entity_value, ctenant_id, cis_active,
                          ccreated_by, lcreated_date, cmodified_by, lmodified_date)
                     VALUES (@cheader_id, @cprocess_id, @entity_id, @entity_value, @ctenent_id, @cis_active,
                             @ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date)";
@@ -927,8 +927,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         inner join tbl_process_engine_master e on e.id=h.cprocess_id
                         inner join tbl_process_privilege_type p on h.cprocess_privilege=p.ID
                         LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
-                        WHERE h.ctenent_id =@TenantID  
-                        AND (d.ctenent_id = @TenantID OR d.ctenent_id IS NULL)
+                        WHERE h.ctenant_id =@TenantID  
+                        AND (d.ctenant_id = @TenantID OR d.ctenent_id IS NULL)
                         AND (d.cis_active = 1 OR d.cis_active IS NULL) and
                         (h.cis_active=1 OR h.cis_active IS NULL)
 
