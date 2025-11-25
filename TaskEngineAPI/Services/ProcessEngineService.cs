@@ -928,7 +928,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         inner join tbl_process_privilege_type p on h.cprocess_privilege=p.ID
                         LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
                         WHERE h.ctenant_id =@TenantID  
-                        AND (d.ctenant_id = @TenantID OR d.ctenent_id IS NULL)
+                        AND (d.ctenant_id = @TenantID OR d.ctenant_id IS NULL)
                         AND (d.cis_active = 1 OR d.cis_active IS NULL) and
                         (h.cis_active=1 OR h.cis_active IS NULL)
 
