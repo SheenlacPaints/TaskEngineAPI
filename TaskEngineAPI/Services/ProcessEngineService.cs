@@ -164,7 +164,7 @@ namespace TaskEngineAPI.Services
                             if (detail.processEngineConditionDetails != null)
                             {
                                 string queryCondition = @"INSERT INTO tbl_process_engine_condition (
-                            ctenent_id,cheader_id, cprocesscode, ciseqno,icond_seqno, ctype,  
+                            ctenant_id,cheader_id, cprocesscode, ciseqno,icond_seqno, ctype,  
                             clabel, cfield_value, ccondition,  
                             lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
                             ,cis_readonly,cis_disabled,cdata_source) 
