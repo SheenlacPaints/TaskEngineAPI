@@ -351,7 +351,7 @@ namespace TaskEngineAPI.Services
                 using (var cmd = new SqlCommand("sp_get_tables_crud", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@tenantid", cTenantID);
                     cmd.Parameters.AddWithValue("@action", model.action);
                     cmd.Parameters.AddWithValue("@userid", model.userid);
                     cmd.Parameters.AddWithValue("@position", model.position);
