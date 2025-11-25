@@ -939,6 +939,20 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return Ok(encrypted);
         }
+        private ActionResult EncryptedResponse(string message, object body = null)
+        {
+            var response = new APIResponse
+            {
+                status = 200,
+                statusText = message,
+                body = body != null ? new object[] { body } : null
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return Ok(encrypted);
+        }
+
 
         [Authorize]
         [HttpPost("verifyOtpAndExecute")]
@@ -1051,18 +1065,23 @@ namespace TaskEngineAPI.Controllers
                             var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
                             return StatusCode(500, encryptapierrDtls);
                         }
-                        break;
-
+                        break;                                
                     case "PUT":
                         var updateModel = JsonConvert.DeserializeObject<OtpActionRequest<UpdateAdminDTO>>(decryptedJson);
                         bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload);
-                        return EncryptedSuccess(updated ? "Update successful" : "Update failed");
 
+                        return EncryptedResponse(
+                            updated ? "Super Admin updated successfully" : "Update failed",
+                            new { UserID = updateModel.payload.cid }
+                        );
                     case "DELETE":
                         var deleteModel = JsonConvert.DeserializeObject<OtpActionRequest<DeleteAdminDTO>>(decryptedJson);
                         bool deleted = await _AccountService.DeleteSuperAdminAsync(deleteModel.payload, cTenantID, username);
-                        return EncryptedSuccess(deleted ? "Deleted successfully" : "Not found");
 
+                        return EncryptedResponse(
+                            deleted ? "Super Admin deleted successfully" : "Delete failed",
+                            new { UserID = deleteModel.payload.cid }
+                        );
                     default:
                         return EncryptedError(400, "Invalid action");
                 }
