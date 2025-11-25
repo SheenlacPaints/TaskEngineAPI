@@ -504,37 +504,36 @@ namespace TaskEngineAPI.Services
                     await conn.OpenAsync();
 
                     string query = @"           
-                        SELECT 
-                        
-                            ppt.ID as privilege_id,
-                            ppt.ctenent_id as privilege_tenant_id,
-                            ppt.cprocess_privilege,
-                            ppt.nis_active as privilege_is_active,                                      
-                            CASE 
-        WHEN ppt.cprocess_privilege = 'department' THEN CAST(dm.ID as varchar(50))
-        WHEN ppt.cprocess_privilege = 'position' THEN CAST(pm.id as varchar(50))
-        WHEN ppt.cprocess_privilege = 'role' THEN CAST(rm.ID as varchar(50))
-        WHEN ppt.cprocess_privilege = 'user' THEN CAST(u.cuserid as varchar(50))
-        ELSE CAST(ppt.ID as varchar(10))
-                       END as value,
-                            
-                            CASE 
-                                WHEN ppt.cprocess_privilege = 'department' THEN dm.cdepartment_name
-                                WHEN ppt.cprocess_privilege = 'position' THEN pm.cposition_name
-                                WHEN ppt.cprocess_privilege = 'role' THEN rm.crole_name
-                                WHEN ppt.cprocess_privilege = 'user' THEN u.cuser_name
-                                ELSE ppt.cprocess_privilege
-                            END as view_value
-                            
-                        FROM tbl_process_privilege_type ppt
-                        LEFT JOIN tbl_department_master dm ON ppt.cprocess_privilege = 'department' AND dm.ctenent_id = ppt.ctenent_id AND dm.nis_active = 1
-                        LEFT JOIN tbl_position_master pm ON ppt.cprocess_privilege = 'position' AND pm.ctenent_id = ppt.ctenent_id AND pm.nis_active = 1
-                        LEFT JOIN tbl_role_master rm ON ppt.cprocess_privilege = 'role' AND rm.ctenent_id = ppt.ctenent_id AND rm.nis_active = 1
-                        LEFT JOIN users u ON ppt.cprocess_privilege = 'user' AND u.ctenant_id = ppt.ctenent_id AND u.nis_active = 1 and u.nIs_deleted=0
-                        WHERE ppt.ctenent_id = @tenantId 
-                        AND ppt.nis_active = 1
-                        AND (@PrivilegeType  = '0' OR ppt.ID = @PrivilegeType )
-                        ORDER BY view_value;";
+                        SELECT               
+                    ppt.ID as privilege_id,
+                    ppt.ctenant_id as privilege_tenant_id,
+                    ppt.cprocess_privilege,
+                    ppt.nis_active as privilege_is_active,                                      
+                    CASE 
+WHEN ppt.cprocess_privilege = 'department' THEN CAST(dm.ID as varchar(50))
+WHEN ppt.cprocess_privilege = 'position' THEN CAST(pm.id as varchar(50))
+WHEN ppt.cprocess_privilege = 'role' THEN CAST(rm.ID as varchar(50))
+WHEN ppt.cprocess_privilege = 'user' THEN CAST(u.cuserid as varchar(50))
+ELSE CAST(ppt.ID as varchar(10))
+               END as value,
+                    
+                    CASE 
+                        WHEN ppt.cprocess_privilege = 'department' THEN dm.cdepartment_name
+                        WHEN ppt.cprocess_privilege = 'position' THEN pm.cposition_name
+                        WHEN ppt.cprocess_privilege = 'role' THEN rm.crole_name
+                        WHEN ppt.cprocess_privilege = 'user' THEN u.cuser_name
+                        ELSE ppt.cprocess_privilege
+                    END as view_value
+                    
+                FROM tbl_process_privilege_type ppt
+                LEFT JOIN tbl_department_master dm ON ppt.cprocess_privilege = 'department' AND dm.ctenant_id = ppt.ctenant_id AND dm.nis_active = 1
+                LEFT JOIN tbl_position_master pm ON ppt.cprocess_privilege = 'position' AND pm.ctenant_id = ppt.ctenant_id AND pm.nis_active = 1
+                LEFT JOIN tbl_role_master rm ON ppt.cprocess_privilege = 'role' AND rm.ctenant_id = ppt.ctenant_id AND rm.nis_active = 1
+                LEFT JOIN users u ON ppt.cprocess_privilege = 'user' AND u.ctenant_id = ppt.ctenant_id AND u.nis_active = 1 and u.nIs_deleted=0
+                WHERE ppt.ctenant_id = @tenantId 
+                AND ppt.nis_active = 1
+                AND (@PrivilegeType  = '0' OR ppt.ID = @PrivilegeType )
+                ORDER BY view_value;";
                         
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
