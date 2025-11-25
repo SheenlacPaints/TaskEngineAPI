@@ -1027,10 +1027,6 @@ namespace TaskEngineAPI.Controllers
 
                             var model = otpRequest.payload;
 
-                            // Hash password
-                            model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
-
-                            // Insert new admin
                             int insertedUserId = await _AccountService.InsertSuperAdminAsync(model);
 
                             if (insertedUserId <= 0)
