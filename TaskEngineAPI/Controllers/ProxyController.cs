@@ -1621,8 +1621,8 @@ namespace TaskEngineAPI.Controllers
 
 
         [Authorize]
-        [HttpGet("GetAllAPISyncConfigAsync")]
-        public async Task<IActionResult> GetAllAPISyncConfigAsync()
+        [HttpGet("GetAllUsersApiSyncConfig")]
+        public async Task<IActionResult> GetAllUsersApiSyncConfig()
         {
             try
             {
@@ -1632,7 +1632,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     return Unauthorized("Missing Authorization token.");
                 }
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/GetAllAPISyncConfigAsync");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/GetAllUsersApiSyncConfig");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
 
