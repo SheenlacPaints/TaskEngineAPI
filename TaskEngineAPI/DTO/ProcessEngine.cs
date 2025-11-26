@@ -231,10 +231,15 @@ namespace TaskEngineAPI.DTO
         public string? cstatus { get; set; }
         public DateTime? lcompleteddate { get; set; }
         public string? ccreatedby { get; set; }
+        public string? ccreatedbyname { get; set; }
         public DateTime? lcreateddate { get; set; }
         public string? cmodifiedby { get; set; }
+        public string? cmodifiedbyname { get; set; }
+        
         public DateTime? lmodifieddate { get; set; }
         public string? Employeecode { get; set; }
+        public string? Employeename { get; set; }
+        
         public string? EmpDepartment { get; set; }
         public int? cprocess_id { get; set; }
         public List<GetTaskDetails>? TaskChildItems { get; set; }
@@ -267,6 +272,9 @@ namespace TaskEngineAPI.DTO
         public string? cis_reassigned { get; set; }
         public DateTime? lreassign_date { get; set; }
         public string? creassign_to { get; set; }
+
+        public string? creassign_name { get; set; }
+        
 
     }
 
