@@ -1620,5 +1620,142 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [Authorize]
+        [HttpGet("GetAllUsersApiSyncConfig")]
+        public async Task<IActionResult> GetAllUsersApiSyncConfig()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/GetAllUsersApiSyncConfig");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet("GetAPISyncConfigByID")]
+        public async Task<IActionResult> GetAPISyncConfigByID()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/GetAPISyncConfigByID");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpPut("UpdateAPISyncConfig")]
+        public async Task<IActionResult> UpdateAPISyncConfig([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/UpdateAPISyncConfig");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [HttpDelete("DeleteAPISyncConfig")]
+        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] pay request)
+        {
+            try
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var requestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Delete,
+                    RequestUri = new Uri($"{_baseUrl}Account/DeleteAPISyncConfig"),
+                    Content = content
+                };
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
     }
 }
