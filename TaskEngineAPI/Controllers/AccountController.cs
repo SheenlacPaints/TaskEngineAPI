@@ -2327,39 +2327,94 @@ namespace TaskEngineAPI.Controllers
         [Route("usersapisyncconfig")]
         public async Task<IActionResult> usersapisyncconfig([FromBody] pay request)
         {
-            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            var handler = new JwtSecurityTokenHandler();
-            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
-
-            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-
-            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+            try
             {
-                throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    var errorResponse = new APIResponse
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    var errorResponse = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Request payload is required"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                if (string.IsNullOrWhiteSpace(decryptedJson))
+                {
+                    var errorResponse = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Decrypted payload is empty or invalid"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var model = JsonConvert.DeserializeObject<usersapisyncDTO>(decryptedJson);
+
+                if (model == null)
+                {
+                    var errorResponse = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON format for usersapisyncDTO"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                bool success = await _AccountService.InsertusersapisyncconfigAsync(model, cTenantID, usernameClaim);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 400,
+                    statusText = success ? "API sync config created successfully" : "Failed to create API sync config"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
             }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.payload))
+            catch (Exception ex)
             {
-                throw new ArgumentException("Request payload is required");
+                // Log the exception here
+                // _logger.LogError(ex, "Error in usersapisyncconfig endpoint");
+
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Internal server error: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
             }
-
-            string decryptedJson = AesEncryption.Decrypt(request.payload);
-            var model = JsonConvert.DeserializeObject<usersapisyncDTO>(decryptedJson);
-
-            bool success = await _AccountService.InsertusersapisyncconfigAsync(model, cTenantID, usernameClaim);
-
-            var response = new APIResponse
-            {
-                status = success ? 200 : 400,
-                statusText = success ? "Notification type created successfully" : "Failed to create notification type"
-            };
-
-            string json = JsonConvert.SerializeObject(response);
-            string encrypted = AesEncryption.Encrypt(json);
-            return StatusCode(response.status, encrypted);
         }
-
 
         [Authorize]
         [HttpPost("CreateDepartmentsBulk")]

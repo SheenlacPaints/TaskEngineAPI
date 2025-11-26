@@ -370,13 +370,17 @@ namespace TaskEngineAPI.DTO
         public string? capi_type { get; set; }
         public string? capi_url { get; set; }
         public string? csync_type { get; set; }
-        public DateTime? csync_date { get; set; }
+        public DateTime? csynconce_date { get; set; }
+        public DateTime? csynconce_time { get; set; }
+        public DateTime? csyncinterval_dailyTime { get; set; }
+        public string? csyncinterval_weeklyDays { get; set; }
+        public DateTime? csyncinterval_weeklyTime { get; set; }  
+        public string? csyncinterval_yearlyMonths { get; set; } 
+        public DateTime? csyncinterval_yearlyTime { get; set; } 
+        public DateTime? csyncinterval_yearlyDate { get; set; }   
+        public DateTime? csyncinterval_monthlyTime { get; set; } 
+        public DateTime? csyncinterval_monthlyDate { get; set; }
         public string? csyncinterval_type { get; set; }
-        public string? csyncinterval_day { get; set; }
-        public string? csyncinterval_month { get; set; }
-        public string? csyncinterval_year { get; set; }
-        public DateTime? csyncinterval_date { get; set; }
-        public DateTime? csyncinterval_time { get; set; }
         public bool? nis_active { get; set; }
         public string? cjson_response { get; set; } 
 
