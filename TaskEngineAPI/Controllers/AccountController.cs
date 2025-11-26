@@ -3572,6 +3572,51 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("GetAPISyncConfigByID")]
+        public async Task<IActionResult> GetAPISyncConfigByID(int id)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+
+                if (id <= 0)
+                {
+                    return EncryptedError(400, "ID must be greater than 0.");
+                }
+
+                var apiConfig = await _AccountService.GetAPISyncConfigByIDAsync(id, cTenantID);
+
+                if (apiConfig == null)
+                {
+                    return EncryptedError(404, "API sync configuration not found.");
+                }
+
+                var response = new APIResponse
+                {
+                    body = new object[] { apiConfig },
+                    statusText = "Successful",
+                    status = 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
 
         [Authorize]
         [HttpDelete("DeleteAPISyncConfig")]
