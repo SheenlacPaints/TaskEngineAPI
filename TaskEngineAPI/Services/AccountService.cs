@@ -2896,5 +2896,102 @@ VALUES (
                 return new List<GetusersapisyncDTO>();
             }
         }
+        public async Task<bool> DeleteAPISyncConfigAsync(DeleteAPISyncConfigDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                DELETE FROM tbl_users_api_sync_config 
+                WHERE ID = @ID 
+                AND ctenant_id = @TenantID";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", model.ID);
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateAPISyncConfigAsync(UpdateAPISyncConfigDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                UPDATE tbl_users_api_sync_config 
+                SET 
+                    capi_method = @capi_method,
+                    capi_type = @capi_type,
+                    capi_url = @capi_url,
+                    csync_type = @csync_type,
+                    csynconce_date = @csynconce_date,
+                    csynconce_time = @csynconce_time,
+                    csyncinterval_type = @csyncinterval_type,
+                    csyncinterval_dailyTime = @csyncinterval_dailyTime,
+                    csyncinterval_weeklyDays = @csyncinterval_weeklyDays,
+                    csyncinterval_weeklyTime = @csyncinterval_weeklyTime,
+                    csyncinterval_yearlyMonths = @csyncinterval_yearlyMonths,
+                    csyncinterval_yearlyDate = @csyncinterval_yearlyDate,
+                    csyncinterval_monthlyDate = @csyncinterval_monthlyDate,
+                    csyncinterval_monthlyTime = @csyncinterval_monthlyTime,
+                    csyncinterval_yearlyTime = @csyncinterval_yearlyTime,
+                    nis_active = @nis_active,
+                    cjson_response = @cjson_response,
+                    cmodified_by = @username,
+                    lmodified_date = GETDATE()
+                WHERE ID = @ID 
+                AND ctenant_id = @TenantID";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", model.ID);
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@capi_method", (object?)model.capi_method ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_type", (object?)model.capi_type ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_url", (object?)model.capi_url ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csynconce_date", (object?)model.csynconce_date ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csynconce_time", (object?)model.csynconce_time ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_type", (object?)model.csyncinterval_type ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_dailyTime", (object?)model.csyncinterval_dailyTime ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_weeklyDays", (object?)model.csyncinterval_weeklyDays ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_weeklyTime", (object?)model.csyncinterval_weeklyTime ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_yearlyMonths", (object?)model.csyncinterval_yearlyMonths ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_yearlyDate", (object?)model.csyncinterval_yearlyDate ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_monthlyDate", (object?)model.csyncinterval_monthlyDate ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_monthlyTime", (object?)model.csyncinterval_monthlyTime ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csyncinterval_yearlyTime", (object?)model.csyncinterval_yearlyTime ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@nis_active", (object?)model.nis_active ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@cjson_response", (object?)model.cjson_response ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@username", username);
+
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }
