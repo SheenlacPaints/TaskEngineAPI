@@ -2161,25 +2161,32 @@ VALUES (
                     {
                         await conn.OpenAsync();
 
-                        string query = @"INSERT INTO tbl_users_api_sync_config (
-        ctenant_id,capi_method,capi_name,csync_type,csync_starttime,csync_endtime,cstatus,
-        cjson_response,ccreated_by,lcreated_date) VALUES(
-        @TenantID, @capi_method, @capi_name, @csync_type, @csync_starttime, @csync_endtime, 
-        @cstatus, @cjson_response, @ccreated_by, @lcreated_date);
+                        string query = @"INSERT INTO tbl_users_api_sync_config (ctenant_id,capi_method
+      ,capi_type,capi_url,csync_type,csync_date,csyncinterval_type,csyncinterval_day,csyncinterval_month,csyncinterval_year
+      ,csyncinterval_date,csyncinterval_time,nis_active,cjson_response,ccreated_by,lcreated_date,cmodified_by,lmodified_date) VALUES(
+        @TenantID, @capi_method, @capi_type, @capi_url, @csync_type, @csync_date,@csyncinterval_type, @csyncinterval_day, @csyncinterval_month, @csyncinterval_year
+       ,@csyncinterval_date,@csyncinterval_time,@nis_active,@cjson_response,@ccreated_by,@lcreated_date,@cmodified_by,@lmodified_date);
         SELECT SCOPE_IDENTITY();";
 
                         using (SqlCommand cmd = new SqlCommand(query, conn))
                         {
                             cmd.Parameters.AddWithValue("@TenantID", cTenantID);
                             cmd.Parameters.AddWithValue("@capi_method", (object?)model.capi_method ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@capi_name", (object?)model.capi_name ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@capi_type", (object?)model.capi_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@capi_url", (object?)model.capi_url ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@csync_starttime", (object?)model.csync_starttime ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@csync_endtime", (object?)model.csync_endtime ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csyncinterval_type", (object?)model.csyncinterval_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csyncinterval_day", (object?)model.csyncinterval_day ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csyncinterval_month", (object?)model.csyncinterval_month ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csyncinterval_year", (object?)model.csyncinterval_year ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csyncinterval_date", (object?)model.csyncinterval_date ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csyncinterval_time", (object?)model.csyncinterval_time ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nis_active", (object?)model.nis_active ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cjson_response", (object?)model.cjson_response ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ccreated_by", username);
                             cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@cmodified_by", username);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             await cmd.ExecuteNonQueryAsync();
                         }
                         return true;

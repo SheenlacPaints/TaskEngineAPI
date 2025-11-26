@@ -1364,11 +1364,11 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             INSERT INTO tbl_process_meta_detail (
                                 cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, 
                                 cis_readonly, cis_disabled, ccreated_by, lcreated_date, cmodified_by, 
-                                lmodified_date, cfield_value) 
+                                lmodified_date, cfield_value,cdata_source) 
                             VALUES (
                                 @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required,  
                                 @cis_readonly, @cis_disabled, @ccreated_by, @lcreated_date, 
-                                @cmodified_by, @lmodified_date, @cfield_value);";
+                                @cmodified_by, @lmodified_date, @cfield_value,@cdata_source);";
 
                                 foreach (var meta in model.processEngineMeta)
                                 {
@@ -1387,6 +1387,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                         cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
                                         cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                                         cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cdata_source", meta.cdatasource ?? (object)DBNull.Value);
                                         await cmdMeta.ExecuteNonQueryAsync();
                                     }
                                 }
