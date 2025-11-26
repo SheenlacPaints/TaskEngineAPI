@@ -80,11 +80,11 @@ namespace TaskEngineAPI.Services
                         }
                      
                         string selectQuery = @"                     
-                         SELECT ctenant_id, cprocesscode, ciseqno, cseq_order, cactivitycode, 
-                         cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno,nboard_enabled,cassignee,
-                        cprocess_type,csla_day,csla_Hour,caction_privilege,crejection_privilege
-                        FROM tbl_process_engine_details 
-                        WHERE cheader_id = @cprocesscode AND ctenant_id = @ctenent_id";
+                         SELECT ctenant_id, cprocesscode, ciseqno,cactivitycode, 
+                         cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno,nboard_enabled,cmapping_code,
+                         cparticipant_type,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type
+                         FROM tbl_process_engine_details 
+                         WHERE cheader_id = @cprocesscode AND ctenant_id = @ctenent_id";
 
                         var detailRows = new List<Dictionary<string, object>>();
 
@@ -105,15 +105,15 @@ namespace TaskEngineAPI.Services
                                         ["cprocesscode"] = reader["cprocesscode"],
                                         ["cnextseqno"] = reader["cnext_seqno"],
                                         ["cprevstep"] = reader["cprev_step"],
-                                        ["cassignee"] = reader["cassignee"],
+                                        ["cassignee"] = reader["cmapping_code"],
                                         ["nboard_enabled"]= reader["nboard_enabled"],
-                                        ["cprocess_type"] = reader["cprocess_type"],
+                                        ["cprocess_type"] = reader["cparticipant_type"],
                                         ["csla_day"] = reader["csla_day"],
                                         ["csla_Hour"] = reader["csla_Hour"],
                                         ["caction_privilege"] = reader["caction_privilege"],
                                         ["crejection_privilege"] = reader["crejection_privilege"],
-                                        
-                                        
+                                        ["cmapping_type"] = reader["cmapping_type"]
+
                                     };
                                     detailRows.Add(row);
                                 }
