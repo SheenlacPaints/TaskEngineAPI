@@ -56,7 +56,7 @@ namespace TaskEngineAPI.Services
         SELECT SCOPE_IDENTITY();";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
-                {                   
+                {
                     string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
                     cmd.Parameters.AddWithValue("@TenantID", model.ctenant_Id);
@@ -210,7 +210,7 @@ namespace TaskEngineAPI.Services
             {
                 await conn.OpenAsync();
 
-               
+
 
                 string query = @"
              UPDATE AdminUsers SET
@@ -227,7 +227,7 @@ namespace TaskEngineAPI.Services
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                   // model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+                    // model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
                     cmd.Parameters.AddWithValue("@FirstName", (object?)model.cfirstName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@LastName", (object?)model.clastName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@userid", (object?)model.cuserid ?? DBNull.Value);
@@ -237,7 +237,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
                     cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@ID", model.cid);              
+                    cmd.Parameters.AddWithValue("@ID", model.cid);
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
                 }
@@ -250,7 +250,7 @@ namespace TaskEngineAPI.Services
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
-                await conn.OpenAsync();           
+                await conn.OpenAsync();
                 string hashedPassword = null;
                 if (!string.IsNullOrEmpty(model.cpassword))
                 {
@@ -280,7 +280,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@IsActive", model.nisActive ?? true);
                     cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@ID", model.cid);                   
+                    cmd.Parameters.AddWithValue("@ID", model.cid);
                     cmd.Parameters.AddWithValue("@Password", (object?)hashedPassword ?? DBNull.Value);
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
                     return rowsAffected > 0;
@@ -1648,7 +1648,7 @@ VALUES (
             return table.Rows.Count;
         }
 
-        
+
 
 
         public async Task<int> InsertUserApiAsync(List<UserApiDTO> users, int cTenantID, string usernameClaim)
@@ -2575,7 +2575,7 @@ VALUES (
                 row["crole_code"] = role.crole_code ?? (object)DBNull.Value;
                 row["crole_name"] = role.crole_name ?? (object)DBNull.Value;
                 row["crole_description"] = role.crole_description ?? (object)DBNull.Value;
-               
+
                 row["crole_level"] = role.crole_level ?? (object)DBNull.Value;
                 row["cdepartment_code"] = role.cdepartment_code ?? (object)DBNull.Value;
                 row["creporting_manager_code"] = role.creporting_manager_code ?? (object)DBNull.Value;
@@ -2826,6 +2826,75 @@ VALUES (
             }
 
             return existingCodes;
+        }
+        public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(int cTenantID)
+        {
+            var connStr = _config.GetConnectionString("Database");
+            var results = new List<GetusersapisyncDTO>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                SELECT 
+                    ID, ctenant_id, capi_method, capi_type, capi_url, csync_type,
+                    csynconce_date, csynconce_time, csyncinterval_type, csyncinterval_dailyTime,
+                    csyncinterval_weeklyDays, csyncinterval_weeklyTime, csyncinterval_yearlyMonths,
+                    csyncinterval_yearlyDate, csyncinterval_monthlyDate, csyncinterval_monthlyTime,
+                    csyncinterval_yearlyTime, nis_active, cjson_response, ccreated_by, lcreated_date,
+                    cmodified_by, lmodified_date
+                FROM tbl_users_api_sync_config 
+                WHERE ctenant_id = @TenantID 
+                ORDER BY lcreated_date DESC";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var config = new GetusersapisyncDTO
+                                {
+                                    ID = reader["ID"] != DBNull.Value ? Convert.ToInt32(reader["ID"]) : 0,
+                                    ctenant_id = reader["ctenant_id"] != DBNull.Value ? Convert.ToInt32(reader["ctenant_id"]) : 0,
+                                    capi_method = reader["capi_method"] != DBNull.Value ? reader["capi_method"].ToString() : null,
+                                    capi_type = reader["capi_type"] != DBNull.Value ? reader["capi_type"].ToString() : null,
+                                    capi_url = reader["capi_url"] != DBNull.Value ? reader["capi_url"].ToString() : null,
+                                    csync_type = reader["csync_type"] != DBNull.Value ? reader["csync_type"].ToString() : null,
+                                    csynconce_date = reader["csynconce_date"] != DBNull.Value ? Convert.ToDateTime(reader["csynconce_date"]) : null,
+                                    csynconce_time = reader["csynconce_time"] != DBNull.Value ? Convert.ToDateTime(reader["csynconce_time"]) : null,
+                                    csyncinterval_dailyTime = reader["csyncinterval_dailyTime"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_dailyTime"]) : null,
+                                    csyncinterval_weeklyDays = reader["csyncinterval_weeklyDays"] != DBNull.Value ? reader["csyncinterval_weeklyDays"].ToString() : null,
+                                    csyncinterval_weeklyTime = reader["csyncinterval_weeklyTime"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_weeklyTime"]) : null,
+                                    csyncinterval_yearlyMonths = reader["csyncinterval_yearlyMonths"] != DBNull.Value ? reader["csyncinterval_yearlyMonths"].ToString() : null,
+                                    csyncinterval_yearlyTime = reader["csyncinterval_yearlyTime"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_yearlyTime"]) : null,
+                                    csyncinterval_yearlyDate = reader["csyncinterval_yearlyDate"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_yearlyDate"]) : null,
+                                    csyncinterval_monthlyTime = reader["csyncinterval_monthlyTime"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_monthlyTime"]) : null,
+                                    csyncinterval_monthlyDate = reader["csyncinterval_monthlyDate"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_monthlyDate"]) : null,
+                                    csyncinterval_type = reader["csyncinterval_type"] != DBNull.Value ? reader["csyncinterval_type"].ToString() : null,
+                                    nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
+                                    cjson_response = reader["cjson_response"] != DBNull.Value ? reader["cjson_response"].ToString() : null,
+                                    ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
+                                    lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
+                                    cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
+                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null
+                                };
+                                results.Add(config);
+                            }
+                        }
+                    }
+                }
+                return results;
+            }
+            catch (Exception ex)
+            {
+                return new List<GetusersapisyncDTO>();
+            }
         }
     }
 }

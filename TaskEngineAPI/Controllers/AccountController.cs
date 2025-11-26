@@ -3526,5 +3526,50 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetAllUsersApiSyncConfig")]
+        public async Task<ActionResult> GetAllUsersApiSyncConfig()
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+
+                var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(cTenantID);
+
+                var response = new APIResponse
+                {
+                    body = apiConfigs?.ToArray() ?? Array.Empty<object>(),
+                    statusText = apiConfigs == null || !apiConfigs.Any() ? "No API sync configurations found" : "Successful",
+                    status = apiConfigs == null || !apiConfigs.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
     }
 }
