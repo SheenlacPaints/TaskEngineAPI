@@ -39,7 +39,7 @@ namespace TaskEngineAPI.Services
                             ID, ctenent_id, notification_type, nis_active,
                             ccreated_by, lcreated_date, cmodified_by, lmodified_date
                         FROM tbl_notification_type 
-                        WHERE ctenent_id = @TenantID 
+                        WHERE ctenant_id = @TenantID 
                         ORDER BY notification_type";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -53,7 +53,7 @@ namespace TaskEngineAPI.Services
                                 result.Add(new NotificationTypeDTO
                                 {
                                     ID = reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
-                                    ctenent_id = reader.IsDBNull(reader.GetOrdinal("ctenent_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ctenent_id")),
+                                    ctenent_id = reader.IsDBNull(reader.GetOrdinal("ctenant_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ctenant_id")),
                                     notification_type = reader.IsDBNull(reader.GetOrdinal("notification_type")) ? string.Empty : reader.GetString(reader.GetOrdinal("notification_type")),
                                     nis_active = !reader.IsDBNull(reader.GetOrdinal("nis_active")) && reader.GetBoolean(reader.GetOrdinal("nis_active")),
                                     ccreated_by = reader.IsDBNull(reader.GetOrdinal("ccreated_by")) ? null : reader.GetString(reader.GetOrdinal("ccreated_by")),
@@ -82,14 +82,14 @@ namespace TaskEngineAPI.Services
                     await conn.OpenAsync();
                     string query = @"
                         INSERT INTO tbl_notification_type 
-                            (ctenent_id, notification_type, nis_active, ccreated_by, lcreated_date)
+                            (ctenant_id, notification_type, nis_active, ccreated_by, lcreated_date)
                         VALUES 
-                            (@ctenent_id, @notification_type, @nis_active, @ccreated_by, GETDATE());
+                            (@ctenant_id, @notification_type, @nis_active, @ccreated_by, GETDATE());
                         SELECT SCOPE_IDENTITY();";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@ctenent_id", model.ctenent_id);
+                        cmd.Parameters.AddWithValue("@ctenant_id", model.ctenent_id);
                         cmd.Parameters.AddWithValue("@notification_type", model.notification_type ?? string.Empty);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@ccreated_by", (object?)model.ccreated_by ?? DBNull.Value);
@@ -118,12 +118,12 @@ namespace TaskEngineAPI.Services
                             nis_active = @nis_active,
                             cmodified_by = @cmodified_by,
                             lmodified_date = GETDATE()
-                        WHERE ID = @ID AND ctenent_id = @ctenent_id";
+                        WHERE ID = @ID AND ctenant_id = @ctenant_id";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@ID", model.ID);
-                        cmd.Parameters.AddWithValue("@ctenent_id", model.ctenent_id);
+                        cmd.Parameters.AddWithValue("@ctenant_id", model.ctenent_id);
                         cmd.Parameters.AddWithValue("@notification_type", model.notification_type ?? string.Empty);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@cmodified_by", model.cmodified_by ?? string.Empty);
@@ -147,7 +147,7 @@ namespace TaskEngineAPI.Services
                 {
                     await conn.OpenAsync();
 
-                    string query = "DELETE FROM tbl_notification_type WHERE ID = @ID AND ctenent_id = @tenantId";
+                    string query = "DELETE FROM tbl_notification_type WHERE ID = @ID AND ctenant_id = @tenantId";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
@@ -179,10 +179,10 @@ namespace TaskEngineAPI.Services
 
                     string query = @"
                         SELECT 
-                            ID, ctenent_id, participant_type, nis_active,
+                            ID, ctenant_id, participant_type, nis_active,
                             ccreated_by, lcreated_date, cmodified_by, lmodified_date
                         FROM tbl_participant_type 
-                        WHERE ctenent_id = @TenantID 
+                        WHERE ctenant_id = @TenantID 
                         ORDER BY participant_type";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -196,7 +196,7 @@ namespace TaskEngineAPI.Services
                                 result.Add(new ParticipantTypeDTO
                                 {
                                     ID = reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
-                                    ctenent_id = reader.IsDBNull(reader.GetOrdinal("ctenent_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ctenent_id")),
+                                    ctenent_id = reader.IsDBNull(reader.GetOrdinal("ctenant_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ctenant_id")),
                                     participant_type = reader.IsDBNull(reader.GetOrdinal("participant_type")) ? string.Empty : reader.GetString(reader.GetOrdinal("participant_type")),
                                     nis_active = !reader.IsDBNull(reader.GetOrdinal("nis_active")) && reader.GetBoolean(reader.GetOrdinal("nis_active")),
                                     ccreated_by = reader.IsDBNull(reader.GetOrdinal("ccreated_by")) ? null : reader.GetString(reader.GetOrdinal("ccreated_by")),
@@ -225,14 +225,14 @@ namespace TaskEngineAPI.Services
                     await conn.OpenAsync();
                     string query = @"
                         INSERT INTO tbl_participant_type 
-                            (ctenent_id, participant_type, nis_active, ccreated_by, lcreated_date)
+                            (ctenant_id, participant_type, nis_active, ccreated_by, lcreated_date)
                         VALUES 
-                            (@ctenent_id, @participant_type, @nis_active, @ccreated_by, GETDATE());
+                            (@ctenant_id, @participant_type, @nis_active, @ccreated_by, GETDATE());
                         SELECT SCOPE_IDENTITY();";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@ctenent_id", model.ctenent_id);
+                        cmd.Parameters.AddWithValue("@ctenant_id", model.ctenent_id);
                         cmd.Parameters.AddWithValue("@participant_type", model.participant_type ?? string.Empty);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@ccreated_by", (object?)model.ccreated_by ?? DBNull.Value);
@@ -262,12 +262,12 @@ namespace TaskEngineAPI.Services
                             nis_active = @nis_active,
                             cmodified_by = @cmodified_by,
                             lmodified_date = GETDATE()
-                        WHERE ID = @ID AND ctenent_id = @ctenent_id";
+                        WHERE ID = @ID AND ctenant_id = @ctenant_id";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@ID", model.ID);
-                        cmd.Parameters.AddWithValue("@ctenent_id", model.ctenent_id);
+                        cmd.Parameters.AddWithValue("@ctenant_id", model.ctenent_id);
                         cmd.Parameters.AddWithValue("@participant_type", model.participant_type ?? string.Empty);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
@@ -291,7 +291,7 @@ namespace TaskEngineAPI.Services
                 {
                     await conn.OpenAsync();
 
-                    string query = "DELETE FROM tbl_participant_type WHERE ID = @ID AND ctenent_id = @TenantID";
+                    string query = "DELETE FROM tbl_participant_type WHERE ID = @ID AND ctenant_id = @TenantID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
@@ -325,7 +325,7 @@ namespace TaskEngineAPI.Services
                     ID, ctenent_id, cprocess_privilege, nis_active,
                     ccreated_by, lcreated_date, cmodified_by, lmodified_date, slug
                 FROM tbl_process_privilege_type 
-                WHERE ctenent_id = @TenantID 
+                WHERE ctenant_id = @TenantID 
                 ORDER BY cprocess_privilege";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -339,7 +339,7 @@ namespace TaskEngineAPI.Services
                                 result.Add(new ProcessPrivilegeTypeDTO
                                 {
                                     ID = reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
-                                    ctenent_id = reader.IsDBNull(reader.GetOrdinal("ctenent_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ctenent_id")),
+                                    ctenent_id = reader.IsDBNull(reader.GetOrdinal("ctenant_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ctenant_id")),
                                     cprocess_privilege = reader.IsDBNull(reader.GetOrdinal("cprocess_privilege")) ? string.Empty : reader.GetString(reader.GetOrdinal("cprocess_privilege")),
                                     nis_active = !reader.IsDBNull(reader.GetOrdinal("nis_active")) && reader.GetBoolean(reader.GetOrdinal("nis_active")),
                                     ccreated_by = reader.IsDBNull(reader.GetOrdinal("ccreated_by")) ? null : reader.GetString(reader.GetOrdinal("ccreated_by")),
@@ -369,14 +369,14 @@ namespace TaskEngineAPI.Services
                     await conn.OpenAsync();
                     string query = @"
                 INSERT INTO tbl_process_privilege_type 
-                    (ctenent_id, cprocess_privilege, nis_active, ccreated_by, lcreated_date)
+                    (ctenant_id, cprocess_privilege, nis_active, ccreated_by, lcreated_date)
                 VALUES 
-                    (@ctenent_id, @cprocess_privilege, @nis_active, @ccreated_by, GETDATE());
+                    (@ctenant_id, @cprocess_privilege, @nis_active, @ccreated_by, GETDATE());
                 SELECT SCOPE_IDENTITY();";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        cmd.Parameters.AddWithValue("@ctenent_id", model.ctenent_id);
+                        cmd.Parameters.AddWithValue("@ctenant_id", model.ctenent_id);
                         cmd.Parameters.AddWithValue("@cprocess_privilege", model.cprocess_privilege ?? string.Empty);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@ccreated_by", usernameclaim);
@@ -405,12 +405,12 @@ namespace TaskEngineAPI.Services
                     nis_active = @nis_active,
                     cmodified_by = @cmodified_by,
                     lmodified_date = GETDATE()
-                WHERE ID = @ID AND ctenent_id = @ctenent_id";
+                WHERE ID = @ID AND ctenant_id = @ctenant_id";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@ID", model.ID);
-                        cmd.Parameters.AddWithValue("@ctenent_id", model.ctenent_id);
+                        cmd.Parameters.AddWithValue("@ctenant_id", model.ctenent_id);
                         cmd.Parameters.AddWithValue("@cprocess_privilege", model.cprocess_privilege ?? string.Empty);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@cmodified_by", (object?)model.cmodified_by ?? DBNull.Value);
@@ -435,7 +435,7 @@ namespace TaskEngineAPI.Services
                     await conn.OpenAsync();
 
 
-                    string query = "DELETE FROM tbl_process_privilege_type WHERE ID = @ID AND ctenent_id = @tenantId";
+                    string query = "DELETE FROM tbl_process_privilege_type WHERE ID = @ID AND ctenant_id = @tenantId";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
@@ -467,7 +467,7 @@ namespace TaskEngineAPI.Services
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@column", "getPrivilegeList");
-                        cmd.Parameters.AddWithValue("@tenent", tenantID);
+                        cmd.Parameters.AddWithValue("@tenant", tenantID);
 
                         using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                         {

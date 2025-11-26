@@ -2204,7 +2204,7 @@ VALUES (
             var connStr = _config.GetConnectionString("Database");
 
             var table = new DataTable();
-            table.Columns.Add("ctenent_id", typeof(int)); // Fixed: ctenent_id to ctenant_id
+            table.Columns.Add("ctenant_id", typeof(int)); // Fixed: ctenent_id to ctenant_id
             table.Columns.Add("cdepartment_code", typeof(string));
             table.Columns.Add("cdepartment_name", typeof(string));
             table.Columns.Add("cdepartment_desc", typeof(string));
@@ -2223,7 +2223,7 @@ VALUES (
             foreach (var dept in departments)
             {
                 var row = table.NewRow();
-                row["ctenent_id"] = cTenantID; // Fixed: ctenent_id to ctenant_id
+                row["ctenant_id"] = cTenantID; // Fixed: ctenent_id to ctenant_id
                 row["cdepartment_code"] = dept.cdepartment_code ?? (object)DBNull.Value;
                 row["cdepartment_name"] = dept.cdepartment_name ?? (object)DBNull.Value;
                 row["cdepartment_desc"] = dept.cdepartment_desc ?? (object)DBNull.Value;
@@ -2252,7 +2252,7 @@ VALUES (
             };
 
             // Fixed column mappings to match actual table structure
-            bulkCopy.ColumnMappings.Add("ctenent_id", "ctenant_id"); // Fixed: ctenent_id to ctenant_id
+            bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id"); // Fixed: ctenent_id to ctenant_id
             bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
             bulkCopy.ColumnMappings.Add("cdepartment_name", "cdepartment_name");
             bulkCopy.ColumnMappings.Add("cdepartment_desc", "cdepartment_desc");
@@ -2308,7 +2308,7 @@ VALUES (
             string query = $@"
         SELECT cdepartment_code 
         FROM tbl_department_master 
-        WHERE ctenent_id = @TenantID
+        WHERE ctenant_id = @TenantID
         AND cdepartment_code IN ({string.Join(",", inClause)})
         AND nIs_deleted = 0";
 
@@ -2502,7 +2502,7 @@ VALUES (
             string query = $@"
         SELECT crole_code 
         FROM tbl_role_master 
-        WHERE ctenent_id = @TenantID
+        WHERE ctenant_id = @TenantID
         AND crole_code IN ({string.Join(",", inClause)})
         AND nIs_deleted = 0";
 
@@ -2528,7 +2528,7 @@ VALUES (
             var connStr = _config.GetConnectionString("Database");
 
             var table = new DataTable();
-            table.Columns.Add("ctenent_id", typeof(int));
+            table.Columns.Add("ctenant_id", typeof(int));
             table.Columns.Add("crole_code", typeof(string));
             table.Columns.Add("crole_name", typeof(string));
             table.Columns.Add("crole_description", typeof(string));
@@ -2547,7 +2547,7 @@ VALUES (
             foreach (var role in roles)
             {
                 var row = table.NewRow();
-                row["ctenent_id"] = tenantId;
+                row["ctenant_id"] = tenantId;
                 row["crole_code"] = role.crole_code ?? (object)DBNull.Value;
                 row["crole_name"] = role.crole_name ?? (object)DBNull.Value;
                 row["crole_description"] = role.crole_description ?? (object)DBNull.Value;
@@ -2576,7 +2576,7 @@ VALUES (
             };
 
             // Add column mappings
-            bulkCopy.ColumnMappings.Add("ctenent_id", "ctenant_id");
+            bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id");
             bulkCopy.ColumnMappings.Add("crole_code", "crole_code");
             bulkCopy.ColumnMappings.Add("crole_name", "crole_name");
             bulkCopy.ColumnMappings.Add("crole_description", "crole_description");
@@ -2687,7 +2687,7 @@ VALUES (
             var connStr = _config.GetConnectionString("Database");
 
             var table = new DataTable();
-            table.Columns.Add("ctenent_id", typeof(int)); // Fixed: ctenent_id to ctenant_id
+            table.Columns.Add("ctenant_id", typeof(int)); // Fixed: ctenent_id to ctenant_id
             table.Columns.Add("cposition_code", typeof(string));
             table.Columns.Add("cposition_name", typeof(string));
             table.Columns.Add("cposition_decsription", typeof(string));
@@ -2705,7 +2705,7 @@ VALUES (
             foreach (var position in positions)
             {
                 var row = table.NewRow();
-                row["ctenent_id"] = cTenantID; // Fixed: ctenent_id to ctenant_id
+                row["ctenant_id"] = cTenantID; // Fixed: ctenent_id to ctenant_id
                 row["cposition_code"] = position.cposition_code ?? (object)DBNull.Value;
                 row["cposition_name"] = position.cposition_name ?? (object)DBNull.Value;
                 row["cposition_decsription"] = position.cposition_decsription ?? (object)DBNull.Value;
@@ -2733,7 +2733,7 @@ VALUES (
             };
 
             // Fixed column mappings
-            bulkCopy.ColumnMappings.Add("ctenent_id", "ctenant_id"); // Fixed: ctenent_id to ctenant_id
+            bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id"); // Fixed: ctenent_id to ctenant_id
             bulkCopy.ColumnMappings.Add("cposition_code", "cposition_code");
             bulkCopy.ColumnMappings.Add("cposition_name", "cposition_name");
             bulkCopy.ColumnMappings.Add("cposition_decsription", "cposition_decsription");
@@ -2786,7 +2786,7 @@ VALUES (
             string query = $@"
         SELECT cposition_code 
         FROM tbl_position_master 
-        WHERE ctenent_id = @TenantID
+        WHERE ctenant_id = @TenantID
         AND cposition_code IN ({string.Join(",", inClause)})
         AND nIs_deleted = 0";
 

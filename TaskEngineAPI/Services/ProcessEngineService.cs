@@ -334,7 +334,7 @@ FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
 LEFT JOIN tbl_process_engine_details d ON m.cprocesscode = d.cprocesscode AND m.ID = d.cheader_id
-LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID and m.ctenant_id=p.ctenent_id
+LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID and m.ctenant_id=p.ctenant_id
 LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
 LEFT JOIN tbl_status_master s ON m.cstatus = s.id 
 LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
@@ -663,12 +663,12 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     SELECT COUNT(1) 
                     FROM tbl_engine_master_to_process_privilege 
                     WHERE cprocess_id = @cprocess_id 
-                    AND ctenant_id = @ctenent_id";
+                    AND ctenant_id = @ctenant_id";
 
                         using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn, tx))
                         {
                             checkCmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
-                            checkCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                            checkCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
 
                             int existingCount = (int)await checkCmd.ExecuteScalarAsync();
 
@@ -683,7 +683,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 using (SqlCommand getPrivilegeCmd = new SqlCommand(getExistingPrivilegeQuery, conn, tx))
                                 {
                                     getPrivilegeCmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
-                                    getPrivilegeCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                                    getPrivilegeCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
 
                                     var existingPrivilege = await getPrivilegeCmd.ExecuteScalarAsync();
                                     throw new InvalidOperationException($"Process ID {model.cprocessid} already has privilege {existingPrivilege}. Only one privilege allowed per process.");
@@ -719,7 +719,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     INSERT INTO tbl_process_privilege_details 
                         (cheader_id, cprocess_id, entity_id, entity_value, ctenant_id, cis_active, 
                          ccreated_by, lcreated_date, cmodified_by, lmodified_date)
-                    VALUES (@cheader_id, @cprocess_id, @entity_id, @entity_value, @ctenent_id, @cis_active, 
+                    VALUES (@cheader_id, @cprocess_id, @entity_id, @entity_value, @ctenant_id, @cis_active, 
                             @ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date)";
 
                         foreach (var detail in model.privilegeList)
@@ -730,7 +730,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocessid ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@entity_id", (object?)detail.value ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@entity_value", (object?)detail.view_value ?? DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                                cmdDetail.Parameters.AddWithValue("@ctenant_id", cTenantID);
                                 cmdDetail.Parameters.AddWithValue("@cis_active", 1);
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
@@ -767,14 +767,14 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     SELECT COUNT(1) 
                     FROM tbl_engine_master_to_process_privilege 
                     WHERE cprocess_id = @cprocess_id                   
-                    AND ctenant_id = @ctenent_id
+                    AND ctenant_id = @ctenant_id
                     AND id != @current_id";
 
                         using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn, tx))
                         {
                             checkCmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
                             checkCmd.Parameters.AddWithValue("@cprocess_privilege", model.cprivilegeType);
-                            checkCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                            checkCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
                             checkCmd.Parameters.AddWithValue("@current_id", model.cmappingid);
 
                             int duplicateCount = (int)await checkCmd.ExecuteScalarAsync();
@@ -796,7 +796,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     INSERT INTO tbl_process_privilege_details 
                         (cheader_id, cprocess_id, entity_id, entity_value, ctenant_id, cis_active,
                          ccreated_by, lcreated_date, cmodified_by, lmodified_date)
-                    VALUES (@cheader_id, @cprocess_id, @entity_id, @entity_value, @ctenent_id, @cis_active,
+                    VALUES (@cheader_id, @cprocess_id, @entity_id, @entity_value, @ctenant_id, @cis_active,
                             @ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date)";
 
                         foreach (var item in model.privilegeList)
@@ -807,7 +807,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocessid ?? DBNull.Value);
                                 cmd.Parameters.AddWithValue("@entity_id", (object?)item.value ?? DBNull.Value);
                                 cmd.Parameters.AddWithValue("@entity_value", (object?)item.view_value ?? DBNull.Value);
-                                cmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                                cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
                                 cmd.Parameters.AddWithValue("@cis_active", 1);
                                 cmd.Parameters.AddWithValue("@ccreated_by", username);
                                 cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
@@ -1164,13 +1164,13 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             LEFT JOIN tbl_taskflow_detail b ON a.itaskno = b.itaskno
             WHERE ccurrent_status IN ('P', 'H') 
             AND cprocess_id = @cprocess_id 
-            AND a.ctenant_id = @ctenent_id;"; 
+            AND a.ctenant_id = @ctenant_id;"; 
 
                 using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn))
                 {
                    
                     checkCmd.Parameters.AddWithValue("@cprocess_id", model.ID);
-                    checkCmd.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                    checkCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
 
                     int duplicateCount = (int)await checkCmd.ExecuteScalarAsync();
 
@@ -1473,7 +1473,7 @@ FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = CAST(u1.cuserid AS VARCHAR(50))
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = CAST(u2.cuserid AS VARCHAR(50))
 LEFT JOIN tbl_process_engine_details d ON m.ID = d.cheader_id
-LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenent_id
+LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenant_id
 LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID  
 LEFT JOIN tbl_status_master s ON m.cstatus = CAST(s.id  AS VARCHAR(50))
 LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id

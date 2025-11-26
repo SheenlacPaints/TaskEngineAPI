@@ -46,7 +46,7 @@ namespace TaskEngineAPI.Services
                         string taskNoQuery = @"
                     SELECT ISNULL(MAX(TRY_CAST(itaskno AS INT)), 0) + 1 
                     FROM tbl_taskflow_master 
-                    WHERE ctenent_id = @TenantID";
+                    WHERE ctenant_id = @TenantID";
 
                         int newTaskNo;
                         using (var taskNoCmd = new SqlCommand(taskNoQuery, conn, transaction))
@@ -58,7 +58,7 @@ namespace TaskEngineAPI.Services
 
                         string queryMaster = @"
                     INSERT INTO tbl_taskflow_master (
-                        itaskno, ctenent_id, ctask_type, ctask_name, ctask_description, cstatus,  
+                        itaskno, ctenant_id, ctask_type, ctask_name, ctask_description, cstatus,  
                         lcreated_date, ccreated_by, cmodified_by, lmodified_date,cprocess_id) VALUES (
                         @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
                         @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cprocess_id );SELECT SCOPE_IDENTITY();";
@@ -100,7 +100,7 @@ namespace TaskEngineAPI.Services
                                     var row = new Dictionary<string, object>
                                     {
                                         ["ciseqno"] = reader["ciseqno"],
-                                        ["ctenentid"] = reader["ctenent_id"],
+                                        ["ctenantid"] = reader["ctenant_id"],
                                         ["ctasktype"] = reader["ctask_type"],
                                         ["cprocesscode"] = reader["cprocesscode"],
                                         ["cnextseqno"] = reader["cnext_seqno"],
@@ -122,7 +122,7 @@ namespace TaskEngineAPI.Services
                   
 
                         string queryDetail = @"INSERT INTO tbl_taskflow_detail (
-                        itaskno, iseqno, iheader_id, ctenent_id, ctask_type, cmapping_code, 
+                        itaskno, iseqno, iheader_id, ctenant_id, ctask_type, cmapping_code, 
                         ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
                         cnext_seqtype, cprevtype,nboard_enabled cprocess_type,csla_day,csla_Hour,caction_privilege,crejection_privilege,nboard_enabled) VALUES (
                         @itaskno, @iseqno, @iheader_id, @ctenent_id, @ctask_type, @cmapping_code, 
@@ -130,7 +130,7 @@ namespace TaskEngineAPI.Services
                         @cnext_seqtype, @cprevtype,@nboard_enabled,@cprocess_type,@csla_day,@csla_Hour,@caction_privilege,@crejection_privilege,@nboard_enabled);SELECT SCOPE_IDENTITY();";
 
                         string queryStatus = @"INSERT INTO tbl_transaction_taskflow_detail_and_status (
-                        itaskno, ctenent_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date) VALUES 
+                        itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date) VALUES 
                         (@itaskno, @ctenent_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date);";
 
                         foreach (var row in detailRows)
@@ -173,7 +173,7 @@ namespace TaskEngineAPI.Services
                             }
                         }
                         string meta = @"INSERT INTO tbl_transaction_process_meta_layout (
-                        [cmeta_id],[cprocess_id],[cprocess_code],[ctenent_id],[cdata]) VALUES (
+                        [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata]) VALUES (
                         @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata);";
 
                         foreach (var metaData in model.metaData)
@@ -407,7 +407,7 @@ namespace TaskEngineAPI.Services
                     {
                         string query = @"
                 INSERT INTO tbl_engine_master_to_process_privilege (
-                    [ctenent_id],[cprocess_privilege],[cseq_id],[ciseqno],[cprocess_id],[cprocesscode],
+                    [ctenant_id],[cprocess_privilege],[cseq_id],[ciseqno],[cprocess_id],[cprocesscode],
                     [cprocessname],[cis_active],[ccreated_by],[lcreated_date],[cmodified_by],[lmodified_date]
                 ) VALUES (
                     @ctenent_id, @cprocess_privilege, @cseq_id, @ciseqno, @cprocess_id, @cprocesscode, 
