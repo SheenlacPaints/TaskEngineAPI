@@ -2402,9 +2402,6 @@ namespace TaskEngineAPI.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception here
-                // _logger.LogError(ex, "Error in usersapisyncconfig endpoint");
-
                 var errorResponse = new APIResponse
                 {
                     status = 500,

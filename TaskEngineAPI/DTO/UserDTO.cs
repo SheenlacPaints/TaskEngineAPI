@@ -365,7 +365,6 @@ namespace TaskEngineAPI.DTO
 
     public class usersapisyncDTO
     {
-
         public string? capi_method { get; set; }
         public string? capi_type { get; set; }
         public string? capi_url { get; set; }
