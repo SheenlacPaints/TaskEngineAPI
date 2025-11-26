@@ -605,6 +605,8 @@ namespace TaskEngineAPI.Services
                                 Employeename=sdr.IsDBNull(sdr.GetOrdinal("Employeename")) ? string.Empty : Convert.ToString(sdr["Employeename"]),
                                 EmpDepartment = sdr.IsDBNull(sdr.GetOrdinal("EmpDepartment")) ? string.Empty : Convert.ToString(sdr["EmpDepartment"]),
                                 cprocess_id= sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
+                                cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                             };
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))

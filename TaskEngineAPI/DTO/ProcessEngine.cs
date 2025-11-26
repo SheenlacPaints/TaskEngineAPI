@@ -242,6 +242,9 @@ namespace TaskEngineAPI.DTO
         
         public string? EmpDepartment { get; set; }
         public int? cprocess_id { get; set; }
+
+        public string? cprocesscode { get; set; }
+        public string? cprocessname { get; set; }
         public List<GetTaskDetails>? TaskChildItems { get; set; }
     }
 
