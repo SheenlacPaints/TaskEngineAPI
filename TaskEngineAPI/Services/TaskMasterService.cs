@@ -80,11 +80,11 @@ namespace TaskEngineAPI.Services
                         }
                      
                         string selectQuery = @"                     
-                         SELECT ctenant_id, cprocesscode, ciseqno, cseq_order, cactivitycode, 
-                         cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno,nboard_enabled,cassignee,
-                        cprocess_type,csla_day,csla_Hour,caction_privilege,crejection_privilege
-                        FROM tbl_process_engine_details 
-                        WHERE cheader_id = @cprocesscode AND ctenant_id = @ctenent_id";
+                         SELECT ctenant_id, cprocesscode, ciseqno,cactivitycode, 
+                         cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno,nboard_enabled,cmapping_code,
+                         cparticipant_type,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type
+                         FROM tbl_process_engine_details 
+                         WHERE cheader_id = @cprocesscode AND ctenant_id = @ctenent_id";
 
                         var detailRows = new List<Dictionary<string, object>>();
 
@@ -105,15 +105,15 @@ namespace TaskEngineAPI.Services
                                         ["cprocesscode"] = reader["cprocesscode"],
                                         ["cnextseqno"] = reader["cnext_seqno"],
                                         ["cprevstep"] = reader["cprev_step"],
-                                        ["cassignee"] = reader["cassignee"],
+                                        ["cmapping_code"] = reader["cmapping_code"],
                                         ["nboard_enabled"]= reader["nboard_enabled"],
-                                        ["cprocess_type"] = reader["cprocess_type"],
+                                        ["cparticipant_type"] = reader["cparticipant_type"],
                                         ["csla_day"] = reader["csla_day"],
                                         ["csla_Hour"] = reader["csla_Hour"],
                                         ["caction_privilege"] = reader["caction_privilege"],
                                         ["crejection_privilege"] = reader["crejection_privilege"],
-                                        
-                                        
+                                        ["cmapping_type"] = reader["cmapping_type"]
+
                                     };
                                     detailRows.Add(row);
                                 }
@@ -124,10 +124,10 @@ namespace TaskEngineAPI.Services
                         string queryDetail = @"INSERT INTO tbl_taskflow_detail (
                         itaskno, iseqno, iheader_id, ctenant_id, ctask_type, cmapping_code, 
                         ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
-                        cnext_seqtype, cprevtype,nboard_enabled cprocess_type,csla_day,csla_Hour,caction_privilege,crejection_privilege,nboard_enabled) VALUES (
+                        cnext_seqtype, cprevtype,nboard_enabled, cprocess_type,csla_day,csla_Hour,caction_privilege,crejection_privilege) VALUES (
                         @itaskno, @iseqno, @iheader_id, @ctenent_id, @ctask_type, @cmapping_code, 
                         @ccurrent_status, @lcurrent_status_date, @cremarks, @inext_seqno, 
-                        @cnext_seqtype, @cprevtype,@nboard_enabled,@cprocess_type,@csla_day,@csla_Hour,@caction_privilege,@crejection_privilege,@nboard_enabled);SELECT SCOPE_IDENTITY();";
+                        @cnext_seqtype, @cprevtype,@nboard_enabled,@cparticipant_type,@csla_day,@csla_Hour,@caction_privilege,@crejection_privilege);SELECT SCOPE_IDENTITY();";
 
                         string queryStatus = @"INSERT INTO tbl_transaction_taskflow_detail_and_status (
                         itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date) VALUES 
@@ -142,14 +142,14 @@ namespace TaskEngineAPI.Services
                                 cmdInsert.Parameters.AddWithValue("@iheader_id", masterId);
                                 cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
                                 cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
-                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cassignee"]);
+                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cmapping_code"]);
                                 cmdInsert.Parameters.AddWithValue("@ccurrent_status", "P");
                                 cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
                                 cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
                                 cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
                                 cmdInsert.Parameters.AddWithValue("@cnext_seqtype", DBNull.Value);
                                 cmdInsert.Parameters.AddWithValue("@cprevtype", row["cprevstep"]);
-                                cmdInsert.Parameters.AddWithValue("@cprocess_type", row["cprocess_type"]);
+                                cmdInsert.Parameters.AddWithValue("@cparticipant_type", row["cparticipant_type"]);
                                 cmdInsert.Parameters.AddWithValue("@csla_day", row["csla_day"]);
                                 cmdInsert.Parameters.AddWithValue("@csla_Hour", row["csla_Hour"]);
                                 cmdInsert.Parameters.AddWithValue("@caction_privilege", row["caction_privilege"]);
