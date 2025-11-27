@@ -81,8 +81,23 @@ namespace TaskEngineAPI.DTO
 
     }
 
-    
-    
+
+    public class GetprocessEngineConditionDTO
+    {
+        public int? ID { get; set; }
+        public string? cprocessCode { get; set; }
+        public int? ciseqno { get; set; }
+        public int? icondseqno { get; set; }
+        public string? ctype { get; set; }
+        public string? clabel { get; set; }
+        public string? cplaceholder { get; set; }
+        public bool? cisRequired { get; set; }
+        public bool? cisReadonly { get; set; }
+        public bool? cis_disabled { get; set; }
+        public string? cfieldValue { get; set; }
+        public string? cdatasource { get; set; }
+        public string? ccondition { get; set; }      
+    }
 
 }
 

@@ -17,6 +17,11 @@ namespace TaskEngineAPI.Interfaces
             Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username);
             Task<int> Processprivilege_mapping(privilegeMappingDTO model, int tenantId, string username);         
             Task<string> GetTaskInitiator(int cTenantID, string username);
+            Task<List<GetprocessEngineConditionDTO>> GetTaskConditionBoard(int cTenantID, int ID);
+
+
+
+
     }
-        
+
 }
