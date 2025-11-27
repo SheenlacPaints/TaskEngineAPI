@@ -2324,7 +2324,7 @@ namespace TaskEngineAPI.Controllers
 
 
         [HttpPost]
-        [Route("usersapisyncconfig")]
+        [Route("createusersapisyncconfig")]
         public async Task<IActionResult> usersapisyncconfig([FromBody] pay request)
         {
             try

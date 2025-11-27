@@ -2162,52 +2162,28 @@ VALUES (
                     await conn.OpenAsync();
 
                     string query = @"
-                INSERT INTO tbl_users_api_sync_config (
-                    ctenant_id, capi_method, capi_type, capi_url, csync_type,capi_params,capi_headers, 
-                    csynconce_date, csynconce_time, csyncinterval_type, csyncinterval_dailyTime, 
-                    csyncinterval_weeklyDays, csyncinterval_weeklyTime, csyncinterval_yearlyMonths, 
-                    csyncinterval_yearlyDate, csyncinterval_monthlyDate, csyncinterval_monthlyTime,
-                    csyncinterval_yearlyTime, nis_active, ccreated_by, lcreated_date, 
-                    cmodified_by, lmodified_date
-                ) VALUES(
-                    @TenantID, @capi_method, @capi_type, @capi_url, @csync_type,@capi_params,@capi_headers,
-                    @csynconce_date, @csynconce_time, @csyncinterval_type, @csyncinterval_dailyTime,
-                    @csyncinterval_weeklyDays, @csyncinterval_weeklyTime, @csyncinterval_yearlyMonths,
-                    @csyncinterval_yearlyDate, @csyncinterval_monthlyDate, @csyncinterval_monthlyTime,
-                    @csyncinterval_yearlyTime, @nis_active, @ccreated_by, @lcreated_date, 
-                    @cmodified_by, @lmodified_date
-                );";
-
+                    INSERT INTO tbl_users_api_sync_config (
+                    ctenant_id,capi_method,capi_type,capi_url,capi_params,capi_headers,capi_config
+                    ,capi_settings,csync_type,nis_active,ccreated_by,lcreated_date,cmodified_by,lmodified_date) VALUES(
+                    @TenantID, @capi_method, @capi_type, @capi_url, @capi_params,@capi_headers,@capi_config,
+                    @capi_settings, @csync_type, @nis_active,@ccreated_by, @lcreated_date, 
+                    @cmodified_by, @lmodified_date);";
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@TenantID", cTenantID);
                         cmd.Parameters.AddWithValue("@capi_method", (object?)model.capi_method ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_type", (object?)model.capi_type ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_url", (object?)model.capi_url ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_params", (object?)model.capi_params ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_headers", (object?)model.capi_headers ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csynconce_date", (object?)model.csynconce_date ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csynconce_time", (object?)model.csynconce_time ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csyncinterval_type", (object?)model.csyncinterval_type ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csyncinterval_dailyTime", (object?)model.csyncinterval_dailyTime ?? DBNull.Value);
-
-                        cmd.Parameters.AddWithValue("@csyncinterval_weeklyDays", (object?)model.csyncinterval_weeklyDays ?? DBNull.Value);
-
-                        cmd.Parameters.AddWithValue("@csyncinterval_weeklyTime", (object?)model.csyncinterval_weeklyTime ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csyncinterval_monthlyTime", (object?)model.csyncinterval_monthlyTime ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csyncinterval_yearlyTime", (object?)model.csyncinterval_yearlyTime ?? DBNull.Value);
-
-                        cmd.Parameters.AddWithValue("@csyncinterval_yearlyMonths", (object?)model.csyncinterval_yearlyMonths ?? DBNull.Value);
-
-                        cmd.Parameters.AddWithValue("@csyncinterval_yearlyDate", (object?)model.csyncinterval_yearlyDate ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csyncinterval_monthlyDate", (object?)model.csyncinterval_monthlyDate ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@nis_active", (object?)model.nis_active ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
                         cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                         cmd.Parameters.AddWithValue("@cmodified_by", username);
                         cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-
                         await cmd.ExecuteNonQueryAsync();
                     }
                     return true;
