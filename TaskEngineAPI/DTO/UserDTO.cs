@@ -369,20 +369,11 @@ namespace TaskEngineAPI.DTO
         public string? capi_method { get; set; }
         public string? capi_type { get; set; }
         public string? capi_url { get; set; }
-        public string? csync_type { get; set; }
         public string? capi_params { get; set; }
         public string? capi_headers { get; set; }
-        public DateTime? csynconce_date { get; set; }
-        public DateTime? csynconce_time { get; set; }
-        public DateTime? csyncinterval_dailyTime { get; set; }
-        public string? csyncinterval_weeklyDays { get; set; }
-        public DateTime? csyncinterval_weeklyTime { get; set; }
-        public string? csyncinterval_yearlyMonths { get; set; }
-        public DateTime? csyncinterval_yearlyTime { get; set; }
-        public DateTime? csyncinterval_yearlyDate { get; set; }
-        public DateTime? csyncinterval_monthlyTime { get; set; }
-        public DateTime? csyncinterval_monthlyDate { get; set; }
-        public string? csyncinterval_type { get; set; }
+        public string? capi_config { get; set; }
+        public string? capi_settings { get; set; }
+        public string? cbody { get; set; }
         public bool? nis_active { get; set; }
         public string? ccreated_by { get; set; }
         public DateTime? lcreated_date { get; set; }
@@ -395,46 +386,27 @@ namespace TaskEngineAPI.DTO
         public string? capi_method { get; set; }
         public string? capi_type { get; set; }
         public string? capi_url { get; set; }
-        public string? csync_type { get; set; }
-        public DateTime? csynconce_date { get; set; }
-        public DateTime? csynconce_time { get; set; }
         public string? capi_params { get; set; }
         public string? capi_headers { get; set; }
-        public DateTime? csyncinterval_dailyTime { get; set; }
-        public string? csyncinterval_weeklyDays { get; set; }
-        public DateTime? csyncinterval_weeklyTime { get; set; }  
-        public string? csyncinterval_yearlyMonths { get; set; } 
-        public DateTime? csyncinterval_yearlyTime { get; set; } 
-        public DateTime? csyncinterval_yearlyDate { get; set; }   
-        public DateTime? csyncinterval_monthlyTime { get; set; } 
-        public DateTime? csyncinterval_monthlyDate { get; set; }
-        public string? csyncinterval_type { get; set; }
-        public bool? nis_active { get; set; } 
-
+        public string? capi_config { get; set; }
+        public string? capi_settings { get; set; }
+        public string? cbody { get; set; }
+        public bool? nis_active { get; set; }
     }
+
     public class UpdateAPISyncConfigDTO
     {
         public int ID { get; set; }
         public string? capi_method { get; set; }
         public string? capi_type { get; set; }
         public string? capi_url { get; set; }
-        public string? csync_type { get; set; }
         public string? capi_params { get; set; }
         public string? capi_headers { get; set; }
-        public DateTime? csynconce_date { get; set; }
-        public DateTime? csynconce_time { get; set; }
-        public DateTime? csyncinterval_dailyTime { get; set; }
-        public string? csyncinterval_weeklyDays { get; set; }
-        public DateTime? csyncinterval_weeklyTime { get; set; }
-        public string? csyncinterval_yearlyMonths { get; set; }
-        public DateTime? csyncinterval_yearlyTime { get; set; }
-        public DateTime? csyncinterval_yearlyDate { get; set; }
-        public DateTime? csyncinterval_monthlyTime { get; set; }
-        public DateTime? csyncinterval_monthlyDate { get; set; }
-        public string? csyncinterval_type { get; set; }
+        public string? capi_config { get; set; }
+        public string? capi_settings { get; set; }
+        public string? cbody { get; set; }
         public bool? nis_active { get; set; }
     }
-
     public class DeleteAPISyncConfigDTO
     {
         public int ID { get; set; }
