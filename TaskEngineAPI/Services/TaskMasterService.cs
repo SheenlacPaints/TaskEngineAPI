@@ -42,7 +42,7 @@ namespace TaskEngineAPI.Services
                 using (var transaction = conn.BeginTransaction())
                 {
                     try
-                    {                    
+                    {
                         string taskNoQuery = @"
                     SELECT ISNULL(MAX(TRY_CAST(itaskno AS INT)), 0) + 1 
                     FROM tbl_taskflow_master 
@@ -78,7 +78,7 @@ namespace TaskEngineAPI.Services
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
-                     
+
                         string selectQuery = @"                     
                          SELECT ctenant_id, cprocesscode, ciseqno,cactivitycode, 
                          cactivity_description, ctask_type, cprev_step, cactivityname, cnext_seqno,nboard_enabled,cmapping_code,
@@ -106,7 +106,7 @@ namespace TaskEngineAPI.Services
                                         ["cnextseqno"] = reader["cnext_seqno"],
                                         ["cprevstep"] = reader["cprev_step"],
                                         ["cmapping_code"] = reader["cmapping_code"],
-                                        ["nboard_enabled"]= reader["nboard_enabled"],
+                                        ["nboard_enabled"] = reader["nboard_enabled"],
                                         ["cparticipant_type"] = reader["cparticipant_type"],
                                         ["csla_day"] = reader["csla_day"],
                                         ["csla_Hour"] = reader["csla_Hour"],
@@ -118,8 +118,8 @@ namespace TaskEngineAPI.Services
                                     detailRows.Add(row);
                                 }
                             }
-                        }                    
-                  
+                        }
+
 
                         string queryDetail = @"INSERT INTO tbl_taskflow_detail (
                         itaskno, iseqno, iheader_id, ctenant_id, ctask_type, cmapping_code, 
@@ -193,7 +193,7 @@ namespace TaskEngineAPI.Services
                     }
                     catch (Exception ex)
                     {
-                        transaction.Rollback();                      
+                        transaction.Rollback();
                         throw;
                     }
                 }
@@ -314,7 +314,7 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-    
+
         public async Task<string> Gettaskapprove(int cTenantID, string username)
         {
             try
@@ -342,7 +342,7 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-      
+
         public async Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username)
         {
             try
@@ -392,10 +392,10 @@ namespace TaskEngineAPI.Services
             {
                 throw;
             }
-        }          
+        }
         public async Task<int> Processprivilege_mapping(privilegeMappingDTO model, int cTenantID, string username)
-         {
-            
+        {
+
             int masterId = 0;
 
             try
@@ -414,25 +414,25 @@ namespace TaskEngineAPI.Services
                     @cprocessname, @cis_active, @ccreated_by, @lcreated_date, 
                     @cmodified_by, @lmodified_date); SELECT SCOPE_IDENTITY()";
 
-                        
-                            using (var cmdInsert = new SqlCommand(query, conn, transaction))
-                            {
-                                cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
-                                cmdInsert.Parameters.AddWithValue("@cprocess_privilege", model.privilege);
-                                cmdInsert.Parameters.AddWithValue("@cseq_id", "1");
-                                cmdInsert.Parameters.AddWithValue("@ciseqno", "1");
-                                cmdInsert.Parameters.AddWithValue("@cprocess_id", model.cprocess_id);
-                                cmdInsert.Parameters.AddWithValue("@cprocesscode", model.cprocess_code);
-                                cmdInsert.Parameters.AddWithValue("@cprocessname", model.cprocess_name);
-                                cmdInsert.Parameters.AddWithValue("@cis_active", "1");
-                                cmdInsert.Parameters.AddWithValue("@ccreated_by", username);
-                                cmdInsert.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
-                                cmdInsert.Parameters.AddWithValue("@cmodified_by", username);
-                                cmdInsert.Parameters.AddWithValue("@lmodified_date", DateTime.Now);                               
-                                var newId = await cmdInsert.ExecuteScalarAsync();
-                                masterId = newId != null ? Convert.ToInt32(newId) : 0;
+
+                        using (var cmdInsert = new SqlCommand(query, conn, transaction))
+                        {
+                            cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                            cmdInsert.Parameters.AddWithValue("@cprocess_privilege", model.privilege);
+                            cmdInsert.Parameters.AddWithValue("@cseq_id", "1");
+                            cmdInsert.Parameters.AddWithValue("@ciseqno", "1");
+                            cmdInsert.Parameters.AddWithValue("@cprocess_id", model.cprocess_id);
+                            cmdInsert.Parameters.AddWithValue("@cprocesscode", model.cprocess_code);
+                            cmdInsert.Parameters.AddWithValue("@cprocessname", model.cprocess_name);
+                            cmdInsert.Parameters.AddWithValue("@cis_active", "1");
+                            cmdInsert.Parameters.AddWithValue("@ccreated_by", username);
+                            cmdInsert.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                            cmdInsert.Parameters.AddWithValue("@cmodified_by", username);
+                            cmdInsert.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            var newId = await cmdInsert.ExecuteScalarAsync();
+                            masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
-                       
+
                         string queryDetail = @"
                     INSERT INTO tbl_process_privilege_details (
                         privilege_id, entity_type, entity_id, ctenant_id, cis_active,ccreated_by,lcreated_date, 
@@ -448,12 +448,12 @@ namespace TaskEngineAPI.Services
                                 cmdInsert.Parameters.AddWithValue("@entity_type", row.entity_type);
                                 cmdInsert.Parameters.AddWithValue("@entity_id", row.entity_id);
                                 cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
-                                cmdInsert.Parameters.AddWithValue("@cis_active",true);                  
+                                cmdInsert.Parameters.AddWithValue("@cis_active", true);
                                 cmdInsert.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                                 cmdInsert.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdInsert.Parameters.AddWithValue("@cmodified_by", username);
                                 cmdInsert.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
-                                cmdInsert.Parameters.AddWithValue("@cprocess_id", model.cprocess_id);                        
+                                cmdInsert.Parameters.AddWithValue("@cprocess_id", model.cprocess_id);
                                 await cmdInsert.ExecuteNonQueryAsync();
                             }
                         }
@@ -467,10 +467,10 @@ namespace TaskEngineAPI.Services
             }
             catch (Exception ex)
             {
-               
+
                 throw;
             }
-        }    
+        }
         public async Task<string> GetTaskInitiator(int cTenantID, string username)
         {
             List<TaskList> tsk = new List<TaskList>();
@@ -492,14 +492,14 @@ namespace TaskEngineAPI.Services
                         {
                             List<TaskDetails> tskdtl = new List<TaskDetails>();
                             TaskList p = new TaskList
-                            {                        
-                                ID = sdr.IsDBNull(sdr.GetOrdinal("ID"))? 0: Convert.ToInt32(sdr["ID"]),
+                            {
+                                ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
                                 itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
-                                ctasktype = sdr.IsDBNull(sdr.GetOrdinal("ctask_type"))? string.Empty: Convert.ToString(sdr["ctask_type"]),
+                                ctasktype = sdr.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr["ctask_type"]),
                                 ctaskname = sdr.IsDBNull(sdr.GetOrdinal("ctask_name")) ? string.Empty : Convert.ToString(sdr["ctask_name"]),
                                 ctaskdescription = sdr.IsDBNull(sdr.GetOrdinal("ctask_description")) ? string.Empty : Convert.ToString(sdr["ctask_description"]),
                                 cstatus = sdr.IsDBNull(sdr.GetOrdinal("cstatus")) ? string.Empty : Convert.ToString(sdr["cstatus"]),
-                                lcompleteddate = sdr.IsDBNull(sdr.GetOrdinal("lcompleted_date"))? (DateTime?)null: sdr.GetDateTime(sdr.GetOrdinal("lcompleted_date")),
+                                lcompleteddate = sdr.IsDBNull(sdr.GetOrdinal("lcompleted_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcompleted_date")),
                                 ccreatedby = sdr.IsDBNull(sdr.GetOrdinal("ccreated_by")) ? string.Empty : Convert.ToString(sdr["ccreated_by"]),
                                 lcreateddate = sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
                                 cmodifiedby = sdr.IsDBNull(sdr.GetOrdinal("cmodified_by")) ? string.Empty : Convert.ToString(sdr["cmodified_by"]),
@@ -526,9 +526,9 @@ namespace TaskEngineAPI.Services
                                         {
                                             TaskDetails pd = new TaskDetails
                                             {
-                                               
+
                                                 ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
-                                                iheader_id = sdr1.IsDBNull(sdr1.GetOrdinal("iheader_id"))? 0: Convert.ToInt32(sdr1["iheader_id"]),                                   
+                                                iheader_id = sdr1.IsDBNull(sdr1.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(sdr1["iheader_id"]),
                                                 itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
                                                 iseqno = sdr1.IsDBNull(sdr1.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(sdr1["iseqno"]),
                                                 ctasktype = sdr.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr["ctask_type"]),
@@ -539,13 +539,13 @@ namespace TaskEngineAPI.Services
                                                 inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(sdr1["inext_seqno"]),
                                                 cnextseqtype = sdr1.IsDBNull(sdr1.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(sdr1["cnext_seqtype"]),
                                                 cprevtype = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
-                                                SLA = sdr1.IsDBNull(sdr1.GetOrdinal("csla")) ? string.Empty : Convert.ToString(sdr1["csla"]),                                             
+                                                SLA = sdr1.IsDBNull(sdr1.GetOrdinal("csla")) ? string.Empty : Convert.ToString(sdr1["csla"]),
                                                 cisforwarded = sdr1.IsDBNull(sdr1.GetOrdinal("cis_forwarded")) ? string.Empty : Convert.ToString(sdr1["cis_forwarded"]),
                                                 lfwddate = sdr1.IsDBNull(sdr1.GetOrdinal("lfwddate")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lfwddate")),
                                                 cfwdto = sdr1.IsDBNull(sdr1.GetOrdinal("cfwd_to")) ? string.Empty : Convert.ToString(sdr1["cfwd_to"]),
                                                 cisreassigned = sdr1.IsDBNull(sdr1.GetOrdinal("cis_reassigned")) ? string.Empty : Convert.ToString(sdr1["cis_reassigned"]),
                                                 lreassigndt = sdr1.IsDBNull(sdr1.GetOrdinal("lreassigndt")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lreassigndt")),
-                                                creassignto = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(sdr1["creassign_to"]),                                                                                          
+                                                creassignto = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(sdr1["creassign_to"]),
                                             };
                                             tskdtl.Add(pd);
                                         }
@@ -599,16 +599,16 @@ namespace TaskEngineAPI.Services
                                 ccreatedbyname = sdr.IsDBNull(sdr.GetOrdinal("ccreated_byname")) ? string.Empty : Convert.ToString(sdr["ccreated_byname"]),
                                 lcreateddate = sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
                                 cmodifiedby = sdr.IsDBNull(sdr.GetOrdinal("cmodified_by")) ? string.Empty : Convert.ToString(sdr["cmodified_by"]),
-                                cmodifiedbyname=sdr.IsDBNull(sdr.GetOrdinal("cmodified_byname")) ? string.Empty : Convert.ToString(sdr["cmodified_byname"]),
+                                cmodifiedbyname = sdr.IsDBNull(sdr.GetOrdinal("cmodified_byname")) ? string.Empty : Convert.ToString(sdr["cmodified_byname"]),
                                 lmodifieddate = sdr.IsDBNull(sdr.GetOrdinal("lmodified_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date")),
                                 Employeecode = sdr.IsDBNull(sdr.GetOrdinal("Employeecode")) ? string.Empty : Convert.ToString(sdr["Employeecode"]),
-                                Employeename=sdr.IsDBNull(sdr.GetOrdinal("Employeename")) ? string.Empty : Convert.ToString(sdr["Employeename"]),
+                                Employeename = sdr.IsDBNull(sdr.GetOrdinal("Employeename")) ? string.Empty : Convert.ToString(sdr["Employeename"]),
                                 EmpDepartment = sdr.IsDBNull(sdr.GetOrdinal("EmpDepartment")) ? string.Empty : Convert.ToString(sdr["EmpDepartment"]),
-                                cprocess_id= sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
-                                privilege_name = sdr.IsDBNull(sdr.GetOrdinal("privilege_name")) ? string.Empty : Convert.ToString(sdr["privilege_name"])
+                                //cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                //privilege_name = sdr.IsDBNull(sdr.GetOrdinal("privilege_name")) ? string.Empty : Convert.ToString(sdr["privilege_name"])
 
                             };
 
@@ -643,12 +643,12 @@ namespace TaskEngineAPI.Services
                                                 inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(sdr1["inext_seqno"]),
                                                 cnextseqtype = sdr1.IsDBNull(sdr1.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(sdr1["cnext_seqtype"]),
                                                 cprevtype = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
-                                                csla_day = sdr1.IsDBNull(sdr1.GetOrdinal("csla_day")) ? 0: Convert.ToInt32(sdr1["csla_day"]),
+                                                csla_day = sdr1.IsDBNull(sdr1.GetOrdinal("csla_day")) ? 0 : Convert.ToInt32(sdr1["csla_day"]),
                                                 csla_Hour = sdr1.IsDBNull(sdr1.GetOrdinal("csla_Hour")) ? 0 : Convert.ToInt32(sdr1["csla_Hour"]),
-                                                cprocess_type=sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
-                                                nboard_enabled = sdr1.IsDBNull(sdr1.GetOrdinal("nboard_enabled"))? false : Convert.ToBoolean(sdr1["nboard_enabled"]),
+                                                cprocess_type = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
+                                                nboard_enabled = sdr1.IsDBNull(sdr1.GetOrdinal("nboard_enabled")) ? false : Convert.ToBoolean(sdr1["nboard_enabled"]),
                                                 caction_privilege = sdr1.IsDBNull(sdr1.GetOrdinal("caction_privilege")) ? string.Empty : Convert.ToString(sdr1["caction_privilege"]),
-                                                crejection_privilege= sdr1.IsDBNull(sdr1.GetOrdinal("crejection_privilege")) ? string.Empty : Convert.ToString(sdr1["crejection_privilege"]),
+                                                crejection_privilege = sdr1.IsDBNull(sdr1.GetOrdinal("crejection_privilege")) ? string.Empty : Convert.ToString(sdr1["crejection_privilege"]),
                                                 cisforwarded = sdr1.IsDBNull(sdr1.GetOrdinal("cis_forwarded")) ? string.Empty : Convert.ToString(sdr1["cis_forwarded"]),
                                                 lfwd_date = sdr1.IsDBNull(sdr1.GetOrdinal("lfwd_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lfwd_date")),
                                                 cfwd_to = sdr1.IsDBNull(sdr1.GetOrdinal("cfwd_to")) ? string.Empty : Convert.ToString(sdr1["cfwd_to"]),
@@ -656,6 +656,8 @@ namespace TaskEngineAPI.Services
                                                 creassign_name = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_name")) ? string.Empty : Convert.ToString(sdr1["creassign_name"]),
                                                 lreassign_date = sdr1.IsDBNull(sdr1.GetOrdinal("lreassign_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lreassign_date")),
                                                 creassign_to = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(sdr1["creassign_to"]),
+                                                cactivityname = sdr1.IsDBNull(sdr1.GetOrdinal("cactivityname")) ? string.Empty : Convert.ToString(sdr1["cactivityname"]),
+                                                cactivity_description = sdr1.IsDBNull(sdr1.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(sdr1["cactivity_description"])
                                             };
                                             tskdtl.Add(pd);
                                         }
@@ -675,12 +677,10 @@ namespace TaskEngineAPI.Services
             return JsonConvert.SerializeObject(tsk, Formatting.Indented);
         }
 
-
-
     }
 }
 
 
 
 
-   
+

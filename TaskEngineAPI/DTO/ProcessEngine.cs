@@ -246,8 +246,8 @@ namespace TaskEngineAPI.DTO
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public List<GetTaskDetails>? TaskChildItems { get; set; }
-        public string? cprocessdescription { get; set; }
-        public string? privilege_name { get; set; }
+        //public string? cprocessdescription { get; set; }
+        //public string? privilege_name { get; set; }
     }
 
 
@@ -279,7 +279,8 @@ namespace TaskEngineAPI.DTO
         public string? creassign_to { get; set; }
 
         public string? creassign_name { get; set; }
-        
+        public string? cactivityname { get; set; }
+        public string? cactivity_description { get; set; }
 
     }
 
