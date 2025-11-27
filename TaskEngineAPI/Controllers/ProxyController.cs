@@ -1315,7 +1315,7 @@ namespace TaskEngineAPI.Controllers
 
 
         [Authorize]
-        [HttpPost("createusersapisyncconfig")]
+        [HttpPost("usersapisyncconfig")]
         public async Task<IActionResult> usersapisyncconfig([FromBody] pay request)
         {
             try
@@ -1328,7 +1328,7 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing Authorization token.");
                 }
 
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/createusersapisyncconfig");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/usersapisyncconfig");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
