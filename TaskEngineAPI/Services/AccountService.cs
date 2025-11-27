@@ -2151,6 +2151,7 @@ VALUES (
         //    await bulkCopy.WriteToServerAsync(table);
         //    return table.Rows.Count;
         //}
+
         public async Task<bool> InsertusersapisyncconfigAsync(usersapisyncDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -2198,9 +2199,12 @@ VALUES (
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in InsertusersapisyncconfigAsync: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return false;
             }
         }
+
 
 
 
