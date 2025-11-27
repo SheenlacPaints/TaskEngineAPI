@@ -2163,18 +2163,18 @@ VALUES (
 
                     string query = @"
                 INSERT INTO tbl_users_api_sync_config (
-                    ctenant_id, capi_method, capi_type, capi_url, csync_type, 
+                    ctenant_id, capi_method, capi_type, capi_url, csync_type,capi_params,capi_headers, 
                     csynconce_date, csynconce_time, csyncinterval_type, csyncinterval_dailyTime, 
                     csyncinterval_weeklyDays, csyncinterval_weeklyTime, csyncinterval_yearlyMonths, 
                     csyncinterval_yearlyDate, csyncinterval_monthlyDate, csyncinterval_monthlyTime,
-                    csyncinterval_yearlyTime, nis_active, cjson_response, ccreated_by, lcreated_date, 
+                    csyncinterval_yearlyTime, nis_active, ccreated_by, lcreated_date, 
                     cmodified_by, lmodified_date
                 ) VALUES(
-                    @TenantID, @capi_method, @capi_type, @capi_url, @csync_type, 
+                    @TenantID, @capi_method, @capi_type, @capi_url, @csync_type,@capi_params,@capi_headers,
                     @csynconce_date, @csynconce_time, @csyncinterval_type, @csyncinterval_dailyTime,
                     @csyncinterval_weeklyDays, @csyncinterval_weeklyTime, @csyncinterval_yearlyMonths,
                     @csyncinterval_yearlyDate, @csyncinterval_monthlyDate, @csyncinterval_monthlyTime,
-                    @csyncinterval_yearlyTime, @nis_active, @cjson_response, @ccreated_by, @lcreated_date, 
+                    @csyncinterval_yearlyTime, @nis_active, @ccreated_by, @lcreated_date, 
                     @cmodified_by, @lmodified_date
                 );";
 
@@ -2185,6 +2185,8 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_type", (object?)model.capi_type ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_url", (object?)model.capi_url ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_params", (object?)model.capi_params ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_headers", (object?)model.capi_headers ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csynconce_date", (object?)model.csynconce_date ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csynconce_time", (object?)model.csynconce_time ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csyncinterval_type", (object?)model.csyncinterval_type ?? DBNull.Value);
@@ -2201,7 +2203,6 @@ VALUES (
                         cmd.Parameters.AddWithValue("@csyncinterval_yearlyDate", (object?)model.csyncinterval_yearlyDate ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csyncinterval_monthlyDate", (object?)model.csyncinterval_monthlyDate ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@nis_active", (object?)model.nis_active ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@cjson_response", (object?)model.cjson_response ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
                         cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                         cmd.Parameters.AddWithValue("@cmodified_by", username);
@@ -2840,15 +2841,15 @@ VALUES (
 
                     string query = @"
                 SELECT 
-                    ID, ctenant_id, capi_method, capi_type, capi_url, csync_type,
-                    csynconce_date, csynconce_time, csyncinterval_type, csyncinterval_dailyTime,
-                    csyncinterval_weeklyDays, csyncinterval_weeklyTime, csyncinterval_yearlyMonths,
-                    csyncinterval_yearlyDate, csyncinterval_monthlyDate, csyncinterval_monthlyTime,
-                    csyncinterval_yearlyTime, nis_active, cjson_response, ccreated_by, lcreated_date,
-                    cmodified_by, lmodified_date
-                FROM tbl_users_api_sync_config 
-                WHERE ctenant_id = @TenantID 
-                ORDER BY lcreated_date DESC";
+     ID, ctenant_id, capi_method, capi_type, capi_url, csync_type,capi_params,capi_headers,
+     csynconce_date, csynconce_time, csyncinterval_type, csyncinterval_dailyTime,
+     csyncinterval_weeklyDays, csyncinterval_weeklyTime, csyncinterval_yearlyMonths,
+     csyncinterval_yearlyDate, csyncinterval_monthlyDate, csyncinterval_monthlyTime,
+     csyncinterval_yearlyTime, nis_active, ccreated_by, lcreated_date,
+     cmodified_by, lmodified_date
+ FROM tbl_users_api_sync_config 
+ WHERE ctenant_id =@TenantID 
+ ORDER BY lcreated_date DESC";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
@@ -2866,6 +2867,8 @@ VALUES (
                                     capi_type = reader["capi_type"] != DBNull.Value ? reader["capi_type"].ToString() : null,
                                     capi_url = reader["capi_url"] != DBNull.Value ? reader["capi_url"].ToString() : null,
                                     csync_type = reader["csync_type"] != DBNull.Value ? reader["csync_type"].ToString() : null,
+                                    capi_params= reader["capi_params"] != DBNull.Value ?  reader["capi_params"].ToString() : null,
+                                    capi_headers= reader["capi_headers"] != DBNull.Value ?  reader["capi_headers"].ToString() : null,
                                     csynconce_date = reader["csynconce_date"] != DBNull.Value ? Convert.ToDateTime(reader["csynconce_date"]) : null,
                                     csynconce_time = reader["csynconce_time"] != DBNull.Value ? Convert.ToDateTime(reader["csynconce_time"]) : null,
                                     csyncinterval_dailyTime = reader["csyncinterval_dailyTime"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_dailyTime"]) : null,
@@ -2878,7 +2881,6 @@ VALUES (
                                     csyncinterval_monthlyDate = reader["csyncinterval_monthlyDate"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_monthlyDate"]) : null,
                                     csyncinterval_type = reader["csyncinterval_type"] != DBNull.Value ? reader["csyncinterval_type"].ToString() : null,
                                     nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
-                                    cjson_response = reader["cjson_response"] != DBNull.Value ? reader["cjson_response"].ToString() : null,
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
@@ -2942,6 +2944,8 @@ VALUES (
                     capi_type = @capi_type,
                     capi_url = @capi_url,
                     csync_type = @csync_type,
+                    capi_params = @capi_params,
+                    capi_headers = @capi_headers,
                     csynconce_date = @csynconce_date,
                     csynconce_time = @csynconce_time,
                     csyncinterval_type = @csyncinterval_type,
@@ -2954,7 +2958,6 @@ VALUES (
                     csyncinterval_monthlyTime = @csyncinterval_monthlyTime,
                     csyncinterval_yearlyTime = @csyncinterval_yearlyTime,
                     nis_active = @nis_active,
-                    cjson_response = @cjson_response,
                     cmodified_by = @username,
                     lmodified_date = GETDATE()
                 WHERE ID = @ID 
@@ -2968,6 +2971,8 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_type", (object?)model.capi_type ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_url", (object?)model.capi_url ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_params", (object?)model.capi_params ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_headers", (object?)model.capi_headers ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csynconce_date", (object?)model.csynconce_date ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csynconce_time", (object?)model.csynconce_time ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csyncinterval_type", (object?)model.csyncinterval_type ?? DBNull.Value);
@@ -2980,7 +2985,6 @@ VALUES (
                         cmd.Parameters.AddWithValue("@csyncinterval_monthlyTime", (object?)model.csyncinterval_monthlyTime ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@csyncinterval_yearlyTime", (object?)model.csyncinterval_yearlyTime ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@nis_active", (object?)model.nis_active ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@cjson_response", (object?)model.cjson_response ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@username", username);
 
                         int rowsAffected = await cmd.ExecuteNonQueryAsync();
@@ -3006,11 +3010,11 @@ VALUES (
 
                     string query = @"
                 SELECT 
-                    ID, ctenant_id, capi_method, capi_type, capi_url, csync_type,
+                    ID, ctenant_id, capi_method, capi_type, capi_url, csync_type,capi_params,capi_headers,
                     csynconce_date, csynconce_time, csyncinterval_type, csyncinterval_dailyTime,
                     csyncinterval_weeklyDays, csyncinterval_weeklyTime, csyncinterval_yearlyMonths,
                     csyncinterval_yearlyDate, csyncinterval_monthlyDate, csyncinterval_monthlyTime,
-                    csyncinterval_yearlyTime, nis_active, cjson_response, ccreated_by, lcreated_date,
+                    csyncinterval_yearlyTime, nis_active, ccreated_by, lcreated_date,
                     cmodified_by, lmodified_date
                 FROM tbl_users_api_sync_config 
                 WHERE ID = @ID 
@@ -3034,6 +3038,8 @@ VALUES (
                                     capi_type = reader["capi_type"] != DBNull.Value ? reader["capi_type"].ToString() : null,
                                     capi_url = reader["capi_url"] != DBNull.Value ? reader["capi_url"].ToString() : null,
                                     csync_type = reader["csync_type"] != DBNull.Value ? reader["csync_type"].ToString() : null,
+                                    capi_params= reader["capi_params"] != DBNull.Value ?  reader["capi_params"].ToString() : null,
+                                    capi_headers= reader["capi_headers"] != DBNull.Value ?  reader["capi_headers"].ToString() : null,
                                     csynconce_date = reader["csynconce_date"] != DBNull.Value ? Convert.ToDateTime(reader["csynconce_date"]) : null,
                                     csynconce_time = reader["csynconce_time"] != DBNull.Value ? Convert.ToDateTime(reader["csynconce_time"]) : null,
                                     csyncinterval_dailyTime = reader["csyncinterval_dailyTime"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_dailyTime"]) : null,
@@ -3046,7 +3052,6 @@ VALUES (
                                     csyncinterval_monthlyDate = reader["csyncinterval_monthlyDate"] != DBNull.Value ? Convert.ToDateTime(reader["csyncinterval_monthlyDate"]) : null,
                                     csyncinterval_type = reader["csyncinterval_type"] != DBNull.Value ? reader["csyncinterval_type"].ToString() : null,
                                     nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
-                                    cjson_response = reader["cjson_response"] != DBNull.Value ? reader["cjson_response"].ToString() : null,
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
