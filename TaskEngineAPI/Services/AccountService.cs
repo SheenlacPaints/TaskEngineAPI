@@ -2164,9 +2164,9 @@ VALUES (
                     string query = @"
                     INSERT INTO tbl_users_api_sync_config (
                     ctenant_id,capi_method,capi_type,capi_url,capi_params,capi_headers,capi_config
-                    ,capi_settings,csync_type,nis_active,ccreated_by,lcreated_date,cmodified_by,lmodified_date) VALUES(
+                    ,capi_settings,cbody,nis_active,ccreated_by,lcreated_date,cmodified_by,lmodified_date) VALUES(
                     @TenantID, @capi_method, @capi_type, @capi_url, @capi_params,@capi_headers,@capi_config,
-                    @capi_settings, @csync_type, @nis_active,@ccreated_by, @lcreated_date, 
+                    @capi_settings, @cbody, @nis_active,@ccreated_by, @lcreated_date, 
                     @cmodified_by, @lmodified_date);";
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
@@ -2178,7 +2178,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_headers", (object?)model.capi_headers ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@csync_type", (object?)model.csync_type ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@nis_active", (object?)model.nis_active ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
                         cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
