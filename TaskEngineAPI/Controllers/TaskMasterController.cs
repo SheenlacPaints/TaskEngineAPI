@@ -641,8 +641,8 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet]
-        [Route("GettaskboxByid")]
-        public async Task<IActionResult> GettaskboxByid([FromQuery] int id)
+        [Route("Gettaskinboxdatabyid")]
+        public async Task<IActionResult> Gettaskinboxdatabyid([FromQuery] int id)
         {
             try
             {
@@ -657,7 +657,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
                 string username = usernameClaim;
-                var data = await _TaskMasterService.Getinboxdatabyid(cTenantID, id);
+                var data = await _TaskMasterService.Gettaskinboxdatabyid(cTenantID, id);
               
                 var response = new APIResponse
                 {

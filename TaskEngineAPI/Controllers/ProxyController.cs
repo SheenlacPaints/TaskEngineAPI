@@ -1759,8 +1759,8 @@ namespace TaskEngineAPI.Controllers
 
 
         [Authorize]
-        [HttpGet("Getinboxdatabyid")]
-        public async Task<IActionResult> Getinboxdatabyid([FromQuery] int id)
+        [HttpGet("Gettaskinboxdatabyid")]
+        public async Task<IActionResult> Gettaskinboxdatabyid([FromQuery] int id)
         {
             try
             {
@@ -1769,7 +1769,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                            
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Getinboxdatabyid?id={id}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinboxdatabyid?id={id}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
