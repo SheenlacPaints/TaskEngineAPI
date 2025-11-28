@@ -96,10 +96,68 @@ namespace TaskEngineAPI.DTO
         public bool? cis_disabled { get; set; }
         public string? cfieldValue { get; set; }
         public string? cdatasource { get; set; }
-        public string? ccondition { get; set; }      
+        public string? ccondition { get; set; }
     }
 
+    public class GettaskinboxbyidDTO
+    {   
+        public int?    processId { get; set; }
+        public string? processName { get; set; }
+        public string? processDesc { get; set; }         
+        public string? activityName { get; set; }
+        public string? priorityLabel { get; set; }
+        public string? activityDesc { get; set; }
+        public string? taskStatus { get; set; }
+        public string? participantType { get; set; }
+        public string? actionPrivilege { get; set; }
+        public string? assigneeType { get; set; }
+        public string? assigneeValue { get; set; }
+        public int? slaDays { get; set; }
+        public int? slaHours { get; set; }
+        public string? executionType { get; set; }
+        public DateTime? taskAssignedDate { get; set; }
+        public DateTime? taskInitiatedDate { get; set; }
+        public bool? showTimeline { get; set; }
+        public List<TimelineDTO>? timeline { get; set; }
+
+        public List<processEnginetaskMeta> meta { get; set; }
+       
+        public List<GetprocessEngineConditionDTO> board { get; set; }
+
+       
+    }
+
+   
+    
 }
+
+  public class processEnginetaskMeta
+{
+    public string? cinputType { get; set; }
+    public string? clabel { get; set; }
+    public string? cplaceholder { get; set; }
+    public bool? cisRequired { get; set; }
+    public bool? cisReadonly { get; set; }
+    public bool? cisDisabled { get; set; }
+    public string? cfieldValue { get; set; }
+
+    public string? cdatasource { get; set; }
+
+
+}
+
+public class TimelineDTO
+{
+    public string? taskName { get; set; }
+    public string? assigneeName { get; set; }
+    public string? status { get; set; }
+    public int? slaDays { get; set; }
+    public int? slaHours { get; set; }
+
+}
+
+
+
 
 
 

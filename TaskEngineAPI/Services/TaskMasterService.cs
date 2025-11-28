@@ -1,7 +1,9 @@
 ﻿
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Net.NetworkInformation;
+using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -734,8 +736,258 @@ namespace TaskEngineAPI.Services
             }
         }
 
+               
+        public async Task<List<GettaskinboxbyidDTO>> Getinboxdatabyidold(int cTenantID, int ID)
+        {
+            try
+            {
+                var result = new List<GettaskinboxbyidDTO>();
+                var connStr = _config.GetConnectionString("Database");
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"select a.cprocess_id as processId,c.cprocessname as processName,c.cprocessdescription as processDesc,
+	            d.cactivityname as activityName,d.cactivity_description as activityDesc,c.cpriority_label as priorityLabel ,
+	            b.ccurrent_status as taskStatus,d.cparticipant_type as participantType,
+	            d.caction_privilege as actionPrivilege,d.cmapping_type as assigneeType,d.cmapping_code as assigneeValue,
+	            d.csla_day as slaDays,d.csla_Hour as slaHours,d.ctask_type as executionType,
+	            c.nshow_timeline as showTimeline,a.lcreated_date as taskInitiatedDate,		 
+	            b.lcurrent_status_date as taskAssignedDate ,e.cfirst_name+ ' '+e.clast_name as assigneeName
+            from tbl_taskflow_master a 
+            inner join tbl_taskflow_detail b on a.id=b.iheader_id
+            inner join tbl_process_engine_master c on a.cprocess_id=c.ID 
+            inner join tbl_process_engine_details d on c.ID=d.cheader_id and d.ciseqno=b.iseqno 
+            inner join Users e on e.cuserid= CONVERT(int,a.ccreated_by) and e.ctenant_id=a.ctenant_id 
+            where b.id=@ID "; 
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@ID", ID);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var mapping = new GettaskinboxbyidDTO
+                                {
+                                    processId = reader["processId"] == DBNull.Value ? 0 : Convert.ToInt32(reader["processId"]),
+                                    processName = reader["processName"]?.ToString() ?? "",
+                                    processDesc = reader["processDesc"]?.ToString() ?? "",
+                                    activityName = reader["activityName"]?.ToString() ?? "",
+                                    priorityLabel = reader["priorityLabel"]?.ToString() ?? "",
+                                    activityDesc = reader["activityDesc"]?.ToString() ?? "",
+                                    taskStatus = reader["taskStatus"]?.ToString() ?? "",
+                                    participantType = reader["participantType"]?.ToString() ?? "",
+                                    actionPrivilege = reader["actionPrivilege"]?.ToString() ?? "",
+                                    assigneeType = reader["assigneeType"]?.ToString() ?? "",
+                                    assigneeValue = reader["assigneeValue"]?.ToString() ?? "",
+                                    slaDays = reader["slaDays"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaDays"]),
+                                    slaHours = reader["slaHours"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaHours"]),
+                                    executionType = reader["executionType"]?.ToString() ?? "",
+                                    taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
+                                    taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
+                                    showTimeline = reader.SafeGetBoolean("showTimeline"),
+                                    timeline = new List<TimelineDTO>(),
+                                    board = new List<GetprocessEngineConditionDTO>(),
+                                    meta = new List<processEnginetaskMeta>(),
+                                };
+                                if (mapping.showTimeline == true)
+                                {
+                                    var child = new TimelineDTO
+                                    {
+                                        taskName = reader["processName"]?.ToString() ?? "",
+                                        assigneeName = reader["assigneeName"]?.ToString() ?? "",
+                                        status = reader["taskStatus"]?.ToString() ?? "",
+                                        slaDays = reader["slaDays"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaDays"]),
+                                        slaHours = reader["slaHours"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaHours"]),
+                                    };
+                                    mapping.timeline.Add(child);
+                                }
+                                string condQuery = @"SELECT c.ID, c.ciseqno, c.icond_seqno, c.ctype, c.clabel, c.cfield_value, c.ccondition,
+                                              c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, c.cdata_source
+                                              FROM tbl_process_engine_condition c
+                                              WHERE c.cheader_id = @HeaderID;"; 
+
+                                using var condCmd = new SqlCommand(condQuery, conn);
+                              
+                                condCmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
+
+                                using var condReader = await condCmd.ExecuteReaderAsync();
+                                while (await condReader.ReadAsync())
+                                {
+                                   var childboard = new GetprocessEngineConditionDTO
+                                    {
+                                        ID = condReader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["ID"]),                                        
+                                        cprocessCode = mapping.processName,
+                                        ciseqno = condReader["ciseqno"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["ciseqno"]),
+                                        icondseqno = condReader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["icond_seqno"]),
+                                        ctype = condReader["ctype"]?.ToString() ?? "",
+                                        clabel = condReader["clabel"]?.ToString() ?? "",
+                                        cplaceholder = condReader["cplaceholder"]?.ToString() ?? "",
+                                        cisRequired = condReader.SafeGetBoolean("cis_required"),
+                                        cisReadonly = condReader.SafeGetBoolean("cis_readonly"),
+                                        cis_disabled = condReader.SafeGetBoolean("cis_disabled"),
+                                        cfieldValue = condReader["cfield_value"]?.ToString() ?? "",
+                                        cdatasource = condReader["cdata_source"]?.ToString() ?? "",
+                                        ccondition = condReader["ccondition"]?.ToString() ?? "",
+                                    };
+                                    mapping.board.Add(childboard);
+                                }
+                                result.Add(mapping);
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {              
+                throw new Exception($"Error retrieving task inbox list: {ex.Message}", ex);
+            }
+        }
 
 
+        public async Task<List<GettaskinboxbyidDTO>> Getinboxdatabyid(int cTenantID, int ID)
+        {         
+            var result = new List<GettaskinboxbyidDTO>();
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+                    string query = @"select a.cprocess_id as processId,c.cprocessname as processName,c.cprocessdescription as processDesc,
+                        d.cactivityname as activityName,d.cactivity_description as activityDesc,c.cpriority_label as priorityLabel ,
+                        b.ccurrent_status as taskStatus,d.cparticipant_type as participantType,
+                        d.caction_privilege as actionPrivilege,d.cmapping_type as assigneeType,d.cmapping_code as assigneeValue,
+                        d.csla_day as slaDays,d.csla_Hour as slaHours,d.ctask_type as executionType,
+                        c.nshow_timeline as showTimeline,a.lcreated_date as taskInitiatedDate,		 
+                        b.lcurrent_status_date as taskAssignedDate ,e.cfirst_name + ' ' + e.clast_name as assigneeName,d.id as processdetailid,
+                         c.cmeta_id
+                    from tbl_taskflow_master a 
+                    inner join tbl_taskflow_detail b on a.id=b.iheader_id
+                    inner join tbl_process_engine_master c on a.cprocess_id=c.ID 
+                    inner join tbl_process_engine_details d on c.ID=d.cheader_id and d.ciseqno=b.iseqno 
+                    inner join Users e on e.cuserid= CONVERT(int,a.ccreated_by) and e.ctenant_id=a.ctenant_id 
+                    where b.id=@ID"; 
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@ID", ID);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+
+                                int processdetailid = reader["processdetailid"] == DBNull.Value ? 0 : Convert.ToInt32(reader["processdetailid"]);
+                                int meta_id = reader["cmeta_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmeta_id"]);
+                                var mapping = new GettaskinboxbyidDTO
+                                {
+                                    processId = reader["processId"] == DBNull.Value ? 0 : Convert.ToInt32(reader["processId"]),
+                                    processName = reader["processName"]?.ToString() ?? "",
+                                    processDesc = reader["processDesc"]?.ToString() ?? "",
+                                    activityName = reader["activityName"]?.ToString() ?? "",
+                                    priorityLabel = reader["priorityLabel"]?.ToString() ?? "",
+                                    activityDesc = reader["activityDesc"]?.ToString() ?? "",
+                                    taskStatus = reader["taskStatus"]?.ToString() ?? "",
+                                    participantType = reader["participantType"]?.ToString() ?? "",
+                                    actionPrivilege = reader["actionPrivilege"]?.ToString() ?? "",
+                                    assigneeType = reader["assigneeType"]?.ToString() ?? "",
+                                    assigneeValue = reader["assigneeValue"]?.ToString() ?? "",
+                                    slaDays = reader["slaDays"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaDays"]),
+                                    slaHours = reader["slaHours"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaHours"]),
+                                    executionType = reader["executionType"]?.ToString() ?? "",
+                                    taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
+                                    taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
+                                    showTimeline = reader.SafeGetBoolean("showTimeline"),
+                                    timeline = new List<TimelineDTO>(),
+                                    board = new List<GetprocessEngineConditionDTO>(),
+                                    meta = new List<processEnginetaskMeta>(),
+                                };
+
+                                if (mapping.showTimeline == true)
+                                {
+                                    var child = new TimelineDTO
+                                    {
+                                        taskName = reader["processName"]?.ToString() ?? "",
+                                        assigneeName = reader["assigneeName"]?.ToString() ?? "",
+                                        status = reader["taskStatus"]?.ToString() ?? "",
+                                        slaDays = reader["slaDays"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaDays"]),
+                                        slaHours = reader["slaHours"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaHours"]),
+                                    };
+                                    mapping.timeline.Add(child);
+                                }
+                                string condQuery = @"SELECT c.ID, c.ciseqno, c.icond_seqno, c.ctype, c.clabel, c.cfield_value, c.ccondition,
+                                                  c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, c.cdata_source
+                                                  FROM tbl_process_engine_condition c
+                                                  WHERE c.cheader_id = @HeaderID and ciseqno=@ciseqno;";
+
+                                using var condCmd = new SqlCommand(condQuery, conn);
+                                condCmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
+                                condCmd.Parameters.AddWithValue("@ciseqno", processdetailid);
+                                using var condReader = await condCmd.ExecuteReaderAsync();
+                                while (await condReader.ReadAsync())
+                                {
+                                    var childboard = new GetprocessEngineConditionDTO
+                                    {
+                                        ID = condReader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["ID"]),
+                                        cprocessCode = mapping.processName, 
+                                        ciseqno = condReader["ciseqno"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["ciseqno"]),
+                                        icondseqno = condReader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["icond_seqno"]),
+                                        ctype = condReader["ctype"]?.ToString() ?? "",
+                                        clabel = condReader["clabel"]?.ToString() ?? "",
+                                        cplaceholder = condReader["cplaceholder"]?.ToString() ?? "",
+                                        cisRequired = condReader.SafeGetBoolean("cis_required"),
+                                        cisReadonly = condReader.SafeGetBoolean("cis_readonly"),
+                                        cis_disabled = condReader.SafeGetBoolean("cis_disabled"),
+                                        cfieldValue = condReader["cfield_value"]?.ToString() ?? "",
+                                        cdatasource = condReader["cdata_source"]?.ToString() ?? "",
+                                        ccondition = condReader["ccondition"]?.ToString() ?? "",
+                                    };
+                                    mapping.board.Add(childboard);
+                                }
+
+                                string metaQuery = @"SELECT Id,cInput_type,label,cPlaceholder,cis_Required,cis_readonly,cis_disabled,cfield_value,cdata_source
+                                FROM tbl_process_meta_detail where cheader_id= @HeaderID ;";             
+                                using var metaCmd = new SqlCommand(metaQuery, conn);
+                                metaCmd.Parameters.AddWithValue("@HeaderID", meta_id);
+                                using var metaReader = await metaCmd.ExecuteReaderAsync();
+                                while (await metaReader.ReadAsync())
+                                {
+                                    var childmeta = new processEnginetaskMeta
+                                    {
+                                        cinputType = metaReader["cInput_type"]?.ToString() ?? "",
+                                        clabel = metaReader["label"]?.ToString() ?? "",
+                                        cplaceholder = metaReader["cPlaceholder"]?.ToString() ?? "",
+                                        cisRequired = metaReader.SafeGetBoolean("cis_Required"),
+                                        cisReadonly = metaReader.SafeGetBoolean("cis_readonly"),
+                                        cisDisabled = metaReader.SafeGetBoolean("cis_disabled"),
+                                        cfieldValue = metaReader["cfield_value"]?.ToString() ?? "",
+                                        cdatasource = metaReader["cdata_source"]?.ToString() ?? "",            
+                                    };
+                                    mapping.meta.Add(childmeta);
+                                }
+
+
+                                result.Add(mapping);
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {               
+                throw new Exception($"Error retrieving task inbox list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
+            }
+        }
 
     }
 }

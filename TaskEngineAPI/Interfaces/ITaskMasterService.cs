@@ -18,10 +18,7 @@ namespace TaskEngineAPI.Interfaces
             Task<int> Processprivilege_mapping(privilegeMappingDTO model, int tenantId, string username);         
             Task<string> GetTaskInitiator(int cTenantID, string username);
             Task<List<GetprocessEngineConditionDTO>> GetTaskConditionBoard(int cTenantID, int ID);
-
-
-
-
+            Task<List<GettaskinboxbyidDTO>> Getinboxdatabyid(int cTenantID, int ID);
     }
 
 }
