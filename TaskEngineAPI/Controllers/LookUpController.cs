@@ -557,5 +557,6 @@ namespace TaskEngineAPI.Controllers
         public string statusText { get; set; } = string.Empty;
         public string error { get; set; } = string.Empty;
         public int status { get; set; }
+        public object? data { get; set; }
     }
 }
