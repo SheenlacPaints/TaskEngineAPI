@@ -391,6 +391,8 @@ namespace TaskEngineAPI.DTO
         public string? capi_config { get; set; }
         public string? capi_settings { get; set; }
         public string? cbody { get; set; }
+        public string? cname { get; set; }
+        
         public bool? nis_active { get; set; }
     }
 
