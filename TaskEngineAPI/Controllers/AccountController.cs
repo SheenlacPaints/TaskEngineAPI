@@ -3553,11 +3553,11 @@ namespace TaskEngineAPI.Controllers
                     capi_method = config.capi_method,
                     capi_type = config.capi_type,
                     capi_url = config.capi_url,
-                    capi_params = config.capi_params,
-                    capi_headers = config.capi_headers,
-                    capi_config = config.capi_config,
-                    capi_settings = config.capi_settings, 
-                    cbody = config.cbody,
+                    //capi_params = config.capi_params,
+                    //capi_headers = config.capi_headers,
+                    //capi_config = config.capi_config,
+                    //capi_settings = config.capi_settings, 
+                    //cbody = config.cbody,
                     nis_active = config.nis_active,
                     ccreated_by = config.ccreated_by,
                     lcreated_date = config.lcreated_date,
@@ -3623,15 +3623,22 @@ namespace TaskEngineAPI.Controllers
                 {
                     data = new
                     {
+                        id = apiConfig.ID,
+                        ctenant_id = apiConfig.ctenant_id,
                         capi_method = apiConfig.capi_method,
                         capi_type = apiConfig.capi_type,
                         capi_url = apiConfig.capi_url,
-                        capi_params = JsonConvert.DeserializeObject(apiConfig.capi_params ?? "[]"),
-                        capi_headers = JsonConvert.DeserializeObject(apiConfig.capi_headers ?? "[]"),
-                        capi_config = JsonConvert.DeserializeObject(apiConfig.capi_config ?? "null"),
-                        capi_settings = JsonConvert.DeserializeObject(apiConfig.capi_settings ?? "{}"),
-                        cbody = JsonConvert.DeserializeObject(apiConfig.cbody ?? "[]"),
-                        nis_active = apiConfig.nis_active ?? true
+                        //capi_params = config.capi_params,
+                        //capi_headers = config.capi_headers,
+                        //capi_config = config.capi_config,
+                        //capi_settings = config.capi_settings, 
+                        //cbody = config.cbody,
+                        nis_active = apiConfig.nis_active,
+                        ccreated_by = apiConfig.ccreated_by,
+                        lcreated_date = apiConfig.lcreated_date,
+                        cmodified_by = apiConfig.cmodified_by,
+                        lmodified_date = apiConfig.lmodified_date
+
                     },
                     statusText = "Successful",
                     status = 200
@@ -3865,19 +3872,6 @@ namespace TaskEngineAPI.Controllers
                 {
                     status = success ? 200 : 404,
                     statusText = success ? "API sync config updated successfully" : "API sync config not found",
-                    //data = new
-                    //{
-                    //    ConfigID = model.ID,
-                    //    capi_method = model.capi_method,
-                    //    capi_type = model.capi_type,
-                    //    capi_url = model.capi_url,
-                    //    capi_params = JsonConvert.DeserializeObject(model.capi_params ?? "[]"),
-                    //    capi_headers = JsonConvert.DeserializeObject(model.capi_headers ?? "[]"),
-                    //    capi_config = JsonConvert.DeserializeObject(model.capi_config ?? "null"),
-                    //    capi_settings = JsonConvert.DeserializeObject(model.capi_settings ?? "{}"),
-                    //    cbody = JsonConvert.DeserializeObject(model.cbody ?? "[]"),
-                    //    nis_active = model.nis_active ?? true
-                    //}
                 };
 
                 string json = JsonConvert.SerializeObject(response);
