@@ -616,7 +616,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
                     statusText = data == null || !data.Any() ? "No data found" : "Successful",
-                    status = data == null || !data.Any() ? 204 : 200
+                    status = data == null || !data.Any() ? 204 : 200     
                 };
 
                 string jsoner = JsonConvert.SerializeObject(response);

@@ -2184,7 +2184,6 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cname", (object?)model.cname ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
                         cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
