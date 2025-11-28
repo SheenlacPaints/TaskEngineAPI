@@ -2322,7 +2322,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
+        [Authorize]
         [HttpPost]
         [Route("usersapisyncconfig")]
         public async Task<IActionResult> usersapisyncconfig([FromBody] pay request)
