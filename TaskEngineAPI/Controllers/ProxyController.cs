@@ -594,13 +594,13 @@ namespace TaskEngineAPI.Controllers
      [FromQuery] int? status = null)
         {
             try
-            {              
+            {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
 
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return Unauthorized("Missing Authorization token.");
-                }            
+                }
                 var queryParams = new List<string>();
 
                 if (!string.IsNullOrWhiteSpace(searchText))
@@ -619,7 +619,7 @@ namespace TaskEngineAPI.Controllers
                     queryParams.Add($"status={status.Value}");
 
                 var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
-             
+
                 var requestMessage = new HttpRequestMessage(
                     HttpMethod.Get,
                     $"{_baseUrl}ProcessEngine/GetAllProcessEngine{queryString}");
@@ -630,8 +630,8 @@ namespace TaskEngineAPI.Controllers
                 var body = await response.Content.ReadAsStringAsync();
 
 
-                string jsonn = JsonConvert.SerializeObject(body);             
-                           
+                string jsonn = JsonConvert.SerializeObject(body);
+
                 return StatusCode((int)response.StatusCode, jsonn);
             }
             catch (Exception ex)
@@ -1387,7 +1387,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-       
+
 
         [Authorize]
         [HttpGet("GetPrivilegeTypeById")]
@@ -1529,7 +1529,7 @@ namespace TaskEngineAPI.Controllers
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
-              
+
             }
             catch (Exception ex)
             {
@@ -1543,7 +1543,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, $"\"{enc}\"");
             }
         }
-      
+
         [Authorize]
         [HttpGet("GetMappingList")]
         public async Task<IActionResult> GetMappingList()
@@ -1797,5 +1797,37 @@ namespace TaskEngineAPI.Controllers
 
 
 
+        [Authorize]
+        [HttpGet("GetboarddetailByid")]
+        public async Task<IActionResult> GetboarddetailByid([FromQuery] int id)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GetboarddetailByid?id={id}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
     }
 }
