@@ -506,6 +506,10 @@ VALUES (
             WHERE ctenant_id = @ctenantID and id=@id";
 
             using var cmd = new SqlCommand(query, conn);
+
+         
+            model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+
             cmd.Parameters.AddWithValue("@id", model.id);
             cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
             cmd.Parameters.AddWithValue("@ctenantID", cTenantID);
