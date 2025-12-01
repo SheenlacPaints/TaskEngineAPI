@@ -2168,7 +2168,7 @@ VALUES (
                     cmodified_by, lmodified_date
                 ) VALUES(
                     @TenantID, @capi_method, @capi_type, @capi_url, 
-                    @capi_params, @capi_headers, @capi_config, @capi_settings, @cbody,@cname
+                    @capi_params, @capi_headers, @capi_config, @capi_settings, @cbody,@cname,
                     @nis_active, @ccreated_by, @lcreated_date, 
                     @cmodified_by, @lmodified_date
                 )";

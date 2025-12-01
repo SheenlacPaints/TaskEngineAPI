@@ -832,8 +832,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@cmodified_by", username);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@cprocess_privilege", model.cprivilegeType);
-                            cmd.Parameters.AddWithValue("@tenantid", cTenantID);
-                            cmd.Parameters.AddWithValue("@cisactive", model.cisactive);
+                            cmd.Parameters.AddWithValue("@tenantid", cTenantID);                           
+                            cmd.Parameters.AddWithValue("@cisactive", model.cisactive ?? (object)DBNull.Value);
+
                             int rowsAffected = await cmd.ExecuteNonQueryAsync();
 
                             if (rowsAffected == 0)
