@@ -1771,15 +1771,12 @@ namespace TaskEngineAPI.Controllers
                            
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinboxdatabyid?id={id}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-
-               
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());           
                 var response = await _httpClient.SendAsync(requestMessage);
-                var body = await response.Content.ReadAsStringAsync();
-
-               
+                var body = await response.Content.ReadAsStringAsync();            
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
+
             }
             catch (Exception ex)
             {

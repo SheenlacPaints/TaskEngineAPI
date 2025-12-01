@@ -612,11 +612,24 @@ namespace TaskEngineAPI.Controllers
                 }
                 string username = usernameClaim;
                 var data = await _TaskMasterService.GetTaskConditionBoard(cTenantID, id);
+                if (data == null || !data.Any())
+                {
+                    return NoContent();
+                }
+
+
+                //var response = new APIResponse
+                //{
+                //    body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
+                //    statusText = data == null || !data.Any() ? "No data found" : "Successful",
+                //    status = data == null || !data.Any() ? 204 : 200     
+                //};
+
                 var response = new APIResponse
                 {
-                    body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
-                    statusText = data == null || !data.Any() ? "No data found" : "Successful",
-                    status = data == null || !data.Any() ? 204 : 200     
+                    body = data.Cast<object>().ToArray(),
+                    statusText = "Successful",
+                    status = 200 
                 };
 
                 string jsoner = JsonConvert.SerializeObject(response);
