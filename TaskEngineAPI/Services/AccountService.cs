@@ -2184,7 +2184,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
-                        cmd.Parameters.AddWithValue("@cname", (object?)model.cname ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@cname", model.cname);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
                         cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
@@ -2825,7 +2825,7 @@ VALUES (
                     string query = @"
                 SELECT 
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
-                    capi_params, capi_headers, capi_config, capi_settings, cbody,
+                    capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
                     nis_active, ccreated_by, lcreated_date,
                     cmodified_by, lmodified_date
                 FROM tbl_users_api_sync_config 
@@ -2853,6 +2853,7 @@ VALUES (
                                     capi_config = reader["capi_config"] != DBNull.Value ? reader["capi_config"].ToString() : null,
                                     capi_settings = reader["capi_settings"] != DBNull.Value ? reader["capi_settings"].ToString() : null,
                                     cbody = reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null,
+                                    cname= reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
                                     nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
@@ -2967,7 +2968,7 @@ VALUES (
                     string query = @"
                 SELECT 
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
-                    capi_params, capi_headers, capi_config, capi_settings, cbody,
+                    capi_params, capi_headers, capi_config, capi_settings, cbody,cname
                     nis_active, ccreated_by, lcreated_date,
                     cmodified_by, lmodified_date
                 FROM tbl_users_api_sync_config 
@@ -2995,6 +2996,7 @@ VALUES (
                                     capi_config = reader["capi_config"] != DBNull.Value ? reader["capi_config"].ToString() : null,
                                     capi_settings = reader["capi_settings"] != DBNull.Value ? reader["capi_settings"].ToString() : null,
                                     cbody = reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null,
+                                    cname= reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
                                     nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
