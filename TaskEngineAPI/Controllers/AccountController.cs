@@ -3546,25 +3546,39 @@ namespace TaskEngineAPI.Controllers
 
                 var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(cTenantID);
 
-                var processedConfigs = apiConfigs?.Select(config => new
+                var processedConfigs = apiConfigs?.Select(config =>
                 {
-                    id = config.ID,
-                    ctenant_id = config.ctenant_id,
-                    capi_method = config.capi_method,
-                    capi_type = config.capi_type,
-                    capi_url = config.capi_url,
-                    //capi_params = config.capi_params,
-                    //capi_headers = config.capi_headers,
-                    //capi_config = config.capi_config,
-                    //capi_settings = config.capi_settings, 
-                    //cbody = config.cbody,
-                    nis_active = config.nis_active,
-                    ccreated_by = config.ccreated_by,
-                    lcreated_date = config.lcreated_date,
-                    cmodified_by = config.cmodified_by,
-                    lmodified_date = config.lmodified_date
-                }).ToList();
+                    string syncType = null;
 
+                    if (!string.IsNullOrWhiteSpace(config.capi_settings))
+                    {
+                        try
+                        {
+                            var settings = JsonConvert.DeserializeObject<dynamic>(config.capi_settings);
+                            syncType = settings?.syncType?.ToString();
+                        }
+                        catch
+                        {
+                           
+                        }
+                    }
+
+                    return new
+                    {
+                        id = config.ID,
+                        ctenant_id = config.ctenant_id,
+                        capi_method = config.capi_method,
+                        capi_type = config.capi_type,
+                        capi_url = config.capi_url,
+                        // capi_settings = config.capi_settings,  
+                        sync_type = syncType,                  
+                        nis_active = config.nis_active,
+                        ccreated_by = config.ccreated_by,
+                        lcreated_date = config.lcreated_date,
+                        cmodified_by = config.cmodified_by,
+                        lmodified_date = config.lmodified_date
+                    };
+                }).ToList();
                 var response = new APIResponse
                 {
                     body = processedConfigs?.ToArray() ?? Array.Empty<object>(),
@@ -3633,6 +3647,8 @@ namespace TaskEngineAPI.Controllers
                         //capi_config = config.capi_config,
                         //capi_settings = config.capi_settings, 
                         //cbody = config.cbody,
+                        sync_type = !string.IsNullOrWhiteSpace(apiConfig.capi_settings) ?
+            JsonConvert.DeserializeObject<dynamic>(apiConfig.capi_settings)?.syncType?.ToString() : null,
                         nis_active = apiConfig.nis_active,
                         ccreated_by = apiConfig.ccreated_by,
                         lcreated_date = apiConfig.lcreated_date,
