@@ -7,6 +7,7 @@ using TaskEngineAPI.Data;
 using TaskEngineAPI.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using TaskEngineAPI.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -652,6 +653,53 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        //[Authorize]
+        //[HttpGet]
+        //[Route("Gettaskinboxdatabyid")]
+        //public async Task<IActionResult> Gettaskinboxdatabyid([FromQuery] int id)
+        //{
+        //    try
+        //    {
+        //        var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+        //        var handler = new JwtSecurityTokenHandler();
+        //        var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+        //        var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+        //        var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+        //        if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+        //        {
+        //            return EncryptedError(401, "Invalid or missing cTenantID in token.");
+        //        }
+        //        string username = usernameClaim;
+        //        var data = await _TaskMasterService.Gettaskinboxdatabyid(cTenantID, id);
+
+        //    var hasData = data != null && data.Any();        
+        //    var response = new APIResponse
+        //    {
+        //        body = hasData? data.Cast<object>().ToArray() : new object[] { "" },                                 
+        //        statusText = hasData ? "Successful" : "No data found",
+        //        status = hasData ? 200 : 204
+        //    };
+
+        //    string jsoner = JsonConvert.SerializeObject(response);
+        //        var encrypted = AesEncryption.Encrypt(jsoner);
+        //        return StatusCode(response.status, encrypted);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var apierrDtls = new APIResponse
+        //        {
+        //            status = 500,
+        //            statusText = "Internal server Error",
+        //            error = ex.Message
+        //        };
+
+        //        string jsoner = JsonConvert.SerializeObject(apierrDtls);
+        //        var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+        //        return StatusCode(500, encryptapierrDtls);
+        //    }
+        //}
+
         [Authorize]
         [HttpGet]
         [Route("Gettaskinboxdatabyid")]
@@ -665,23 +713,51 @@ namespace TaskEngineAPI.Controllers
 
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                    string.IsNullOrWhiteSpace(usernameClaim))
                 {
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
+
                 string username = usernameClaim;
                 var data = await _TaskMasterService.Gettaskinboxdatabyid(cTenantID, id);
-              
-                var response = new APIResponse
+
+
+                var hasData = data != null && data.Any();
+
+                if (!hasData)
                 {
-                    body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
-                    statusText = data == null || !data.Any() ? "No data found" : "Successful",
-                    status = data == null || !data.Any() ? 204 : 200
+                    
+                    var response = new APIResponse
+                    {
+                        body = new object[]
+                        {
+                    new
+                    {
+                        status = 400,
+                        data = Array.Empty<object>()
+                    }
+                        },
+                        statusText = $"{id} not found.",
+                        status = 400 
+                    };                 
+                    string jsoner = JsonConvert.SerializeObject(response);
+                    var encryptedd = AesEncryption.Encrypt(jsoner);
+                    return StatusCode(400, encryptedd);
+                }
+
+                var successResponse = new APIResponse
+                {
+                    body = data.Cast<object>().ToArray(),
+                    status = 200,
+                    statusText = "Successful"
                 };
 
-                string jsoner = JsonConvert.SerializeObject(response);
-                var encrypted = AesEncryption.Encrypt(jsoner);
-                return StatusCode(response.status, encrypted);
+                string json = JsonConvert.SerializeObject(successResponse);
+                var encrypted = AesEncryption.Encrypt(json);
+
+                return StatusCode(200, encrypted);
             }
             catch (Exception ex)
             {
@@ -697,6 +773,8 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptapierrDtls);
             }
         }
+
+
 
 
     }
