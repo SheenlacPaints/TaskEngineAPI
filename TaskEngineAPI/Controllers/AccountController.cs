@@ -20,6 +20,7 @@ using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using TaskEngineAPI.Data;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.DTO.LookUpDTO;
@@ -3571,6 +3572,7 @@ namespace TaskEngineAPI.Controllers
                         capi_type = config.capi_type,
                         capi_url = config.capi_url,
                         // capi_settings = config.capi_settings,  
+                        cname = config.cname,
                         sync_type = syncType,                  
                         nis_active = config.nis_active,
                         ccreated_by = config.ccreated_by,
@@ -3647,6 +3649,7 @@ namespace TaskEngineAPI.Controllers
                         //capi_config = config.capi_config,
                         //capi_settings = config.capi_settings, 
                         //cbody = config.cbody,
+                        cname = apiConfig.cname,
                         sync_type = !string.IsNullOrWhiteSpace(apiConfig.capi_settings) ?
             JsonConvert.DeserializeObject<dynamic>(apiConfig.capi_settings)?.syncType?.ToString() : null,
                         nis_active = apiConfig.nis_active,
