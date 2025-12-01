@@ -2185,6 +2185,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cname", (object?)model.cname ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
                         cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                         cmd.Parameters.AddWithValue("@cmodified_by", username);
