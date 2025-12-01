@@ -373,6 +373,7 @@ namespace TaskEngineAPI.DTO
         public string? capi_headers { get; set; }
         public string? capi_config { get; set; }
         public string? capi_settings { get; set; }
+        public string? sync_type { get; set; }
         public string? cbody { get; set; }
         public bool? nis_active { get; set; }
         public string? ccreated_by { get; set; }
