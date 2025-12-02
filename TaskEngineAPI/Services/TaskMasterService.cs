@@ -136,6 +136,10 @@ namespace TaskEngineAPI.Services
                         itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date) VALUES 
                         (@itaskno, @ctenent_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date);";
 
+                        string meta = @"INSERT INTO tbl_transaction_process_meta_layout (
+                        [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) VALUES (
+                        @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata,@citaskno,@cdetail_id);";
+
                         foreach (var row in detailRows)
                         {
                             using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
@@ -174,24 +178,24 @@ namespace TaskEngineAPI.Services
                                 cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
                                 await cmdStatus.ExecuteNonQueryAsync();
                             }
-                        }
-                        string meta = @"INSERT INTO tbl_transaction_process_meta_layout (
-                        [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata]) VALUES (
-                        @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata);";
-
-                        foreach (var metaData in model.metaData)
-                        {
-                            using (SqlCommand cmd = new SqlCommand(meta, conn, transaction))
+                            foreach (var metaData in model.metaData)
                             {
-                                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                                using (SqlCommand cmd = new SqlCommand(meta, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@TenantID", cTenantID);
 
-                                cmd.Parameters.AddWithValue("@cmeta_id", (object?)metaData.cmeta_id ?? DBNull.Value);
-                                cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
-                                cmd.Parameters.AddWithValue("@cprocess_code", (object?)model.ctask_name ?? DBNull.Value);
-                                cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
-                                await cmd.ExecuteNonQueryAsync();
+                                    cmd.Parameters.AddWithValue("@cmeta_id", (object?)metaData.cmeta_id ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@cprocess_code", (object?)model.ctask_name ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@citaskno", newTaskNo);
+                                    cmd.Parameters.AddWithValue("@cdetail_id", detailId);
+                                    cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
+                                    await cmd.ExecuteNonQueryAsync();
+                                }
                             }
                         }
+                       
                         transaction.Commit();
                     }
                     catch (Exception ex)
@@ -988,6 +992,65 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving task inbox list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
+
+        //public async Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int ID)
+        //{
+        //    try
+        //    {
+        //        var result = new List<GetmetalayoutDTO>();
+        //        var connStr = _config.GetConnectionString("Database");
+
+        //        using (SqlConnection conn = new SqlConnection(connStr))
+        //        {
+        //            await conn.OpenAsync();
+
+        //            string query = @"SELECT  ID,cheader_id,cprocesscode,ciseqno,ctenant_id,icond_seqno,ctype,clabel,
+        //        cplaceholder,cis_required,cis_readonly,cis_disabled,cfield_value,ccondition,cdata_source
+        //        FROM [TASKENGINE].[dbo].[tbl_process_engine_condition] 
+        //        WHERE cheader_id = @cheader_id AND ctenant_id = @TenantID  ORDER BY ID DESC";
+
+        //            using (SqlCommand cmd = new SqlCommand(query, conn))
+        //            {
+        //                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+        //                cmd.Parameters.AddWithValue("@cheader_id", ID);
+
+        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+        //                {
+        //                    while (await reader.ReadAsync())
+        //                    {
+        //                        var mapping = new GetprocessEngineConditionDTO
+        //                        {
+        //                            ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ID"]),
+        //                            cprocessCode = reader["cprocesscode"]?.ToString() ?? "",
+        //                            ciseqno = reader["ciseqno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ciseqno"]),
+        //                            icondseqno = reader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["icond_seqno"]),
+        //                            ctype = reader["ctype"]?.ToString() ?? "",
+        //                            clabel = reader["clabel"]?.ToString() ?? "",
+        //                            cplaceholder = reader["cplaceholder"]?.ToString() ?? "",
+        //                            cisRequired = reader.SafeGetBoolean("cis_required"),
+        //                            cisReadonly = reader.SafeGetBoolean("cis_readonly"),
+        //                            cis_disabled = reader.SafeGetBoolean("cis_disabled"),
+        //                            cfieldValue = reader["cfield_value"]?.ToString() ?? "",
+        //                            cdatasource = reader["cdata_source"]?.ToString() ?? "",
+        //                            ccondition = reader["ccondition"]?.ToString() ?? ""
+        //                        };
+
+        //                        result.Add(mapping);
+        //                    }
+        //                }
+        //            }
+        //        }
+
+        //        return result;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception($"Error retrieving task condition list: {ex.Message}");
+        //    }
+        //}
+
+
+
 
     }
 }
