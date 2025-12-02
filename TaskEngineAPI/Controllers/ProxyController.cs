@@ -1758,8 +1758,8 @@ namespace TaskEngineAPI.Controllers
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
+               // string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, body);
 
             }
             catch (Exception ex)
