@@ -1698,13 +1698,10 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
                 if (string.IsNullOrWhiteSpace(jwtToken))
-                {
                     return Unauthorized("Missing Authorization token.");
-                }
 
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/UpdateAPISyncConfig");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl.TrimEnd('/')}/Account/UpdateAPISyncConfig");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
@@ -1728,16 +1725,13 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpDelete("DeleteAPISyncConfig")]
-        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] pay request)
+        public async Task<IActionResult> DeleteAPISyncConfig([FromBody] pay request) 
         {
             try
             {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
                 if (string.IsNullOrWhiteSpace(jwtToken))
-                {
                     return Unauthorized("Missing Authorization token.");
-                }
                 var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var requestMessage = new HttpRequestMessage
                 {
@@ -1745,6 +1739,7 @@ namespace TaskEngineAPI.Controllers
                     RequestUri = new Uri($"{_baseUrl}Account/DeleteAPISyncConfig"),
                     Content = content
                 };
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
