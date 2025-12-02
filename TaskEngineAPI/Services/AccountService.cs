@@ -2959,7 +2959,7 @@ VALUES (
                 return false;
             }
         }
-        public async Task<GetusersapisyncDTO> GetAPISyncConfigByIDAsync(int id, int cTenantID)
+        public async Task<GetAPISyncConfigByIDDTO> GetAPISyncConfigByIDAsync(int id, int cTenantID)
         {
             var connStr = _config.GetConnectionString("Database");
 
@@ -2988,7 +2988,7 @@ VALUES (
                         {
                             if (await reader.ReadAsync())
                             {
-                                return new GetusersapisyncDTO
+                                return new GetAPISyncConfigByIDDTO
                                 {
                                     ID = reader["ID"] != DBNull.Value ? Convert.ToInt32(reader["ID"]) : 0,
                                     ctenant_id = reader["ctenant_id"] != DBNull.Value ? Convert.ToInt32(reader["ctenant_id"]) : 0,
