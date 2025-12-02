@@ -1742,7 +1742,7 @@ namespace TaskEngineAPI.Controllers
 
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
 
-                string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
+                string encodedPayload = request.payload;
 
                 string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?payload={encodedPayload}";
 
