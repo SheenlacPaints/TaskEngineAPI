@@ -1510,7 +1510,7 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing or invalid Authorization token.");
                 }
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
-               // var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
                 string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
 
@@ -1734,14 +1734,13 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-
                 var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
                     return Unauthorized("Missing or invalid Authorization token.");
                 }
+
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
                 string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
 
@@ -1751,10 +1750,11 @@ namespace TaskEngineAPI.Controllers
                 {
                     Method = HttpMethod.Delete,
                     RequestUri = new Uri(forwardingUri)
-
-
                 };
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+
+                requestMessage.Headers.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
@@ -1774,7 +1774,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, $"\"{enc}\"");
             }
         }
-
 
         [Authorize]
         [HttpGet("Gettaskinboxdatabyid")]
