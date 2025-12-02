@@ -1733,33 +1733,32 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-
                 var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
                     return Unauthorized("Missing or invalid Authorization token.");
                 }
+
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var unusedContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
-                string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
+                var jsonBody = new { payload = request.payload };
+                var content = new StringContent(JsonConvert.SerializeObject(jsonBody), Encoding.UTF8, "application/json");
 
-                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?payload={encodedPayload}";
+                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig";
 
                 var requestMessage = new HttpRequestMessage
                 {
                     Method = HttpMethod.Delete,
-                    RequestUri = new Uri(forwardingUri)
-
-
+                    RequestUri = new Uri(forwardingUri),
+                    Content = content  
                 };
+
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-                // string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, body);
-
             }
             catch (Exception ex)
             {
@@ -1770,10 +1769,9 @@ namespace TaskEngineAPI.Controllers
                 };
                 string jsonn = JsonConvert.SerializeObject(err);
                 string enc = AesEncryption.Encrypt(jsonn);
-                return StatusCode(500, $"\"{enc}\"");
+                return StatusCode(500, enc);
             }
         }
-
 
         [Authorize]
         [HttpGet("Gettaskinboxdatabyid")]
