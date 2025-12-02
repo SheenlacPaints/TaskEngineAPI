@@ -2972,7 +2972,7 @@ VALUES (
                     string query = @"
                 SELECT 
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
-                    capi_params, capi_headers, capi_config, capi_settings, cbody,cname
+                    capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
                     nis_active, ccreated_by, lcreated_date,
                     cmodified_by, lmodified_date
                 FROM tbl_users_api_sync_config 
