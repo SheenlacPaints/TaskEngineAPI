@@ -159,9 +159,7 @@ public class TimelineDTO
 public class GetmetalayoutDTO
 {
     public int? ID { get; set; }
-    public int? cmeta_id { get; set; }
     public int? cprocess_id { get; set; }
-    public string? cprocess_code { get; set; }
     public string? cdata { get; set; }
      
 }

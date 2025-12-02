@@ -1181,61 +1181,49 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        //public async Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int ID)
-        //{
-        //    try
-        //    {
-        //        var result = new List<GetmetalayoutDTO>();
-        //        var connStr = _config.GetConnectionString("Database");
+        public async Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int itaskno)
+        {
+            try
+            {
+                var result = new List<GetmetalayoutDTO>();
+                var connStr = _config.GetConnectionString("Database");
 
-        //        using (SqlConnection conn = new SqlConnection(connStr))
-        //        {
-        //            await conn.OpenAsync();
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
 
-        //            string query = @"SELECT  ID,cheader_id,cprocesscode,ciseqno,ctenant_id,icond_seqno,ctype,clabel,
-        //        cplaceholder,cis_required,cis_readonly,cis_disabled,cfield_value,ccondition,cdata_source
-        //        FROM [TASKENGINE].[dbo].[tbl_process_engine_condition] 
-        //        WHERE cheader_id = @cheader_id AND ctenant_id = @TenantID  ORDER BY ID DESC";
+                    string query = @"SELECT  ID,cprocess_id,cdata
+                FROM [tbl_transaction_process_meta_layout] 
+                WHERE citaskno = @ID AND ctenant_id = @TenantID  ORDER BY ID DESC";
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@ID", itaskno);
 
-        //            using (SqlCommand cmd = new SqlCommand(query, conn))
-        //            {
-        //                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
-        //                cmd.Parameters.AddWithValue("@cheader_id", ID);
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var mapping = new GetmetalayoutDTO
+                                {
+                                    ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ID"]),
+                                    cprocess_id = reader["cprocess_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cprocess_id"]),
+                                    cdata = reader["cdata"]?.ToString() ?? "",
+                                };
 
-        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //                {
-        //                    while (await reader.ReadAsync())
-        //                    {
-        //                        var mapping = new GetprocessEngineConditionDTO
-        //                        {
-        //                            ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ID"]),
-        //                            cprocessCode = reader["cprocesscode"]?.ToString() ?? "",
-        //                            ciseqno = reader["ciseqno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ciseqno"]),
-        //                            icondseqno = reader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["icond_seqno"]),
-        //                            ctype = reader["ctype"]?.ToString() ?? "",
-        //                            clabel = reader["clabel"]?.ToString() ?? "",
-        //                            cplaceholder = reader["cplaceholder"]?.ToString() ?? "",
-        //                            cisRequired = reader.SafeGetBoolean("cis_required"),
-        //                            cisReadonly = reader.SafeGetBoolean("cis_readonly"),
-        //                            cis_disabled = reader.SafeGetBoolean("cis_disabled"),
-        //                            cfieldValue = reader["cfield_value"]?.ToString() ?? "",
-        //                            cdatasource = reader["cdata_source"]?.ToString() ?? "",
-        //                            ccondition = reader["ccondition"]?.ToString() ?? ""
-        //                        };
+                                result.Add(mapping);
+                            }
+                        }
+                    }
+                }
 
-        //                        result.Add(mapping);
-        //                    }
-        //                }
-        //            }
-        //        }
-
-        //        return result;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception($"Error retrieving task condition list: {ex.Message}");
-        //    }
-        //}
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving task condition list: {ex.Message}");
+            }
+        }
 
 
 

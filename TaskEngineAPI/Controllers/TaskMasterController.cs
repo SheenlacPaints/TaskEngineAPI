@@ -790,7 +790,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GetmetalayoutByid")]
-        public async Task<IActionResult> GetmetalayoutByid([FromQuery] int id)
+        public async Task<IActionResult> GetmetalayoutByid([FromQuery] int itaskno)
         {
             try
             {
@@ -805,7 +805,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
                 string username = usernameClaim;
-                var data = await _TaskMasterService.GetTaskConditionBoard(cTenantID, id);
+                var data = await _TaskMasterService.GetmetalayoutByid(cTenantID, itaskno);
 
 
 
@@ -824,7 +824,7 @@ namespace TaskEngineAPI.Controllers
                         data = Array.Empty<object>()
                     }
                         },
-                        statusText = $"{id} not found.",
+                        statusText = $"{itaskno} not found.",
                         status = 400
                     };
                     string jsonerr = JsonConvert.SerializeObject(responsee);
