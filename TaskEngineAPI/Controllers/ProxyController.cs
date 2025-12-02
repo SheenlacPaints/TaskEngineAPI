@@ -1727,29 +1727,39 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-
         [Authorize]
         [HttpDelete("DeleteAPISyncConfig")]
         public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] pay request)
         {
             try
             {
+
                 var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
                     return Unauthorized("Missing or invalid Authorization token.");
-
+                }
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
-                string payload = request.payload;
+                string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
 
-                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?payload={payload}";
+                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?payload={encodedPayload}";
 
-                using var requestMessage = new HttpRequestMessage(HttpMethod.Delete, forwardingUri);
+                var requestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Delete,
+                    RequestUri = new Uri(forwardingUri)
+
+
+                };
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
-                var response = await _httpClient.SendAsync(requestMessage);
 
+                var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
+                // string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, body);
+
             }
             catch (Exception ex)
             {
@@ -1758,10 +1768,12 @@ namespace TaskEngineAPI.Controllers
                     status = 500,
                     statusText = $"Error calling external API: {ex.Message}"
                 };
-                string enc = AesEncryption.Encrypt(JsonConvert.SerializeObject(err));
-                return StatusCode(500, enc);
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                return StatusCode(500, $"\"{enc}\"");
             }
         }
+
 
         [Authorize]
         [HttpGet("Gettaskinboxdatabyid")]

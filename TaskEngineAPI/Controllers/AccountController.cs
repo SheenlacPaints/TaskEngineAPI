@@ -3676,7 +3676,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpDelete("DeleteAPISyncConfig")]
-        public async Task<IActionResult> DeleteAPISyncConfig([FromBody] pay request)
+        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] pay request)
         {
             try
             {
