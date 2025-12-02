@@ -1510,7 +1510,7 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing or invalid Authorization token.");
                 }
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+               // var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
                 string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
 
