@@ -1740,6 +1740,7 @@ namespace TaskEngineAPI.Controllers
 
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
 
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
                 string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?payload={encodedPayload}";
 
@@ -1770,7 +1771,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
 
         [Authorize]
         [HttpGet("Gettaskinboxdatabyid")]
