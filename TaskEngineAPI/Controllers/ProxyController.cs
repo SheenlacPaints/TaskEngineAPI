@@ -1728,10 +1728,15 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpDelete("DeleteAPISyncConfig")]
-        public async Task<IActionResult> DeleteAPISyncConfig([FromBody] pay id)  
+        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] string id)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    return BadRequest($"\"ID parameter is required\"");
+                }
+
                 var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
@@ -1740,9 +1745,10 @@ namespace TaskEngineAPI.Controllers
 
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
 
-                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?id={id}";
+                string encodedId = System.Net.WebUtility.UrlEncode(id);
+                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?id={encodedId}";
 
-                var requestMessage = new HttpRequestMessage
+                using var requestMessage = new HttpRequestMessage
                 {
                     Method = HttpMethod.Delete,
                     RequestUri = new Uri(forwardingUri)
