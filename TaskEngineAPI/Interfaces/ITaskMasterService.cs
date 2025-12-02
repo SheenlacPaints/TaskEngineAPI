@@ -19,6 +19,8 @@ namespace TaskEngineAPI.Interfaces
             Task<string> GetTaskInitiator(int cTenantID, string username);
             Task<List<GetprocessEngineConditionDTO>> GetTaskConditionBoard(int cTenantID, int ID);
             Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID);
+            Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int itaskno);
+
     }
 
 }
