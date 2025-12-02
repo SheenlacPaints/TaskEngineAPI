@@ -678,7 +678,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             SELECT cprocess_privilege 
                             FROM tbl_engine_master_to_process_privilege 
                             WHERE cprocess_id = @cprocess_id 
-                            AND ctenant_id = @ctenent_id";
+                            AND ctenant_id = @ctenant_id";
 
                                 using (SqlCommand getPrivilegeCmd = new SqlCommand(getExistingPrivilegeQuery, conn, tx))
                                 {
