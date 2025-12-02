@@ -1698,10 +1698,13 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-                if (string.IsNullOrWhiteSpace(jwtToken))
-                    return Unauthorized("Missing Authorization token.");
 
-                var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl.TrimEnd('/')}/Account/UpdateAPISyncConfig");
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/UpdateAPISyncConfig");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
@@ -1725,23 +1728,32 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpDelete("DeleteAPISyncConfig")]
-        public async Task<IActionResult> DeleteAPISyncConfig([FromBody] pay request) 
+        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] pay request)
         {
             try
             {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-                if (string.IsNullOrWhiteSpace(jwtToken))
-                    return Unauthorized("Missing Authorization token.");
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return Unauthorized("Missing or invalid Authorization token.");
+                }
+
+                var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
+
+                string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
+                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?payload={encodedPayload}";
+
                 var requestMessage = new HttpRequestMessage
                 {
                     Method = HttpMethod.Delete,
-                    RequestUri = new Uri($"{_baseUrl}Account/DeleteAPISyncConfig"),
-                    Content = content
+                    RequestUri = new Uri(forwardingUri)
                 };
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
+
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
+
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }
