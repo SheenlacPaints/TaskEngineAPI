@@ -1726,13 +1726,17 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpDelete("DeleteAPISyncConfig")]
-        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] pay request)
+        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] string payload)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(payload))
+                {
+                    return BadRequest($"\"Payload parameter is required\"");
+                }
+
                 var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
                 {
@@ -1740,24 +1744,21 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
-                var unusedContent = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
-                var jsonBody = new { payload = request.payload };
-                var content = new StringContent(JsonConvert.SerializeObject(jsonBody), Encoding.UTF8, "application/json");
-
-                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig";
+                string encodedPayload = System.Net.WebUtility.UrlEncode(payload);
+                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?payload={encodedPayload}";
 
                 var requestMessage = new HttpRequestMessage
                 {
                     Method = HttpMethod.Delete,
-                    RequestUri = new Uri(forwardingUri),
-                    Content = content  
+                    RequestUri = new Uri(forwardingUri)
                 };
 
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken);
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
+
                 return StatusCode((int)response.StatusCode, body);
             }
             catch (Exception ex)
@@ -1772,6 +1773,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, enc);
             }
         }
+
 
         [Authorize]
         [HttpGet("Gettaskinboxdatabyid")]
