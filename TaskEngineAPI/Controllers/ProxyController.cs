@@ -1728,7 +1728,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpDelete("DeleteAPISyncConfig")]
-        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] pay request)
+        public async Task<IActionResult> DeleteAPISyncConfig([FromQuery] int id)  
         {
             try
             {
@@ -1740,9 +1740,7 @@ namespace TaskEngineAPI.Controllers
 
                 var jwtToken = authHeader.Substring("Bearer ".Length).Trim();
 
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                string encodedPayload = System.Net.WebUtility.UrlEncode(request.payload);
-                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?payload={encodedPayload}";
+                string forwardingUri = $"{_baseUrl}Account/DeleteAPISyncConfig?id={id}";
 
                 var requestMessage = new HttpRequestMessage
                 {
