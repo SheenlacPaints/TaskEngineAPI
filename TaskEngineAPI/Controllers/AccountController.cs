@@ -3531,37 +3531,52 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GetAllUsersApiSyncConfig")]
-        public async Task<ActionResult> GetAllUsersApiSyncConfig()
+        public async Task<ActionResult> GetAllUsersApiSyncConfig(
+     [FromQuery] string syncType = null,
+     [FromQuery] string apiMethod = null,
+     [FromQuery] bool? isActive = null)
         {
             try
             {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var jwtToken = HttpContext.Request.Headers["Authorization"]
+                                    .FirstOrDefault()?
+                                    .Split(" ")
+                                    .Last();
+
+                if (jwtToken == null)
+                    return EncryptedError(401, "Authorization token missing");
+
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
-                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
-                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                var tenantIdClaim = jsonToken?.Claims
+                    .SingleOrDefault(c => c.Type == "cTenantID")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim)
+                    || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
 
-                var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(cTenantID);
+                var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(
+                    cTenantID,
+                    syncType,
+                    apiMethod,
+                    isActive
+                );
 
-                var processedConfigs = apiConfigs?.Select(config =>
+                var processed = apiConfigs.Select(config =>
                 {
-                    string syncType = null;
+                    string extractedSyncType = null;
 
                     if (!string.IsNullOrWhiteSpace(config.capi_settings))
                     {
                         try
                         {
                             var settings = JsonConvert.DeserializeObject<dynamic>(config.capi_settings);
-                            syncType = settings?.syncType?.ToString();
+                            extractedSyncType = settings?.syncType?.ToString();
                         }
-                        catch
-                        {
-                           
-                        }
+                        catch { }
                     }
 
                     return new
@@ -3571,9 +3586,8 @@ namespace TaskEngineAPI.Controllers
                         capi_method = config.capi_method,
                         capi_type = config.capi_type,
                         capi_url = config.capi_url,
-                        // capi_settings = config.capi_settings,  
                         cname = config.cname,
-                        sync_type = syncType,                  
+                        sync_type = extractedSyncType,
                         nis_active = config.nis_active,
                         ccreated_by = config.ccreated_by,
                         lcreated_date = config.lcreated_date,
@@ -3581,15 +3595,17 @@ namespace TaskEngineAPI.Controllers
                         lmodified_date = config.lmodified_date
                     };
                 }).ToList();
+
                 var response = new APIResponse
                 {
-                    body = processedConfigs?.ToArray() ?? Array.Empty<object>(),
-                    statusText = processedConfigs == null || !processedConfigs.Any() ? "No API sync configurations found" : "Successful",
-                    status = processedConfigs == null || !processedConfigs.Any() ? 204 : 200
+                    body = processed.ToArray(),
+                    statusText = "Successful",
+                    status = 200
                 };
 
-                string jsoner = JsonConvert.SerializeObject(response);
-                var encrypted = AesEncryption.Encrypt(jsoner);
+                string json = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(json);
+
                 return StatusCode(200, encrypted);
             }
             catch (Exception ex)
@@ -3601,11 +3617,13 @@ namespace TaskEngineAPI.Controllers
                     status = 500
                 };
 
-                string errorJson = JsonConvert.SerializeObject(errorResponse);
-                var encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(500, encryptedError);
+                string json = JsonConvert.SerializeObject(errorResponse);
+                var encrypted = AesEncryption.Encrypt(json);
+
+                return StatusCode(500, encrypted);
             }
         }
+
 
         [Authorize]
         [HttpGet("GetAPISyncConfigByID")]
