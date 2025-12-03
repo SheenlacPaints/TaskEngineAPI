@@ -1709,8 +1709,8 @@ namespace TaskEngineAPI.Controllers
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
+               
+                return StatusCode((int)response.StatusCode, body);
             }
             catch (Exception ex)
             {
