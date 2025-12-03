@@ -492,29 +492,12 @@ namespace TaskEngineAPI.Services
                 {
                     await con.OpenAsync();
 
-                    string privilegeTypeName = "";
-
-                    if (int.TryParse(cprivilege, out int privilegeTypeId))
+                    if (!int.TryParse(value, out int privilegeId))
                     {
-                        string nameQuery = "SELECT cprocess_privilege FROM tbl_process_privilege_type WHERE ID = @id";
-                        using (var nameCmd = new SqlCommand(nameQuery, con))
-                        {
-                            nameCmd.Parameters.AddWithValue("@id", privilegeTypeId);
-                            var nameResult = await nameCmd.ExecuteScalarAsync();
-                            if (nameResult != null && nameResult != DBNull.Value)
-                            {
-                                privilegeTypeName = nameResult.ToString();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        privilegeTypeName = cprivilege;
-                    }
-
-                    if (string.IsNullOrEmpty(privilegeTypeName))
-                    {
-                        privilegeTypeName = cprivilege;
+                        return JsonConvert.SerializeObject(new List<object>
+                {
+                    new { name = value, workflow = new List<object>() }
+                }, Formatting.Indented);
                     }
 
                     string query = @"
@@ -525,7 +508,6 @@ SELECT DISTINCT
     b.[cprocessdescription],
     b.cmeta_id,
     b.cvalue,
-    p.cprocess_privilege,
     -- Get entity name from cvalue using CASE conditions
     CASE  
         WHEN p.cprocess_privilege = 'role' THEN 
@@ -544,15 +526,7 @@ INNER JOIN tbl_process_privilege_type p ON b.cprivilege_type = p.ID AND b.ctenan
 WHERE a.cis_active = 1 
     AND a.[cprocess_privilege] = @privilegeId";
 
-                    if (!int.TryParse(value, out int privilegeId))
-                    {
-                        return JsonConvert.SerializeObject(new List<object>
-                {
-                    new { name = privilegeTypeName, workflow = new List<object>() }
-                }, Formatting.Indented);
-                    }
-
-                    var workflows = new List<object>();
+                    var groupedWorkflows = new Dictionary<string, List<object>>();
 
                     using (var cmd = new SqlCommand(query, con))
                     {
@@ -562,29 +536,37 @@ WHERE a.cis_active = 1
                         {
                             while (await reader.ReadAsync())
                             {
-                                workflows.Add(new
+                                string entityName = reader["entity_name"]?.ToString() ?? "";
+
+                                if (string.IsNullOrEmpty(entityName))
+                                    continue;
+
+                                if (!groupedWorkflows.ContainsKey(entityName))
+                                {
+                                    groupedWorkflows[entityName] = new List<object>();
+                                }
+
+                                groupedWorkflows[entityName].Add(new
                                 {
                                     cprocess_id = reader["cprocess_id"] != DBNull.Value ? Convert.ToInt32(reader["cprocess_id"]) : 0,
                                     cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
                                     cprocessname = reader["cprocessname"]?.ToString() ?? "",
                                     cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
-                                    cmeta_id = reader["cmeta_id"] != DBNull.Value ? Convert.ToInt32(reader["cmeta_id"]) : 0,
-                                    cvalue = reader["cvalue"]?.ToString() ?? "",
-                                    entity_name = reader["entity_name"]?.ToString() ?? "",
-                                    privilege_type = reader["cprocess_privilege"]?.ToString() ?? privilegeTypeName
+                                    cmeta_id = reader["cmeta_id"] != DBNull.Value ? Convert.ToInt32(reader["cmeta_id"]) : 0
                                 });
                             }
                         }
                     }
 
-                    var result = new List<object>
-            {
-                new
-                {
-                    name = privilegeTypeName,
-                    workflow = workflows
-                }
-            };
+                    var result = new List<object>();
+                    foreach (var group in groupedWorkflows)
+                    {
+                        result.Add(new
+                        {
+                            name = group.Key,
+                            workflow = group.Value
+                        });
+                    }
 
                     return JsonConvert.SerializeObject(result, Formatting.Indented);
                 }
@@ -595,7 +577,7 @@ WHERE a.cis_active = 1
         {
             new
             {
-                name = cprivilege,
+                name = value,
                 workflow = new List<object>(),
                 error = ex.Message
             }
