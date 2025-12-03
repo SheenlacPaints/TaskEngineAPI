@@ -453,32 +453,153 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        //public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege)
+        //{
+        //    try
+        //    {
+        //        using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+        //        using (var cmd = new SqlCommand("sp_get_process_engine_privilege", con))
+        //        {
+        //            cmd.CommandType = CommandType.StoredProcedure;
+        //            cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+        //            cmd.Parameters.AddWithValue("@value", value);
+        //            cmd.Parameters.AddWithValue("@cprivilege", cprivilege);
+        //            var ds = new DataSet();
+        //            var adapter = new SqlDataAdapter(cmd);
+        //            await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+        //            if (ds.Tables.Count > 0)
+        //            {
+        //                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+        //            }
+
+        //            return "[]";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
+        //}
+
+
+
         public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege)
         {
             try
             {
                 using (var con = new SqlConnection(_config.GetConnectionString("Database")))
-                using (var cmd = new SqlCommand("sp_get_process_engine_privilege", con))
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
-                    cmd.Parameters.AddWithValue("@value", value);
-                    cmd.Parameters.AddWithValue("@cprivilege", cprivilege);
-                    var ds = new DataSet();
-                    var adapter = new SqlDataAdapter(cmd);
-                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+                    await con.OpenAsync();
 
-                    if (ds.Tables.Count > 0)
+                    string privilegeTypeName = "";
+
+                    if (int.TryParse(cprivilege, out int privilegeTypeId))
                     {
-                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                        string nameQuery = "SELECT cprocess_privilege FROM tbl_process_privilege_type WHERE ID = @id";
+                        using (var nameCmd = new SqlCommand(nameQuery, con))
+                        {
+                            nameCmd.Parameters.AddWithValue("@id", privilegeTypeId);
+                            var nameResult = await nameCmd.ExecuteScalarAsync();
+                            if (nameResult != null && nameResult != DBNull.Value)
+                            {
+                                privilegeTypeName = nameResult.ToString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        privilegeTypeName = cprivilege;
                     }
 
-                    return "[]";
+                    if (string.IsNullOrEmpty(privilegeTypeName))
+                    {
+                        privilegeTypeName = cprivilege;
+                    }
+
+                    string query = @"
+SELECT DISTINCT    
+    a.cprocess_id,
+    a.[cprocesscode],
+    b.[cprocessname],
+    b.[cprocessdescription],
+    b.cmeta_id,
+    b.cvalue,
+    p.cprocess_privilege,
+    -- Get entity name from cvalue using CASE conditions
+    CASE  
+        WHEN p.cprocess_privilege = 'role' THEN 
+            (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = b.cvalue)
+        WHEN p.cprocess_privilege = 'user' THEN 
+            (SELECT TOP 1 cuser_name FROM users WHERE CAST(cuserid AS VARCHAR(50)) = b.cvalue)
+        WHEN p.cprocess_privilege = 'department' THEN
+            (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = b.cvalue)
+        WHEN p.cprocess_privilege = 'position' THEN 
+            (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = b.cvalue)
+        ELSE b.cvalue
+    END AS entity_name
+FROM [dbo].[tbl_engine_master_to_process_privilege] a 
+INNER JOIN tbl_process_engine_master b ON a.cprocess_id = b.ID
+INNER JOIN tbl_process_privilege_type p ON b.cprivilege_type = p.ID AND b.ctenant_id = p.ctenant_id
+WHERE a.cis_active = 1 
+    AND a.[cprocess_privilege] = @privilegeId";
+
+                    if (!int.TryParse(value, out int privilegeId))
+                    {
+                        return JsonConvert.SerializeObject(new List<object>
+                {
+                    new { name = privilegeTypeName, workflow = new List<object>() }
+                }, Formatting.Indented);
+                    }
+
+                    var workflows = new List<object>();
+
+                    using (var cmd = new SqlCommand(query, con))
+                    {
+                        cmd.Parameters.AddWithValue("@privilegeId", privilegeId);
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                workflows.Add(new
+                                {
+                                    cprocess_id = reader["cprocess_id"] != DBNull.Value ? Convert.ToInt32(reader["cprocess_id"]) : 0,
+                                    cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
+                                    cprocessname = reader["cprocessname"]?.ToString() ?? "",
+                                    cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
+                                    cmeta_id = reader["cmeta_id"] != DBNull.Value ? Convert.ToInt32(reader["cmeta_id"]) : 0,
+                                    cvalue = reader["cvalue"]?.ToString() ?? "",
+                                    entity_name = reader["entity_name"]?.ToString() ?? "",
+                                    privilege_type = reader["cprocess_privilege"]?.ToString() ?? privilegeTypeName
+                                });
+                            }
+                        }
+                    }
+
+                    var result = new List<object>
+            {
+                new
+                {
+                    name = privilegeTypeName,
+                    workflow = workflows
+                }
+            };
+
+                    return JsonConvert.SerializeObject(result, Formatting.Indented);
                 }
             }
             catch (Exception ex)
             {
-                throw;
+                return JsonConvert.SerializeObject(new List<object>
+        {
+            new
+            {
+                name = cprivilege,
+                workflow = new List<object>(),
+                error = ex.Message
+            }
+        }, Formatting.Indented);
             }
         }
 
