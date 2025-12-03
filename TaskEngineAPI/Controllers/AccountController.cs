@@ -3634,7 +3634,21 @@ namespace TaskEngineAPI.Controllers
                 {
                     return EncryptedError(404, "API sync configuration not found.");
                 }
-
+                Func<string, dynamic> safeDeserialize = (jsonString) =>
+                {
+                    if (string.IsNullOrWhiteSpace(jsonString))
+                        return null;
+                    try
+                    {
+                        // Deserialize the string into a dynamic object (JObject, Dictionary, etc.)
+                        return JsonConvert.DeserializeObject<dynamic>(jsonString);
+                    }
+                    catch
+                    {
+                        // Return null or the original string if deserialization fails
+                        return jsonString;
+                    }
+                };
                 var response = new APIResponse
                 {
                     data = new
@@ -3644,11 +3658,11 @@ namespace TaskEngineAPI.Controllers
                         capi_method = apiConfig.capi_method,
                         capi_type = apiConfig.capi_type,
                         capi_url = apiConfig.capi_url,
-                        capi_params = apiConfig.capi_params,
-                        capi_headers = apiConfig.capi_headers,
-                        capi_config = apiConfig.capi_config,
-                        capi_settings = apiConfig.capi_settings,
-                        cbody = apiConfig.cbody,
+                        capi_params = safeDeserialize(apiConfig.capi_params),
+                        capi_headers = safeDeserialize(apiConfig.capi_headers),
+                        capi_config = safeDeserialize(apiConfig.capi_config),
+                        capi_settings = safeDeserialize(apiConfig.capi_settings),
+                        cbody = safeDeserialize(apiConfig.cbody),
                         cname = apiConfig.cname,
                         nis_active = apiConfig.nis_active,
                         ccreated_by = apiConfig.ccreated_by,
