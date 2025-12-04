@@ -1622,7 +1622,10 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GetAllUsersApiSyncConfig")]
-        public async Task<IActionResult> GetAllUsersApiSyncConfig()
+        public async Task<IActionResult> GetAllUsersApiSyncConfig(
+       [FromQuery] string? syncType = null,
+       [FromQuery] string? apiMethod = null,
+       [FromQuery] bool? isActive = null)
         {
             try
             {
@@ -1632,12 +1635,29 @@ namespace TaskEngineAPI.Controllers
                 {
                     return Unauthorized("Missing Authorization token.");
                 }
-                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl.TrimEnd('/')}/Account/GetAllUsersApiSyncConfig");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
+                var queryParams = new List<string>();
+
+                if (!string.IsNullOrWhiteSpace(syncType))
+                    queryParams.Add($"syncType={Uri.EscapeDataString(syncType)}");
+
+                if (!string.IsNullOrWhiteSpace(apiMethod))
+                    queryParams.Add($"apiMethod={Uri.EscapeDataString(apiMethod)}");
+
+                if (isActive.HasValue)
+                    queryParams.Add($"isActive={isActive.Value}");
+
+                var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
+
+                var requestMessage = new HttpRequestMessage(
+                    HttpMethod.Get,
+                    $"{_baseUrl.TrimEnd('/')}/Account/GetAllUsersApiSyncConfig{queryString}");
+
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
+
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }

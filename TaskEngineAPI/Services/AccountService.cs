@@ -2815,7 +2815,12 @@ VALUES (
 
             return existingCodes;
         }
-        public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(int cTenantID)
+      
+        public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(
+    int cTenantID,
+    string syncType = null,  
+    string apiMethod = null, 
+    bool? isActive = null)  
         {
             var connStr = _config.GetConnectionString("Database");
             var results = new List<GetusersapisyncDTO>();
@@ -2829,17 +2834,48 @@ VALUES (
                     string query = @"
                 SELECT 
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
-                    capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
+                    capi_params, capi_headers, capi_config, capi_settings, cbody, cname,
                     nis_active, ccreated_by, lcreated_date,
                     cmodified_by, lmodified_date
                 FROM tbl_users_api_sync_config 
-                WHERE ctenant_id = @TenantID 
-                AND nis_active = 1
+                WHERE ctenant_id = @TenantID";
+
+                    if (isActive.HasValue)
+                    {
+                        query += " AND nis_active = @IsActive";
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(syncType))
+                    {
+                        query += @" AND capi_settings LIKE '%""syncType"":""" + syncType + @"%'";
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(apiMethod))
+                    {
+                        query += " AND UPPER(capi_method) = UPPER(@ApiMethod)";
+                    }
+
+                    query += @"
                 ORDER BY lcreated_date DESC";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                        if (isActive.HasValue)
+                        {
+                            cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(syncType))
+                        {
+                            cmd.Parameters.AddWithValue("@SyncType", syncType);
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(apiMethod))
+                        {
+                            cmd.Parameters.AddWithValue("@ApiMethod", apiMethod);
+                        }
 
                         using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                         {
@@ -2857,7 +2893,7 @@ VALUES (
                                     capi_config = reader["capi_config"] != DBNull.Value ? reader["capi_config"].ToString() : null,
                                     capi_settings = reader["capi_settings"] != DBNull.Value ? reader["capi_settings"].ToString() : null,
                                     cbody = reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null,
-                                    cname= reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
+                                    cname = reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
                                     nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
