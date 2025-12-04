@@ -434,6 +434,12 @@ namespace TaskEngineAPI.DTO
         public string? cbody { get; set; }
         public bool? nis_active { get; set; }
     }
+
+    public class UpdateAPISyncConfigActiveStatusAsyncDTO
+    {
+        public int ID { get; set; }
+        public bool nis_active { get; set; }
+    }
     public class DeleteAPISyncConfigDTO
     {
         public int ID { get; set; }

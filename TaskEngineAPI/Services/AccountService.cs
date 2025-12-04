@@ -1,18 +1,19 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Net;
 using System.Net.Mail;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography.X509Certificates;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
 using TaskEngineAPI.Repositories;
-using Newtonsoft.Json;
+using static TaskEngineAPI.Services.AccountService;
 
 namespace TaskEngineAPI.Services
 {
@@ -3053,6 +3054,42 @@ VALUES (
             {
                 Console.WriteLine($"Error in GetAPISyncConfigByIDAsync: {ex.Message}");
                 return null;
+            }
+        }
+
+        public async Task<bool> UpdateAPISyncConfigActiveStatusAsync(int id, bool isActive, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                UPDATE tbl_users_api_sync_config 
+                SET 
+                    nis_active = @nis_active,
+                    cmodified_by = @username,
+                    lmodified_date = GETDATE()
+                WHERE ID = @ID 
+                AND ctenant_id = @TenantID";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", id);
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@nis_active", isActive);
+                        cmd.Parameters.AddWithValue("@username", username);
+
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
             }
         }
     }

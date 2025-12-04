@@ -40,7 +40,8 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> DeleteAPISyncConfigAsync(DeleteAPISyncConfigDTO model, int cTenantID, string username);
         Task<bool> UpdateAPISyncConfigAsync(UpdateAPISyncConfigDTO model, int cTenantID, string username);
         Task<GetAPISyncConfigByIDDTO> GetAPISyncConfigByIDAsync(int id, int cTenantID);
-        
+        Task<bool> UpdateAPISyncConfigActiveStatusAsync(int id, bool isActive, int tenantId, string username);
+
 
         //public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
         //{
