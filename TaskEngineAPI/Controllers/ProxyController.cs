@@ -1648,8 +1648,11 @@ namespace TaskEngineAPI.Controllers
                 if (!string.IsNullOrWhiteSpace(apiMethod))
                     queryParams.Add($"apiMethod={Uri.EscapeDataString(apiMethod)}");
 
+                //if (isActive.HasValue)
+                //    queryParams.Add($"isActive={isActive.Value}");
+
                 if (isActive.HasValue)
-                    queryParams.Add($"isActive={isActive.Value}");
+                    queryParams.Add($"isActive={isActive.Value.ToString().ToLower()}");
 
                 var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
 
