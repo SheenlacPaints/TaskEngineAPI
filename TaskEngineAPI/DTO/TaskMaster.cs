@@ -124,7 +124,9 @@ namespace TaskEngineAPI.DTO
        
         public List<GetprocessEngineConditionDTO> board { get; set; }
 
-       
+        public List<GetmetalayoutDTO> layout { get; set; }
+
+
     }
 
    
