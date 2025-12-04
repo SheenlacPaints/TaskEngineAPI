@@ -70,7 +70,7 @@ namespace TaskEngineAPI.Controllers
             }
 
             var connStr = _config.GetConnectionString("Database");
-            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "",cposition_name="",cposition_code="", role="", role_name="";
+            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "", role_name = "";
 
             try
             {
@@ -93,7 +93,7 @@ namespace TaskEngineAPI.Controllers
                                 tenantID = reader["ctenant_id"]?.ToString();
                                 tenantname = reader["ctenant_code"]?.ToString();
                                 email = reader["cemail"]?.ToString();
-                                hashedPassword = reader["cpassword"]?.ToString();                               
+                                hashedPassword = reader["cpassword"]?.ToString();
                                 cposition_code = reader["cposition_code"]?.ToString() ?? string.Empty;
                                 cposition_name = reader["cposition_name"]?.ToString() ?? string.Empty;
                                 role = reader["role"] == DBNull.Value ? "" : reader["role"]?.ToString() ?? "";
@@ -112,7 +112,7 @@ namespace TaskEngineAPI.Controllers
                             }
                         }
                     }
-                }              
+                }
                 bool isValid = BCrypt.Net.BCrypt.Verify(User.password, hashedPassword.Trim());
 
 
@@ -172,7 +172,7 @@ namespace TaskEngineAPI.Controllers
                     role_name = role_name,
                     token = accessToken,
                     refreshToken = refreshToken
-                    
+
                 };
 
                 var success = new APIResponse
@@ -485,7 +485,7 @@ namespace TaskEngineAPI.Controllers
                 body = new object[] { new { UserID = model.cid } }
             };
 
-           
+
 
             string json = JsonConvert.SerializeObject(response);
             string encrypted = AesEncryption.Encrypt(json);
@@ -1062,7 +1062,7 @@ namespace TaskEngineAPI.Controllers
                             var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
                             return StatusCode(500, encryptapierrDtls);
                         }
-                        break;                                
+                        break;
                     case "PUT":
                         var updateModel = JsonConvert.DeserializeObject<OtpActionRequest<UpdateAdminDTO>>(decryptedJson);
                         bool updated = await _AccountService.UpdateSuperAdminAsync(updateModel.payload);
@@ -2395,7 +2395,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     status = success ? 200 : 400,
                     statusText = success ? "API sync config created successfully" : "Failed to create API sync config"
-                 
+
                 };
 
                 string json = JsonConvert.SerializeObject(response);
@@ -3532,6 +3532,7 @@ namespace TaskEngineAPI.Controllers
         [HttpGet]
         [Route("GetAllUsersApiSyncConfig")]
         public async Task<ActionResult> GetAllUsersApiSyncConfig(
+     [FromQuery] string searchText= null,
      [FromQuery] string syncType = null,
      [FromQuery] string apiMethod = null,
      [FromQuery] bool? isActive = null)
@@ -3560,6 +3561,7 @@ namespace TaskEngineAPI.Controllers
 
                 var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(
                     cTenantID,
+                    searchText,
                     syncType,
                     apiMethod,
                     isActive
@@ -3921,6 +3923,136 @@ namespace TaskEngineAPI.Controllers
                 {
                     status = success ? 200 : 404,
                     statusText = success ? "API sync config updated successfully" : "API sync config not found",
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, $"\"{encrypted}\"");
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Internal server error: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, $"\"{encryptedError}\"");
+            }
+        }
+
+        [Authorize]
+        [HttpPut("UpdateAPISyncConfigActiveStatus")]
+        public async Task<IActionResult> UpdateAPISyncConfigActiveStatus([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Request payload is required"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, $"\"{encryptedError}\"");
+                }
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                    string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID or username in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, $"\"{encryptedError}\"");
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                if (string.IsNullOrWhiteSpace(decryptedJson))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Decrypted payload is empty or invalid"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, $"\"{encryptedError}\"");
+                }
+
+                UpdateAPISyncConfigActiveStatusAsyncDTO model;
+                try
+                {
+                    model = JsonConvert.DeserializeObject<UpdateAPISyncConfigActiveStatusAsyncDTO>(decryptedJson);
+                }
+                catch (JsonException jsonEx)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = $"Invalid JSON format: {jsonEx.Message}"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, $"\"{encryptedError}\"");
+                }
+
+                if (model == null)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Failed to deserialize JSON payload"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, $"\"{encryptedError}\"");
+                }
+
+                if (model.ID <= 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "ID field is required and must be greater than 0"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(400, $"\"{encryptedError}\"");
+                }
+                
+                bool success = await _AccountService.UpdateAPISyncConfigActiveStatusAsync(
+                    model.ID,
+                    model.nis_active,
+                    cTenantID,
+                    usernameClaim
+                );
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ?
+                        $"API sync config status updated to {(model.nis_active ? "Active" : "Inactive")} successfully" :
+                        "API sync config not found or update failed",
+                    body = new object[] { new {
+                //ID = model.ID,
+                //nis_active = model.nis_active,
+                Status = model.nis_active ? "Active" : "Inactive"
+            } }
                 };
 
                 string json = JsonConvert.SerializeObject(response);

@@ -36,11 +36,12 @@ namespace TaskEngineAPI.Interfaces
         Task<int> InsertPositionsBulkAsync(List<BulkPositionDTO> positions, int cTenantID, string usernameClaim);
         Task<List<string>> CheckExistingDepartmentCodesAsync(List<string> roleCodes, int tenantId);
         Task<int> InsertUserApiAsync(List<UserApiDTO> users, int cTenantID, string usernameClaim);
-        Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(int cTenantID, string syncType = null,string apiMethod = null,bool? isActive = null);
+        Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(int cTenantID, string searchText = null,string syncType = null,string apiMethod = null,bool? isActive = null);
         Task<bool> DeleteAPISyncConfigAsync(DeleteAPISyncConfigDTO model, int cTenantID, string username);
         Task<bool> UpdateAPISyncConfigAsync(UpdateAPISyncConfigDTO model, int cTenantID, string username);
         Task<GetAPISyncConfigByIDDTO> GetAPISyncConfigByIDAsync(int id, int cTenantID);
-        
+        Task<bool> UpdateAPISyncConfigActiveStatusAsync(int id, bool isActive, int tenantId, string username);
+
 
         //public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
         //{

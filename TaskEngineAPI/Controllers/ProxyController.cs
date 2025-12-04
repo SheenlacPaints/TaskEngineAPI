@@ -1623,6 +1623,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet("GetAllUsersApiSyncConfig")]
         public async Task<IActionResult> GetAllUsersApiSyncConfig(
+        [FromQuery] string? searchText = null,
        [FromQuery] string? syncType = null,
        [FromQuery] string? apiMethod = null,
        [FromQuery] bool? isActive = null)
@@ -1638,14 +1639,20 @@ namespace TaskEngineAPI.Controllers
 
                 var queryParams = new List<string>();
 
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    queryParams.Add($"searchText={Uri.EscapeDataString(searchText)}");
+
                 if (!string.IsNullOrWhiteSpace(syncType))
                     queryParams.Add($"syncType={Uri.EscapeDataString(syncType)}");
 
                 if (!string.IsNullOrWhiteSpace(apiMethod))
                     queryParams.Add($"apiMethod={Uri.EscapeDataString(apiMethod)}");
 
+                //if (isActive.HasValue)
+                //    queryParams.Add($"isActive={isActive.Value}");
+
                 if (isActive.HasValue)
-                    queryParams.Add($"isActive={isActive.Value}");
+                    queryParams.Add($"isActive={isActive.Value.ToString().ToLower()}");
 
                 var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
 
@@ -1730,6 +1737,42 @@ namespace TaskEngineAPI.Controllers
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                
+                return StatusCode((int)response.StatusCode, body);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+
+        [Authorize]
+        [HttpPut("UpdateAPISyncConfigActiveStatus")]
+        public async Task<IActionResult> UpdateAPISyncConfigActiveStatus([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl.TrimEnd('/')}/Account/UpdateAPISyncConfigActiveStatus");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+
                 return StatusCode((int)response.StatusCode, body);
             }
             catch (Exception ex)
