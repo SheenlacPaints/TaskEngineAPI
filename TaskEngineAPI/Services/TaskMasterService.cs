@@ -1176,7 +1176,7 @@ WHERE a.cis_active = 1
                         d.csla_day as slaDays,d.csla_Hour as slaHours,d.ctask_type as executionType,
                         c.nshow_timeline as showTimeline,a.lcreated_date as taskInitiatedDate,		 
                         b.lcurrent_status_date as taskAssignedDate ,e.cfirst_name + ' ' + e.clast_name as assigneeName,d.id as processdetailid,
-                         c.cmeta_id
+                         c.cmeta_id,a.itaskno
                     from tbl_taskflow_master a 
                     inner join tbl_taskflow_detail b on a.id=b.iheader_id
                     inner join tbl_process_engine_master c on a.cprocess_id=c.ID 
@@ -1196,6 +1196,9 @@ WHERE a.cis_active = 1
 
                                 int processdetailid = reader["processdetailid"] == DBNull.Value ? 0 : Convert.ToInt32(reader["processdetailid"]);
                                 int meta_id = reader["cmeta_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmeta_id"]);
+                                int itaskno = reader["itaskno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["itaskno"]);
+
+
                                 var mapping = new GettaskinboxbyidDTO
                                 {
                                     processId = reader["processId"] == DBNull.Value ? 0 : Convert.ToInt32(reader["processId"]),
@@ -1283,7 +1286,29 @@ WHERE a.cis_active = 1
                                     mapping.meta.Add(childmeta);
                                 }
 
+                              
 
+                                string layoutQuery = @"SELECT  ID,cprocess_id,cdata
+                FROM [tbl_transaction_process_meta_layout] 
+                WHERE citaskno = @ID AND ctenant_id = @TenantID  ORDER BY ID DESC";
+
+                                using var layoutCmd = new SqlCommand(layoutQuery, conn);
+                                layoutCmd.Parameters.AddWithValue("@ID", itaskno);
+                                layoutCmd.Parameters.AddWithValue("@TenantID", cTenantID);                               
+                                using var layoutReader = await layoutCmd.ExecuteReaderAsync();
+                                while (await layoutReader.ReadAsync())
+                                {
+                                    var layoutmeta = new GetmetalayoutDTO
+                                    {
+                                        
+                                        ID = layoutReader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(layoutReader["ID"]),
+                                        cprocess_id = layoutReader["cprocess_id"] == DBNull.Value ? 0 : Convert.ToInt32(layoutReader["cprocess_id"]),                                      
+                                        cdata = layoutReader.IsDBNull(layoutReader.GetOrdinal("cdata")) ? string.Empty : layoutReader.GetString(layoutReader.GetOrdinal("cdata"))
+
+
+                                    };
+                                    mapping.layout.Add(layoutmeta);
+                                }
                                 result.Add(mapping);
                             }
                         }
