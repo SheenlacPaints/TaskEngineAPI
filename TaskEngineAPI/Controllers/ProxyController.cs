@@ -1639,6 +1639,9 @@ namespace TaskEngineAPI.Controllers
 
                 var queryParams = new List<string>();
 
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    queryParams.Add($"searchText={Uri.EscapeDataString(searchText)}");
+
                 if (!string.IsNullOrWhiteSpace(syncType))
                     queryParams.Add($"syncType={Uri.EscapeDataString(syncType)}");
 
