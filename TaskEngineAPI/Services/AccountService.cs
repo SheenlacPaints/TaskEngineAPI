@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -2819,6 +2820,7 @@ VALUES (
       
         public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(
     int cTenantID,
+    string? searchText = null,
     string syncType = null,  
     string apiMethod = null, 
     bool? isActive = null)  
@@ -2840,6 +2842,11 @@ VALUES (
                     cmodified_by, lmodified_date
                 FROM tbl_users_api_sync_config 
                 WHERE ctenant_id = @TenantID";
+
+                    if (!string.IsNullOrWhiteSpace(searchText))
+                    {
+                        query += " AND cname LIKE @SearchText";
+                    }
 
                     if (isActive.HasValue)
                     {
@@ -2867,7 +2874,10 @@ VALUES (
                         {
                             cmd.Parameters.AddWithValue("@IsActive", isActive.Value);
                         }
-
+                        if (!string.IsNullOrWhiteSpace(searchText))
+                        {
+                            cmd.Parameters.AddWithValue("@SearchText", "%" + searchText + "%");
+                        }
                         if (!string.IsNullOrWhiteSpace(syncType))
                         {
                             cmd.Parameters.AddWithValue("@SyncType", syncType);

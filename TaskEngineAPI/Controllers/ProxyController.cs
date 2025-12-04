@@ -1623,6 +1623,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet("GetAllUsersApiSyncConfig")]
         public async Task<IActionResult> GetAllUsersApiSyncConfig(
+        [FromQuery] string? searchText = null,
        [FromQuery] string? syncType = null,
        [FromQuery] string? apiMethod = null,
        [FromQuery] bool? isActive = null)

@@ -3532,6 +3532,7 @@ namespace TaskEngineAPI.Controllers
         [HttpGet]
         [Route("GetAllUsersApiSyncConfig")]
         public async Task<ActionResult> GetAllUsersApiSyncConfig(
+     [FromQuery] string searchText= null,
      [FromQuery] string syncType = null,
      [FromQuery] string apiMethod = null,
      [FromQuery] bool? isActive = null)
@@ -3560,6 +3561,7 @@ namespace TaskEngineAPI.Controllers
 
                 var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(
                     cTenantID,
+                    searchText,
                     syncType,
                     apiMethod,
                     isActive
