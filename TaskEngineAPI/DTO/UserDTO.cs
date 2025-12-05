@@ -456,9 +456,22 @@ namespace TaskEngineAPI.DTO
         public bool? nis_active { get; set; }
     }
 
-    
 
-   
+    public class RoleDTO
+    {
+        public string crole_code { get; set; }
+        public string? crole_name { get; set; }
+        public string crole_level { get; set; }
+        public string? cdepartment_code { get; set; }
+        public string? creporting_manager_code { get; set; }
+        public string? creporting_manager_name { get; set; }
+        public string? crole_description { get; set; }
+        public bool? nis_active { get; set; }
+    }
+
+
+
+
     public class BulkDepartmentDTO
     {
         public string cdepartment_code { get; set; }
@@ -472,7 +485,31 @@ namespace TaskEngineAPI.DTO
         public string? cdepartment_phone { get; set; }
     }
 
-    
+    public class DepartmentDTO
+    {
+        public string cdepartment_code { get; set; }
+        public string? cdepartment_name { get; set; }
+        public string? cdepartment_desc { get; set; }
+        public string? cdepartment_manager_rolecode { get; set; }
+        public string? cdepartment_manager_position_code { get; set; }
+        public string? cdepartment_manager_name { get; set; }
+        public string? cdepartment_email { get; set; }
+        public bool? nis_active { get; set; }
+        public string? cdepartment_phone { get; set; }
+    }
+
+    public class PositionDTO
+    {
+        public string cposition_code { get; set; }
+        public string? cposition_name { get; set; }
+        public string? cposition_decsription { get; set; }
+        public string? cdepartment_code { get; set; }
+        public string? creporting_manager_positionid { get; set; }
+        public string? creporting_manager_name { get; set; }
+        public bool? nis_active { get; set; }
+    }
+
+
 
     public class BulkPositionDTO
     {

@@ -3102,5 +3102,247 @@ VALUES (
                 return false;
             }
         }
+
+        public async Task<int> InsertPositionsAsync(List<PositionDTO> positions, int cTenantID, string usernameClaim)
+        {
+            if (positions == null || !positions.Any())
+                return 0;
+
+            var connStr = _config.GetConnectionString("Database");
+            int insertedCount = 0;
+
+            using var conn = new SqlConnection(connStr);
+
+            try
+            {
+                await conn.OpenAsync();
+
+                foreach (var position in positions)
+                {
+                    if (string.IsNullOrWhiteSpace(position.cposition_code))
+                        continue;
+
+                    try
+                    {
+                        string insertQuery = @"
+                    INSERT INTO tbl_position_master 
+                    (ctenant_id, cposition_code, cposition_name, cposition_decsription,
+                     cdepartment_code, creporting_manager_positionid, creporting_manager_name,
+                     nis_active, ccreated_by, lcreated_date, cmodified_by, lmodified_date, nis_deleted)
+                    SELECT 
+                        @TenantID, @PositionCode, @PositionName, @PositionDesc,
+                        @DeptCode, @ReportingManagerPositionId, @ReportingManagerName,
+                        @IsActive, @CreatedBy, @CreatedDate, @ModifiedBy, @ModifiedDate, @IsDeleted
+                    WHERE NOT EXISTS (
+                        SELECT 1 
+                        FROM tbl_position_master 
+                        WHERE ctenant_id = @TenantID 
+                        AND cposition_code = @PositionCode
+                        AND nis_deleted = 0
+                    )";
+
+                        using var cmd = new SqlCommand(insertQuery, conn);
+
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@PositionCode", position.cposition_code);
+                        cmd.Parameters.AddWithValue("@PositionName", (object)position.cposition_name ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@PositionDesc", (object)position.cposition_decsription ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@DeptCode", (object)position.cdepartment_code ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ReportingManagerPositionId", (object)position.creporting_manager_positionid ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ReportingManagerName", (object)position.creporting_manager_name ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@IsActive", position.nis_active ?? true);
+                        cmd.Parameters.AddWithValue("@CreatedBy", usernameClaim);
+                        cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@ModifiedBy", usernameClaim);
+                        cmd.Parameters.AddWithValue("@ModifiedDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                        if (rowsAffected > 0)
+                        {
+                            insertedCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error inserting positions", ex);
+            }
+            finally
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+            }
+
+            return insertedCount;
+        }
+
+        public async Task<int> InsertRolesAsync(List<RoleDTO> roles, int tenantId, string username)
+        {
+            if (roles == null || !roles.Any())
+                return 0;
+
+            var connStr = _config.GetConnectionString("Database");
+            int insertedCount = 0;
+
+            using var conn = new SqlConnection(connStr);
+
+            try
+            {
+                await conn.OpenAsync();
+
+                foreach (var role in roles)
+                {
+                    if (string.IsNullOrWhiteSpace(role.crole_code))
+                        continue;
+
+                    try
+                    {
+                        string insertQuery = @"
+                    INSERT INTO tbl_role_master 
+                    (ctenant_id, crole_code, crole_name, crole_description, 
+                     crole_level, cdepartment_code, creporting_manager_code, creporting_manager_name,
+                     nis_active, ccreated_by, lcreated_date, cmodified_by, lmodified_date, nis_deleted)
+                    SELECT 
+                        @TenantID, @RoleCode, @RoleName, @RoleDescription,
+                        @RoleLevel, @DeptCode, @ManagerCode, @ManagerName,
+                        @IsActive, @CreatedBy, @CreatedDate, @ModifiedBy, @ModifiedDate, @IsDeleted
+                    WHERE NOT EXISTS (
+                        SELECT 1 
+                        FROM tbl_role_master 
+                        WHERE ctenant_id = @TenantID 
+                        AND crole_code = @RoleCode
+                        AND nis_deleted = 0
+                    )";
+
+                        using var cmd = new SqlCommand(insertQuery, conn);
+
+                        cmd.Parameters.AddWithValue("@TenantID", tenantId);
+                        cmd.Parameters.AddWithValue("@RoleCode", role.crole_code);
+                        cmd.Parameters.AddWithValue("@RoleName", (object)role.crole_name ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@RoleDescription", (object)role.crole_description ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@RoleLevel", (object)role.crole_level ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@DeptCode", (object)role.cdepartment_code ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ManagerCode", (object)role.creporting_manager_code ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ManagerName", (object)role.creporting_manager_name ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@IsActive", role.nis_active ?? true);
+                        cmd.Parameters.AddWithValue("@CreatedBy", username);
+                        cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@ModifiedBy", username);
+                        cmd.Parameters.AddWithValue("@ModifiedDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                        if (rowsAffected > 0)
+                        {
+                            insertedCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error inserting roles", ex);
+            }
+            finally
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+            }
+
+            return insertedCount;
+        }
+
+        public async Task<int> InsertDepartmentsAsync(List<DepartmentDTO> departments, int cTenantID, string usernameClaim)
+        {
+            if (departments == null || !departments.Any())
+                return 0;
+
+            var connStr = _config.GetConnectionString("Database");
+            int insertedCount = 0;
+
+            using var conn = new SqlConnection(connStr);
+
+            try
+            {
+                await conn.OpenAsync();
+
+                foreach (var dept in departments)
+                {
+                    if (string.IsNullOrWhiteSpace(dept.cdepartment_code))
+                        continue;
+
+                    try
+                    {
+                        string insertQuery = @"
+                    INSERT INTO tbl_department_master 
+                    (ctenant_id, cdepartment_code, cdepartment_name, cdepartment_desc,
+                     cdepartment_manager_rolecode, cdepartment_manager_position_code, cdepartment_manager_name,
+                     cdepartment_email, cdepartment_phone, nis_active,
+                     ccreated_by, lcreated_date, cmodified_by, lmodified_date, nis_deleted)
+                    SELECT 
+                        @TenantID, @DeptCode, @DeptName, @DeptDesc,
+                        @ManagerRoleCode, @ManagerPositionCode, @ManagerName,
+                        @Email, @Phone, @IsActive,
+                        @CreatedBy, @CreatedDate, @ModifiedBy, @ModifiedDate, @IsDeleted
+                    WHERE NOT EXISTS (
+                        SELECT 1 
+                        FROM tbl_department_master 
+                        WHERE ctenant_id = @TenantID 
+                        AND cdepartment_code = @DeptCode
+                        AND nis_deleted = 0
+                    )";
+
+                        using var cmd = new SqlCommand(insertQuery, conn);
+                        
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                        cmd.Parameters.AddWithValue("@DeptCode", dept.cdepartment_code);
+                        cmd.Parameters.AddWithValue("@DeptName", (object)dept.cdepartment_name ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@DeptDesc", (object)dept.cdepartment_desc ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ManagerRoleCode", (object)dept.cdepartment_manager_rolecode ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ManagerPositionCode", (object)dept.cdepartment_manager_position_code ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@ManagerName", (object)dept.cdepartment_manager_name ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Email", (object)dept.cdepartment_email ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Phone", (object)dept.cdepartment_phone ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@IsActive", dept.nis_active ?? true);
+                        cmd.Parameters.AddWithValue("@CreatedBy", usernameClaim);
+                        cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@ModifiedBy", usernameClaim);
+                        cmd.Parameters.AddWithValue("@ModifiedDate", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@IsDeleted", false);
+
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                        if (rowsAffected > 0)
+                        {
+                            insertedCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        continue;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error inserting departments", ex);
+            }
+            finally
+            {
+                if (conn.State == ConnectionState.Open)
+                    conn.Close();
+            }
+
+            return insertedCount;
+        }
     }
 }

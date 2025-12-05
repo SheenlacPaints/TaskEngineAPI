@@ -4071,5 +4071,878 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, $"\"{encryptedError}\"");
             }
         }
+
+        [Authorize]
+        [HttpPost("CreateDepartmentsApi")]
+        public async Task<IActionResult> CreateDepartmentsApi([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var errorResponse = new
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID or username in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                List<DepartmentDTO> departments;
+                try
+                {
+                    departments = JsonConvert.DeserializeObject<List<DepartmentDTO>>(decryptedJson);
+                }
+                catch (JsonException)
+                {
+                    var singleDept = JsonConvert.DeserializeObject<DepartmentDTO>(decryptedJson);
+                    departments = new List<DepartmentDTO> { singleDept };
+                }
+
+                if (departments == null || !departments.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "No departments provided in payload."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var duplicateErrors = new List<string>();
+
+                var dupDepartmentCodes = departments.GroupBy(d => d.cdepartment_code)
+                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (dupDepartmentCodes.Any())
+                {
+                    duplicateErrors.Add($"Duplicate cdepartment_code(s): {string.Join(", ", dupDepartmentCodes)}");
+                }
+
+                if (duplicateErrors.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in JSON payload.",
+                        body = new
+                        {
+                            validation_type = "DUPLICATE_CHECK",
+                            message = string.Join("; ", duplicateErrors),
+                            note = "Duplicates detected for department code. Remove duplicates before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var failedDepartments = new List<object>();
+                var validDepartments = new List<DepartmentDTO>();
+                bool hasValidationErrors = false;
+
+                foreach (var dept in departments)
+                {
+                    var errors = new List<string>();
+                    var nullMandatoryFields = new List<string>();
+
+                    if (string.IsNullOrEmpty(dept.cdepartment_code))
+                    {
+                        errors.Add("cdepartment_code: Field is required");
+                        nullMandatoryFields.Add("cdepartment_code");
+                    }
+                    else if (dept.cdepartment_code.Length > 50)
+                    {
+                        errors.Add("cdepartment_code: Maximum length is 50 characters");
+                    }
+
+                    if (string.IsNullOrEmpty(dept.cdepartment_name))
+                    {
+                        errors.Add("cdepartment_name: Field is required");
+                        nullMandatoryFields.Add("cdepartment_name");
+                    }
+                    else if (dept.cdepartment_name.Length > 100)
+                    {
+                        errors.Add("cdepartment_name: Maximum length is 100 characters");
+                    }
+
+                    if (errors.Any())
+                    {
+                        hasValidationErrors = true;
+                        failedDepartments.Add(new
+                        {
+                            cdepartment_code = dept.cdepartment_code ?? "NULL",
+                            cdepartment_name = dept.cdepartment_name ?? "NULL",
+                            reason = string.Join("; ", errors),
+                            null_mandatory_fields = nullMandatoryFields.Any() ? nullMandatoryFields : new List<string> { "None" }
+                        });
+                    }
+                    else
+                    {
+                        validDepartments.Add(dept);
+                    }
+                }
+
+                if (hasValidationErrors)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Validation Failed - Missing or Invalid Fields",
+                        body = new
+                        {
+                            validation_type = "FIELD_VALIDATION",
+                            database_operation = "NONE",
+                            total_departments_received = departments.Count,
+                            total_valid_departments = validDepartments.Count,
+                            total_failed_departments = failedDepartments.Count,
+                            failed_departments = failedDepartments,
+                            valid_departments = validDepartments.Select(d => new
+                            {
+                                d.cdepartment_code,
+                                d.cdepartment_name,
+                                validation_status = "PASSED"
+                            }),
+                            note = "Mandatory fields validated. Shows exactly which fields are null or invalid."
+                        },
+                        message = "Bulk insertion aborted - validation failed"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var existingDepartmentCodes = await _AccountService.CheckExistingDepartmentCodesAsync(
+                    validDepartments.Select(d => d.cdepartment_code).ToList(),
+                    cTenantID
+                );
+
+                if (existingDepartmentCodes.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in database.",
+                        body = new
+                        {
+                            validation_type = "DATABASE_DUPLICATE_CHECK",
+                            message = $"Department codes already exist in database: {string.Join(", ", existingDepartmentCodes)}",
+                            note = "Remove duplicate department codes before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                int insertedCount = 0;
+                List<DepartmentDTO> successfullyInsertedDepartments = new List<DepartmentDTO>();
+                List<object> databaseFailedDepartments = new List<object>();
+
+                if (validDepartments.Any())
+                {
+                    try
+                    {
+                        insertedCount = await _AccountService.InsertDepartmentsAsync(validDepartments, cTenantID, usernameClaim);
+                        successfullyInsertedDepartments = validDepartments;
+                    }
+                    catch (Exception dbEx)
+                    {
+                        databaseFailedDepartments.Add(new
+                        {
+                            error_type = "DATABASE_CONSTRAINT_VIOLATION",
+                            message = dbEx.Message,
+                            note = "Some departments may already exist in the database. Check unique constraints (cdepartment_code)."
+                        });
+
+                        insertedCount = 0;
+                        successfullyInsertedDepartments = new List<DepartmentDTO>();
+                    }
+                }
+
+                var insertedDepartmentsWithDetails = successfullyInsertedDepartments.Select(d => new
+                {
+                    d.cdepartment_code,
+                    d.cdepartment_name,
+                    validation_status = "PASSED",
+                    null_mandatory_fields = new List<string> { "None" }
+                }).ToList();
+
+                object response;
+
+                if (databaseFailedDepartments.Any())
+                {
+                    response = new
+                    {
+                        status = 500,
+                        statusText = "Database Insertion Failed",
+                        body = new
+                        {
+                            total_departments_received = departments.Count,
+                            successful_inserts = insertedCount,
+                            database_errors = databaseFailedDepartments,
+                            note = "Database insertion failed due to constraint violations. Some departments may already exist."
+                        },
+                        error = "Check unique constraints (cdepartment_code)"
+                    };
+                }
+                else if (insertedCount == validDepartments.Count)
+                {
+                    response = new
+                    {
+                        status = 200,
+                        statusText = "Bulk department creation completed successfully",
+                        body = new
+                        {
+                            total = departments.Count,
+                            success = insertedCount,
+                            failure = departments.Count - insertedCount,
+                            inserted = insertedDepartmentsWithDetails,
+                            failed = failedDepartments.Any() ? failedDepartments : new List<object> { new { message = "No validation failures" } },
+                            note = "All departments passed validation and were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+                else
+                {
+                    response = new
+                    {
+                        status = 207,
+                        statusText = "Partial completion",
+                        body = new
+                        {
+                            total = departments.Count,
+                            success = insertedCount,
+                            failure = departments.Count - insertedCount,
+                            inserted = insertedDepartmentsWithDetails,
+                            failed = failedDepartments,
+                            note = "Some departments were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+
+                if (((dynamic)response).status == 500)
+                    return StatusCode(500, encrypted);
+                else if (((dynamic)response).status == 207)
+                    return StatusCode(207, encrypted);
+                else
+                    return Ok(encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new
+                {
+                    status = 500,
+                    statusText = "Internal Server Error",
+                    error = ex.Message,
+                    note = "Operation failed due to unexpected error"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("CreateRolesApi")]
+        public async Task<IActionResult> CreateRolesApi([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var errorResponse = new
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID or username in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                List<RoleDTO> roles;
+                try
+                {
+                    roles = JsonConvert.DeserializeObject<List<RoleDTO>>(decryptedJson);
+                }
+                catch (JsonException)
+                {
+                    var singleRole = JsonConvert.DeserializeObject<RoleDTO>(decryptedJson);
+                    roles = new List<RoleDTO> { singleRole };
+                }
+
+                if (roles == null || !roles.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "No roles provided in payload."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var duplicateErrors = new List<string>();
+
+                var dupRoleCodes = roles.GroupBy(r => r.crole_code)
+                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (dupRoleCodes.Any())
+                {
+                    duplicateErrors.Add($"Duplicate crole_code(s): {string.Join(", ", dupRoleCodes)}");
+                }
+
+                if (duplicateErrors.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in JSON payload.",
+                        body = new
+                        {
+                            validation_type = "DUPLICATE_CHECK",
+                            message = string.Join("; ", duplicateErrors),
+                            note = "Duplicates detected for role code. Remove duplicates before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var failedRoles = new List<object>();
+                var validRoles = new List<RoleDTO>();
+                bool hasValidationErrors = false;
+
+                foreach (var role in roles)
+                {
+                    var errors = new List<string>();
+                    var nullMandatoryFields = new List<string>();
+
+                    if (string.IsNullOrEmpty(role.crole_code))
+                    {
+                        errors.Add("crole_code: Field is required");
+                        nullMandatoryFields.Add("crole_code");
+                    }
+                    else if (role.crole_code.Length > 50)
+                    {
+                        errors.Add("crole_code: Maximum length is 50 characters");
+                    }
+
+                    if (string.IsNullOrEmpty(role.crole_level))
+                    {
+                        errors.Add("crole_level: Field is required");
+                        nullMandatoryFields.Add("crole_level");
+                    }
+                    else if (role.crole_level.Length > 50)
+                    {
+                        errors.Add("crole_level: Maximum length is 50 characters");
+                    }
+
+                    if (errors.Any())
+                    {
+                        hasValidationErrors = true;
+                        failedRoles.Add(new
+                        {
+                            crole_code = role.crole_code ?? "NULL",
+                            crole_level = role.crole_level ?? "NULL",
+                            reason = string.Join("; ", errors),
+                            null_mandatory_fields = nullMandatoryFields.Any() ? nullMandatoryFields : new List<string> { "None" }
+                        });
+                    }
+                    else
+                    {
+                        validRoles.Add(role);
+                    }
+                }
+
+                if (hasValidationErrors)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Validation Failed - Missing or Invalid Fields",
+                        body = new
+                        {
+                            validation_type = "FIELD_VALIDATION",
+                            database_operation = "NONE",
+                            total_roles_received = roles.Count,
+                            total_valid_roles = validRoles.Count,
+                            total_failed_roles = failedRoles.Count,
+                            failed_roles = failedRoles,
+                            valid_roles = validRoles.Select(r => new
+                            {
+                                r.crole_code,
+                                r.crole_level,
+                                validation_status = "PASSED"
+                            }),
+                            note = "Mandatory fields validated. Shows exactly which fields are null or invalid."
+                        },
+                        message = "Bulk insertion aborted - validation failed"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var existingRoleCodes = await _AccountService.CheckExistingRoleCodesAsync(
+                    validRoles.Select(r => r.crole_code).ToList(),
+                    cTenantID
+                );
+
+                if (existingRoleCodes.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in database.",
+                        body = new
+                        {
+                            validation_type = "DATABASE_DUPLICATE_CHECK",
+                            message = $"Role codes already exist in database: {string.Join(", ", existingRoleCodes)}",
+                            note = "Remove duplicate role codes before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                int insertedCount = 0;
+                List<RoleDTO> successfullyInsertedRoles = new List<RoleDTO>();
+                List<object> databaseFailedRoles = new List<object>();
+
+                if (validRoles.Any())
+                {
+                    try
+                    {
+                        insertedCount = await _AccountService.InsertRolesAsync(validRoles, cTenantID, usernameClaim);
+                        successfullyInsertedRoles = validRoles;
+                    }
+                    catch (Exception dbEx)
+                    {
+                        databaseFailedRoles.Add(new
+                        {
+                            error_type = "DATABASE_CONSTRAINT_VIOLATION",
+                            message = dbEx.Message,
+                            note = "Some roles may already exist in the database. Check unique constraints (crole_code)."
+                        });
+
+                        insertedCount = 0;
+                        successfullyInsertedRoles = new List<RoleDTO>();
+                    }
+                }
+
+                var insertedRolesWithDetails = successfullyInsertedRoles.Select(r => new
+                {
+                    r.crole_code,
+                    r.crole_level,
+                    validation_status = "PASSED",
+                    null_mandatory_fields = new List<string> { "None" }
+                }).ToList();
+
+                object response;
+
+                if (databaseFailedRoles.Any())
+                {
+                    response = new
+                    {
+                        status = 500,
+                        statusText = "Database Insertion Failed",
+                        body = new
+                        {
+                            total_roles_received = roles.Count,
+                            successful_inserts = insertedCount,
+                            database_errors = databaseFailedRoles,
+                            note = "Database insertion failed due to constraint violations. Some roles may already exist."
+                        },
+                        error = "Check unique constraints (crole_code)"
+                    };
+                }
+                else if (insertedCount == validRoles.Count)
+                {
+                    response = new
+                    {
+                        status = 200,
+                        statusText = "Bulk role creation completed successfully",
+                        body = new
+                        {
+                            total = roles.Count,
+                            success = insertedCount,
+                            failure = roles.Count - insertedCount,
+                            inserted = insertedRolesWithDetails,
+                            failed = failedRoles.Any() ? failedRoles : new List<object> { new { message = "No validation failures" } },
+                            note = "All roles passed validation and were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+                else
+                {
+                    response = new
+                    {
+                        status = 207,
+                        statusText = "Partial completion",
+                        body = new
+                        {
+                            total = roles.Count,
+                            success = insertedCount,
+                            failure = roles.Count - insertedCount,
+                            inserted = insertedRolesWithDetails,
+                            failed = failedRoles,
+                            note = "Some roles were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+
+                if (((dynamic)response).status == 500)
+                    return StatusCode(500, encrypted);
+                else if (((dynamic)response).status == 207)
+                    return StatusCode(207, encrypted);
+                else
+                    return Ok(encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new
+                {
+                    status = 500,
+                    statusText = "Internal Server Error",
+                    error = ex.Message,
+                    note = "Operation failed due to unexpected error"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("CreatePositionsApi")]
+        public async Task<IActionResult> CreatePositionsApi([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+                {
+                    var errorResponse = new
+                    {
+                        status = 401,
+                        statusText = "Invalid or missing cTenantID or username in token."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return StatusCode(401, encryptedError);
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                List<PositionDTO> positions;
+                try
+                {
+                    positions = JsonConvert.DeserializeObject<List<PositionDTO>>(decryptedJson);
+                }
+                catch (JsonException)
+                {
+                    var singlePosition = JsonConvert.DeserializeObject<PositionDTO>(decryptedJson);
+                    positions = new List<PositionDTO> { singlePosition };
+                }
+
+                if (positions == null || !positions.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "No positions provided in payload."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var duplicateErrors = new List<string>();
+
+                var dupPositionCodes = positions.GroupBy(p => p.cposition_code)
+                    .Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key))
+                    .Select(g => g.Key)
+                    .ToList();
+
+                if (dupPositionCodes.Any())
+                {
+                    duplicateErrors.Add($"Duplicate cposition_code(s): {string.Join(", ", dupPositionCodes)}");
+                }
+
+                if (duplicateErrors.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in JSON payload.",
+                        body = new
+                        {
+                            validation_type = "DUPLICATE_CHECK",
+                            message = string.Join("; ", duplicateErrors),
+                            note = "Duplicates detected for position code. Remove duplicates before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var failedPositions = new List<object>();
+                var validPositions = new List<PositionDTO>();
+                bool hasValidationErrors = false;
+
+                foreach (var position in positions)
+                {
+                    var errors = new List<string>();
+                    var nullMandatoryFields = new List<string>();
+
+                    if (string.IsNullOrEmpty(position.cposition_code))
+                    {
+                        errors.Add("cposition_code: Field is required");
+                        nullMandatoryFields.Add("cposition_code");
+                    }
+                    else if (position.cposition_code.Length > 50)
+                    {
+                        errors.Add("cposition_code: Maximum length is 50 characters");
+                    }
+
+                    if (string.IsNullOrEmpty(position.cposition_name))
+                    {
+                        errors.Add("cposition_name: Field is required");
+                        nullMandatoryFields.Add("cposition_name");
+                    }
+                    else if (position.cposition_name.Length > 100)
+                    {
+                        errors.Add("cposition_name: Maximum length is 100 characters");
+                    }
+
+                    if (errors.Any())
+                    {
+                        hasValidationErrors = true;
+                        failedPositions.Add(new
+                        {
+                            cposition_code = position.cposition_code ?? "NULL",
+                            cposition_name = position.cposition_name ?? "NULL",
+                            reason = string.Join("; ", errors),
+                            null_mandatory_fields = nullMandatoryFields.Any() ? nullMandatoryFields : new List<string> { "None" }
+                        });
+                    }
+                    else
+                    {
+                        validPositions.Add(position);
+                    }
+                }
+
+                if (hasValidationErrors)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Validation Failed - Missing or Invalid Fields",
+                        body = new
+                        {
+                            validation_type = "FIELD_VALIDATION",
+                            database_operation = "NONE",
+                            total_positions_received = positions.Count,
+                            total_valid_positions = validPositions.Count,
+                            total_failed_positions = failedPositions.Count,
+                            failed_positions = failedPositions,
+                            valid_positions = validPositions.Select(p => new
+                            {
+                                p.cposition_code,
+                                p.cposition_name,
+                                validation_status = "PASSED"
+                            }),
+                            note = "Mandatory fields validated. Shows exactly which fields are null or invalid."
+                        },
+                        message = "Bulk insertion aborted - validation failed"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                var existingPositionCodes = await _AccountService.CheckExistingPositionCodesAsync(
+                    validPositions.Select(p => p.cposition_code).ToList(),
+                    cTenantID
+                );
+
+                if (existingPositionCodes.Any())
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Duplicate values found in database.",
+                        body = new
+                        {
+                            validation_type = "DATABASE_DUPLICATE_CHECK",
+                            message = $"Position codes already exist in database: {string.Join(", ", existingPositionCodes)}",
+                            note = "Remove duplicate position codes before retrying."
+                        }
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                int insertedCount = 0;
+                List<PositionDTO> successfullyInsertedPositions = new List<PositionDTO>();
+                List<object> databaseFailedPositions = new List<object>();
+
+                if (validPositions.Any())
+                {
+                    try
+                    {
+                        insertedCount = await _AccountService.InsertPositionsAsync(validPositions, cTenantID, usernameClaim);
+                        successfullyInsertedPositions = validPositions;
+                    }
+                    catch (Exception dbEx)
+                    {
+                        databaseFailedPositions.Add(new
+                        {
+                            error_type = "DATABASE_CONSTRAINT_VIOLATION",
+                            message = dbEx.Message,
+                            note = "Some positions may already exist in the database. Check unique constraints (cposition_code)."
+                        });
+
+                        insertedCount = 0;
+                        successfullyInsertedPositions = new List<PositionDTO>();
+                    }
+                }
+
+                var insertedPositionsWithDetails = successfullyInsertedPositions.Select(p => new
+                {
+                    p.cposition_code,
+                    p.cposition_name,
+                    validation_status = "PASSED",
+                    null_mandatory_fields = new List<string> { "None" }
+                }).ToList();
+
+                object response;
+
+                if (databaseFailedPositions.Any())
+                {
+                    response = new
+                    {
+                        status = 500,
+                        statusText = "Database Insertion Failed",
+                        body = new
+                        {
+                            total_positions_received = positions.Count,
+                            successful_inserts = insertedCount,
+                            database_errors = databaseFailedPositions,
+                            note = "Database insertion failed due to constraint violations. Some positions may already exist."
+                        },
+                        error = "Check unique constraints (cposition_code)"
+                    };
+                }
+                else if (insertedCount == validPositions.Count)
+                {
+                    response = new
+                    {
+                        status = 200,
+                        statusText = "Bulk position creation completed successfully",
+                        body = new
+                        {
+                            total = positions.Count,
+                            success = insertedCount,
+                            failure = positions.Count - insertedCount,
+                            inserted = insertedPositionsWithDetails,
+                            failed = failedPositions.Any() ? failedPositions : new List<object> { new { message = "No validation failures" } },
+                            note = "All positions passed validation and were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+                else
+                {
+                    response = new
+                    {
+                        status = 207,
+                        statusText = "Partial completion",
+                        body = new
+                        {
+                            total = positions.Count,
+                            success = insertedCount,
+                            failure = positions.Count - insertedCount,
+                            inserted = insertedPositionsWithDetails,
+                            failed = failedPositions,
+                            note = "Some positions were inserted successfully."
+                        },
+                        error = ""
+                    };
+                }
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+
+                if (((dynamic)response).status == 500)
+                    return StatusCode(500, encrypted);
+                else if (((dynamic)response).status == 207)
+                    return StatusCode(207, encrypted);
+                else
+                    return Ok(encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new
+                {
+                    status = 500,
+                    statusText = "Internal Server Error",
+                    error = ex.Message,
+                    note = "Operation failed due to unexpected error"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
     }
 }
