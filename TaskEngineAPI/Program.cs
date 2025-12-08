@@ -1,16 +1,32 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Data.SqlClient;
+using System.Data;
 using System.Text;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Middleware;
 using TaskEngineAPI.Middlewares;
 using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
+using Serilog;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.File(
+        "Logs/api-log-.txt",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,     // keep 30 days logs
+        fileSizeLimitBytes: 10_000_000, // 10 MB per file
+        rollOnFileSizeLimit: true
+    )
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 //builder.Services.AddScoped<IRoleService, RoleService>();
 //builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -78,6 +94,7 @@ builder.Services.AddSwaggerGen(swagger =>
 
 
 
+
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminService, AccountService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
@@ -111,7 +128,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-
+app.UseSerilogRequestLogging();
 
 
 app.UseSwagger();

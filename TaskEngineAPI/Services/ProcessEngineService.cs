@@ -930,8 +930,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         LEFT JOIN tbl_process_privilege_details d ON h.ID = d.cheader_id
                         WHERE h.ctenant_id =@TenantID  
                         AND (d.ctenant_id = @TenantID OR d.ctenant_id IS NULL)
-                        AND (d.cis_active = 1 OR d.cis_active IS NULL) and
-                        (h.cis_active=1 OR h.cis_active IS NULL)
+                        AND (d.cis_active = 1) and
+                        (h.cis_active=1)
 
                         ORDER BY h.ID, d.entity_value";
                         
