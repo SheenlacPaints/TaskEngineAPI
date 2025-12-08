@@ -1406,6 +1406,7 @@ WHERE a.cis_active = 1
                     b.ccurrent_status AS taskStatus,
                     d.cparticipant_type AS participantType,
                     d.caction_privilege AS actionPrivilege,
+                    d.crejection_privilege AS crejection_privilege,
                     d.cmapping_type AS assigneeType,
                     d.cmapping_code AS assigneeValue,
                     d.csla_day AS slaDays,
@@ -1449,6 +1450,7 @@ WHERE a.cis_active = 1
                                     taskStatus = reader["taskStatus"]?.ToString() ?? "",
                                     participantType = reader["participantType"]?.ToString() ?? "",
                                     actionPrivilege = reader["actionPrivilege"]?.ToString() ?? "",
+                                    crejection_privilege = reader["crejection_privilege"]?.ToString() ?? "",
                                     assigneeType = reader["assigneeType"]?.ToString() ?? "",
                                     assigneeValue = reader["assigneeValue"]?.ToString() ?? "",
                                     slaDays = reader["slaDays"] == DBNull.Value ? 0 : Convert.ToInt32(reader["slaDays"]),
@@ -1482,11 +1484,8 @@ WHERE a.cis_active = 1
                                 await LoadProcessConditions(conn, mapping, processdetailid);
 
                                 // Load Meta
-                                await LoadMeta(conn, mapping, meta_id);
-
-                                // Load Layout
-                                await LoadLayout(conn, mapping, itaskno, cTenantID);
-
+                                await LoadMeta(conn, mapping, itaskno, cTenantID);
+                           
                                 result.Add(mapping);
                             }
                         }
@@ -1532,12 +1531,18 @@ WHERE a.cis_active = 1
             }
         }
 
-        private async Task LoadMeta(SqlConnection conn, GettaskinboxbyidDTO mapping, int meta_id)
+        private async Task LoadMeta(SqlConnection conn, GettaskinboxbyidDTO mapping, int itaskno, int tenantID)
         {
-            string sql = @"SELECT * FROM tbl_process_meta_detail WHERE cheader_id = @HeaderID";
+            string sql = @"SELECT a.ID,a.cprocess_id,a.cdata,cinput_type,c.label,c.cplaceholder,
+                          c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
+                          from [tbl_transaction_process_meta_layout] a 
+                          inner join tbl_process_engine_master b on a.cprocess_id=b.ID 
+                          inner join  tbl_process_meta_detail c on c.cheader_id=b.cmeta_id
+                          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID ";
 
-            using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@HeaderID", meta_id);
+            using var cmd = new SqlCommand(sql, conn);  
+            cmd.Parameters.AddWithValue("@TaskNo", itaskno);
+            cmd.Parameters.AddWithValue("@TenantID", tenantID);
 
             using var dr = await cmd.ExecuteReaderAsync();
 
@@ -1545,6 +1550,7 @@ WHERE a.cis_active = 1
             {
                 mapping.meta.Add(new processEnginetaskMeta
                 {
+                    cdata= dr["cdata"]?.ToString() ?? "",
                     cinputType = dr["cInput_type"]?.ToString() ?? "",
                     clabel = dr["label"]?.ToString() ?? "",
                     cplaceholder = dr["cPlaceholder"]?.ToString() ?? "",
@@ -1556,29 +1562,7 @@ WHERE a.cis_active = 1
                 });
             }
         }
-        private async Task LoadLayout(SqlConnection conn, GettaskinboxbyidDTO mapping, int itaskno, int tenantID)
-        {
-            string sql = @"SELECT * FROM tbl_transaction_process_meta_layout
-                   WHERE citaskno = @TaskNo AND ctenant_id = @TenantID
-                   ORDER BY ID DESC";
-
-            using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@TaskNo", itaskno);
-            cmd.Parameters.AddWithValue("@TenantID", tenantID);
-
-            using var dr = await cmd.ExecuteReaderAsync();
-
-            while (await dr.ReadAsync())
-            {
-                mapping.layout.Add(new GetmetalayoutDTO
-                {
-                    ID = Convert.ToInt32(dr["ID"]),
-                    cprocess_id = Convert.ToInt32(dr["cprocess_id"]),
-                    cdata = dr.IsDBNull(dr.GetOrdinal("cdata")) ? "" : dr.GetString(dr.GetOrdinal("cdata"))
-                });
-            }
-        }
-
+  
 
     }
 }

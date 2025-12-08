@@ -110,6 +110,8 @@ namespace TaskEngineAPI.DTO
         public string? taskStatus { get; set; }
         public string? participantType { get; set; }
         public string? actionPrivilege { get; set; }
+
+        public string? crejection_privilege { get; set; }
         public string? assigneeType { get; set; }
         public string? assigneeValue { get; set; }
         public int? slaDays { get; set; }
@@ -122,10 +124,7 @@ namespace TaskEngineAPI.DTO
 
         public List<processEnginetaskMeta> meta { get; set; }
        
-        public List<GetprocessEngineConditionDTO> board { get; set; }
-
-        public List<GetmetalayoutDTO> layout { get; set; }
-
+        public List<GetprocessEngineConditionDTO> board { get; set; }     
 
     }
 
@@ -135,6 +134,7 @@ namespace TaskEngineAPI.DTO
 
   public class processEnginetaskMeta
 {
+    public string? cdata { get; set; }
     public string? cinputType { get; set; }
     public string? clabel { get; set; }
     public string? cplaceholder { get; set; }
