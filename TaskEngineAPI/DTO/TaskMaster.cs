@@ -163,7 +163,9 @@ public class GetmetalayoutDTO
     public int? ID { get; set; }
     public int? cprocess_id { get; set; }
     public string? cdata { get; set; }
-     
+    public string? label { get; set; }
+    
+
 }
 
 
