@@ -1169,9 +1169,12 @@ WHERE a.cis_active = 1
                 {
                     await conn.OpenAsync();
 
-                    string query = @"SELECT  ID,cprocess_id,cdata
-                FROM [tbl_transaction_process_meta_layout] 
-                WHERE citaskno = @ID AND ctenant_id = @TenantID  ORDER BY ID DESC";
+                    string query = @"SELECT a.ID,a.cprocess_id,a.cdata,cinput_type,c.label,c.cplaceholder,
+                                    c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
+                                    from [tbl_transaction_process_meta_layout] a 
+                                    inner join tbl_process_engine_master b on a.cprocess_id=b.ID 
+                                    inner join  tbl_process_meta_detail c on c.cheader_id=b.cmeta_id
+                                    where a.citaskno=@ID and a.ctenant_id=@TenantID ORDER BY a.ID asc";
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -1186,6 +1189,14 @@ WHERE a.cis_active = 1
                                     ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ID"]),
                                     cprocess_id = reader["cprocess_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cprocess_id"]),
                                     cdata = reader["cdata"]?.ToString() ?? "",
+                                    cinput_type = reader["cinput_type"]?.ToString() ?? "",
+                                    label = reader["label"]?.ToString() ?? "",
+                                    cplaceholder = reader["cplaceholder"]?.ToString() ?? "",                                 
+                                    cis_required = reader.SafeGetBoolean("cis_required"),                                
+                                    cis_readonly = reader.SafeGetBoolean("cis_readonly"),
+                                    cis_disabled = reader.SafeGetBoolean("cis_disabled"),
+                                    cfield_value = reader["cfield_value"]?.ToString() ?? "",
+                                    cdata_source = reader["cdata_source"]?.ToString() ?? ""                                                             
                                 };
 
                                 result.Add(mapping);
