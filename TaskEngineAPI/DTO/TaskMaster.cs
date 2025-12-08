@@ -163,8 +163,14 @@ public class GetmetalayoutDTO
     public int? ID { get; set; }
     public int? cprocess_id { get; set; }
     public string? cdata { get; set; }
+    public string? cinput_type { get; set; }
     public string? label { get; set; }
-    
+    public bool? cplaceholder { get; set; }
+    public bool? cis_required { get; set; }
+    public bool? cis_readonly { get; set; }
+    public bool? cis_disabled { get; set; }
+    public string? cfield_value { get; set; }
+    public string? cdata_source { get; set; }
 
 }
 
