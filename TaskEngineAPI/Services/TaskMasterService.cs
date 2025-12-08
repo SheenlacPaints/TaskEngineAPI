@@ -38,7 +38,7 @@ namespace TaskEngineAPI.Services
         {
             int masterId = 0;
             int detailId = 0;
-            int primaryDetailId = 0; 
+            int primaryDetailId = 0;
 
             var connectionString = _config.GetConnectionString("Database");
 
@@ -181,7 +181,7 @@ namespace TaskEngineAPI.Services
                                 cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
                                 await cmdStatus.ExecuteNonQueryAsync();
                             }
-                        } 
+                        }
                         string metaQuery = @"INSERT INTO tbl_transaction_process_meta_layout (
                     [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) VALUES (
                     @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata,@citaskno,@cdetail_id);";
@@ -578,7 +578,7 @@ WHERE a.cis_active = 1
                         while (sdr.Read())
                         {
                             List<GetTaskDetails> tskdtl = new List<GetTaskDetails>();
-                            GetTaskList p = new GetTaskList                           
+                            GetTaskList p = new GetTaskList
                             {
                                 ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
                                 itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
@@ -599,7 +599,7 @@ WHERE a.cis_active = 1
                                 cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                };
+                            };
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
                             {
@@ -833,7 +833,7 @@ WHERE a.cis_active = 1
             }
         }
 
-               
+
         public async Task<List<GettaskinboxbyidDTO>> Getinboxdatabyidold(int cTenantID, int ID)
         {
             try
@@ -856,7 +856,7 @@ WHERE a.cis_active = 1
             inner join tbl_process_engine_master c on a.cprocess_id=c.ID 
             inner join tbl_process_engine_details d on c.ID=d.cheader_id and d.ciseqno=b.iseqno 
             inner join Users e on e.cuserid= CONVERT(int,a.ccreated_by) and e.ctenant_id=a.ctenant_id 
-            where b.id=@ID "; 
+            where b.id=@ID ";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
@@ -905,18 +905,18 @@ WHERE a.cis_active = 1
                                 string condQuery = @"SELECT c.ID, c.ciseqno, c.icond_seqno, c.ctype, c.clabel, c.cfield_value, c.ccondition,
                                               c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, c.cdata_source
                                               FROM tbl_process_engine_condition c
-                                              WHERE c.cheader_id = @HeaderID;"; 
+                                              WHERE c.cheader_id = @HeaderID;";
 
                                 using var condCmd = new SqlCommand(condQuery, conn);
-                              
+
                                 condCmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
 
                                 using var condReader = await condCmd.ExecuteReaderAsync();
                                 while (await condReader.ReadAsync())
                                 {
-                                   var childboard = new GetprocessEngineConditionDTO
+                                    var childboard = new GetprocessEngineConditionDTO
                                     {
-                                        ID = condReader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["ID"]),                                        
+                                        ID = condReader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["ID"]),
                                         cprocessCode = mapping.processName,
                                         ciseqno = condReader["ciseqno"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["ciseqno"]),
                                         icondseqno = condReader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(condReader["icond_seqno"]),
@@ -941,7 +941,7 @@ WHERE a.cis_active = 1
                 return result;
             }
             catch (Exception ex)
-            {              
+            {
                 throw new Exception($"Error retrieving task inbox list: {ex.Message}", ex);
             }
         }
@@ -979,12 +979,12 @@ WHERE a.cis_active = 1
                                     cdata = reader["cdata"]?.ToString() ?? "",
                                     cinput_type = reader["cinput_type"]?.ToString() ?? "",
                                     label = reader["label"]?.ToString() ?? "",
-                                    cplaceholder = reader["cplaceholder"]?.ToString() ?? "",                                 
-                                    cis_required = reader.SafeGetBoolean("cis_required"),                                
+                                    cplaceholder = reader["cplaceholder"]?.ToString() ?? "",
+                                    cis_required = reader.SafeGetBoolean("cis_required"),
                                     cis_readonly = reader.SafeGetBoolean("cis_readonly"),
                                     cis_disabled = reader.SafeGetBoolean("cis_disabled"),
                                     cfield_value = reader["cfield_value"]?.ToString() ?? "",
-                                    cdata_source = reader["cdata_source"]?.ToString() ?? ""                                                             
+                                    cdata_source = reader["cdata_source"]?.ToString() ?? ""
                                 };
 
                                 result.Add(mapping);
@@ -1079,14 +1079,14 @@ WHERE a.cis_active = 1
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
-                                    
+
                                 };
 
                                 // Add timeline
-                           
-                                    if (mapping.showTimeline == true)
 
-                                    {
+                                if (mapping.showTimeline == true)
+
+                                {
                                     mapping.timeline.Add(new TimelineDTO
                                     {
                                         taskName = mapping.processName,
@@ -1102,7 +1102,7 @@ WHERE a.cis_active = 1
 
                                 // Load Meta
                                 await LoadMeta(conn, mapping, itaskno, cTenantID);
-                           
+
                                 result.Add(mapping);
                             }
                         }
@@ -1133,8 +1133,8 @@ WHERE a.cis_active = 1
                 {
                     ID = Convert.ToInt32(dr["ID"]),
                     cprocessCode = mapping.processName,
-                    ciseqno = dr["ciseqno"] == DBNull.Value ? 0 : Convert.ToInt32(dr["ciseqno"]),                 
-                    icondseqno = dr["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(dr["icond_seqno"]),                   
+                    ciseqno = dr["ciseqno"] == DBNull.Value ? 0 : Convert.ToInt32(dr["ciseqno"]),
+                    icondseqno = dr["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(dr["icond_seqno"]),
                     ctype = dr["ctype"]?.ToString() ?? "",
                     clabel = dr["clabel"]?.ToString() ?? "",
                     cplaceholder = dr["cplaceholder"]?.ToString() ?? "",
@@ -1157,7 +1157,7 @@ WHERE a.cis_active = 1
                           inner join  tbl_process_meta_detail c on c.cheader_id=b.cmeta_id
                           where a.citaskno=@TaskNo and a.ctenant_id=@TenantID ";
 
-            using var cmd = new SqlCommand(sql, conn);  
+            using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@TaskNo", itaskno);
             cmd.Parameters.AddWithValue("@TenantID", tenantID);
 
@@ -1167,7 +1167,7 @@ WHERE a.cis_active = 1
             {
                 mapping.meta.Add(new processEnginetaskMeta
                 {
-                    cdata= dr["cdata"]?.ToString() ?? "",
+                    cdata = dr["cdata"]?.ToString() ?? "",
                     cinputType = dr["cInput_type"]?.ToString() ?? "",
                     clabel = dr["label"]?.ToString() ?? "",
                     cplaceholder = dr["cPlaceholder"]?.ToString() ?? "",
@@ -1189,60 +1189,99 @@ WHERE a.cis_active = 1
                 await conn.OpenAsync();
 
                 SqlTransaction transaction = conn.BeginTransaction();
-
+                int? processId = null;
+                int? taskNo = null;
                 try
                 {
-                   
-                    string updateQuery = @"UPDATE tbl_taskflow_detail SET 
-                    ccurrent_status = @status,lcurrent_status_date = @status_date WHERE ID = @ID";
+                    string updateQuery = @"
+                UPDATE tbl_taskflow_detail  SET ccurrent_status = @status, lcurrent_status_date = @status_date 
+                WHERE ID = @ID";
 
-                    using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction)) // Pass transaction
+                    using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
                     {
                         updateCmd.Parameters.AddWithValue("@status", model.status);
                         updateCmd.Parameters.AddWithValue("@status_date", model.status_date);
-                       updateCmd.Parameters.AddWithValue("@ID", model.ID);
+                        updateCmd.Parameters.AddWithValue("@ID", model.ID);
 
                         int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
 
                         if (rowsAffected == 0)
-                        {                         
+                        {
                             transaction.Rollback();
                             return false;
                         }
                     }
-                  
-                    string metaQuery = @"
+                
+                    string selectQuery = @"
+                SELECT a.itaskno, b.cprocess_id FROM tbl_taskflow_detail a
+                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID WHERE a.ID = @ID"; 
+
+                    using (SqlCommand selectCmd = new SqlCommand(selectQuery, conn, transaction))
+                    {
+                        selectCmd.Parameters.AddWithValue("@ID", model.ID);
+
+                        using (var reader = await selectCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {                              
+                                taskNo = reader["itaskno"] as int? ?? model.itaskno;
+                                processId = reader["cprocess_id"] as int?;
+                            }
+                          
+                            reader.Close();
+                        }
+                    }
+                
+                    string statusQuery = @"
                 INSERT INTO tbl_transaction_taskflow_detail_and_status
                 (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date)
                 VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date);";
 
-                    using (SqlCommand metaCmd = new SqlCommand(metaQuery, conn, transaction)) 
+                    using (SqlCommand statusCmd = new SqlCommand(statusQuery, conn, transaction))
                     {
-                        metaCmd.Parameters.AddWithValue("@itaskno", model.itaskno);
-                        metaCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
-                        metaCmd.Parameters.AddWithValue("@cheader_id", 2);
-                        metaCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
-                        metaCmd.Parameters.AddWithValue("@cstatus", model.status);
-                        metaCmd.Parameters.AddWithValue("@cstatus_with", username); 
-                        metaCmd.Parameters.AddWithValue("@lstatus_date", model.status_date);
-                       await metaCmd.ExecuteNonQueryAsync();
-                    }                
+                        statusCmd.Parameters.AddWithValue("@itaskno", taskNo); 
+                        statusCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
+                        statusCmd.Parameters.AddWithValue("@cheader_id", 2); 
+                        statusCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
+                        statusCmd.Parameters.AddWithValue("@cstatus", model.status);
+                        statusCmd.Parameters.AddWithValue("@cstatus_with", username);
+                        statusCmd.Parameters.AddWithValue("@lstatus_date", model.status_date);
+                        await statusCmd.ExecuteNonQueryAsync();
+                    }
+
+                    string metaQuery = @"
+                INSERT INTO tbl_transaction_process_meta_layout (
+                [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) VALUES (
+                @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id);";
+                    if (model.metaData != null)
+                    {
+                        foreach (var metaData in model.metaData)
+                        {
+                            using (SqlCommand metaInsertCmd = new SqlCommand(metaQuery, conn, transaction))
+                            {
+                                metaInsertCmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                                metaInsertCmd.Parameters.AddWithValue("@cmeta_id", (object?)metaData.cmeta_id ?? DBNull.Value);
+                                metaInsertCmd.Parameters.AddWithValue("@cprocess_id", processId ?? (object)DBNull.Value); // Using retrieved value
+                                metaInsertCmd.Parameters.AddWithValue("@cprocess_code", "");
+                                metaInsertCmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
+                                metaInsertCmd.Parameters.AddWithValue("@citaskno", taskNo); 
+                                metaInsertCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
+                                await metaInsertCmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
                     transaction.Commit();
                     return true;
                 }
                 catch (Exception)
-                {                   
+                {                 
                     transaction.Rollback();
-                    throw; 
+                    throw;
                 }
             }
         }
 
-
     }
 }
-
-
-
 
 

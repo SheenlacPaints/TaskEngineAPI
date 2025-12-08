@@ -181,7 +181,7 @@ public class updatetaskDTO
     public int? itaskno { get; set; }
     public string? status { get; set; }
     public DateTime? status_date { get; set; }
-    
+    public List<metaData> metaData { get; set; }
 }
 
 
