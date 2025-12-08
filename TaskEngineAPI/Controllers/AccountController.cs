@@ -430,6 +430,10 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -496,7 +500,20 @@ namespace TaskEngineAPI.Controllers
         [HttpDelete("DeleteSuperAdmin")]
         public async Task<IActionResult> DeleteSuperAdmin([FromQuery] pay request)
         {
+            if (request == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.payload))
+            {
+                return EncryptedError(400, "Payload cannot be empty");
+            }
             var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
             var handler = new JwtSecurityTokenHandler();
             var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -542,6 +559,10 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -596,6 +617,10 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if(string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -703,8 +728,21 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null)
+                {
+                    return EncryptedError(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Payload cannot be empty");
+                }
                 // Extract token and tenant ID
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -799,7 +837,20 @@ namespace TaskEngineAPI.Controllers
         [HttpDelete("Deleteuser")]
         public async Task<IActionResult> Deleteuser([FromQuery] pay request)
         {
+            if (request == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.payload))
+            {
+                return EncryptedError(400, "Payload cannot be empty");
+            }
             var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
             var handler = new JwtSecurityTokenHandler();
             var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -843,6 +894,10 @@ namespace TaskEngineAPI.Controllers
             try
             {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -961,7 +1016,20 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null)
+                {
+                    return EncryptedError(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Payload cannot be empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
                 var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
@@ -1289,6 +1357,15 @@ namespace TaskEngineAPI.Controllers
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
         {
+            if (request == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.payload))
+            {
+                return EncryptedError(400, "Payload cannot be empty");
+            }
             if (!HttpContext.Items.TryGetValue("cTenantID", out var tenantIdObj) ||
                 !HttpContext.Items.TryGetValue("username", out var usernameObj) ||
                 !(tenantIdObj is int cTenantID) || string.IsNullOrWhiteSpace(usernameObj?.ToString()))
@@ -1322,7 +1399,15 @@ namespace TaskEngineAPI.Controllers
         [HttpPost("fileUpload")]
         public async Task<IActionResult> fileUpload([FromForm] FileUploadDTO model)
         {
+            if(model == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
             var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if(string.IsNullOrWhiteSpace(jwtToken))
+            {
+               return EncryptedError(400, "Authorization token is missing");    
+            }
             var handler = new JwtSecurityTokenHandler();
             var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -1565,7 +1650,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -1947,7 +2040,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if(request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -2330,7 +2431,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if(string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -2421,7 +2530,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -2797,7 +2914,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if(string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -3166,7 +3291,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if(string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -3544,8 +3677,12 @@ namespace TaskEngineAPI.Controllers
                                     .Split(" ")
                                     .Last();
 
-                if (jwtToken == null)
-                    return EncryptedError(401, "Authorization token missing");
+                //if (jwtToken == null)
+                //    return EncryptedError(401, "Authorization token missing");
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
 
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
@@ -3558,7 +3695,57 @@ namespace TaskEngineAPI.Controllers
                 {
                     return EncryptedError(401, "Invalid or missing cTenantID in token.");
                 }
+                if (string.IsNullOrWhiteSpace(tenantIdClaim))
+                {
+                    return EncryptedError(400, "cTenantID claim is missing in token");
+                }
 
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    if (searchText.Length > 200)
+                    {
+                        return EncryptedError(400, "Search text cannot exceed 200 characters");
+                    }
+
+                    var sqlInjectionPatterns = new[] { "--", ";", "'", "/*", "*/", "@@", "char(", "nchar(", "varchar(", "nvarchar(" };
+                    foreach (var pattern in sqlInjectionPatterns)
+                    {
+                        if (searchText.Contains(pattern, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return EncryptedError(400, "Search text contains invalid characters");
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(syncType))
+                {
+                    var validSyncTypes = new[] { "Full", "Incremental", "Manual", "Scheduled", "RealTime" };
+
+                    if (!validSyncTypes.Contains(syncType, StringComparer.OrdinalIgnoreCase))
+                    {
+                        return EncryptedError(400, $"Invalid syncType. Must be one of: {string.Join(", ", validSyncTypes)}");
+                    }
+
+                    if (syncType.Length > 50)
+                    {
+                        return EncryptedError(400, "syncType cannot exceed 50 characters");
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(apiMethod))
+                {
+                    var validApiMethods = new[] { "GET", "POST", "PUT", "PATCH", "DELETE" };
+
+                    if (!validApiMethods.Contains(apiMethod.ToUpper()))
+                    {
+                        return EncryptedError(400, $"Invalid apiMethod. Must be one of: {string.Join(", ", validApiMethods)}");
+                    }
+
+                    if (apiMethod.Length > 10)
+                    {
+                        return EncryptedError(400, "apiMethod cannot exceed 10 characters");
+                    }
+                }
                 var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(
                     cTenantID,
                     searchText,
@@ -3596,13 +3783,13 @@ namespace TaskEngineAPI.Controllers
                         cmodified_by = config.cmodified_by,
                         lmodified_date = config.lmodified_date
                     };
-                }).ToList();
+                }).Where(x=>x!=null).ToList();
 
                 var response = new APIResponse
                 {
                     body = processed.ToArray(),
-                    statusText = "Successful",
-                    status = 200
+                    statusText = processed.Any() ? "Successful": "No API sync configurations found",
+                    status = processed.Any() ? 200 :204
                 };
 
                 string json = JsonConvert.SerializeObject(response);
@@ -3633,7 +3820,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (id <= 0)
+                {
+                    return EncryptedError(400, "ID must be greater than 0.");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if(string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -3725,6 +3920,10 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -3844,6 +4043,10 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if(string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -3961,6 +4164,10 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if(string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -4078,7 +4285,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -4369,7 +4584,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if( string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -4660,7 +4883,15 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Request body cannot be null or empty");
+                }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
