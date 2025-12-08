@@ -165,7 +165,7 @@ public class GetmetalayoutDTO
     public string? cdata { get; set; }
     public string? cinput_type { get; set; }
     public string? label { get; set; }
-    public bool? cplaceholder { get; set; }
+    public string? cplaceholder { get; set; }
     public bool? cis_required { get; set; }
     public bool? cis_readonly { get; set; }
     public bool? cis_disabled { get; set; }
