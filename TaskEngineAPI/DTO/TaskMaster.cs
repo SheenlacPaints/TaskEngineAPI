@@ -174,7 +174,15 @@ public class GetmetalayoutDTO
 
 }
 
-
+public class updatetaskDTO
+{
+   
+    public int? ID { get; set; }
+    public int? itaskno { get; set; }
+    public string? status { get; set; }
+    public DateTime? status_date { get; set; }
+    
+}
 
 
 

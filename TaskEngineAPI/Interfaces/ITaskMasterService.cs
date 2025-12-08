@@ -20,7 +20,7 @@ namespace TaskEngineAPI.Interfaces
             Task<List<GetprocessEngineConditionDTO>> GetTaskConditionBoard(int cTenantID, int ID);
             Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID);
             Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int itaskno);
-
+          Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username);
     }
 
 }

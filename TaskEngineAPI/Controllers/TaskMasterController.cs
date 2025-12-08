@@ -1030,5 +1030,59 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+
+        [Authorize]
+        [HttpPut]
+        [Route("Updatetaskapprove")]
+        public async Task<IActionResult> Updatetaskapprove([FromBody] pay request)
+        {
+            if (request == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.payload))
+            {
+                return EncryptedError(400, "Payload cannot be empty");
+            }
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+            {
+                throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+            }
+
+            string decryptedJson = AesEncryption.Decrypt(request.payload);
+            var model = JsonConvert.DeserializeObject<updatetaskDTO>(decryptedJson);
+
+            if (model == null || model.ID <= 0)
+            {
+                throw new ArgumentException("Invalid ID provided");
+            }
+
+            bool success = await _TaskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
+    
+            var response = new APIResponse
+            {
+                status = success ? 200 : 400,
+                statusText = success ? "updated successfully" : "data not found or update failed"
+            };
+
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(response.status, encrypted);
+        }
+
+
+
     }
 }

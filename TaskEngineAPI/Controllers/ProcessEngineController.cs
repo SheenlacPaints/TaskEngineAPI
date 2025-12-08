@@ -355,13 +355,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GetAllProcessEngine")]
-        public async Task<ActionResult> GetAllProcessEngine(
-            string? searchText = null,
-            int page = 1,
-            int pageSize = 10,
-            int? created_by = null,
-            string? priority = null,
-            int? status = null)
+        public async Task<ActionResult> GetAllProcessEngine(string? searchText = null,int page = 1, int pageSize = 10,int? created_by = null,string? priority = null,int? status = null)
         {
             try
             {
@@ -632,8 +626,6 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-
-      
         [Authorize]
         [HttpDelete]
         [Route("DeleteProcessMapping")]
@@ -778,8 +770,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
-
-
 
         [Authorize]
         [HttpGet]
