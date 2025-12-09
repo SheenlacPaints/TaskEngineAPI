@@ -154,11 +154,11 @@ namespace TaskEngineAPI.DTO
 
 public class TimelineDTO
 {
-    public string? taskName { get; set; }
-    public string? assigneeName { get; set; }
     public string? status { get; set; }
-    public int? slaDays { get; set; }
-    public int? slaHours { get; set; }
+    public string? taskName { get; set; }
+    public string? userName { get; set; }
+    public string? userAvatar { get; set; }
+  
 
 }
 
