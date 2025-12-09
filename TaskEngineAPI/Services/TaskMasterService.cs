@@ -1075,6 +1075,7 @@ WHERE a.cis_active = 1
                                     executionType = reader["executionType"]?.ToString() ?? "",
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
+                                    taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",                                                                      
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
