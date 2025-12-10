@@ -1059,6 +1059,7 @@ WHERE a.cis_active = 1
 
                                 var mapping = new GettaskinboxbyidDTO
                                 {
+                                    itaskno = itaskno,
                                     processId = Convert.ToInt32(reader["processId"]),
                                     processName = reader["processName"]?.ToString() ?? "",
                                     processDesc = reader["processDesc"]?.ToString() ?? "",
