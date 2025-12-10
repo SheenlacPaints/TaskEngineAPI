@@ -434,38 +434,38 @@ WHERE a.cis_active = 1
         {
             try
             {
-                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var con = new SqlConnection(this._config.GetConnectionString("Database")))
                 using (var cmd = new SqlCommand("sp_get_tables_crud", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@tenantid", cTenantID);
-                    cmd.Parameters.AddWithValue("@action", model.action);
-                    cmd.Parameters.AddWithValue("@userid", model.userid);
-                    cmd.Parameters.AddWithValue("@position", model.position);
-                    cmd.Parameters.AddWithValue("@role", model.role);
-                    cmd.Parameters.AddWithValue("@departmentname", model.departmentname);
-                    cmd.Parameters.AddWithValue("@departmentdesc", model.departmentdesc);
-                    cmd.Parameters.AddWithValue("@table", model.table);
-                    cmd.Parameters.AddWithValue("@cdepartmentmanagerrolecode", model.cdepartmentmanagerrolecode);
-                    cmd.Parameters.AddWithValue("@cdepartmentmanagername", model.cdepartmentmanagername);
-                    cmd.Parameters.AddWithValue("@cdepartmentemail", model.cdepartmentemail);
-                    cmd.Parameters.AddWithValue("@cdepartmentphone", model.cdepartmentphone);
-                    cmd.Parameters.AddWithValue("@nisactive", model.nisactive);
-                    cmd.Parameters.AddWithValue("@user", model.user);
-                    cmd.Parameters.AddWithValue("@cdepartmentcode", model.cdepartmentcode);
-                    cmd.Parameters.AddWithValue("@rolename", model.rolename);
-                    cmd.Parameters.AddWithValue("@rolelevel", model.rolelevel);
-                    cmd.Parameters.AddWithValue("@roledescription", model.roledescription);
-                    cmd.Parameters.AddWithValue("@positionname", model.positionname);
-                    cmd.Parameters.AddWithValue("@positioncode", model.positioncode);
-                    cmd.Parameters.AddWithValue("@positiondescription", model.positiondescription);
-                    cmd.Parameters.AddWithValue("@creportingmanagerpositionid", model.creportingmanagerpositionid);
-                    cmd.Parameters.AddWithValue("@rolecode", model.rolecode);
-                    cmd.Parameters.AddWithValue("@id", model.id);
+                    cmd.Parameters.AddWithValue("@tenantid", cTenantID.ToString());
+                    cmd.Parameters.AddWithValue("@action", model.action ?? "");
+                    cmd.Parameters.AddWithValue("@user", username ?? "");
+                    cmd.Parameters.AddWithValue("@table", model.table ?? "");
+                    cmd.Parameters.AddWithValue("@userid", model.userid ?? "");
+                    cmd.Parameters.AddWithValue("@position", model.position ?? "");
+                    cmd.Parameters.AddWithValue("@role", model.role ?? "");
+                    cmd.Parameters.AddWithValue("@departmentname", model.departmentname ?? "");
+                    cmd.Parameters.AddWithValue("@departmentdesc", model.departmentdesc ?? "");
+                    cmd.Parameters.AddWithValue("@cdepartmentmanagerrolecode", model.cdepartmentmanagerrolecode ?? "");
+                    cmd.Parameters.AddWithValue("@cdepartmentmanagername", model.cdepartmentmanagername ?? "");
+                    cmd.Parameters.AddWithValue("@cdepartmentemail", model.cdepartmentemail ?? "");
+                    cmd.Parameters.AddWithValue("@cdepartmentphone", model.cdepartmentphone ?? "");
+                    cmd.Parameters.AddWithValue("@nisactive", (model.nisactive ?? true) ? "1" : "0");
+                    cmd.Parameters.AddWithValue("@cdepartmentcode", model.cdepartmentcode ?? "");
+                    cmd.Parameters.AddWithValue("@rolename", model.rolename ?? "");
+                    cmd.Parameters.AddWithValue("@rolelevel", model.rolelevel?.ToString() ?? "0");
+                    cmd.Parameters.AddWithValue("@roledescription", model.roledescription ?? "");
+                    cmd.Parameters.AddWithValue("@positionname", model.positionname ?? "");
+                    cmd.Parameters.AddWithValue("@positioncode", model.positioncode ?? "");
+                    cmd.Parameters.AddWithValue("@positiondescription", model.positiondescription ?? "");
+                    cmd.Parameters.AddWithValue("@creportingmanagerpositionid", model.creportingmanagerpositionid?.ToString() ?? "0");
+                    cmd.Parameters.AddWithValue("@rolecode", model.rolecode ?? "");
+                    cmd.Parameters.AddWithValue("@id", model.id.ToString() ?? "0");
 
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);
-                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+                    await Task.Run(() => adapter.Fill(ds));
 
                     if (ds.Tables.Count > 0)
                     {
@@ -494,23 +494,23 @@ WHERE a.cis_active = 1
                     {
                         string query = @"
                 INSERT INTO tbl_engine_master_to_process_privilege (
-                    [ctenant_id],[cprocess_privilege],[cseq_id],[ciseqno],[cprocess_id],[cprocesscode],
-                    [cprocessname],[cis_active],[ccreated_by],[lcreated_date],[cmodified_by],[lmodified_date]
+                    [ctenant_id],[cprocess_privilege],[cprocess_id],[cprocesscode],
+                    [cis_active],[ccreated_by],[lcreated_date],[cmodified_by],[lmodified_date]
                 ) VALUES (
-                    @ctenent_id, @cprocess_privilege, @cseq_id, @ciseqno, @cprocess_id, @cprocesscode, 
-                    @cprocessname, @cis_active, @ccreated_by, @lcreated_date, 
+                    @ctenant_id, @cprocess_privilege, @cprocess_id, @cprocesscode, 
+                     @cis_active, @ccreated_by, @lcreated_date, 
                     @cmodified_by, @lmodified_date); SELECT SCOPE_IDENTITY()";
 
 
                         using (var cmdInsert = new SqlCommand(query, conn, transaction))
                         {
-                            cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
+                            cmdInsert.Parameters.AddWithValue("@ctenant_id", cTenantID);
                             cmdInsert.Parameters.AddWithValue("@cprocess_privilege", model.privilege);
-                            cmdInsert.Parameters.AddWithValue("@cseq_id", "1");
-                            cmdInsert.Parameters.AddWithValue("@ciseqno", "1");
+                            //cmdInsert.Parameters.AddWithValue("@cseq_id", "1");
+                            //cmdInsert.Parameters.AddWithValue("@ciseqno", "1");
                             cmdInsert.Parameters.AddWithValue("@cprocess_id", model.cprocess_id);
                             cmdInsert.Parameters.AddWithValue("@cprocesscode", model.cprocess_code);
-                            cmdInsert.Parameters.AddWithValue("@cprocessname", model.cprocess_name);
+                            //cmdInsert.Parameters.AddWithValue("@cprocessname", model.cprocess_name);
                             cmdInsert.Parameters.AddWithValue("@cis_active", "1");
                             cmdInsert.Parameters.AddWithValue("@ccreated_by", username);
                             cmdInsert.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
@@ -522,17 +522,18 @@ WHERE a.cis_active = 1
 
                         string queryDetail = @"
                     INSERT INTO tbl_process_privilege_details (
-                        privilege_id, entity_type, entity_id, ctenant_id, cis_active,ccreated_by,lcreated_date, 
+                         [cheader_id],entity_id, ctenant_id, cis_active,ccreated_by,lcreated_date, 
                     cmodified_by, lmodified_date,cprocess_id) VALUES (
-                        @privilege_id, @entity_type, @entity_id, @ctenent_id, @cis_active, @ccreated_by, 
+                        @cheader_id,@entity_id, @ctenent_id, @cis_active, @ccreated_by, 
                         @lcreated_date, @cmodified_by, @lmodified_date, @cprocess_id);";
 
                         foreach (var row in model.privilegeMapping)
                         {
                             using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
                             {
-                                cmdInsert.Parameters.AddWithValue("@privilege_id", masterId);
-                                cmdInsert.Parameters.AddWithValue("@entity_type", row.entity_type);
+                                //cmdInsert.Parameters.AddWithValue("@privilege_id", masterId);
+                                //cmdInsert.Parameters.AddWithValue("@entity_type", row.entity_type);
+                                cmdInsert.Parameters.AddWithValue("@cheader_id", model.cheader_id);
                                 cmdInsert.Parameters.AddWithValue("@entity_id", row.entity_id);
                                 cmdInsert.Parameters.AddWithValue("@ctenent_id", cTenantID);
                                 cmdInsert.Parameters.AddWithValue("@cis_active", true);
@@ -735,7 +736,7 @@ WHERE a.cis_active = 1
                                                 iheader_id = sdr1.IsDBNull(sdr1.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(sdr1["iheader_id"]),
                                                 itaskno = sdr1.IsDBNull(sdr1.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr1["itaskno"]),
                                                 iseqno = sdr1.IsDBNull(sdr1.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(sdr1["iseqno"]),
-                                                ctasktype = sdr.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr["ctask_type"]),
+                                                ctasktype = sdr1.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr1["ctask_type"]),
                                                 cmappingcode = sdr1.IsDBNull(sdr1.GetOrdinal("cmapping_code")) ? string.Empty : Convert.ToString(sdr1["cmapping_code"]),
                                                 ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
                                                 lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
