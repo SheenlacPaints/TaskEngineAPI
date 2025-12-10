@@ -101,7 +101,8 @@ namespace TaskEngineAPI.DTO
     }
 
     public class GettaskinboxbyidDTO
-    {   
+    {
+        public int? itaskno { get; set; }
         public int?    processId { get; set; }
         public string? processName { get; set; }
         public string? processDesc { get; set; }         
