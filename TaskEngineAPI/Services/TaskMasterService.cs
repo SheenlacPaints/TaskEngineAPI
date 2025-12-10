@@ -1190,7 +1190,7 @@ WHERE a.cis_active = 1
         {
             var timelineList = new List<TimelineDTO>();
 
-            string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks
+            string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks,
             t.lcurrent_status_date AS statusDate,t.cmapping_code,t.cprocess_id,t.cactivityname,
             u.cuserid,u.cfirst_name + ' ' + u.clast_name AS userName,u.cprofile_image_path AS userAvatar
             FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,
