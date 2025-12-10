@@ -47,7 +47,6 @@ namespace TaskEngineAPI.Controllers
         private static readonly byte[] ENCKey = Encoding.UTF8.GetBytes("#@WORKFLOW!#%!#%$%^&KEY*&%#(@*!#");
         private static readonly byte[] DECKey = Encoding.UTF8.GetBytes("#@MISPORTAL2025!%^$#$123456789@#");
 
-
         [HttpPost]
         [Route("EncryptPassword")]
         public ActionResult<string> Encryptpassword([FromBody] string password)
@@ -64,8 +63,6 @@ namespace TaskEngineAPI.Controllers
             return Ok(ok ? "Match" : "No match");
         }
         
-
-
 
         [HttpPost]
         [Route("EncryptInput")]

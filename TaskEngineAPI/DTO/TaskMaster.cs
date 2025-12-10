@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using TaskEngineAPI.DTO;
+using System.Threading.Tasks;
 
 namespace TaskEngineAPI.DTO
 {
@@ -101,7 +102,8 @@ namespace TaskEngineAPI.DTO
     }
 
     public class GettaskinboxbyidDTO
-    {   
+    {
+        public int? itaskno { get; set; }
         public int?    processId { get; set; }
         public string? processName { get; set; }
         public string? processDesc { get; set; }         
@@ -120,6 +122,9 @@ namespace TaskEngineAPI.DTO
         public string? executionType { get; set; }
         public DateTime? taskAssignedDate { get; set; }
         public DateTime? taskInitiatedDate { get; set; }
+
+        public string? taskinitiatedbyname { get; set; }
+        
         public bool? showTimeline { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
 
@@ -151,11 +156,13 @@ namespace TaskEngineAPI.DTO
 
 public class TimelineDTO
 {
-    public string? taskName { get; set; }
-    public string? assigneeName { get; set; }
     public string? status { get; set; }
-    public int? slaDays { get; set; }
-    public int? slaHours { get; set; }
+    public string? remarks { get; set; }
+
+    public string? taskName { get; set; }
+    public string? userName { get; set; }
+    public string? userAvatar { get; set; }
+  
 
 }
 
@@ -182,6 +189,8 @@ public class updatetaskDTO
     public int? itaskno { get; set; }
     public string? status { get; set; }
     public DateTime? status_date { get; set; }
+
+    public string? remarks { get; set; }
     public List<metaData> metaData { get; set; }
 }
 
