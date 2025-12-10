@@ -22,10 +22,6 @@ namespace TaskEngineAPI.Services
 
     public class ProcessEngineService : IProcessEngineService
     {
-
-
-
-
         private readonly IAdminRepository _repository;
         private readonly IConfiguration _config;
         private readonly IAdminRepository _AdminRepository;
@@ -995,14 +991,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 throw new Exception($"Error retrieving mapping list: {ex.Message}");
             }
         }
-        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(
-     int cTenantID,
-     string searchText = null,
-     int page = 1,
-     int pageSize = 10,
-     int? created_by = null,
-     string priority = null,
-     int? status = null)
+        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID,string searchText = null,int page = 1,int pageSize = 10,int? created_by = null,string priority = null,int? status = null)
         {
             var result = new List<GetProcessEngineDTO>();
             var connStr = _config.GetConnectionString("Database");
@@ -1017,41 +1006,28 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 using var conn = new SqlConnection(connStr);
                 await conn.OpenAsync();
 
-                string query = @"
-    SELECT 
-        m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
-        m.cprivilege_type, p.cprocess_privilege AS privilege_name,
-        CASE  
-            WHEN p.cprocess_privilege = 'role' THEN (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = m.cvalue)
-            WHEN p.cprocess_privilege = 'user' THEN (SELECT TOP 1 cuser_name FROM users WHERE CAST(cuserid AS VARCHAR(50)) = m.cvalue)
-            WHEN p.cprocess_privilege = 'department' THEN (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = m.cvalue)
-            WHEN p.cprocess_privilege = 'position' THEN (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = m.cvalue)
-            ELSE m.cvalue
-        END AS cvalue,
-        m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
-        m.ccreated_by,
-        m.lcreated_date,
-        ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,
-        m.lmodified_date, m.cmeta_id,
-        n.notification_type AS Notification_Description,
-        s.cstatus_description,
-        meta.meta_Name, meta.meta_Description,
-        COUNT(d.ID) AS DetailCount,
-        CASE 
-            WHEN SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) > 0
-            THEN CAST(SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) / 24 AS VARCHAR(10)) + ' days ' + 
-                 CAST(SUM(ISNULL(d.csla_Hour, 0)) % 24 AS VARCHAR(10)) + ' hrs'
-            ELSE ''
-        END AS sla_Sum
-    FROM tbl_process_engine_master m
-    LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = CAST(u1.cuserid AS VARCHAR(50))
-    LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = CAST(u2.cuserid AS VARCHAR(50))
-    LEFT JOIN tbl_process_engine_details d ON m.ID = d.cheader_id
-    LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenant_id
-    LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID
-    LEFT JOIN tbl_status_master s ON m.cstatus = CAST(s.id AS VARCHAR(50))
-    LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
-    WHERE m.ctenant_id = @TenantID AND m.nIs_deleted = 0";
+                string query = @"SELECT m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
+                                m.cprivilege_type, p.cprocess_privilege AS privilege_name, CASE  
+                                WHEN p.cprocess_privilege = 'role' THEN (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = m.cvalue)
+                                WHEN p.cprocess_privilege = 'user' THEN (SELECT TOP 1 cuser_name FROM users WHERE CAST(cuserid AS VARCHAR(50)) = m.cvalue)
+                                WHEN p.cprocess_privilege = 'department' THEN (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = m.cvalue)
+                                WHEN p.cprocess_privilege = 'position' THEN (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = m.cvalue)
+                                ELSE m.cvalue END AS cvalue,m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
+                                m.ccreated_by,m.lcreated_date,ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,
+                                m.lmodified_date, m.cmeta_id,n.notification_type AS Notification_Description,
+                                s.cstatus_description,meta.meta_Name, meta.meta_Description,COUNT(d.ID) AS DetailCount,
+                                CASE WHEN SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) > 0
+                                THEN CAST(SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) / 24 AS VARCHAR(10)) + ' days ' + 
+                                CAST(SUM(ISNULL(d.csla_Hour, 0)) % 24 AS VARCHAR(10)) + ' hrs' ELSE '' END AS sla_Sum
+                                FROM tbl_process_engine_master m
+                                LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = CAST(u1.cuserid AS VARCHAR(50))
+                                LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = CAST(u2.cuserid AS VARCHAR(50))
+                                LEFT JOIN tbl_process_engine_details d ON m.ID = d.cheader_id
+                                LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenant_id
+                                LEFT JOIN tbl_notification_type n ON m.cnotification_type = n.ID
+                                LEFT JOIN tbl_status_master s ON m.cstatus = CAST(s.id AS VARCHAR(50))
+                                LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
+                                WHERE m.ctenant_id = @TenantID AND m.nIs_deleted = 0";
 
                 if (!string.IsNullOrWhiteSpace(searchText))
                 {
@@ -1073,20 +1049,13 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                     query += " AND m.cstatus = @Status";
                 }
 
-                query += @"
-    GROUP BY 
-        m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
+                query += @"GROUP BY m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
         m.cprivilege_type, p.cprocess_privilege, m.cvalue, m.cpriority_label,m.ccreated_by, m.nshow_timeline,
         m.cnotification_type, m.cstatus, ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,''),
-        m.lcreated_date,
-        ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,''),
-        m.lmodified_date, m.cmeta_id,
-        n.notification_type, s.cstatus_description, meta.meta_Name, meta.meta_Description
-    ORDER BY m.ID DESC";
+        m.lcreated_date,ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,''),m.lmodified_date, m.cmeta_id,
+        n.notification_type, s.cstatus_description, meta.meta_Name, meta.meta_Description ORDER BY m.ID DESC";
 
-                query += $@"
-    OFFSET {skip} ROWS
-    FETCH NEXT {pageSize} ROWS ONLY;";
+                query += $@"OFFSET {skip} ROWS FETCH NEXT {pageSize} ROWS ONLY;";
 
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -1159,13 +1128,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();              
-                string checkDuplicateQuery = @"
-            SELECT COUNT(1) 
-            FROM tbl_taskflow_master a
-            LEFT JOIN tbl_taskflow_detail b ON a.itaskno = b.itaskno
-            WHERE ccurrent_status IN ('P', 'H') 
-            AND cprocess_id = @cprocess_id 
-            AND a.ctenant_id = @ctenant_id;"; 
+                string checkDuplicateQuery = @"SELECT COUNT(1) FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.itaskno = b.itaskno
+                                              WHERE ccurrent_status IN ('P', 'H') AND cprocess_id = @cprocess_id AND a.ctenant_id = @ctenant_id;"; 
 
                 using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn))
                 {
@@ -1234,18 +1198,16 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@nIs_deleted", 0);
                             await cmd.ExecuteNonQueryAsync();
                         }
-                        string queryDetail = @"
-                    INSERT INTO tbl_process_engine_details (
+                        string queryDetail = @"INSERT INTO tbl_process_engine_details (
                         ctenant_id, cheader_id, ciseqno, cprocesscode, cactivitycode, cactivity_description,  
                         ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, 
                         cmodified_by, lmodified_date, cmapping_code, cparticipant_type, nboard_enabled, 
                         csla_day, csla_Hour, caction_privilege, crejection_privilege, cmapping_type) 
-                    VALUES (
-                        @TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
+                        VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
                         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, 
                         @cmodified_by, @lmodified_date, @cassignee, @cparticipantType, @nboardenabled, 
                         @csladay, @cslaHour, @cactionprivilege, @crejectionprivilege, @cmapping_type);
-                    SELECT SCOPE_IDENTITY();";
+                        SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
                         
@@ -1284,12 +1246,11 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                             if (detail.processEngineConditionDetails != null && detailId > 0)
                             {
-                                string queryCondition = @"
-                            INSERT INTO tbl_process_engine_condition (
+                                string queryCondition = @"INSERT INTO tbl_process_engine_condition (
                                 ctenant_id, cheader_id, cprocesscode, ciseqno, icond_seqno, ctype,  
                                 clabel, cfield_value, ccondition, lcreated_date, ccreated_by, 
                                 cmodified_by, lmodified_date, cplaceholder, cis_required, cis_readonly, cis_disabled) 
-                            VALUES (
+                                VALUES (
                                 @TenantID, @cheader_id, @cprocesscode, @ciseqno, @icondseqno, @ctype,  
                                 @clabel, @cfieldvalue, @ccondition, @lcreated_date, @ccreated_by, 
                                 @cmodified_by, @lmodified_date, @cplaceholder, @cis_required, @cis_readonly, @cis_disabled);";
@@ -1324,12 +1285,10 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         if (model.cmetaType == "NEW" && model.cmetaName != null && model.cmetaName.Any())
                         {                          
                             int metaMasterId = 0;
-                            string metadatamaster = @"
-                        INSERT INTO tbl_process_meta_Master (
+                            string metadatamaster = @"INSERT INTO tbl_process_meta_Master (
                             ctenant_id, meta_Name, meta_Description, label, nis_active, ccreated_by, lcreated_date, cmodified_by, lmodified_date)
-                        VALUES (@TenantID, @meta_Name, @meta_Description, @label, @nis_active, @ccreated_by,  
-                                @lcreated_date, @cmodified_by, @lmodified_date);
-                        SELECT SCOPE_IDENTITY();";
+                            VALUES (@TenantID, @meta_Name, @meta_Description, @label, @nis_active, @ccreated_by,  
+                            @lcreated_date, @cmodified_by, @lmodified_date); SELECT SCOPE_IDENTITY();";
 
                             using (SqlCommand cmd = new SqlCommand(metadatamaster, conn, transaction))
                             {
@@ -1348,8 +1307,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                             if (metaMasterId > 0)
                             {
-                                string updateMasterQuery = @"
-                            UPDATE tbl_process_engine_master SET cmeta_id = @cmeta_id
+                                string updateMasterQuery = @"UPDATE tbl_process_engine_master SET cmeta_id = @cmeta_id
                             WHERE id = @masterId";
                                 using (var cmd = new SqlCommand(updateMasterQuery, conn, transaction))
                                 {
@@ -1361,12 +1319,10 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                             if (model.processEngineMeta != null && model.processEngineMeta.Any())
                             {
-                                string metadata = @"
-                            INSERT INTO tbl_process_meta_detail (
+                                string metadata = @"INSERT INTO tbl_process_meta_detail (
                                 cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, 
                                 cis_readonly, cis_disabled, ccreated_by, lcreated_date, cmodified_by, 
-                                lmodified_date, cfield_value,cdata_source) 
-                            VALUES (
+                                lmodified_date, cfield_value,cdata_source) VALUES (
                                 @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required,  
                                 @cis_readonly, @cis_disabled, @ccreated_by, @lcreated_date, 
                                 @cmodified_by, @lmodified_date, @cfield_value,@cdata_source);";
@@ -1437,32 +1393,21 @@ int cTenantID, string searchText = null, int page = 1, int pageSize = 10, string
                 using var conn = new SqlConnection(connStr);
                 await conn.OpenAsync();
 
-                string query = @"
-                SELECT 
-    m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
-    m.cprivilege_type, p.cprocess_privilege AS privilege_name,
-    CASE  
-        WHEN p.cprocess_privilege = 'role' THEN  
-            (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = m.cvalue)
-        WHEN p.cprocess_privilege = 'user' THEN  
-            (SELECT TOP 1 cuser_name FROM users WHERE CAST(cuserid AS VARCHAR(50)) = m.cvalue)
-        WHEN p.cprocess_privilege = 'department' THEN
-            (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = m.cvalue)
-        WHEN p.cprocess_privilege = 'position' THEN  
-            (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = m.cvalue)
-        ELSE m.cvalue
-    END AS cvalue,
-    m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
-    ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by,  
-    m.lcreated_date,
-    ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,  
-    m.lmodified_date, m.cmeta_id,
-    n.notification_type AS Notification_Description,
-    s.cstatus_description,
-    meta.meta_Name, meta.meta_Description,
-    COUNT(d.ID) AS DetailCount,
-CASE 
-        WHEN SUM(ISNULL(d.csla_day, 0)) > 0 OR SUM(ISNULL(d.csla_Hour, 0)) > 0
+                string query = @"SELECT m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
+                m.cprivilege_type, p.cprocess_privilege AS privilege_name,CASE  
+                WHEN p.cprocess_privilege = 'role' THEN  
+                (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = m.cvalue)
+               WHEN p.cprocess_privilege = 'user' THEN  
+               (SELECT TOP 1 cuser_name FROM users WHERE CAST(cuserid AS VARCHAR(50)) = m.cvalue)
+               WHEN p.cprocess_privilege = 'department' THEN
+               (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = m.cvalue)
+                WHEN p.cprocess_privilege = 'position' THEN  
+                (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = m.cvalue)
+        ELSE m.cvalue END AS cvalue,m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
+    ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,'') AS created_by,m.lcreated_date,
+    ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,m.lmodified_date, m.cmeta_id,
+    n.notification_type AS Notification_Description,s.cstatus_description,meta.meta_Name, meta.meta_Description,
+    COUNT(d.ID) AS DetailCount,CASE WHEN SUM(ISNULL(d.csla_day, 0)) > 0 OR SUM(ISNULL(d.csla_Hour, 0)) > 0
         THEN CASE 
             WHEN SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) / 24 > 0 
             THEN CAST(SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) / 24 AS VARCHAR(10)) + ' days ' + 

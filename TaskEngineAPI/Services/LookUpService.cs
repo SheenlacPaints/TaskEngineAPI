@@ -23,7 +23,6 @@ namespace TaskEngineAPI.Services
                    throw new Exception("No connection string found");
         }
 
-
         public async Task<IEnumerable<NotificationTypeDTO>> GetAllNotificationTypesAsync(int tenantID)
         {
             var result = new List<NotificationTypeDTO>();
@@ -164,8 +163,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error deleting notification type: {ex.Message}");
             }
         }
-
-
 
         public async Task<IEnumerable<ParticipantTypeDTO>> GetAllParticipantTypesAsync(int tenantID)
         {
@@ -309,7 +306,6 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
         public async Task<IEnumerable<ProcessPrivilegeTypeDTO>> GetAllProcessPrivilegeTypesAsync(int tenantID)
         {
             var result = new List<ProcessPrivilegeTypeDTO>();
@@ -452,7 +448,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error deleting process privilege type: {ex.Message}");
             }
         }
-
 
         public async Task<IEnumerable<PrivilegeItemDTO>> GetPrivilegeListAsync(int tenantID)
         {

@@ -1156,12 +1156,12 @@ WHERE a.cis_active = 1
 
         private async Task LoadMeta(SqlConnection conn, GettaskinboxbyidDTO mapping, int itaskno, int tenantID)
         {
-            string sql = @"SELECT a.ID,a.cprocess_id,a.cdata,cinput_type,c.label,c.cplaceholder,
-                          c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
-                          from [tbl_transaction_process_meta_layout] a 
-                          inner join tbl_process_engine_master b on a.cprocess_id=b.ID 
-                          inner join  tbl_process_meta_detail c on c.cheader_id=b.cmeta_id
-                          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID ";
+            string sql = @"SELECT a.cprocess_id,a.cdata,c.cinput_type,c.label,c.cplaceholder,
+                  c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
+                   from [tbl_transaction_process_meta_layout] a 
+                   inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
+                 inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+                 where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@TaskNo", itaskno);

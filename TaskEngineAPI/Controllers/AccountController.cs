@@ -3664,11 +3664,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GetAllUsersApiSyncConfig")]
-        public async Task<ActionResult> GetAllUsersApiSyncConfig(
-     [FromQuery] string searchText= null,
-     [FromQuery] string syncType = null,
-     [FromQuery] string apiMethod = null,
-     [FromQuery] bool? isActive = null)
+        public async Task<ActionResult> GetAllUsersApiSyncConfig([FromQuery] string searchText= null,[FromQuery] string syncType = null,[FromQuery] string apiMethod = null,[FromQuery] bool? isActive = null)
         {
             try
             {
@@ -3746,13 +3742,7 @@ namespace TaskEngineAPI.Controllers
                         return EncryptedError(400, "apiMethod cannot exceed 10 characters");
                     }
                 }
-                var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(
-                    cTenantID,
-                    searchText,
-                    syncType,
-                    apiMethod,
-                    isActive
-                );
+                var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(cTenantID,searchText,syncType,apiMethod,isActive);
 
                 var processed = apiConfigs.Select(config =>
                 {
@@ -3794,7 +3784,6 @@ namespace TaskEngineAPI.Controllers
 
                 string json = JsonConvert.SerializeObject(response);
                 var encrypted = AesEncryption.Encrypt(json);
-
                 return StatusCode(200, encrypted);
             }
             catch (Exception ex)
