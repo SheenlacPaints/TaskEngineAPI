@@ -190,6 +190,9 @@ public class updatetaskDTO
     public DateTime? status_date { get; set; }
 
     public string? remarks { get; set; }
+    public string? rejectedreason { get; set; }
+    public string? reassignto { get; set; }
+
     public List<metaData> metaData { get; set; }
 }
 

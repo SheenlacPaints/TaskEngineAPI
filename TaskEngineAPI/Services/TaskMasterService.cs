@@ -1242,7 +1242,7 @@ WHERE a.cis_active = 1
                 try
                 {
                     string updateQuery = @"UPDATE tbl_taskflow_detail  SET ccurrent_status = @status, 
-                 lcurrent_status_date = @status_date ,cremarks=@remarks WHERE ID = @ID";
+                 lcurrent_status_date = @status_date ,cremarks=@remarks,creassign_to=@creassign_to WHERE ID = @ID";
 
                     using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
                     {
@@ -1250,7 +1250,7 @@ WHERE a.cis_active = 1
                         updateCmd.Parameters.AddWithValue("@status_date", model.status_date);
                         updateCmd.Parameters.AddWithValue("@remarks", model.remarks);
                         updateCmd.Parameters.AddWithValue("@ID", model.ID);
-
+                        updateCmd.Parameters.AddWithValue("@creassign_to", model.reassignto);
                         int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
 
                         if (rowsAffected == 0)
@@ -1282,8 +1282,8 @@ WHERE a.cis_active = 1
                 
                     string statusQuery = @"
                 INSERT INTO tbl_transaction_taskflow_detail_and_status
-                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date,cremarks)
-                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date,@cremarks);";
+                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date,cremarks,crejected_reason)
+                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date,@cremarks,@crejected_reason);";
 
                     using (SqlCommand statusCmd = new SqlCommand(statusQuery, conn, transaction))
                     {
@@ -1295,6 +1295,7 @@ WHERE a.cis_active = 1
                         statusCmd.Parameters.AddWithValue("@cstatus_with", username);
                         statusCmd.Parameters.AddWithValue("@lstatus_date", model.status_date);
                         statusCmd.Parameters.AddWithValue("@cremarks", model.remarks);
+                        statusCmd.Parameters.AddWithValue("@crejected_reason", model.rejectedreason);
                         await statusCmd.ExecuteNonQueryAsync();
                     }
 
