@@ -155,6 +155,8 @@ namespace TaskEngineAPI.DTO
 public class TimelineDTO
 {
     public string? status { get; set; }
+    public string? remarks { get; set; }
+
     public string? taskName { get; set; }
     public string? userName { get; set; }
     public string? userAvatar { get; set; }
@@ -185,6 +187,8 @@ public class updatetaskDTO
     public int? itaskno { get; set; }
     public string? status { get; set; }
     public DateTime? status_date { get; set; }
+
+    public string? remarks { get; set; }
     public List<metaData> metaData { get; set; }
 }
 

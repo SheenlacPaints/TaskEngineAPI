@@ -1190,10 +1190,10 @@ WHERE a.cis_active = 1
         {
             var timelineList = new List<TimelineDTO>();
 
-            string timelineQuery = @"SELECT t.ccurrent_status AS status,
+            string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks
             t.lcurrent_status_date AS statusDate,t.cmapping_code,t.cprocess_id,t.cactivityname,
             u.cuserid,u.cfirst_name + ' ' + u.clast_name AS userName,u.cprofile_image_path AS userAvatar
-            FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cmapping_code,a.cprocess_id,
+            FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,
             ped.cactivityname FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
             LEFT JOIN tbl_process_engine_details ped ON ped.cheader_id = a.cprocess_id AND ped.ciseqno = b.iseqno
             WHERE a.ID IN ( SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)) t
@@ -1211,10 +1211,11 @@ WHERE a.cis_active = 1
                     {
                         timelineList.Add(new TimelineDTO
                         {
-                            status = reader["status"]?.ToString(),
-                            taskName = reader["cactivityname"]?.ToString(),                          
-                            userName = reader["userName"]?.ToString(),
-                            userAvatar = reader["userAvatar"]?.ToString()
+                            status = reader["status"]?.ToString() ?? "",
+                            remarks= reader["cremarks"]?.ToString() ?? "",
+                            taskName = reader["cactivityname"]?.ToString() ?? "",                          
+                            userName = reader["userName"]?.ToString() ?? "",
+                            userAvatar = reader["userAvatar"]?.ToString() ?? ""
                           
                         });
                     }
@@ -1239,14 +1240,14 @@ WHERE a.cis_active = 1
                 int? taskNo = null;
                 try
                 {
-                    string updateQuery = @"
-                UPDATE tbl_taskflow_detail  SET ccurrent_status = @status, lcurrent_status_date = @status_date 
-                WHERE ID = @ID";
+                    string updateQuery = @"UPDATE tbl_taskflow_detail  SET ccurrent_status = @status, 
+                 lcurrent_status_date = @status_date ,cremarks=@remarks WHERE ID = @ID";
 
                     using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
                     {
                         updateCmd.Parameters.AddWithValue("@status", model.status);
                         updateCmd.Parameters.AddWithValue("@status_date", model.status_date);
+                        updateCmd.Parameters.AddWithValue("@remarks", model.remarks);
                         updateCmd.Parameters.AddWithValue("@ID", model.ID);
 
                         int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
@@ -1280,8 +1281,8 @@ WHERE a.cis_active = 1
                 
                     string statusQuery = @"
                 INSERT INTO tbl_transaction_taskflow_detail_and_status
-                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date)
-                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date);";
+                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date,cremarks)
+                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date,@cremarks);";
 
                     using (SqlCommand statusCmd = new SqlCommand(statusQuery, conn, transaction))
                     {
@@ -1292,6 +1293,7 @@ WHERE a.cis_active = 1
                         statusCmd.Parameters.AddWithValue("@cstatus", model.status);
                         statusCmd.Parameters.AddWithValue("@cstatus_with", username);
                         statusCmd.Parameters.AddWithValue("@lstatus_date", model.status_date);
+                        statusCmd.Parameters.AddWithValue("@cremarks", model.remarks);
                         await statusCmd.ExecuteNonQueryAsync();
                     }
 
