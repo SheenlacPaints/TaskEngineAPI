@@ -73,6 +73,7 @@ namespace TaskEngineAPI.DTO
         public string? cprocess_code { get; set; }
         public string? cprocess_name { get; set; }
         public List<privilegeMapping> privilegeMapping { get; set; }
+        public int cheader_id { get; internal set; }
     }
 
     public class privilegeMapping
