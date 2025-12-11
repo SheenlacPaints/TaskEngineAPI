@@ -1486,5 +1486,77 @@ namespace TaskEngineAPI.Controllers
 
             return CreatedSuccessResponse(data);
         }
+
+        [Authorize]
+        [HttpPut]
+        [Route("Updatetaskapprove")]
+        public async Task<IActionResult> Updatetaskapprove([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return CreateEncryptedResponse(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Payload cannot be empty");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch (Exception ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload format");
+                }
+
+                if (string.IsNullOrWhiteSpace(decryptedJson))
+                {
+                    return CreateEncryptedResponse(400, "Decrypted payload is empty");
+                }
+
+                updatetaskDTO model;
+                try
+                {
+                    model = JsonConvert.DeserializeObject<updatetaskDTO>(decryptedJson);
+                }
+                catch (JsonException ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid JSON format in payload");
+                }
+
+                if (model == null || model.ID <= 0)
+                {
+                    return CreateEncryptedResponse(400, "Invalid ID provided");
+                }
+
+                bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
+
+                if (!success)
+                {
+                    return CreateEncryptedResponse(404, "Data not found or update failed");
+                }
+
+                return CreatedSuccessResponse(null, "Updated successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
+
     }
 }
