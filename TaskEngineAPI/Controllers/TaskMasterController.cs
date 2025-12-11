@@ -1192,18 +1192,53 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(statusCode, encrypted);
         }
+        //private IActionResult CreatedSuccessResponse(object data, string message = "Successful")
+        //{
+        //    var response = new APIResponse
+        //    {
+        //        status = 200,
+        //        statusText = message,             
+               
+        //        body = data == null ? Array.Empty<object>() : new object[] { data },
+
+        //    };
+        //    string json = JsonConvert.SerializeObject(response);
+        //    string encrypted = AesEncryption.Encrypt(json);
+        //    return Ok(encrypted);
+        //}
+       
+
         private IActionResult CreatedSuccessResponse(object data, string message = "Successful")
         {
+            object[] responseBody;
+
+            if (data == null)
+            {
+                responseBody = Array.Empty<object>();
+            }
+            
+            else if (data is System.Collections.IEnumerable enumerableData)
+            {              
+                responseBody = enumerableData.Cast<object>().ToArray();
+            }
+            else
+            {               
+                responseBody = new object[] { data };
+            }
             var response = new APIResponse
             {
                 status = 200,
                 statusText = message,
-                body = data != null ? new object[] { data } : Array.Empty<object>(),
+                body = responseBody,
             };
             string json = JsonConvert.SerializeObject(response);
             string encrypted = AesEncryption.Encrypt(json);
             return Ok(encrypted);
         }
+
+
+
+
         private IActionResult CreatedDataResponse(List<Dictionary<string, object>> data, string noDataMessage = "No data found")
         {
             var hasData = data != null && data.Any();
