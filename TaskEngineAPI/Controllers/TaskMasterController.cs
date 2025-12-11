@@ -1198,7 +1198,7 @@ namespace TaskEngineAPI.Controllers
         //    {
         //        status = 200,
         //        statusText = message,             
-               
+
         //        body = data == null ? Array.Empty<object>() : new object[] { data },
 
         //    };
@@ -1206,7 +1206,7 @@ namespace TaskEngineAPI.Controllers
         //    string encrypted = AesEncryption.Encrypt(json);
         //    return Ok(encrypted);
         //}
-       
+
 
         private IActionResult CreatedSuccessResponse(object data, string message = "Successful")
         {
@@ -1216,13 +1216,13 @@ namespace TaskEngineAPI.Controllers
             {
                 responseBody = Array.Empty<object>();
             }
-            
+
             else if (data is System.Collections.IEnumerable enumerableData)
-            {              
+            {
                 responseBody = enumerableData.Cast<object>().ToArray();
             }
             else
-            {               
+            {
                 responseBody = new object[] { data };
             }
             var response = new APIResponse
@@ -1556,6 +1556,75 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("GetMetadetailbyid")]
+        public async Task<IActionResult> GetMetadetailbyid([FromQuery] int processid)
+        {
+            try
+            {
+                if (processid <= 0)
+                {
+                    return EncryptedError(400, "Process ID must be greater than 0.");
+                }
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing.");
+                }
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+
+                var json = await taskMasterService.GetAllProcessmetaAsync(cTenantID, processid);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                var response = new APIResponse
+                {
+                    body = data?.Cast<object>().ToArray() ?? Array.Empty<object>(),
+                    statusText = data == null || !data.Any() ? "No data found" : "Successful",
+                    status = data == null || !data.Any() ? 204 : 200
+                };
+
+                string jsoner = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(jsoner);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var apierrDtls = new APIResponse
+                {
+                    status = 500,
+                    statusText = "Internal server Error",
+                    error = ex.Message
+                };
+
+                string jsoner = JsonConvert.SerializeObject(apierrDtls);
+                var encryptapierrDtls = AesEncryption.Encrypt(jsoner);
+                return StatusCode(500, encryptapierrDtls);
+            }
+        }
+
+        private ActionResult EncryptedError(int status, string message)
+        {
+            var response = new APIResponse { status = status, statusText = message };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return Ok(encrypted);
+        }
+
+        private ActionResult EncryptedSuccess(string message)
+        {
+            var response = new APIResponse { status = 200, statusText = message };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return Ok(encrypted);           
+        }
 
 
     }
