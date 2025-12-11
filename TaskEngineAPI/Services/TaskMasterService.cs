@@ -1292,11 +1292,11 @@ WHERE a.cis_active = 1
                         statusCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
                         statusCmd.Parameters.AddWithValue("@cheader_id", 2); 
                         statusCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
-                        statusCmd.Parameters.AddWithValue("@cstatus", model.status);
+                        statusCmd.Parameters.AddWithValue("@cstatus", (object?)model.status ?? DBNull.Value);
                         statusCmd.Parameters.AddWithValue("@cstatus_with", username);
-                        statusCmd.Parameters.AddWithValue("@lstatus_date", model.status_date);
-                        statusCmd.Parameters.AddWithValue("@cremarks", model.remarks);
-                        statusCmd.Parameters.AddWithValue("@crejected_reason", model.rejectedreason);
+                        statusCmd.Parameters.AddWithValue("@lstatus_date", (object?)model.status_date ?? DBNull.Value); 
+                        statusCmd.Parameters.AddWithValue("@cremarks", (object?)model.remarks ?? DBNull.Value);
+                        statusCmd.Parameters.AddWithValue("@crejected_reason",(object?)model.rejectedreason ?? DBNull.Value);
                         await statusCmd.ExecuteNonQueryAsync();
                     }
 
