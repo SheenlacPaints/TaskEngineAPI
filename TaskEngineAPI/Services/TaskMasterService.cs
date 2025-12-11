@@ -1192,16 +1192,16 @@ WHERE a.cis_active = 1
         {
             var timelineList = new List<TimelineDTO>();
 
-            string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks,
+            string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks,t.ID,
             t.lcurrent_status_date AS statusDate,t.cmapping_code,t.cprocess_id,t.cactivityname,
             u.cuserid,u.cfirst_name + ' ' + u.clast_name AS userName,u.cprofile_image_path AS userAvatar
-            FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,
+            FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,b.ID,
             ped.cactivityname FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
             LEFT JOIN tbl_process_engine_details ped ON ped.cheader_id = a.cprocess_id AND ped.ciseqno = b.iseqno
             WHERE a.ID IN ( SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)) t
             INNER JOIN Users u ON t.cmapping_code = u.cdept_code OR t.cmapping_code = u.cposition_code
             OR t.cmapping_code = u.croll_id OR t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid)
-            ORDER BY t.lcurrent_status_date";
+            ORDER BY t.id asc";
 
             using (SqlCommand cmd = new SqlCommand(timelineQuery, conn))
             {
