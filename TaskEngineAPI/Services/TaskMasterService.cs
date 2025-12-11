@@ -1247,11 +1247,11 @@ WHERE a.cis_active = 1
 
                     using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
                     {
-                        updateCmd.Parameters.AddWithValue("@status", model.status);
-                        updateCmd.Parameters.AddWithValue("@status_date", model.status_date);
-                        updateCmd.Parameters.AddWithValue("@remarks", model.remarks);
+                        updateCmd.Parameters.AddWithValue("@status", (object?)model.status ?? DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@status_date", (object?)model.status_date ?? DBNull.Value);
+                        updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@ID", model.ID);
-                        updateCmd.Parameters.AddWithValue("@creassign_to", model.reassignto);
+                        updateCmd.Parameters.AddWithValue("@creassign_to", (object?)model.reassignto ?? DBNull.Value);
                         int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
 
                         if (rowsAffected == 0)
