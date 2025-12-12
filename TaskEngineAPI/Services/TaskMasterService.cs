@@ -403,6 +403,40 @@ WHERE a.cis_active = 1
             }
         }
 
+        public async Task<string> GetDropDownFilterAsync(int cTenantID, GetDropDownFilterDTO filterDto)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_dropdown_filter", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@FilterValue1", (object)filterDto.filtervalue1 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@FilterValue2", (object)filterDto.filtervalue2 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@FilterValue3", (object)filterDto.filtervalue3 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@FilterValue4", (object)filterDto.filtervalue4 ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@FilterValue5", (object)filterDto.filtervalue5 ?? DBNull.Value);
+
+
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds));
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<string> Gettaskapprove(int cTenantID, string username)
         {
             try

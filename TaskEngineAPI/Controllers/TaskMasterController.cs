@@ -182,6 +182,43 @@ namespace TaskEngineAPI.Controllers
         }
 
         [Authorize]
+        [HttpPost]
+        [Route("GetDropDownFilter")]
+        public async Task<IActionResult> GetDropDownFilter([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var filterDto = JsonConvert.DeserializeObject<GetDropDownFilterDTO>(decryptedJson);
+
+                if (filterDto == null || string.IsNullOrWhiteSpace(filterDto.filtervalue1))
+                {
+                    return CreateEncryptedResponse(400, "filtervalue1 (column name) is required");
+                }
+
+                var (cTenantID, _) = GetUserInfoFromToken();
+
+                var json = await taskMasterService.GetDropDownFilterAsync(cTenantID, filterDto);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [Authorize]
         [HttpGet]
         [Route("Gettaskapprove")]
         public async Task<IActionResult> Gettaskapprove()

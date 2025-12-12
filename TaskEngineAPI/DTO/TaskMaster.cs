@@ -197,6 +197,12 @@ public class updatetaskDTO
     public List<metaData> metaData { get; set; }
 }
 
+public class  GetDropDownFilterDTO
+{
+    public string? filtervalue1 { get; set; }
+    public string? filtervalue2 { get; set; }
+    public string? filtervalue3 { get; set; }
+    public string? filtervalue4 { get; set; }
+    public string? filtervalue5 { get; set; }
 
-
-
+}
