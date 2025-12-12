@@ -908,7 +908,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpPost("GetDropDownFilter")]
         public async Task<IActionResult> GetDropDownFilter([FromBody] pay request)
@@ -923,7 +922,7 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing Authorization token.");
                 }
 
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/TaskMaster/GetDropDownFilter");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}TaskMaster/GetDropDownFilter");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
@@ -945,6 +944,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        
         [Authorize]
         [HttpGet("Gettaskinbox")]
         public async Task<IActionResult> Gettaskinbox()
