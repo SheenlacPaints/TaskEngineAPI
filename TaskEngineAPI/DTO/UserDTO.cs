@@ -76,7 +76,10 @@ namespace TaskEngineAPI.DTO
         public bool? nIsDeleted { get; set; }
         public string? cDeletedBy { get; set; }
         public DateTime? lDeletedDate { get; set; }
+        public string? cposition_code { get; set; }
+        public string? cposition_name { get; set; }
 
+       
     }
 
 
