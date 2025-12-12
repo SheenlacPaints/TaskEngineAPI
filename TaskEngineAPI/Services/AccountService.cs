@@ -337,7 +337,7 @@ INSERT INTO Users (
     [creport_manager_poscode], [creport_manager_pos_desc], [nis_web_access_enabled],
     [nis_event_read], [llast_login_at], [nfailed_logina_attempts], [cpassword_changed_at],
     [nis_locked], [last_login_ip], [last_login_device], [ccreated_date], [ccreated_by],
-    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date]
+    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date],[cposition_code],[cposition_name]
 )
 VALUES (
     @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive,
@@ -426,6 +426,9 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? false);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cposition_code", (object?)model.cposition_code ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cposition_name", (object?)model.cposition_name ?? DBNull.Value);
+            
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0 ? model.cuserid : 0;
             var newId = await cmd.ExecuteScalarAsync();
