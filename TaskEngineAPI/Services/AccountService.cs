@@ -612,7 +612,8 @@ VALUES (
       ,[nis_event_read],[llast_login_at],[nfailed_logina_attempts],
 	  [cpassword_changed_at],[nis_locked],[last_login_ip],[last_login_device],
 	  [ccreated_date],[ccreated_by],[cmodified_by],[lmodified_date],[nIs_deleted],[cdeleted_by],
-	  [ldeleted_date],[cprofile_image_name],[cprofile_image_path]   FROM [dbo].[Users]
+	  [ldeleted_date],[cprofile_image_name],[cprofile_image_path] ,[cposition_code],[cposition_name]
+      FROM [dbo].[Users]
         WHERE crole_id = 3 AND ctenant_id = @TenantID and nis_deleted=0";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -696,8 +697,9 @@ VALUES (
                                 cDeletedBy = reader.IsDBNull(reader.GetOrdinal("cdeleted_by")) ? null : reader.GetString(reader.GetOrdinal("cdeleted_by")),
                                 lDeletedDate = reader.IsDBNull(reader.GetOrdinal("ldeleted_date")) ? null : reader.GetDateTime(reader.GetOrdinal("ldeleted_date")),
                                 cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
-                                cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path"))
-
+                                cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
+                                cposition_code = reader.IsDBNull(reader.GetOrdinal("cposition_code")) ? null : reader.GetString(reader.GetOrdinal("cposition_code")),
+                                cposition_name = reader.IsDBNull(reader.GetOrdinal("cposition_name")) ? null : reader.GetString(reader.GetOrdinal("cposition_name"))
 
                             });
                         }
@@ -732,7 +734,7 @@ VALUES (
                [cReportManager_Posdesc], [nIsWebAccessEnabled], [nIsEventRead], [lLastLoginAt],
                [nFailedLoginAttempts], [cPasswordChangedAt], [nIsLocked], [LastLoginIP],
                [LastLoginDevice], [ccreateddate], [ccreatedby], [cmodifiedby], [lmodifieddate],
-               [nIsDeleted], [cDeletedBy], [lDeletedDate], [cprofile_image_name], [cprofile_image_path]
+               [nIsDeleted], [cDeletedBy], [lDeletedDate], [cprofile_image_name], [cprofile_image_path],[cposition_code],[cposition_name]
         FROM [dbo].[Users]
         WHERE croleID = 3 AND cTenantID = @TenantID  and cuserid=@userid";
 
@@ -819,6 +821,8 @@ VALUES (
                                 lDeletedDate = reader.IsDBNull(reader.GetOrdinal("lDeletedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("lDeletedDate")),
                                 cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_name")),
                                 cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
+                                cposition_code = reader.IsDBNull(reader.GetOrdinal("cposition_code")) ? null : reader.GetString(reader.GetOrdinal("cposition_code")),
+                                cposition_name = reader.IsDBNull(reader.GetOrdinal("cposition_name")) ? null : reader.GetString(reader.GetOrdinal("cposition_name")),
 
                             });
                         }
