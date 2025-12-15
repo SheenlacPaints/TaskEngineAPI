@@ -168,7 +168,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
+        [Authorize]
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromBody] pay request)
         {
