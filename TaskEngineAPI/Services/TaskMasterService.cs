@@ -706,7 +706,7 @@ WHERE a.cis_active = 1
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
 
-            string query = "sp_get_worflow_inbox";
+            string query = "sp_get_worflow_approve";
             using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
             {
                 using (SqlCommand cmd = new SqlCommand(query))
@@ -750,7 +750,7 @@ WHERE a.cis_active = 1
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
                             {
-                                string query1 = "sp_get_worflow_inbox_details";
+                                string query1 = "sp_get_worflow_approve_details";
                                 using (SqlCommand cmd1 = new SqlCommand(query1))
                                 {
                                     cmd1.Connection = con1;
