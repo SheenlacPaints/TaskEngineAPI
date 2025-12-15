@@ -437,33 +437,33 @@ WHERE a.cis_active = 1
             }
         }
 
-        public async Task<string> Gettaskapprove(int cTenantID, string username)
-        {
-            try
-            {
-                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
-                using (var cmd = new SqlCommand("sp_get_worflow_approved", con))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
-                    cmd.Parameters.AddWithValue("@userid", username);
-                    var ds = new DataSet();
-                    var adapter = new SqlDataAdapter(cmd);
-                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+        //public async Task<string> Gettaskapprove(int cTenantID, string username)
+        //{
+        //    try
+        //    {
+        //        using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+        //        using (var cmd = new SqlCommand("sp_get_worflow_approved", con))
+        //        {
+        //            cmd.CommandType = CommandType.StoredProcedure;
+        //            cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+        //            cmd.Parameters.AddWithValue("@userid", username);
+        //            var ds = new DataSet();
+        //            var adapter = new SqlDataAdapter(cmd);
+        //            await Task.Run(() => adapter.Fill(ds)); // async wrapper
 
-                    if (ds.Tables.Count > 0)
-                    {
-                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
-                    }
+        //            if (ds.Tables.Count > 0)
+        //            {
+        //                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+        //            }
 
-                    return "[]";
-                }
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
-        }
+        //            return "[]";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
+        //}
 
         public async Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username)
         {
@@ -702,7 +702,8 @@ WHERE a.cis_active = 1
             return JsonConvert.SerializeObject(tsk, Formatting.Indented);
         }
 
-        public async Task<string> Gettaskinbox(int cTenantID, string username)
+
+        public async Task<string> Gettaskapprove(int cTenantID, string username)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
 
@@ -751,6 +752,116 @@ WHERE a.cis_active = 1
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
                             {
                                 string query1 = "sp_get_worflow_approve_details";
+                                using (SqlCommand cmd1 = new SqlCommand(query1))
+                                {
+                                    cmd1.Connection = con1;
+                                    cmd1.CommandType = CommandType.StoredProcedure;
+                                    cmd1.Parameters.AddWithValue("@userid", username);
+                                    cmd1.Parameters.AddWithValue("@tenentid", cTenantID);
+                                    cmd1.Parameters.AddWithValue("@itaskno", p.itaskno);
+
+                                    con1.Open();
+                                    using (SqlDataReader sdr1 = cmd1.ExecuteReader())
+                                    {
+                                        while (sdr1.Read())
+                                        {
+                                            GetTaskDetails pd = new GetTaskDetails
+                                            {
+
+                                                ID = sdr1.IsDBNull(sdr1.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr1["ID"]),
+                                                iheader_id = sdr1.IsDBNull(sdr1.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(sdr1["iheader_id"]),
+                                                itaskno = sdr1.IsDBNull(sdr1.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr1["itaskno"]),
+                                                iseqno = sdr1.IsDBNull(sdr1.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(sdr1["iseqno"]),
+                                                ctasktype = sdr1.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr1["ctask_type"]),
+                                                cmappingcode = sdr1.IsDBNull(sdr1.GetOrdinal("cmapping_code")) ? string.Empty : Convert.ToString(sdr1["cmapping_code"]),
+                                                ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
+                                                lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
+                                                cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1.GetOrdinal("cremarks")),
+                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(sdr1["inext_seqno"]),
+                                                cnextseqtype = sdr1.IsDBNull(sdr1.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(sdr1["cnext_seqtype"]),
+                                                cprevtype = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
+                                                csla_day = sdr1.IsDBNull(sdr1.GetOrdinal("csla_day")) ? 0 : Convert.ToInt32(sdr1["csla_day"]),
+                                                csla_Hour = sdr1.IsDBNull(sdr1.GetOrdinal("csla_Hour")) ? 0 : Convert.ToInt32(sdr1["csla_Hour"]),
+                                                cprocess_type = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
+                                                nboard_enabled = sdr1.IsDBNull(sdr1.GetOrdinal("nboard_enabled")) ? false : Convert.ToBoolean(sdr1["nboard_enabled"]),
+                                                caction_privilege = sdr1.IsDBNull(sdr1.GetOrdinal("caction_privilege")) ? string.Empty : Convert.ToString(sdr1["caction_privilege"]),
+                                                crejection_privilege = sdr1.IsDBNull(sdr1.GetOrdinal("crejection_privilege")) ? string.Empty : Convert.ToString(sdr1["crejection_privilege"]),
+                                                cisforwarded = sdr1.IsDBNull(sdr1.GetOrdinal("cis_forwarded")) ? string.Empty : Convert.ToString(sdr1["cis_forwarded"]),
+                                                lfwd_date = sdr1.IsDBNull(sdr1.GetOrdinal("lfwd_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lfwd_date")),
+                                                cfwd_to = sdr1.IsDBNull(sdr1.GetOrdinal("cfwd_to")) ? string.Empty : Convert.ToString(sdr1["cfwd_to"]),
+                                                cis_reassigned = sdr1.IsDBNull(sdr1.GetOrdinal("cis_reassigned")) ? string.Empty : Convert.ToString(sdr1["cis_reassigned"]),
+                                                creassign_name = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_name")) ? string.Empty : Convert.ToString(sdr1["creassign_name"]),
+                                                lreassign_date = sdr1.IsDBNull(sdr1.GetOrdinal("lreassign_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lreassign_date")),
+                                                creassign_to = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(sdr1["creassign_to"]),
+                                                cactivityname = sdr1.IsDBNull(sdr1.GetOrdinal("cactivityname")) ? string.Empty : Convert.ToString(sdr1["cactivityname"]),
+                                                cactivity_description = sdr1.IsDBNull(sdr1.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(sdr1["cactivity_description"])
+                                            };
+                                            tskdtl.Add(pd);
+                                        }
+                                    }
+                                    con1.Close();
+                                }
+                            }
+
+                            p.TaskChildItems = tskdtl;
+                            tsk.Add(p);
+                        }
+                    }
+                    con.Close();
+                }
+            }
+            // ✅ Serialize the result to JSON
+            return JsonConvert.SerializeObject(tsk, Formatting.Indented);
+        }
+        public async Task<string> Gettaskinbox(int cTenantID, string username)
+        {
+            List<GetTaskList> tsk = new List<GetTaskList>();
+
+            string query = "sp_get_worflow_inbox";
+            using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
+            {
+                using (SqlCommand cmd = new SqlCommand(query))
+                {
+                    cmd.Connection = con;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@userid", username);
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    con.Open();
+
+                    using (SqlDataReader sdr = cmd.ExecuteReader())
+                    {
+                        while (sdr.Read())
+                        {
+                            List<GetTaskDetails> tskdtl = new List<GetTaskDetails>();
+                            GetTaskList p = new GetTaskList
+                            {
+                                ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
+                                ctasktype = sdr.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr["ctask_type"]),
+                                ctaskname = sdr.IsDBNull(sdr.GetOrdinal("ctask_name")) ? string.Empty : Convert.ToString(sdr["ctask_name"]),
+                                ctaskdescription = sdr.IsDBNull(sdr.GetOrdinal("ctask_description")) ? string.Empty : Convert.ToString(sdr["ctask_description"]),
+                                cstatus = sdr.IsDBNull(sdr.GetOrdinal("cstatus")) ? string.Empty : Convert.ToString(sdr["cstatus"]),
+                                lcompleteddate = sdr.IsDBNull(sdr.GetOrdinal("lcompleted_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcompleted_date")),
+                                ccreatedby = sdr.IsDBNull(sdr.GetOrdinal("ccreated_by")) ? string.Empty : Convert.ToString(sdr["ccreated_by"]),
+                                ccreatedbyname = sdr.IsDBNull(sdr.GetOrdinal("ccreated_byname")) ? string.Empty : Convert.ToString(sdr["ccreated_byname"]),
+                                lcreateddate = sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
+                                cmodifiedby = sdr.IsDBNull(sdr.GetOrdinal("cmodified_by")) ? string.Empty : Convert.ToString(sdr["cmodified_by"]),
+                                cmodifiedbyname = sdr.IsDBNull(sdr.GetOrdinal("cmodified_byname")) ? string.Empty : Convert.ToString(sdr["cmodified_byname"]),
+                                lmodifieddate = sdr.IsDBNull(sdr.GetOrdinal("lmodified_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date")),
+                                Employeecode = sdr.IsDBNull(sdr.GetOrdinal("Employeecode")) ? string.Empty : Convert.ToString(sdr["Employeecode"]),
+                                Employeename = sdr.IsDBNull(sdr.GetOrdinal("Employeename")) ? string.Empty : Convert.ToString(sdr["Employeename"]),
+                                EmpDepartment = sdr.IsDBNull(sdr.GetOrdinal("EmpDepartment")) ? string.Empty : Convert.ToString(sdr["EmpDepartment"]),
+                                cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
+                                cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
+                                cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
+                                cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                //privilege_name = sdr.IsDBNull(sdr.GetOrdinal("privilege_name")) ? string.Empty : Convert.ToString(sdr["privilege_name"])
+
+                            };
+
+                            using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
+                            {
+                                string query1 = "sp_get_worflow_inbox_details";
                                 using (SqlCommand cmd1 = new SqlCommand(query1))
                                 {
                                     cmd1.Connection = con1;
