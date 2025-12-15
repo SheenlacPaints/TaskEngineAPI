@@ -338,7 +338,7 @@ INSERT INTO Users (
     [nis_event_read], [llast_login_at], [nfailed_logina_attempts], [cpassword_changed_at],
     [nis_locked], [last_login_ip], [last_login_device], [ccreated_date], [ccreated_by],
     [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date],
-    [cprofile_image_name], [cprofile_image_path], [cposition_code], [cposition_name]
+    [cposition_code], [cposition_name]
 )
 VALUES (
     @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive,
@@ -354,7 +354,7 @@ VALUES (
     @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
     @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby,
     @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate,
-    @cprofile_image_name, @cprofile_image_path, @cposition_code, @cposition_name
+    @cposition_code, @cposition_name
 ); SELECT SCOPE_IDENTITY();";
 
             using var cmd = new SqlCommand(query, conn);
@@ -430,8 +430,6 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? false);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@cprofile_image_name", (object?)model.cprofile_image_name ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@cprofile_image_path", (object?)model.cprofile_image_path ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cposition_code", (object?)model.cposition_code ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cposition_name", (object?)model.cposition_name ?? DBNull.Value);
 

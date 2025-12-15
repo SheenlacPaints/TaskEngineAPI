@@ -79,8 +79,8 @@ namespace TaskEngineAPI.DTO
         public string? cposition_code { get; set; }
         public string? cposition_name { get; set; }
 
-        public string? cprofile_image_name { get; set; }
-        public string? cprofile_image_path { get; set; }
+        //public string? cprofile_image_name { get; set; }
+        //public string? cprofile_image_path { get; set; }
     }
 
 
