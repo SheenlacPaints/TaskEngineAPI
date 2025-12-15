@@ -608,31 +608,90 @@ namespace TaskEngineAPI.Controllers
         [Route("GetAllUserbyid")]
         public async Task<ActionResult> GetAllUserbyid([FromQuery] string id)
         {
-
-            string decrypted = AesEncryption.Decrypt(id)?.Trim();
-
-            if (!int.TryParse(decrypted, out int userid))
-                return BadRequest($"Invalid user id: {decrypted}");
-            return BadRequest("Invalid user id");
             try
             {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if(string.IsNullOrWhiteSpace(jwtToken))
+                if (string.IsNullOrWhiteSpace(id) || !int.TryParse(id, out int parsedId) || parsedId <= 0)
                 {
-                    return EncryptedError(400, "Authorization token is missing");
-                }
-                var handler = new JwtSecurityTokenHandler();
-                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+                    var invalidIdResponse = new APIResponse
+                    {
+                        body = Array.Empty<object>(),
+                        statusText = "Valid ID parameter is required",
+                        status = 400
+                    };
 
-                var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+                    string invalidIdJson = JsonConvert.SerializeObject(invalidIdResponse);
+                    var encryptedInvalidId = AesEncryption.Encrypt(invalidIdJson);
+                    return StatusCode(400, encryptedInvalidId);
+                }
+
+                int userid = parsedId;
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    var tokenMissingResponse = new APIResponse
+                    {
+                        body = Array.Empty<object>(),
+                        statusText = "Authorization token is missing",
+                        status = 400
+                    };
+
+                    string tokenMissingJson = JsonConvert.SerializeObject(tokenMissingResponse);
+                    var encryptedTokenMissing = AesEncryption.Encrypt(tokenMissingJson);
+                    return StatusCode(400, encryptedTokenMissing);
+                }
+
+                var handler = new JwtSecurityTokenHandler();
+                JwtSecurityToken jsonToken;
+
+                try
+                {
+                    jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+                }
+                catch (Exception tokenEx)
+                {
+                    var tokenErrorResponse = new APIResponse
+                    {
+                        body = Array.Empty<object>(),
+                        statusText = $"Invalid JWT token: {tokenEx.Message}",
+                        status = 400
+                    };
+
+                    string tokenErrorJson = JsonConvert.SerializeObject(tokenErrorResponse);
+                    var encryptedTokenError = AesEncryption.Encrypt(tokenErrorJson);
+                    return StatusCode(400, encryptedTokenError);
+                }
+
+                if (jsonToken == null)
+                {
+                    var invalidTokenResponse = new APIResponse
+                    {
+                        body = Array.Empty<object>(),
+                        statusText = "Invalid JWT token format",
+                        status = 400
+                    };
+
+                    string invalidTokenJson = JsonConvert.SerializeObject(invalidTokenResponse);
+                    var encryptedInvalidToken = AesEncryption.Encrypt(invalidTokenJson);
+                    return StatusCode(400, encryptedInvalidToken);
+                }
+
+                var tenantIdClaim = jsonToken.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
                 if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
                 {
-                    return BadRequest("Invalid or missing cTenantID in token.");
+                    var tenantIdResponse = new APIResponse
+                    {
+                        body = Array.Empty<object>(),
+                        statusText = "Invalid or missing cTenantID in token.",
+                        status = 400
+                    };
+
+                    string tenantIdJson = JsonConvert.SerializeObject(tenantIdResponse);
+                    var encryptedTenantId = AesEncryption.Encrypt(tenantIdJson);
+                    return StatusCode(400, encryptedTenantId);
                 }
 
                 var superAdmins = await _AccountService.GetAllUserIdAsync(cTenantID, userid);
-
-
 
                 var response = new APIResponse
                 {
@@ -643,14 +702,14 @@ namespace TaskEngineAPI.Controllers
 
                 string jsoner = JsonConvert.SerializeObject(response);
                 var encrypted = AesEncryption.Encrypt(jsoner);
-                return StatusCode(200, encrypted);
+                return StatusCode(response.status, encrypted);
             }
             catch (Exception ex)
             {
                 var errorResponse = new APIResponse
                 {
                     body = Array.Empty<object>(),
-                    statusText = $"Error: {ex.Message}",
+                    statusText = $"Unexpected error: {ex.Message}",
                     status = 500
                 };
 
