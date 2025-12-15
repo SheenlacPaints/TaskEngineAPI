@@ -719,6 +719,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromBody] pay request)
         {

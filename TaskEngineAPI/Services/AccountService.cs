@@ -337,7 +337,8 @@ INSERT INTO Users (
     [creport_manager_poscode], [creport_manager_pos_desc], [nis_web_access_enabled],
     [nis_event_read], [llast_login_at], [nfailed_logina_attempts], [cpassword_changed_at],
     [nis_locked], [last_login_ip], [last_login_device], [ccreated_date], [ccreated_by],
-    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date],[cposition_code],[cposition_name]
+    [cmodified_by], [lmodified_date], [nIs_deleted], [cdeleted_by], [ldeleted_date],
+    [cprofile_image_name], [cprofile_image_path], [cposition_code], [cposition_name]
 )
 VALUES (
     @cuserid, @ctenantID, @cusername, @cemail, @cpassword, @nIsActive,
@@ -352,16 +353,19 @@ VALUES (
     @cReportManager_Poscode, @cReportManager_Posdesc, @nIsWebAccessEnabled,
     @nIsEventRead, @lLastLoginAt, @nFailedLoginAttempts, @cPasswordChangedAt,
     @nIsLocked, @LastLoginIP, @LastLoginDevice, @ccreateddate, @ccreatedby,
-    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate); SELECT SCOPE_IDENTITY(); ";
+    @cmodifiedby, @lmodifieddate, @nIsDeleted, @cDeletedBy, @lDeletedDate,
+    @cprofile_image_name, @cprofile_image_path, @cposition_code, @cposition_name
+); SELECT SCOPE_IDENTITY();";
 
             using var cmd = new SqlCommand(query, conn);
+
             model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
             cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
             cmd.Parameters.AddWithValue("@ctenantID", model.ctenantID);
             cmd.Parameters.AddWithValue("@cusername", model.cusername);
             cmd.Parameters.AddWithValue("@cemail", model.cemail);
-            cmd.Parameters.AddWithValue("@cpassword", model.cpassword); // store as plain text
+            cmd.Parameters.AddWithValue("@cpassword", model.cpassword);
             cmd.Parameters.AddWithValue("@nIsActive", model.nIsActive ?? true);
             cmd.Parameters.AddWithValue("@cfirstName", (object?)model.cfirstName ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@clastName", (object?)model.clastName ?? DBNull.Value);
@@ -419,18 +423,18 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsLocked", (object?)model.nIsLocked ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.LastLoginIP ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.LastLoginDevice ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@ccreateddate", (DateTime.Now));
+            cmd.Parameters.AddWithValue("@ccreateddate", DateTime.Now);
             cmd.Parameters.AddWithValue("@ccreatedby", (object?)model.ccreatedby ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cmodifiedby", (object?)model.cmodifiedby ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@lmodifieddate", (DateTime.Now));
+            cmd.Parameters.AddWithValue("@lmodifieddate", DateTime.Now);
             cmd.Parameters.AddWithValue("@nIsDeleted", (object?)model.nIsDeleted ?? false);
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cprofile_image_name", (object?)model.cprofile_image_name ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cprofile_image_path", (object?)model.cprofile_image_path ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cposition_code", (object?)model.cposition_code ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cposition_name", (object?)model.cposition_name ?? DBNull.Value);
-            
-            int rows = await cmd.ExecuteNonQueryAsync();
-            return rows > 0 ? model.cuserid : 0;
+
             var newId = await cmd.ExecuteScalarAsync();
             return newId != null ? Convert.ToInt32(newId) : 0;
         }
