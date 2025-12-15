@@ -168,14 +168,25 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+
         [Authorize]
         [HttpPost("CreateUser")]
         public async Task<IActionResult> CreateUser([FromBody] pay request)
         {
             try
             {
-                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_baseUrl}Account/CreateUser", content);
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl.TrimEnd('/')}/Account/CreateUser");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
