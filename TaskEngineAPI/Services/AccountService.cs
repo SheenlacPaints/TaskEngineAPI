@@ -2227,7 +2227,7 @@ VALUES (
             var connStr = _config.GetConnectionString("Database");
 
             var table = new DataTable();
-            table.Columns.Add("ctenant_id", typeof(int)); // Fixed: ctenent_id to ctenant_id
+            table.Columns.Add("ctenant_id", typeof(int));
             table.Columns.Add("cdepartment_code", typeof(string));
             table.Columns.Add("cdepartment_name", typeof(string));
             table.Columns.Add("cdepartment_desc", typeof(string));
@@ -2246,7 +2246,8 @@ VALUES (
             foreach (var dept in departments)
             {
                 var row = table.NewRow();
-                row["ctenant_id"] = cTenantID; // Fixed: ctenent_id to ctenant_id
+
+                row["ctenant_id"] = cTenantID;
                 row["cdepartment_code"] = dept.cdepartment_code ?? (object)DBNull.Value;
                 row["cdepartment_name"] = dept.cdepartment_name ?? (object)DBNull.Value;
                 row["cdepartment_desc"] = dept.cdepartment_desc ?? (object)DBNull.Value;
@@ -2255,12 +2256,13 @@ VALUES (
                 row["cdepartment_manager_name"] = dept.cdepartment_manager_name ?? (object)DBNull.Value;
                 row["cdepartment_email"] = dept.cdepartment_email ?? (object)DBNull.Value;
                 row["cdepartment_phone"] = dept.cdepartment_phone ?? (object)DBNull.Value;
-                row["nis_active"] = dept.nis_active ?? true;
+                row["nis_active"] = true;
                 row["ccreated_by"] = usernameClaim;
                 row["lcreated_date"] = DateTime.Now;
                 row["cmodified_by"] = usernameClaim;
                 row["lmodified_date"] = DateTime.Now;
                 row["nis_deleted"] = false;
+
                 table.Rows.Add(row);
             }
 
@@ -2274,8 +2276,7 @@ VALUES (
                 BulkCopyTimeout = 300
             };
 
-            // Fixed column mappings to match actual table structure
-            bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id"); // Fixed: ctenent_id to ctenant_id
+            bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id");
             bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
             bulkCopy.ColumnMappings.Add("cdepartment_name", "cdepartment_name");
             bulkCopy.ColumnMappings.Add("cdepartment_desc", "cdepartment_desc");
@@ -2296,16 +2297,15 @@ VALUES (
                 await bulkCopy.WriteToServerAsync(table);
                 return table.Rows.Count;
             }
-            catch (SqlException ex) when (ex.Number == 2601 || ex.Number == 2627) // Unique constraint violation
+            catch (SqlException ex) when (ex.Number == 2601 || ex.Number == 2627)
             {
                 throw new InvalidOperationException("Duplicate department codes found during insertion", ex);
             }
             catch (Exception ex)
             {
-                throw new Exception("Error during bulk insert", ex);
+                throw new Exception("Error during bulk insert of departments", ex);
             }
         }
-
 
         public async Task<List<string>> CheckExistingDepartmentCodesAsync(List<string> departmentCodes, int tenantId)
         {
@@ -2574,7 +2574,6 @@ VALUES (
                 row["crole_code"] = role.crole_code ?? (object)DBNull.Value;
                 row["crole_name"] = role.crole_name ?? (object)DBNull.Value;
                 row["crole_description"] = role.crole_description ?? (object)DBNull.Value;
-
                 row["crole_level"] = role.crole_level ?? (object)DBNull.Value;
                 row["cdepartment_code"] = role.cdepartment_code ?? (object)DBNull.Value;
                 row["creporting_manager_code"] = role.creporting_manager_code ?? (object)DBNull.Value;

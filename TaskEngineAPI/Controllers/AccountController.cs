@@ -2594,11 +2594,13 @@ namespace TaskEngineAPI.Controllers
                 {
                     return EncryptedError(400, "Request body cannot be null or empty");
                 }
+
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
+
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -2627,23 +2629,11 @@ namespace TaskEngineAPI.Controllers
                 "cdepartment_code",
                 "cdepartment_name",
                 "cdepartment_desc",
-                "cdepartmentslug",
                 "cdepartment_manager_rolecode",
                 "cdepartment_manager_position_code",
                 "cdepartment_manager_name",
                 "cdepartment_email",
-                "cdepartment_phone",
-                "nis_active",
-                 "ID",
-                "ctenant_id",
-                "cdepartmentslug",
-                "nis_deleted",
-                "cdeleted_by",
-                "ldeleted_date",
-                "ccreated_by",
-                "lcreated_date",
-                "cmodified_by",
-                "lmodified_date"
+                "cdepartment_phone"
             };
 
                     var jArray = JArray.Parse(decryptedJson);
@@ -2762,8 +2752,7 @@ namespace TaskEngineAPI.Controllers
                 { "cdepartment_manager_rolecode", dept.cdepartment_manager_rolecode },
                 { "cdepartment_manager_position_code", dept.cdepartment_manager_position_code },
                 { "cdepartment_manager_name", dept.cdepartment_manager_name },
-                { "cdepartment_phone", dept.cdepartment_phone },
-                { "nis_active", dept.nis_active }
+                { "cdepartment_phone", dept.cdepartment_phone }
             };
 
                     var missingOptionalFields = optionalFields
@@ -2879,8 +2868,7 @@ namespace TaskEngineAPI.Controllers
                 { "cdepartment_manager_rolecode", d.cdepartment_manager_rolecode },
                 { "cdepartment_manager_position_code", d.cdepartment_manager_position_code },
                 { "cdepartment_manager_name", d.cdepartment_manager_name },
-                { "cdepartment_phone", d.cdepartment_phone },
-                { "nis_active", d.nis_active }
+                { "cdepartment_phone", d.cdepartment_phone }
             }
                     .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
                     .Select(f => f.Key)
@@ -2967,7 +2955,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpPost("CreateRolesBulk")]
         public async Task<IActionResult> CreateRolesBulk([FromBody] pay request)
@@ -3014,16 +3001,8 @@ namespace TaskEngineAPI.Controllers
                 "cdepartment_code",
                 "creporting_manager_code",
                 "creporting_manager_name",
-                "crole_description",
-                 "ID","cslug","nis_active",
-                "ctenant_id",
-                "nis_deleted",
-                "cdeleted_by",
-                "ldeleted_date",
-                "ccreated_by",
-                "lcreated_date",
-                "cmodified_by",
-                "lmodified_date"
+                "crole_description"
+                
             };
                     var jArray = JArray.Parse(decryptedJson);
                     foreach (var item in jArray)
@@ -3141,8 +3120,7 @@ namespace TaskEngineAPI.Controllers
                 { "cdepartment_code", role.cdepartment_code },
                 { "creporting_manager_code", role.creporting_manager_code },
                 { "creporting_manager_name", role.creporting_manager_name },
-                { "crole_description", role.crole_description },
-                { "nis_active", role.nis_active   }
+                { "crole_description", role.crole_description }
             };
 
                     var missingOptionalFields = optionalFields
@@ -3257,8 +3235,7 @@ namespace TaskEngineAPI.Controllers
                 { "cdepartment_code", r.cdepartment_code },
                 { "creporting_manager_code", r.creporting_manager_code },
                 { "creporting_manager_name", r.creporting_manager_name },
-                { "crole_description", r.crole_description },
-                { "nis_active", r.nis_active    }
+                { "crole_description", r.crole_description }
             }
                     .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
                     .Select(f => f.Key)
@@ -3390,18 +3367,7 @@ namespace TaskEngineAPI.Controllers
                 "cposition_decsription",
                 "cdepartment_code",
                 "creporting_manager_positionid",
-                "creporting_manager_name",
-                "nis_active",
-                 "ID",
-                "ctenant_id",
-                "cposition_slug",
-                "nis_deleted",
-                "cdeleted_by",
-                "ldeleted_date",
-                "ccreated_by",
-                "lcreated_date",
-                "cmodified_by",
-                "lmodified_date"
+                "creporting_manager_name"
             };
                     var jArray = JArray.Parse(decryptedJson);
                     foreach (var item in jArray)
@@ -3518,8 +3484,7 @@ namespace TaskEngineAPI.Controllers
                 { "cposition_decsription", position.cposition_decsription },
                 { "cdepartment_code", position.cdepartment_code },
                 { "creporting_manager_positionid", position.creporting_manager_positionid },
-                { "creporting_manager_name", position.creporting_manager_name },
-                { "nis_active", position.nis_active }
+                { "creporting_manager_name", position.creporting_manager_name }
             };
 
                     var missingOptionalFields = optionalFields
@@ -3633,8 +3598,7 @@ namespace TaskEngineAPI.Controllers
                 { "cposition_decsription", p.cposition_decsription },
                 { "cdepartment_code", p.cdepartment_code },
                 { "creporting_manager_positionid", p.creporting_manager_positionid },
-                { "creporting_manager_name", p.creporting_manager_name },
-                        { "nis_active", p.nis_active }
+                { "creporting_manager_name", p.creporting_manager_name }
             }
                     .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
                     .Select(f => f.Key)
