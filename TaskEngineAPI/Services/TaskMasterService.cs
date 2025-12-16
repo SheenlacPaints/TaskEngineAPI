@@ -495,6 +495,7 @@ WHERE a.cis_active = 1
                     cmd.Parameters.AddWithValue("@positioncode", model.positioncode ?? "");
                     cmd.Parameters.AddWithValue("@positiondescription", model.positiondescription ?? "");
                     cmd.Parameters.AddWithValue("@creportingmanagerpositionid", model.creportingmanagerpositionid?.ToString() ?? "0");
+                    cmd.Parameters.AddWithValue("@creportingmanagername", model.creportingmanagername ?? "");
                     cmd.Parameters.AddWithValue("@rolecode", model.rolecode ?? "");
                     cmd.Parameters.AddWithValue("@id", model.id.ToString() ?? "0");
 
