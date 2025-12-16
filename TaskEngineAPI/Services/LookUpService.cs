@@ -35,7 +35,7 @@ namespace TaskEngineAPI.Services
 
                     string query = @"
                         SELECT 
-                            ID, ctenent_id, notification_type, nis_active,
+                            ID, ctenant_id, notification_type, nis_active,
                             ccreated_by, lcreated_date, cmodified_by, lmodified_date
                         FROM tbl_notification_type 
                         WHERE ctenant_id = @TenantID 
