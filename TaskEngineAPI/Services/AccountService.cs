@@ -2555,7 +2555,7 @@ VALUES (
             table.Columns.Add("crole_code", typeof(string));
             table.Columns.Add("crole_name", typeof(string));
             table.Columns.Add("crole_description", typeof(string));
-            table.Columns.Add("cslug", typeof(string));
+            //table.Columns.Add("cslug", typeof(string));
             table.Columns.Add("crole_level", typeof(string));
             table.Columns.Add("cdepartment_code", typeof(string));
             table.Columns.Add("creporting_manager_code", typeof(string));
@@ -2603,7 +2603,7 @@ VALUES (
             bulkCopy.ColumnMappings.Add("crole_code", "crole_code");
             bulkCopy.ColumnMappings.Add("crole_name", "crole_name");
             bulkCopy.ColumnMappings.Add("crole_description", "crole_description");
-            bulkCopy.ColumnMappings.Add("cslug", "cslug");
+            //bulkCopy.ColumnMappings.Add("cslug", "cslug");
             bulkCopy.ColumnMappings.Add("crole_level", "crole_level");
             bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
             bulkCopy.ColumnMappings.Add("creporting_manager_code", "creporting_manager_code");
