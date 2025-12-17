@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using RestSharp;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
@@ -245,6 +246,39 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
+
+
+        public async Task<string> GetAllProcessmetadetailAsync(int cTenantID, int metaid)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_Process_meta_detail", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
+                    cmd.Parameters.AddWithValue("@metaid", metaid);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
+
+
 
         public async Task<string> Getdepartmentroleposition(int cTenantID, string table)
         {

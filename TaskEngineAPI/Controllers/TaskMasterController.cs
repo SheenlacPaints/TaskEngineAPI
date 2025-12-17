@@ -150,6 +150,18 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet]
+        [Route("GetProcessMetadetailbyid")]
+        public async Task<IActionResult> GetProcessMetadetailbyid([FromQuery] int metaid)
+        {
+            var (cTenantID, _) = GetUserInfoFromToken();
+            var json = await taskMasterService.GetAllProcessmetaAsync(cTenantID, metaid);
+            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+            return CreatedDataResponse(data);
+        }
+
+
+        [Authorize]
+        [HttpGet]
         [Route("Getdepartmentroleposition")]
         public async Task<IActionResult> Getdepartmentroleposition([FromQuery] string table)
         {
