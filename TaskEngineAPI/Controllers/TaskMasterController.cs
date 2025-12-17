@@ -154,7 +154,7 @@ namespace TaskEngineAPI.Controllers
         public async Task<IActionResult> GetProcessMetadetailbyid([FromQuery] int metaid)
         {
             var (cTenantID, _) = GetUserInfoFromToken();
-            var json = await taskMasterService.GetAllProcessmetaAsync(cTenantID, metaid);
+            var json = await taskMasterService.GetAllProcessmetadetailAsync(cTenantID, metaid);
             var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
             return CreatedDataResponse(data);
         }
