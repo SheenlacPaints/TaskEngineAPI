@@ -128,10 +128,12 @@ namespace TaskEngineAPI.DTO
         public string? cgradedesc { get; set; }
         public string? csubrolecode { get; set; }
         public string? cdeptcode { get; set; }
-
+        public string? croleID { get; set; }
+        public string? crolename { get; set; }
         public string? cdeptdesc { get; set; }
         public string? cjobcode { get; set; }
         public string? cjobdesc { get; set; }
+        public string? ProfileImage { get; set; }
         public string? creportmgrcode { get; set; }
         public string? creportmgrname { get; set; }
         public string? croll_id { get; set; }
@@ -141,6 +143,8 @@ namespace TaskEngineAPI.DTO
         public string? cReportManager_empcode { get; set; }
         public string? cReportManager_Poscode { get; set; }
         public string? cReportManager_Posdesc { get; set; }
+        public string? cposition_code { get; set; }
+        public string? cposition_name { get; set; }
     }
 
 

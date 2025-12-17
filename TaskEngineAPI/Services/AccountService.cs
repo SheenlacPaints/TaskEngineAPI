@@ -1452,7 +1452,7 @@ VALUES (
             table.Columns.Add("cbank_name", typeof(string));
             table.Columns.Add("caccount_number", typeof(string));
             // table.Columns.Add("ciFSC_code", typeof(string));
-            table.Columns.Add("ciFSC_code", typeof(string));
+            table.Columns.Add("ciFSCCode", typeof(string));
             table.Columns.Add("cpan", typeof(string));
             table.Columns.Add("ldoj", typeof(DateTime));
             table.Columns.Add("cemployment_status", typeof(string));
@@ -1474,8 +1474,8 @@ VALUES (
             table.Columns.Add("cjob_desc", typeof(string));
             table.Columns.Add("creport_mgr_code", typeof(string));
             table.Columns.Add("creport_mgr_name", typeof(string));
-            table.Columns.Add("croll_id", typeof(string));
-            table.Columns.Add("croll_name", typeof(string));
+            table.Columns.Add("cRoll_id", typeof(string));
+            table.Columns.Add("cRoll_name", typeof(string));
             table.Columns.Add("croll_id_mngr", typeof(string));
             table.Columns.Add("croll_id_mngr_desc", typeof(string));
             table.Columns.Add("creport_manager_empcode", typeof(string));
@@ -1496,6 +1496,8 @@ VALUES (
             table.Columns.Add("nIs_deleted", typeof(bool));
             table.Columns.Add("cdeleted_by", typeof(string));
             table.Columns.Add("ldeleted_date", typeof(DateTime));
+            table.Columns.Add("cposition_code", typeof(string));
+            table.Columns.Add("cposition_name", typeof(string));
 
             foreach (var u in users)
             {
@@ -1522,17 +1524,17 @@ VALUES (
                 row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value;
                 row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value;
                 row["ccountry_code"] = u.ccountrycode ?? (object)DBNull.Value;
-                //row["profile_image"] = u.ProfileImage ?? (object)DBNull.Value;  // FIXED: lowercase to match DataTable
+                row["profile_image"] = u.ProfileImage ?? (object)DBNull.Value;  // FIXED: lowercase to match DataTable
                 row["cbank_name"] = u.cbankName ?? (object)DBNull.Value;
                 row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value;
-                row["ciFSC_code"] = u.ciFSC_code ?? (object)DBNull.Value;
+                row["ciFSCCode"] = u.ciFSC_code ?? (object)DBNull.Value;
                 // row["ciFSC_code"] = u.ciFSC_code ?? (object)DBNull.Value;
-                row["cpAN"] = u.cpAN ?? (object)DBNull.Value;
+                row["cpan"] = u.cpAN ?? (object)DBNull.Value;
                 row["ldoj"] = u.ldoj ?? (object)DBNull.Value;
                 row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
                 row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
-                //row["lresignation_date"] = u.lresignationDate ?? (object)DBNull.Value;
-                //row["llast_working_date"] = u.llastWorkingDate ?? (object)DBNull.Value;
+                row["lresignation_date"] = DBNull.Value;
+                row["llast_working_date"] = DBNull.Value;
                 row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value;
                 row["cwork_loc_code"] = u.cworkloccode ?? (object)DBNull.Value;
                 row["cwork_loc_name"] = u.cworklocname ?? (object)DBNull.Value;
@@ -1548,8 +1550,8 @@ VALUES (
                 row["cjob_desc"] = u.cjobdesc ?? (object)DBNull.Value;
                 row["creport_mgr_code"] = u.creportmgrcode ?? (object)DBNull.Value;
                 row["creport_mgr_name"] = u.creportmgrname ?? (object)DBNull.Value;
-                row["croll_id"] = u.croll_id ?? (object)DBNull.Value;
-                row["croll_name"] = u.croll_name ?? (object)DBNull.Value;
+                row["cRoll_id"] = u.croll_id ?? (object)DBNull.Value;
+                row["cRoll_name"] = u.croll_name ?? (object)DBNull.Value;
                 row["croll_id_mngr"] = u.croll_id_mngr ?? (object)DBNull.Value;
                 row["croll_id_mngr_desc"] = u.croll_id_mngr_desc ?? (object)DBNull.Value;
                 row["creport_manager_empcode"] = u.cReportManager_empcode ?? (object)DBNull.Value;
@@ -1557,19 +1559,22 @@ VALUES (
                 row["creport_manager_pos_desc"] = u.cReportManager_Posdesc ?? (object)DBNull.Value;
                 row["nis_web_access_enabled"] = true;//u.nIsWebAccessEnabled ?? false;
                 row["nis_event_read"] = true;//u.nIsEventRead ?? false;
-                //row["llast_login_at"] = u.lLastLoginAt ?? (object)DBNull.Value;
+                row["llast_login_at"] =DBNull.Value;
                 row["nfailed_logina_attempts"] = 0;// u.nFailedLoginAttempts ?? (object)DBNull.Value;
-                //row["cpassword_changed_at"] = u.cPasswordChangedAt ?? (object)DBNull.Value;
+                row["cpassword_changed_at"] = DateTime.Now;
                 row["nis_locked"] = false;//u.nIsLocked ?? false;
-                //row["last_login_ip"] = u.LastLoginIP ?? (object)DBNull.Value;
-                //row["last_login_device"] = u.LastLoginDevice ?? (object)DBNull.Value;
-                //row["ccreated_date"] = u.ccreateddate ?? DateTime.Now;
+                row["last_login_ip"] = DBNull.Value;
+                row["last_login_device"] = DBNull.Value;
+                row["ccreated_date"] = DateTime.Now;
                 row["ccreated_by"] = usernameClaim;
                 row["cmodified_by"] = usernameClaim;
-                //row["lmodified_date"] = u.lmodifieddate ?? DateTime.Now;
+                row["lmodified_date"] = DateTime.Now;
                 row["nIs_deleted"] = false; //u.nIsDeleted ?? false;
-                //row["cdeleted_by"] = u.cDeletedBy ?? (object)DBNull.Value;
-                //row["ldeleted_date"] = u.lDeletedDate ?? (object)DBNull.Value;
+                row["cdeleted_by"] = DBNull.Value;
+                row["ldeleted_date"] = DBNull.Value;
+                row["cposition_code"] = u.cposition_code ?? (object)DBNull.Value;
+                row["cposition_name"] = u.cposition_name ?? (object)DBNull.Value;
+
                 table.Rows.Add(row);
             }
 
@@ -1619,24 +1624,24 @@ VALUES (
             bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
 
 
-            //bulkCopy.ColumnMappings.Add("profile_image", "Profile_Image");  // DataTable -> Database
-            // bulkCopy.ColumnMappings.Add("cbank_name", "cbank_name");
+            bulkCopy.ColumnMappings.Add("profile_image", "Profile_Image");  // DataTable -> Database
+            //bulkCopy.ColumnMappings.Add("cbank_name", "cbank_name");
             // Add this line with the other column mappings
-            bulkCopy.ColumnMappings.Add("ciFSC_code", "ciFSC_code");
+            bulkCopy.ColumnMappings.Add("ciFSCCode", "ciFSC_code");
             //bulkCopy.ColumnMappings.Add("caccount_number", "caccount_number");
             //bulkCopy.ColumnMappings.Add("ciFSC_code", "ciFSC_code");
             bulkCopy.ColumnMappings.Add("cemployment_status", "cemployment_status");
             bulkCopy.ColumnMappings.Add("nnotice_period_days", "nnotice_period_days");
-            //bulkCopy.ColumnMappings.Add("lresignation_date", "lresignation_date");
-            //bulkCopy.ColumnMappings.Add("llast_working_date", "llast_working_date");
+            bulkCopy.ColumnMappings.Add("lresignation_date", "lresignation_date");
+            bulkCopy.ColumnMappings.Add("llast_working_date", "llast_working_date");
             bulkCopy.ColumnMappings.Add("cemp_category", "cemp_category");
             bulkCopy.ColumnMappings.Add("cgrade_code", "cgrade_code");
             bulkCopy.ColumnMappings.Add("cgrade_desc", "cgrade_desc");
             bulkCopy.ColumnMappings.Add("csub_role_code", "csub_role_code");
             bulkCopy.ColumnMappings.Add("cjob_code", "cjob_code");
             bulkCopy.ColumnMappings.Add("cjob_desc", "cjob_desc");
-            bulkCopy.ColumnMappings.Add("croll_id", "croll_id");
-            bulkCopy.ColumnMappings.Add("croll_name", "croll_name");
+            bulkCopy.ColumnMappings.Add("cRoll_id", "croll_id");
+            bulkCopy.ColumnMappings.Add("cRoll_name", "croll_name");
             bulkCopy.ColumnMappings.Add("croll_id_mngr", "croll_id_mngr");
             bulkCopy.ColumnMappings.Add("croll_id_mngr_desc", "croll_id_mngr_desc");
             bulkCopy.ColumnMappings.Add("creport_manager_empcode", "creport_manager_empcode");
@@ -1644,20 +1649,22 @@ VALUES (
             bulkCopy.ColumnMappings.Add("creport_manager_pos_desc", "creport_manager_pos_desc");
             bulkCopy.ColumnMappings.Add("nis_web_access_enabled", "nis_web_access_enabled");
             bulkCopy.ColumnMappings.Add("nis_event_read", "nis_event_read");
-            //bulkCopy.ColumnMappings.Add("llast_login_at", "llast_login_at");
-            //bulkCopy.ColumnMappings.Add("nfailed_logina_attempts", "nfailed_logina_attempts");
-            //bulkCopy.ColumnMappings.Add("cpassword_changed_at", "cpassword_changed_at");
+            bulkCopy.ColumnMappings.Add("llast_login_at", "llast_login_at");
+            bulkCopy.ColumnMappings.Add("nfailed_logina_attempts", "nfailed_logina_attempts");
+            bulkCopy.ColumnMappings.Add("cpassword_changed_at", "cpassword_changed_at");
             bulkCopy.ColumnMappings.Add("nis_locked", "nis_locked");
-            ////bulkCopy.ColumnMappings.Add("last_login_ip", "last_login_ip");
-            //bulkCopy.ColumnMappings.Add("last_login_device", "last_login_device");
-            // bulkCopy.ColumnMappings.Add("ccreated_date", "ccreated_date");
+            bulkCopy.ColumnMappings.Add("last_login_ip", "last_login_ip");
+            bulkCopy.ColumnMappings.Add("last_login_device", "last_login_device");
+            bulkCopy.ColumnMappings.Add("ccreated_date", "ccreated_date");
             bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
             bulkCopy.ColumnMappings.Add("cmodified_by", "cmodified_by");
-            //bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
-            //bulkcopy.Columnmappings.add("nis_deleted", "nis_deleted");
-            bulkCopy.ColumnMappings.Add("nIs_deleted", "nIs_deleted");
-            //bulkCopy.ColumnMappings.Add("cdeleted_by", "cdeleted_by");
-            //bulkCopy.ColumnMappings.Add("ldeleted_date", "ldeleted_date");
+            bulkCopy.ColumnMappings.Add("lmodified_date", "lmodified_date");
+            bulkCopy.ColumnMappings.Add("nis_deleted", "nIs_deleted");
+            // bulkCopy.ColumnMappings.Add("nIs_deleted", "nIs_deleted");
+            bulkCopy.ColumnMappings.Add("cdeleted_by", "cdeleted_by");
+            bulkCopy.ColumnMappings.Add("ldeleted_date", "ldeleted_date");
+            bulkCopy.ColumnMappings.Add("cposition_code", "cposition_code");
+            bulkCopy.ColumnMappings.Add("cposition_name", "cposition_name");
 
             await bulkCopy.WriteToServerAsync(table);
             return table.Rows.Count;

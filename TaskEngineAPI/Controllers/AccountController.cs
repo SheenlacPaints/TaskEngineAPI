@@ -1754,14 +1754,14 @@ namespace TaskEngineAPI.Controllers
 
                 var duplicateErrors = new List<string>();
 
-                var dupUserIds = users.GroupBy(u => u.cuserid).Where(g => g.Count() > 1 && g.Key > 0).Select(g => g.Key).ToList();
+               // var dupUserIds = users.GroupBy(u => u.cuserid).Where(g => g.Count() > 1 && g.Key > 0).Select(g => g.Key).ToList();
                 var dupUsernames = users.GroupBy(u => u.cusername).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
                 var dupEmails = users.GroupBy(u => u.cemail).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
                 var dupPhones = users.GroupBy(u => u.cphoneno).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
 
-                if (dupUserIds.Any() || dupUsernames.Any() || dupEmails.Any() || dupPhones.Any())
+                if (dupUsernames.Any() || dupEmails.Any() || dupPhones.Any())
                 {
-                    if (dupUserIds.Any()) duplicateErrors.Add($"Duplicate cuserid(s): {string.Join(", ", dupUserIds)}");
+                    //if (dupUserIds.Any()) duplicateErrors.Add($"Duplicate cuserid(s): {string.Join(", ", dupUserIds)}");
                     if (dupUsernames.Any()) duplicateErrors.Add($"Duplicate cusername(s): {string.Join(", ", dupUsernames)}");
                     if (dupEmails.Any()) duplicateErrors.Add($"Duplicate cemail(s): {string.Join(", ", dupEmails)}");
                     if (dupPhones.Any()) duplicateErrors.Add($"Duplicate cphoneno(s): {string.Join(", ", dupPhones)}");
@@ -1791,11 +1791,11 @@ namespace TaskEngineAPI.Controllers
                     var errors = new List<string>();
                     var nullMandatoryFields = new List<string>();
 
-                    if (user.cuserid <= 0)
-                    {
-                        errors.Add("cuserid: Must be positive number");
-                        nullMandatoryFields.Add("cuserid");
-                    }
+                    //if (user.cuserid <= 0)
+                    //{
+                    //    errors.Add("cuserid: Must be positive number");
+                    //    nullMandatoryFields.Add("cuserid");
+                    //}
                     if (string.IsNullOrEmpty(user.cusername))
                     {
                         errors.Add("cusername: Field is required");
@@ -1834,6 +1834,7 @@ namespace TaskEngineAPI.Controllers
                 { "cstatecode", user.cstatecode },
                 { "cstatedesc", user.cstatedesc },
                 { "ccountrycode", user.ccountrycode },
+                {"ProfileImage",user.ProfileImage },
                 { "cbankName", user.cbankName },
                 { "caccountNumber", user.caccountNumber },
                 { "ciFSC_code", user.ciFSC_code },
@@ -1842,24 +1843,29 @@ namespace TaskEngineAPI.Controllers
                 { "cemploymentStatus", user.cemploymentStatus },
                 { "nnoticePeriodDays", user.nnoticePeriodDays },
                 { "cempcategory", user.cempcategory },
-                { "cworkloccode", user.cworkloccode },
-                { "cworklocname", user.cworklocname },
-                { "cgradecode", user.cgradecode },
-                { "cgradedesc", user.cgradedesc },
-                { "csubrolecode", user.csubrolecode },
+                //{ "cworkloccode", user.cworkloccode },
+                //{ "cworklocname", user.cworklocname },
+                //{ "cgradecode", user.cgradecode },
+                //{ "cgradedesc", user.cgradedesc },
+                //{ "csubrolecode", user.csubrolecode },
+                {"croleID", user.croleID },
+                {"crolecode",user.crolecode },
+                {"crolename", user.crolename },
                 { "cdeptcode", user.cdeptcode },
                 { "cdeptdesc", user.cdeptdesc },
-                { "cjobcode", user.cjobcode },
-                { "cjobdesc", user.cjobdesc },
+                //{ "cjobcode", user.cjobcode },
+                //{ "cjobdesc", user.cjobdesc },
                 { "creportmgrcode", user.creportmgrcode },
                 { "creportmgrname", user.creportmgrname },
                 { "croll_id", user.croll_id },
                 { "croll_name", user.croll_name },
-                { "croll_id_mngr", user.croll_id_mngr },
-                { "croll_id_mngr_desc" , user.croll_id_mngr_desc },
-                { "cReportManager_empcode", user.cReportManager_empcode },
-                { "cReportManager_Poscode", user.cReportManager_Poscode },
-                { "cReportManager_Posdesc", user.cReportManager_Posdesc }
+                //{ "croll_id_mngr", user.croll_id_mngr },
+                //{ "croll_id_mngr_desc" , user.croll_id_mngr_desc },
+                //{ "cReportManager_empcode", user.cReportManager_empcode },
+                //{ "cReportManager_Poscode", user.cReportManager_Poscode },
+                //{ "cReportManager_Posdesc", user.cReportManager_Posdesc }
+                {"cposition_code",user.cposition_code },
+                {"cposition_name", user.cposition_name }
             };
 
                     var missingOptionalFields = optionalFields
