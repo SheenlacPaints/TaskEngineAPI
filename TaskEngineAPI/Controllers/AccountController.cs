@@ -1703,7 +1703,6 @@ namespace TaskEngineAPI.Controllers
         //    }
         //}
 
-
         [Authorize]
         [HttpPost("CreateUsersBulk3")]
         public async Task<IActionResult> CreateUsersBulk3([FromBody] pay request)
@@ -1759,7 +1758,7 @@ namespace TaskEngineAPI.Controllers
                 var dupEmails = users.GroupBy(u => u.cemail).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
                 var dupPhones = users.GroupBy(u => u.cphoneno).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
 
-                if (dupUsernames.Any() || dupEmails.Any() || dupPhones.Any())
+                if (dupUserIds.Any() || dupUsernames.Any() || dupEmails.Any() || dupPhones.Any())
                 {
                     if (dupUserIds.Any()) duplicateErrors.Add($"Duplicate cuserid(s): {string.Join(", ", dupUserIds)}");
                     if (dupUsernames.Any()) duplicateErrors.Add($"Duplicate cusername(s): {string.Join(", ", dupUsernames)}");
@@ -1834,38 +1833,24 @@ namespace TaskEngineAPI.Controllers
                 { "cstatecode", user.cstatecode },
                 { "cstatedesc", user.cstatedesc },
                 { "ccountrycode", user.ccountrycode },
-                {"ProfileImage",user.ProfileImage },
                 { "cbankName", user.cbankName },
                 { "caccountNumber", user.caccountNumber },
-                { "ciFSC_code", user.ciFSC_code },
+                { "ciFSCCode", user.ciFSCCode },
                 { "cpAN", user.cpAN },
                 { "ldoj", user.ldoj },
                 { "cemploymentStatus", user.cemploymentStatus },
-                { "nnoticePeriodDays", user.nnoticePeriodDays },
                 { "cempcategory", user.cempcategory },
-                //{ "cworkloccode", user.cworkloccode },
-                //{ "cworklocname", user.cworklocname },
-                //{ "cgradecode", user.cgradecode },
-                //{ "cgradedesc", user.cgradedesc },
-                //{ "csubrolecode", user.csubrolecode },
-                {"croleID", user.croleID },
-                {"crolecode",user.crolecode },
-                {"crolename", user.crolename },
+                { "croleID", user.croleID },
+                { "crolecode", user.crolecode },
+                { "crolename", user.crolename },
                 { "cdeptcode", user.cdeptcode },
                 { "cdeptdesc", user.cdeptdesc },
-                //{ "cjobcode", user.cjobcode },
-                //{ "cjobdesc", user.cjobdesc },
                 { "creportmgrcode", user.creportmgrcode },
                 { "creportmgrname", user.creportmgrname },
-                { "croll_id", user.croll_id },
-                { "croll_name", user.croll_name },
-                //{ "croll_id_mngr", user.croll_id_mngr },
-                //{ "croll_id_mngr_desc" , user.croll_id_mngr_desc },
-                //{ "cReportManager_empcode", user.cReportManager_empcode },
-                //{ "cReportManager_Poscode", user.cReportManager_Poscode },
-                //{ "cReportManager_Posdesc", user.cReportManager_Posdesc }
-                {"cposition_code",user.cposition_code },
-                {"cposition_name", user.cposition_name }
+                { "cRoll_id", user.cRoll_id },
+                { "cRoll_name", user.cRoll_name },
+                { "cposition_code", user.cposition_code },
+                { "cposition_name", user.cposition_name }
             };
 
                     var missingOptionalFields = optionalFields
@@ -1948,7 +1933,6 @@ namespace TaskEngineAPI.Controllers
                     try
                     {
                         insertedCount = await _AccountService.InsertUsersBulkAsync(validUsers, cTenantID, usernameClaim);
-
                         successfullyInsertedUsers = validUsers;
                     }
                     catch (Exception dbEx)
@@ -1991,29 +1975,22 @@ namespace TaskEngineAPI.Controllers
                 { "ccountrycode", u.ccountrycode },
                 { "cbankName", u.cbankName },
                 { "caccountNumber", u.caccountNumber },
-                { "ciFSC_code", u.ciFSC_code },
-                { "cpAN" , u.cpAN },
+                { "ciFSCCode", u.ciFSCCode },
+                { "cpAN", u.cpAN },
                 { "ldoj", u.ldoj },
                 { "cemploymentStatus", u.cemploymentStatus },
-                { "nnoticePeriodDays", u.nnoticePeriodDays },
                 { "cempcategory", u.cempcategory },
-                { "cworkloccode", u.cworkloccode },
-                { "cworklocname", u.cworklocname },
-                { "cgradecode", u.cgradecode },
-                { "cgradedesc", u.cgradedesc },
-                { "csubrolecode", u.csubrolecode },
+                { "croleID", u.croleID },
+                { "crolecode", u.crolecode },
+                { "crolename", u.crolename },
                 { "cdeptcode", u.cdeptcode },
                 { "cdeptdesc", u.cdeptdesc },
-                { "cjobcode", u.cjobcode },
-                { "cjobdesc", u.cjobdesc },
                 { "creportmgrcode", u.creportmgrcode },
                 { "creportmgrname", u.creportmgrname },
-                { "croll_name", u.croll_name },
-                { "croll_id_mngr", u.croll_id_mngr },
-                { "croll_id_mngr_desc" , u.croll_id_mngr_desc },
-                { "cReportManager_empcode", u.cReportManager_empcode },
-                { "cReportManager_Poscode", u.cReportManager_Poscode },
-                { "cReportManager_Posdesc", u.cReportManager_Posdesc }
+                { "cRoll_id", u.cRoll_id },
+                { "cRoll_name", u.cRoll_name },
+                { "cposition_code", u.cposition_code },
+                { "cposition_name", u.cposition_name }
             }
                     .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
                     .Select(f => f.Key)
