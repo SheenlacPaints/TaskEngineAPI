@@ -1534,7 +1534,7 @@ VALUES (
                 row["cpan"] = u.cpAN ?? (object)DBNull.Value; 
                 row["ldoj"] = u.ldoj.HasValue ? u.ldoj.Value : (object)DBNull.Value;
                 row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value; 
-                row["nnotice_period_days"] = DBNull.Value; 
+                row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
                 row["lresignation_date"] = DBNull.Value;
                 row["llast_working_date"] = DBNull.Value; 
                 row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value; 
