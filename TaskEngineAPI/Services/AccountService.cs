@@ -600,23 +600,23 @@ VALUES (
                 await conn.OpenAsync();
 
                 string query = @"
-       SELECT [ID], [cuserid], [ctenant_id], [cuser_name], [cemail], [cpassword], [nIs_active],
-       [cfirst_name],[clast_name], [cphoneno], [calternate_phone], [ldob], [cmarital_status],
-        [cnation], [cgender], [caddress], [caddress1], [caddress2], [cpincode], [ccity],
-       [cstate_code],[cstate_desc],[ccountry_code],[profile_image], [cbank_name],
-        [caccount_number],[ciFSC_code],[cpan], [ldoj], [cemployment_status],
-        [nnotice_period_days], [lresignation_date], [llast_working_date],[cemp_category],
-       [cwork_loc_code],[cwork_loc_name],[crole_id],[crole_code],[crole_name],[cgrade_code],
-        [cgrade_desc], [csub_role_code], [cdept_code], [cdept_desc], [cjob_code], [cjob_desc], 
-	[creport_mgr_code],[creport_mgr_name],[croll_id],[croll_name],[croll_id_mngr],[croll_id_mngr_desc]
-      ,[creport_manager_empcode],[creport_manager_poscode]
-      ,[creport_manager_pos_desc],[nis_web_access_enabled]
-      ,[nis_event_read],[llast_login_at],[nfailed_logina_attempts],
-	  [cpassword_changed_at],[nis_locked],[last_login_ip],[last_login_device],
-	  [ccreated_date],[ccreated_by],[cmodified_by],[lmodified_date],[nIs_deleted],[cdeleted_by],
-	  [ldeleted_date],[cprofile_image_name],[cprofile_image_path] ,[cposition_code],[cposition_name]
-      FROM [dbo].[Users]
-        WHERE crole_id = 3 AND ctenant_id = @TenantID and nis_deleted=0";
+            SELECT [ID], [cuserid], [ctenant_id], [cuser_name], [cemail], [cpassword], [nIs_active],
+            [cfirst_name],[clast_name], [cphoneno], [calternate_phone], [ldob], [cmarital_status],
+            [cnation], [cgender], [caddress], [caddress1], [caddress2], [cpincode], [ccity],
+            [cstate_code],[cstate_desc],[ccountry_code],[profile_image], [cbank_name],
+            [caccount_number],[ciFSC_code],[cpan], [ldoj], [cemployment_status],
+            [nnotice_period_days], [lresignation_date], [llast_working_date],[cemp_category],
+            [cwork_loc_code],[cwork_loc_name],[crole_id],[crole_code],[crole_name],[cgrade_code],
+            [cgrade_desc], [csub_role_code], [cdept_code], [cdept_desc], [cjob_code], [cjob_desc], 
+            [creport_mgr_code],[creport_mgr_name],[croll_id],[croll_name],[croll_id_mngr],[croll_id_mngr_desc]
+            ,[creport_manager_empcode],[creport_manager_poscode]
+            ,[creport_manager_pos_desc],[nis_web_access_enabled]
+            ,[nis_event_read],[llast_login_at],[nfailed_logina_attempts],
+            [cpassword_changed_at],[nis_locked],[last_login_ip],[last_login_device],
+            [ccreated_date],[ccreated_by],[cmodified_by],[lmodified_date],[nIs_deleted],[cdeleted_by],
+            [ldeleted_date],[cprofile_image_name],[cprofile_image_path] ,[cposition_code],[cposition_name]
+            FROM [dbo].[Users]
+            WHERE crole_id = 3 AND ctenant_id = @TenantID and nis_deleted=0";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
@@ -628,15 +628,15 @@ VALUES (
                         {
                             result.Add(new GetUserDTO
                             {
-                                id = reader.GetInt32(reader.GetOrdinal("ID")),
-                                cuserid = reader.GetInt32(reader.GetOrdinal("cuserid")),
-                                ctenantID = reader.GetInt32(reader.GetOrdinal("ctenant_id")),
-                                cusername = reader.GetString(reader.GetOrdinal("cuser_name")),
-                                cemail = reader.GetString(reader.GetOrdinal("cemail")),
-                                cpassword = reader.GetString(reader.GetOrdinal("cpassword")),
-                                nIsActive = reader.GetBoolean(reader.GetOrdinal("nIs_active")),
-                                cfirstName = reader.GetString(reader.GetOrdinal("cfirst_name")),
-                                clastName = reader.GetString(reader.GetOrdinal("clast_name")),
+                                id = reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
+                                cuserid = reader.IsDBNull(reader.GetOrdinal("cuserid")) ? 0 : reader.GetInt32(reader.GetOrdinal("cuserid")),
+                                ctenantID = reader.IsDBNull(reader.GetOrdinal("ctenant_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ctenant_id")),
+                                cusername = reader.IsDBNull(reader.GetOrdinal("cuser_name")) ? null : reader.GetString(reader.GetOrdinal("cuser_name")),
+                                cemail = reader.IsDBNull(reader.GetOrdinal("cemail")) ? null : reader.GetString(reader.GetOrdinal("cemail")),
+                                cpassword = reader.IsDBNull(reader.GetOrdinal("cpassword")) ? null : reader.GetString(reader.GetOrdinal("cpassword")),
+                                nIsActive = reader.IsDBNull(reader.GetOrdinal("nIs_active")) ? null : reader.GetBoolean(reader.GetOrdinal("nIs_active")),
+                                cfirstName = reader.IsDBNull(reader.GetOrdinal("cfirst_name")) ? null : reader.GetString(reader.GetOrdinal("cfirst_name")),
+                                clastName = reader.IsDBNull(reader.GetOrdinal("clast_name")) ? null : reader.GetString(reader.GetOrdinal("clast_name")),
                                 cphoneno = reader.IsDBNull(reader.GetOrdinal("cphoneno")) ? null : reader.GetString(reader.GetOrdinal("cphoneno")),
                                 cAlternatePhone = reader.IsDBNull(reader.GetOrdinal("calternate_phone")) ? null : reader.GetString(reader.GetOrdinal("calternate_phone")),
                                 ldob = reader.IsDBNull(reader.GetOrdinal("ldob")) ? null : reader.GetDateTime(reader.GetOrdinal("ldob")),
@@ -646,7 +646,7 @@ VALUES (
                                 caddress = reader.IsDBNull(reader.GetOrdinal("caddress")) ? null : reader.GetString(reader.GetOrdinal("caddress")),
                                 caddress1 = reader.IsDBNull(reader.GetOrdinal("caddress1")) ? null : reader.GetString(reader.GetOrdinal("caddress1")),
                                 caddress2 = reader.IsDBNull(reader.GetOrdinal("caddress2")) ? null : reader.GetString(reader.GetOrdinal("caddress2")),
-                                cpincode = reader.GetInt32(reader.GetOrdinal("cpincode")),
+                                cpincode = reader.IsDBNull(reader.GetOrdinal("cpincode")) ? null : reader.GetInt32(reader.GetOrdinal("cpincode")),
                                 ccity = reader.IsDBNull(reader.GetOrdinal("ccity")) ? null : reader.GetString(reader.GetOrdinal("ccity")),
                                 cstatecode = reader.IsDBNull(reader.GetOrdinal("cstate_code")) ? null : reader.GetString(reader.GetOrdinal("cstate_code")),
                                 cstatedesc = reader.IsDBNull(reader.GetOrdinal("cstate_desc")) ? null : reader.GetString(reader.GetOrdinal("cstate_desc")),
@@ -664,7 +664,7 @@ VALUES (
                                 cempcategory = reader.IsDBNull(reader.GetOrdinal("cemp_category")) ? null : reader.GetString(reader.GetOrdinal("cemp_category")),
                                 cworkloccode = reader.IsDBNull(reader.GetOrdinal("cwork_loc_code")) ? null : reader.GetString(reader.GetOrdinal("cwork_loc_code")),
                                 cworklocname = reader.IsDBNull(reader.GetOrdinal("cwork_loc_name")) ? null : reader.GetString(reader.GetOrdinal("cwork_loc_name")),
-                                croleID = reader.GetInt32(reader.GetOrdinal("crole_id")),
+                                croleID = reader.IsDBNull(reader.GetOrdinal("crole_id")) ? null : reader.GetInt32(reader.GetOrdinal("crole_id")),
                                 crolecode = reader.IsDBNull(reader.GetOrdinal("crole_code")) ? null : reader.GetString(reader.GetOrdinal("crole_code")),
                                 crolename = reader.IsDBNull(reader.GetOrdinal("crole_name")) ? null : reader.GetString(reader.GetOrdinal("crole_name")),
                                 cgradecode = reader.IsDBNull(reader.GetOrdinal("cgrade_code")) ? null : reader.GetString(reader.GetOrdinal("cgrade_code")),
@@ -678,8 +678,8 @@ VALUES (
                                 creportmgrname = reader.IsDBNull(reader.GetOrdinal("creport_mgr_name")) ? null : reader.GetString(reader.GetOrdinal("creport_mgr_name")),
                                 cRoll_id = reader.IsDBNull(reader.GetOrdinal("croll_id")) ? null : reader.GetString(reader.GetOrdinal("croll_id")),
                                 cRoll_name = reader.IsDBNull(reader.GetOrdinal("croll_name")) ? null : reader.GetString(reader.GetOrdinal("croll_name")),
-                                cRoll_Id_mngr = reader.IsDBNull(reader.GetOrdinal("cRoll_Id_mngr")) ? null : reader.GetString(reader.GetOrdinal("cRoll_Id_mngr")),
-                                cRoll_Id_mngr_desc = reader.IsDBNull(reader.GetOrdinal("cRoll_Id_mngr_desc")) ? null : reader.GetString(reader.GetOrdinal("cRoll_Id_mngr_desc")),
+                                cRoll_Id_mngr = reader.IsDBNull(reader.GetOrdinal("croll_id_mngr")) ? null : reader.GetString(reader.GetOrdinal("croll_id_mngr")),
+                                cRoll_Id_mngr_desc = reader.IsDBNull(reader.GetOrdinal("croll_id_mngr_desc")) ? null : reader.GetString(reader.GetOrdinal("croll_id_mngr_desc")),
                                 cReportManager_empcode = reader.IsDBNull(reader.GetOrdinal("creport_manager_empcode")) ? null : reader.GetString(reader.GetOrdinal("creport_manager_empcode")),
                                 cReportManager_Poscode = reader.IsDBNull(reader.GetOrdinal("creport_manager_poscode")) ? null : reader.GetString(reader.GetOrdinal("creport_manager_poscode")),
                                 cReportManager_Posdesc = reader.IsDBNull(reader.GetOrdinal("creport_manager_pos_desc")) ? null : reader.GetString(reader.GetOrdinal("creport_manager_pos_desc")),
@@ -702,14 +702,11 @@ VALUES (
                                 cprofile_image_path = reader.IsDBNull(reader.GetOrdinal("cprofile_image_path")) ? null : reader.GetString(reader.GetOrdinal("cprofile_image_path")),
                                 cposition_code = reader.IsDBNull(reader.GetOrdinal("cposition_code")) ? null : reader.GetString(reader.GetOrdinal("cposition_code")),
                                 cposition_name = reader.IsDBNull(reader.GetOrdinal("cposition_name")) ? null : reader.GetString(reader.GetOrdinal("cposition_name"))
-
                             });
                         }
                     }
                 }
                 return result;
-
-
             }
         }
 
