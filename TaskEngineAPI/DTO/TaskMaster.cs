@@ -6,25 +6,25 @@ using System.Threading.Tasks;
 
 namespace TaskEngineAPI.DTO
 {
-        public class TaskMasterDTO
-        {
-        
-           [StringLength(100)]
-           public string? ctask_type { get; set; }
-            [StringLength(255)]
-           public string? ctask_name { get; set; }
-           public string? ctask_description { get; set; }              
-           public int?  cprocess_id { get; set; }
-           public List<metaData> metaData { get; set; }
-        }
-       public class metaData
-       {
-         public int? cmeta_id { get; set; }
-         public string? cdata { get; set; }
-   
-       }
-        public class TaskDetailDTO
-       {
+    public class TaskMasterDTO
+    {
+
+        [StringLength(100)]
+        public string? ctask_type { get; set; }
+        [StringLength(255)]
+        public string? ctask_name { get; set; }
+        public string? ctask_description { get; set; }
+        public int? cprocess_id { get; set; }
+        public List<metaData> metaData { get; set; }
+    }
+    public class metaData
+    {
+        public int? cmeta_id { get; set; }
+        public string? cdata { get; set; }
+
+    }
+    public class TaskDetailDTO
+    {
         public int? iseqno { get; set; }
         public string? ctask_type { get; set; }
         public string? cmapping_code { get; set; }
@@ -33,18 +33,18 @@ namespace TaskEngineAPI.DTO
         public int? inext_seqno { get; set; }
         public string? cnext_seqtype { get; set; }
         public string? cprevtype { get; set; }
-        public string? csla { get; set; }    
+        public string? csla { get; set; }
     }
 
-        public class DeptPostRoleDTO
-        {
+    public class DeptPostRoleDTO
+    {
         public string? table { get; set; }
         public string? action { get; set; }
         public string? userid { get; set; }
         public string? position { get; set; }
         public string? role { get; set; }
         public string? departmentname { get; set; }
-        public string? departmentdesc { get; set; }  
+        public string? departmentdesc { get; set; }
         public string? cdepartmentmanagerrolecode { get; set; }
         public string? cdepartmentmanagername { get; set; }
         public string? cdepartmentemail { get; set; }
@@ -105,9 +105,9 @@ namespace TaskEngineAPI.DTO
     public class GettaskinboxbyidDTO
     {
         public int? itaskno { get; set; }
-        public int?    processId { get; set; }
+        public int? processId { get; set; }
         public string? processName { get; set; }
-        public string? processDesc { get; set; }         
+        public string? processDesc { get; set; }
         public string? activityName { get; set; }
         public string? priorityLabel { get; set; }
         public string? activityDesc { get; set; }
@@ -125,21 +125,53 @@ namespace TaskEngineAPI.DTO
         public DateTime? taskInitiatedDate { get; set; }
 
         public string? taskinitiatedbyname { get; set; }
-        
+
         public bool? showTimeline { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
-       
-        public List<GetprocessEngineConditionDTO> board { get; set; }     
+
+        public List<GetprocessEngineConditionDTO> board { get; set; }
 
     }
 
-   
-    
+
+
+    public class GettaskApprovedatabyidDTO
+    {
+        public int? itaskno { get; set; }
+        public int? processId { get; set; }
+        public string? processName { get; set; }
+        public string? processDesc { get; set; }
+        public string? activityName { get; set; }
+        public string? priorityLabel { get; set; }
+        public string? activityDesc { get; set; }
+        public string? taskStatus { get; set; }
+        public string? participantType { get; set; }
+        public string? actionPrivilege { get; set; }
+
+        public string? crejection_privilege { get; set; }
+        public string? assigneeType { get; set; }
+        public string? assigneeValue { get; set; }
+        public int? slaDays { get; set; }
+        public int? slaHours { get; set; }
+        public string? executionType { get; set; }
+        public DateTime? taskAssignedDate { get; set; }
+        public DateTime? taskInitiatedDate { get; set; }
+
+        public string? taskinitiatedbyname { get; set; }
+
+        public bool? showTimeline { get; set; }
+        public List<TimelineDTO>? timeline { get; set; }
+
+        public List<processEnginetaskMeta> meta { get; set; }
+
+        public List<GetprocessEngineConditionDTO> board { get; set; }
+
+    }
 }
 
-  public class processEnginetaskMeta
+public class processEnginetaskMeta
 {
     public string? cdata { get; set; }
     public string? cinputType { get; set; }
@@ -163,7 +195,7 @@ public class TimelineDTO
     public string? taskName { get; set; }
     public string? userName { get; set; }
     public string? userAvatar { get; set; }
-  
+
 
 }
 
@@ -185,7 +217,7 @@ public class GetmetalayoutDTO
 
 public class updatetaskDTO
 {
-   
+
     public int? ID { get; set; }
     public int? itaskno { get; set; }
     public string? status { get; set; }
@@ -198,7 +230,7 @@ public class updatetaskDTO
     public List<metaData> metaData { get; set; }
 }
 
-public class  GetDropDownFilterDTO
+public class GetDropDownFilterDTO
 {
     public string? filtervalue1 { get; set; }
     public string? filtervalue2 { get; set; }

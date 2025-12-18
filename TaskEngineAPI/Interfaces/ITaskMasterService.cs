@@ -20,6 +20,7 @@ namespace TaskEngineAPI.Interfaces
         Task<string> GetTaskInitiator(int cTenantID, string username);
         Task<List<GetprocessEngineConditionDTO>> GetTaskConditionBoard(int cTenantID, int ID);
         Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID);
+        Task<List<GettaskApprovedatabyidDTO>> Gettaskapprovedatabyid(int cTenantID, int ID);
         Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int itaskno);
         Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username);
         Task<string> GetDropDownFilterAsync(int cTenantID, GetDropDownFilterDTO filterDto);

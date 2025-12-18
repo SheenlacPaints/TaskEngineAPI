@@ -373,6 +373,23 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet]
+        [Route("GettaskApprovedatabyid")]
+        public async Task<IActionResult> GettaskApprovedatabyid([FromQuery] int id)
+        {
+            var (cTenantID, username) = GetUserInfoFromToken();
+
+            var data = await taskMasterService.Gettaskapprovedatabyid(cTenantID, id);
+
+            if (data == null || !data.Any())
+            {
+                return CreateEncryptedResponse(400, $"{id} not found.", new { status = 400, data = Array.Empty<object>() });
+            }
+
+            return CreatedSuccessResponse(data);
+        }
+
+        [Authorize]
+        [HttpGet]
         [Route("GetmetalayoutByid")]
         public async Task<IActionResult> GetmetalayoutByid([FromQuery] int itaskno)
         {
