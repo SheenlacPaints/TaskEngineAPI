@@ -117,6 +117,16 @@ namespace TaskEngineAPI.DTO
         
     }
 
+    public class GetProcessEngineCountDTO
+    {
+        public int? totalCount { get; set; }
+        public List<GetProcessEngineDTO> data { get; set; }
+
+
+
+    }
+
+
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }

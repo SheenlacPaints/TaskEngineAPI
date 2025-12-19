@@ -291,7 +291,6 @@ namespace TaskEngineAPI.DTO
 
         [Required]
         public int ctenantID { get; set; }
-
         public string? cusername { get; set; }
         public string? cemail { get; set; }
 

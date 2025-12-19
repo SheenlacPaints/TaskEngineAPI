@@ -991,11 +991,12 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 throw new Exception($"Error retrieving mapping list: {ex.Message}");
             }
         }
-        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsync(int cTenantID,string searchText = null,int page = 1,int pageSize = 10,int? created_by = null,string priority = null,int? status = null)
+        public async Task<GetProcessEngineCountDTO> GetAllProcessengineAsync(int cTenantID,string searchText = null,int page = 1,int pageSize = 10,int? created_by = null,string priority = null,int? status = null)
         {
+            
             var result = new List<GetProcessEngineDTO>();
             var connStr = _config.GetConnectionString("Database");
-
+            int totalCount = 0;
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
 
@@ -1015,7 +1016,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 ELSE m.cvalue END AS cvalue,m.cpriority_label, m.nshow_timeline, m.cnotification_type, m.cstatus,
                                 m.ccreated_by,m.lcreated_date,ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by,
                                 m.lmodified_date, m.cmeta_id,n.notification_type AS Notification_Description,
-                                s.cstatus_description,meta.meta_Name, meta.meta_Description,COUNT(d.ID) AS DetailCount,
+                                s.cstatus_description,meta.meta_Name, meta.meta_Description,COUNT(d.ID) AS DetailCount,COUNT(*) OVER() AS headerCount,
                                 CASE WHEN SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) > 0
                                 THEN CAST(SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) / 24 AS VARCHAR(10)) + ' days ' + 
                                 CAST(SUM(ISNULL(d.csla_Hour, 0)) % 24 AS VARCHAR(10)) + ' hrs' ELSE '' END AS sla_Sum
@@ -1081,6 +1082,10 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
+                    if (result.Count == 0)
+                    {
+                        totalCount = reader["headerCount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["headerCount"]);
+                    }
                     result.Add(new GetProcessEngineDTO
                     {
                         ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ID"]),
@@ -1103,8 +1108,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         lmodified_date = reader["lmodified_date"] == DBNull.Value ? null : (DateTime?)reader["lmodified_date"],
                         cstatus_description = reader["cstatus_description"]?.ToString() ?? "",
                         processEngineChildItems = reader["DetailCount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["DetailCount"]),
-                        slasum = reader["sla_Sum"]?.ToString() ?? ""
-                    });
+                        slasum = reader["sla_Sum"]?.ToString() ?? "",
+                        });
                 }
             }
             catch (Exception ex)
@@ -1112,7 +1117,11 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 throw new Exception("Error fetching process engine list", ex);
             }
 
-            return result;
+            return new GetProcessEngineCountDTO
+            {
+                totalCount = totalCount,
+                data = result
+            };
         }
 
 
