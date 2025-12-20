@@ -142,9 +142,10 @@ namespace TaskEngineAPI.Services
                         string queryStatus = @"INSERT INTO tbl_transaction_taskflow_detail_and_status (
                     itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date) VALUES 
                     (@itaskno, @ctenent_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date);";
-
+                        bool isFirstRow = true;
                         foreach (var row in detailRows)
                         {
+                            string currentStatus = isFirstRow ? "P" : "N";
                             using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
                             {
                                 cmdInsert.Parameters.AddWithValue("@itaskno", newTaskNo);
@@ -153,7 +154,7 @@ namespace TaskEngineAPI.Services
                                 cmdInsert.Parameters.AddWithValue("@ctenent_id", tenantId);
                                 cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
                                 cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cmapping_code"]);
-                                cmdInsert.Parameters.AddWithValue("@ccurrent_status", "P");
+                                cmdInsert.Parameters.AddWithValue("@ccurrent_status", currentStatus);
                                 cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
                                 cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
                                 cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
