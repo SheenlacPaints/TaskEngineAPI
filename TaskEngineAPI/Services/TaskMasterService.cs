@@ -277,10 +277,6 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
-
-
-
         public async Task<string> Getdepartmentroleposition(int cTenantID, string table)
         {
             try
@@ -1502,6 +1498,21 @@ WHERE a.cis_active = 1
                             }
                         }
                     }
+
+
+                    if (model.status == "A")
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_update_pendingtasks_V1", conn, transaction))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@itasknoo", model.itaskno);
+                            cmd.Parameters.AddWithValue("@ID", model.ID);
+                            cmd.Parameters.AddWithValue("@ctenantid", cTenantID);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+
                     transaction.Commit();
                     return true;
                 }
