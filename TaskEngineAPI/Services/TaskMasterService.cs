@@ -169,9 +169,14 @@ namespace TaskEngineAPI.Services
                                 var newId = await cmdInsert.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
-                            if (primaryDetailId == 0)
+                            //if (primaryDetailId == 0)
+                            //{
+                            //    primaryDetailId = detailId;
+                            //}
+                            if (isFirstRow)
                             {
                                 primaryDetailId = detailId;
+                                isFirstRow = false; // IMPORTANT: Update the flag after first row
                             }
                             using (var cmdStatus = new SqlCommand(queryStatus, conn, transaction))
                             {
@@ -179,7 +184,7 @@ namespace TaskEngineAPI.Services
                                 cmdStatus.Parameters.AddWithValue("@ctenent_id", tenantId);
                                 cmdStatus.Parameters.AddWithValue("@cheader_id", 1);
                                 cmdStatus.Parameters.AddWithValue("@cdetail_id", detailId);
-                                cmdStatus.Parameters.AddWithValue("@cstatus", "P");
+                                cmdStatus.Parameters.AddWithValue("@cstatus", currentStatus);
                                 cmdStatus.Parameters.AddWithValue("@cstatus_with", userName);
                                 cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
                                 await cmdStatus.ExecuteNonQueryAsync();
