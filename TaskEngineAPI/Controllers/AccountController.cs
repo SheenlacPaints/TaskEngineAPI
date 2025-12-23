@@ -1459,14 +1459,14 @@ namespace TaskEngineAPI.Controllers
         [HttpPost("fileUpload")]
         public async Task<IActionResult> fileUpload([FromForm] FileUploadDTO model)
         {
-            if(model == null)
+            if (model == null)
             {
                 return EncryptedError(400, "Request body cannot be null");
             }
             var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            if(string.IsNullOrWhiteSpace(jwtToken))
+            if (string.IsNullOrWhiteSpace(jwtToken))
             {
-               return EncryptedError(400, "Authorization token is missing");    
+                return EncryptedError(400, "Authorization token is missing");
             }
             var handler = new JwtSecurityTokenHandler();
             var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
@@ -2085,15 +2085,17 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-                if(request == null || string.IsNullOrWhiteSpace(request.payload))
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
                 {
                     return EncryptedError(400, "Request body cannot be null or empty");
                 }
+
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
+
                 var handler = new JwtSecurityTokenHandler();
                 var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
 
@@ -2113,8 +2115,55 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
-                var users = JsonConvert.DeserializeObject<List<UserApiDTO>>(decryptedJson);
 
+                List<UserApiDTO> users = null;
+
+                try
+                {
+                    var singleUser = JsonConvert.DeserializeObject<UserApiDTO>(decryptedJson);
+
+                    if (singleUser == null)
+                    {
+                        var errorResponse = new
+                        {
+                            status = 400,
+                            statusText = "Invalid user data",
+                            error = "User object is null",
+                            note = "Expected a single user object"
+                        };
+                        string errorJson = JsonConvert.SerializeObject(errorResponse);
+                        string encryptedError = AesEncryption.Encrypt(errorJson);
+                        return BadRequest(encryptedError);
+                    }
+
+                    users = new List<UserApiDTO> { singleUser };
+                }
+                catch (JsonSerializationException ex)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON format",
+                        error = ex.Message,
+                        note = "Expected a single user object with proper JSON structure"
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+                catch (Exception ex)
+                {
+                    var errorResponse = new
+                    {
+                        status = 400,
+                        statusText = "Invalid JSON format for UserApiDTO",
+                        error = ex.Message,
+                        note = "Expected a valid user object. Check field names and data types."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(errorResponse);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
                 if (users == null || !users.Any())
                 {
                     var errorResponse = new
@@ -2192,50 +2241,99 @@ namespace TaskEngineAPI.Controllers
                         nullMandatoryFields.Add("cphoneno");
                     }
 
+                    if (string.IsNullOrWhiteSpace(user.cgender))
+                        errors.Add("cgender: Field is required");
+                    else if (!new[] { "M", "F", "O" }.Contains(user.cgender.ToUpper()))
+                        errors.Add("cgender: Must be M, F, or O");
+
+                    if (string.IsNullOrWhiteSpace(user.cfirstName))
+                        errors.Add("cfirstName: Field is required");
+                    nullMandatoryFields.Add("cfirstName");
+
+                    if (string.IsNullOrWhiteSpace(user.clastName))
+                        errors.Add("clastName: Field is required");
+                    nullMandatoryFields.Add("clastName");
+
+                    if (string.IsNullOrWhiteSpace(user.cnation))
+                        errors.Add("cnation: Field is required");
+                    else if (user.cnation.Length != 2)
+                        errors.Add("cnation: Must be 2-letter country code (e.g., IN, US)");
+
+                    if (!user.ldob.HasValue)
+                        errors.Add("ldob: Field is required");
+                    else if (user.ldob.Value > DateTime.Now.AddYears(-18))
+                        errors.Add("ldob: Must be at least 18 years old");
+
+                    if (string.IsNullOrWhiteSpace(user.cemploymentStatus))
+                        errors.Add("cemploymentStatus: Field is required");
+                    else if (!new[] { "Active", "Probation", "Resigned", "Terminated" }
+                             .Contains(user.cemploymentStatus))
+                        errors.Add("cemploymentStatus: Must be Active, Probation, Resigned, or Terminated");
+
+                    if (!user.ldoj.HasValue)
+                        errors.Add("ldoj: Field is required");
+                    else if (user.ldoj.Value > DateTime.Now)
+                        errors.Add("ldoj: Cannot be future date");
+
+                    if (string.IsNullOrWhiteSpace(user.cempcategory))
+                        errors.Add("cempcategory: Field is required");
+                    else if (!new[] { "Regular", "Contract", "Intern", "Trainee" }
+                             .Contains(user.cempcategory))
+                        errors.Add("cempcategory: Must be Regular, Contract, Intern, or Trainee");
+
+                    if (!user.nnoticePeriodDays.HasValue)
+                        errors.Add("nnoticePeriodDays: Field is required");
+                    else if (user.nnoticePeriodDays.Value < 0)
+                        errors.Add("nnoticePeriodDays: Cannot be negative");
+
+                    if (string.IsNullOrWhiteSpace(user.cgradecode))
+                        errors.Add("cgradecode: Field is required");
+
+                    if (string.IsNullOrWhiteSpace(user.crolecode))
+                        errors.Add("crolecode: Field is required");
+
+                    if (string.IsNullOrWhiteSpace(user.crolename))
+                        errors.Add("crolename: Field is required");
+
+                    if (string.IsNullOrWhiteSpace(user.cdeptcode))
+                        errors.Add("cdeptcode: Field is required");
+
+                    if (string.IsNullOrWhiteSpace(user.cdeptdesc))
+                        errors.Add("cdeptdesc: Field is required");
+
+                    if (string.IsNullOrWhiteSpace(user.creportmgrcode))
+                        errors.Add("creportmgrcode: Field is required");
+
+
                     var optionalFields = new Dictionary<string, object?>
-            {
-                { "cfirstName", user.cfirstName },
-                { "clastName", user.clastName },
-                { "cAlternatePhone", user.cAlternatePhone },
-                { "ldob", user.ldob },
-                { "cMaritalStatus", user.cMaritalStatus },
-                { "cnation", user.cnation },
-                { "cgender", user.cgender },
-                { "caddress", user.caddress },
-                { "caddress1", user.caddress1 },
-                { "caddress2", user.caddress2 },
-                { "cpincode", user.cpincode },
-                { "ccity", user.ccity },
-                { "cstatecode", user.cstatecode },
-                { "cstatedesc", user.cstatedesc },
-                { "ccountrycode", user.ccountrycode },
-                { "cbankName", user.cbankName },
-                { "caccountNumber", user.caccountNumber },
-                { "ciFSC_code", user.ciFSC_code },
-                { "cpAN", user.cpAN },
-                { "ldoj", user.ldoj },
-                { "cemploymentStatus", user.cemploymentStatus },
-                { "nnoticePeriodDays", user.nnoticePeriodDays },
-                { "cempcategory", user.cempcategory },
-                { "cworkloccode", user.cworkloccode },
-                { "cworklocname", user.cworklocname },
-                { "cgradecode", user.cgradecode },
-                { "cgradedesc", user.cgradedesc },
-                { "csubrolecode", user.csubrolecode },
-                { "cdeptcode", user.cdeptcode },
-                { "cdeptdesc", user.cdeptdesc },
-                { "cjobcode", user.cjobcode },
-                { "cjobdesc", user.cjobdesc },
-                { "creportmgrcode", user.creportmgrcode },
-                { "creportmgrname", user.creportmgrname },
-                { "croll_id", user.croll_id },
-                { "croll_name", user.croll_name },
-                { "croll_id_mngr", user.croll_id_mngr },
-                { "croll_id_mngr_desc" , user.croll_id_mngr_desc },
-                { "cReportManager_empcode", user.cReportManager_empcode },
-                { "cReportManager_Poscode", user.cReportManager_Poscode },
-                { "cReportManager_Posdesc", user.cReportManager_Posdesc }
-            };
+                     {
+                         { "cAlternatePhone", user.cAlternatePhone },
+                         { "ldob", user.ldob },
+                         { "cMaritalStatus", user.cMaritalStatus },
+                         { "caddress", user.caddress },
+                         { "caddress1", user.caddress1 },
+                         { "caddress2", user.caddress2 },
+                         { "cpincode", user.cpincode },
+                         { "ccity", user.ccity },
+                         { "cstatecode", user.cstatecode },
+                         { "cstatedesc", user.cstatedesc },
+                         { "ccountrycode", user.ccountrycode },
+                         { "cbankName", user.cbankName },
+                         { "caccountNumber", user.caccountNumber },
+                         { "ciFSC_code", user.ciFSC_code },
+                         { "cpAN", user.cpAN },
+                         { "nnoticePeriodDays", user.nnoticePeriodDays },
+                         { "csubrolecode", user.csubrolecode },
+                         { "cjobcode", user.cjobcode },
+                         { "cjobdesc", user.cjobdesc },
+                         { "croll_id", user.croll_id },
+                         { "croll_name", user.croll_name },
+                         { "croll_id_mngr", user.croll_id_mngr },
+                         { "croll_id_mngr_desc" , user.croll_id_mngr_desc },
+                         { "cReportManager_empcode", user.cReportManager_empcode },
+                         { "cReportManager_Poscode", user.cReportManager_Poscode },
+                         { "cReportManager_Posdesc", user.cReportManager_Posdesc }
+                     };
 
                     var missingOptionalFields = optionalFields
                         .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
@@ -2267,6 +2365,19 @@ namespace TaskEngineAPI.Controllers
                             cemail = user.cemail ?? "NULL",
                             cuserid = user.cuserid,
                             cphoneno = user.cphoneno ?? "NULL",
+                            cgender = user.cgender ?? "NULL",
+                            cfirstName = user.cfirstName ?? "NULL",
+                            clastName = user.clastName ?? "NULL",
+                            cnation = user.cnation ?? "NULL",
+                            cemploymentStatus = user.cemploymentStatus ?? "NULL",
+                            ldob = user.ldob?.ToString("yyyy-MM-dd") ?? "NULL",
+                            nnoticePeriodDays = user.nnoticePeriodDays?.ToString() ?? "NULL",
+                            cgradecode = user.cgradecode ?? "NULL",
+                            crolecode = user.crolecode ?? "NULL",
+                            crolename = user.crolename ?? "NULL",
+                            cdeptcode = user.cdeptcode ?? "NULL",
+                            cdeptdesc = user.cdeptdesc ?? "NULL",
+                            creportmgrcode = user.creportmgrcode ?? "NULL",
                             reason = string.Join("; ", errors),
                             null_mandatory_fields = nullMandatoryFields.Any() ? nullMandatoryFields : new List<string> { "None" },
                             missing_optional_fields = missingOptionalFields.Any() ? missingOptionalFields : new List<string> { "None" }
@@ -2314,23 +2425,42 @@ namespace TaskEngineAPI.Controllers
 
                 if (validUsers.Any())
                 {
-                    try
-                    {
-                        insertedCount = await _AccountService.InsertUserApiAsync(validUsers, cTenantID, usernameClaim);
+                    successfullyInsertedUsers = new List<UserApiDTO>();
 
-                        successfullyInsertedUsers = validUsers;
-                    }
-                    catch (Exception dbEx)
+                    foreach (var user in validUsers)
                     {
-                        databaseFailedUsers.Add(new
+                        try
                         {
-                            error_type = "DATABASE_CONSTRAINT_VIOLATION",
-                            message = dbEx.Message,
-                            note = "Some users may already exist in the database. Check unique constraints (cuserid, cusername, cemail, cphoneno)."
-                        });
+                            bool result = await _AccountService.InsertUserApiAsync(user, cTenantID, usernameClaim);
 
-                        insertedCount = 0;
-                        successfullyInsertedUsers = new List<UserApiDTO>();
+                            if (result)
+                            {
+                                insertedCount++;
+                                successfullyInsertedUsers.Add(user);
+                            }
+                            else
+                            {
+                                databaseFailedUsers.Add(new
+                                {
+                                    cemail = user.cemail ?? "NULL",
+                                    cuserid = user.cuserid,
+                                    cphoneno = user.cphoneno ?? "NULL",
+                                    error = "Insert returned false",
+                                    note = "User may not have been inserted"
+                                });
+                            }
+                        }
+                        catch (Exception singleUserEx)
+                        {
+                            databaseFailedUsers.Add(new
+                            {
+                                cemail = user.cemail ?? "NULL",
+                                cuserid = user.cuserid,
+                                cphoneno = user.cphoneno ?? "NULL",
+                                error = singleUserEx.Message,
+                                note = "Failed to insert this specific user - may already exist or have constraint violations"
+                            });
+                        }
                     }
                 }
 
@@ -2342,56 +2472,56 @@ namespace TaskEngineAPI.Controllers
                     validation_status = "PASSED",
                     null_mandatory_fields = new List<string> { "None" },
                     missing_optional_fields = new Dictionary<string, object?>
-            {
-                { "cfirstName", u.cfirstName },
-                { "clastName", u.clastName },
-                { "cAlternatePhone", u.cAlternatePhone },
-                { "ldob", u.ldob },
-                { "cMaritalStatus", u.cMaritalStatus },
-                { "cnation", u.cnation },
-                { "cgender", u.cgender },
-                { "caddress", u.caddress },
-                { "caddress1", u.caddress1 },
-                { "caddress2", u.caddress2 },
-                { "cpincode", u.cpincode },
-                { "ccity", u.ccity },
-                { "cstatecode", u.cstatecode },
-                { "cstatedesc", u.cstatedesc },
-                { "ccountrycode", u.ccountrycode },
-                { "cbankName", u.cbankName },
-                { "caccountNumber", u.caccountNumber },
-                { "ciFSC_code", u.ciFSC_code },
-                { "cpAN" , u.cpAN },
-                { "ldoj", u.ldoj },
-                { "cemploymentStatus", u.cemploymentStatus },
-                { "nnoticePeriodDays", u.nnoticePeriodDays },
-                { "cempcategory", u.cempcategory },
-                { "cworkloccode", u.cworkloccode },
-                { "cworklocname", u.cworklocname },
-                { "cgradecode", u.cgradecode },
-                { "cgradedesc", u.cgradedesc },
-                { "csubrolecode", u.csubrolecode },
-                { "cdeptcode", u.cdeptcode },
-                { "cdeptdesc", u.cdeptdesc },
-                { "cjobcode", u.cjobcode },
-                { "cjobdesc", u.cjobdesc },
-                { "creportmgrcode", u.creportmgrcode },
-                { "creportmgrname", u.creportmgrname },
-                { "croll_name", u.croll_name },
-                { "croll_id_mngr", u.croll_id_mngr },
-                { "croll_id_mngr_desc" , u.croll_id_mngr_desc },
-                { "cReportManager_empcode", u.cReportManager_empcode },
-                { "cReportManager_Poscode", u.cReportManager_Poscode },
-                { "cReportManager_Posdesc", u.cReportManager_Posdesc }
-            }
-                    .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
+                     {
+                         { "cfirstName", u.cfirstName },
+                         { "clastName", u.clastName },
+                         { "cAlternatePhone", u.cAlternatePhone },
+                         { "ldob", u.ldob },
+                         { "cMaritalStatus", u.cMaritalStatus },
+                         { "cnation", u.cnation },
+                         { "cgender", u.cgender },
+                         { "caddress", u.caddress },
+                         { "caddress1", u.caddress1 },
+                         { "caddress2", u.caddress2 },
+                         { "cpincode", u.cpincode },
+                         { "ccity", u.ccity },
+                         { "cstatecode", u.cstatecode },
+                         { "cstatedesc", u.cstatedesc },
+                         { "ccountrycode", u.ccountrycode },
+                         { "cbankName", u.cbankName },
+                         { "caccountNumber", u.caccountNumber },
+                         { "ciFSC_code", u.ciFSC_code },
+                         { "cpAN" , u.cpAN },
+                         { "ldoj", u.ldoj },
+                         { "cemploymentStatus", u.cemploymentStatus },
+                         { "nnoticePeriodDays", u.nnoticePeriodDays },
+                         { "cempcategory", u.cempcategory },
+                         { "cworkloccode", u.cworkloccode },
+                         { "cworklocname", u.cworklocname },
+                         { "cgradecode", u.cgradecode },
+                         { "cgradedesc", u.cgradedesc },
+                         { "csubrolecode", u.csubrolecode },
+                         { "cdeptcode", u.cdeptcode },
+                         { "cdeptdesc", u.cdeptdesc },
+                         { "cjobcode", u.cjobcode },
+                         { "cjobdesc", u.cjobdesc },
+                         { "creportmgrcode", u.creportmgrcode },
+                         { "creportmgrname", u.creportmgrname },
+                         { "croll_name", u.croll_name },
+                         { "croll_id_mngr", u.croll_id_mngr },
+                         { "croll_id_mngr_desc" , u.croll_id_mngr_desc },
+                         { "cReportManager_empcode", u.cReportManager_empcode },
+                         { "cReportManager_Poscode", u.cReportManager_Poscode },
+                         { "cReportManager_Posdesc", u.cReportManager_Posdesc }
+                     }
+                 .Where(f => f.Value == null || (f.Value is string str && string.IsNullOrWhiteSpace(str)))
                     .Select(f => f.Key)
                     .ToList()
                 }).ToList();
 
                 object response;
 
-                if (databaseFailedUsers.Any())
+                if (databaseFailedUsers.Any() && insertedCount == 0)
                 {
                     response = new
                     {
@@ -2407,12 +2537,30 @@ namespace TaskEngineAPI.Controllers
                         error = "Check unique constraints (cuserid, cusername, cemail, cphoneno)"
                     };
                 }
+                else if (databaseFailedUsers.Any())
+                {
+                    response = new
+                    {
+                        status = 207,
+                        statusText = "Partial completion",
+                        body = new
+                        {
+                            total = users.Count,
+                            success = insertedCount,
+                            failure = users.Count - insertedCount,
+                            inserted = insertedUsersWithDetails,
+                            failed = failedUsers.Concat(databaseFailedUsers),
+                            note = "Some users were inserted successfully, others failed."
+                        },
+                        error = ""
+                    };
+                }
                 else if (insertedCount == validUsers.Count)
                 {
                     response = new
                     {
                         status = 200,
-                        statusText = "Bulk user creation completed successfully",
+                        statusText = users.Count == 1 ? "User created successfully" : "Bulk user creation completed successfully",
                         body = new
                         {
                             total = users.Count,
@@ -2420,7 +2568,7 @@ namespace TaskEngineAPI.Controllers
                             failure = users.Count - insertedCount,
                             inserted = insertedUsersWithDetails,
                             failed = failedUsers.Any() ? failedUsers : new List<object> { new { message = "No validation failures" } },
-                            note = "All users passed JSON validation and were inserted successfully."
+                            note = users.Count == 1 ? "User passed validation and was inserted successfully" : "All users passed validation and were inserted successfully."
                         },
                         error = ""
                     };
@@ -2469,6 +2617,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
         [Authorize]
         [HttpPost]
         [Route("usersapisyncconfig")]
@@ -2481,7 +2630,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "Request body cannot be null or empty");
                 }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if(string.IsNullOrWhiteSpace(jwtToken))
+                if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
@@ -2951,7 +3100,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "Request body cannot be null or empty");
                 }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if(string.IsNullOrWhiteSpace(jwtToken))
+                if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
@@ -2987,7 +3136,7 @@ namespace TaskEngineAPI.Controllers
                 "creporting_manager_code",
                 "creporting_manager_name",
                 "crole_description"
-                
+
             };
                     var jArray = JArray.Parse(decryptedJson);
                     foreach (var item in jArray)
@@ -3318,7 +3467,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "Request body cannot be null or empty");
                 }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if(string.IsNullOrWhiteSpace(jwtToken))
+                if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
@@ -3673,7 +3822,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GetAllUsersApiSyncConfig")]
-        public async Task<ActionResult> GetAllUsersApiSyncConfig([FromQuery] string searchText= null,[FromQuery] string syncType = null,[FromQuery] string apiMethod = null,[FromQuery] bool? isActive = null)
+        public async Task<ActionResult> GetAllUsersApiSyncConfig([FromQuery] string searchText = null, [FromQuery] string syncType = null, [FromQuery] string apiMethod = null, [FromQuery] bool? isActive = null)
         {
             try
             {
@@ -3751,7 +3900,7 @@ namespace TaskEngineAPI.Controllers
                         return EncryptedError(400, "apiMethod cannot exceed 10 characters");
                     }
                 }
-                var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(cTenantID,searchText,syncType,apiMethod,isActive);
+                var apiConfigs = await _AccountService.GetAllAPISyncConfigAsync(cTenantID, searchText, syncType, apiMethod, isActive);
 
                 var processed = apiConfigs.Select(config =>
                 {
@@ -3782,13 +3931,13 @@ namespace TaskEngineAPI.Controllers
                         cmodified_by = config.cmodified_by,
                         lmodified_date = config.lmodified_date
                     };
-                }).Where(x=>x!=null).ToList();
+                }).Where(x => x != null).ToList();
 
                 var response = new APIResponse
                 {
                     body = processed.ToArray(),
-                    statusText = processed.Any() ? "Successful": "No API sync configurations found",
-                    status = processed.Any() ? 200 :204
+                    statusText = processed.Any() ? "Successful" : "No API sync configurations found",
+                    status = processed.Any() ? 200 : 204
                 };
 
                 string json = JsonConvert.SerializeObject(response);
@@ -3823,7 +3972,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "ID must be greater than 0.");
                 }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if(string.IsNullOrWhiteSpace(jwtToken))
+                if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
@@ -4041,7 +4190,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if(string.IsNullOrWhiteSpace(jwtToken))
+                if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
@@ -4162,7 +4311,7 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if(string.IsNullOrWhiteSpace(jwtToken))
+                if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
@@ -4239,7 +4388,7 @@ namespace TaskEngineAPI.Controllers
                     string encryptedError = AesEncryption.Encrypt(errorJson);
                     return StatusCode(400, $"\"{encryptedError}\"");
                 }
-                
+
                 bool success = await _AccountService.UpdateAPISyncConfigActiveStatusAsync(
                     model.ID,
                     model.nis_active,
@@ -4587,7 +4736,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "Request body cannot be null or empty");
                 }
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if( string.IsNullOrWhiteSpace(jwtToken))
+                if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return EncryptedError(400, "Authorization token is missing");
                 }
