@@ -142,9 +142,10 @@ namespace TaskEngineAPI.Services
                         string queryStatus = @"INSERT INTO tbl_transaction_taskflow_detail_and_status (
                     itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date) VALUES 
                     (@itaskno, @ctenent_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date);";
-
+                        bool isFirstRow = true;
                         foreach (var row in detailRows)
                         {
+                            string currentStatus = isFirstRow ? "P" : "N";
                             using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
                             {
                                 cmdInsert.Parameters.AddWithValue("@itaskno", newTaskNo);
@@ -153,7 +154,7 @@ namespace TaskEngineAPI.Services
                                 cmdInsert.Parameters.AddWithValue("@ctenent_id", tenantId);
                                 cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
                                 cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cmapping_code"]);
-                                cmdInsert.Parameters.AddWithValue("@ccurrent_status", "P");
+                                cmdInsert.Parameters.AddWithValue("@ccurrent_status", currentStatus);
                                 cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
                                 cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
                                 cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
@@ -168,9 +169,14 @@ namespace TaskEngineAPI.Services
                                 var newId = await cmdInsert.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
-                            if (primaryDetailId == 0)
+                            //if (primaryDetailId == 0)
+                            //{
+                            //    primaryDetailId = detailId;
+                            //}
+                            if (isFirstRow)
                             {
                                 primaryDetailId = detailId;
+                                isFirstRow = false; // IMPORTANT: Update the flag after first row
                             }
                             using (var cmdStatus = new SqlCommand(queryStatus, conn, transaction))
                             {
@@ -178,7 +184,7 @@ namespace TaskEngineAPI.Services
                                 cmdStatus.Parameters.AddWithValue("@ctenent_id", tenantId);
                                 cmdStatus.Parameters.AddWithValue("@cheader_id", 1);
                                 cmdStatus.Parameters.AddWithValue("@cdetail_id", detailId);
-                                cmdStatus.Parameters.AddWithValue("@cstatus", "P");
+                                cmdStatus.Parameters.AddWithValue("@cstatus", currentStatus);
                                 cmdStatus.Parameters.AddWithValue("@cstatus_with", userName);
                                 cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
                                 await cmdStatus.ExecuteNonQueryAsync();
@@ -275,10 +281,6 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-
-
-
-
 
         public async Task<string> Getdepartmentroleposition(int cTenantID, string table)
         {
@@ -700,7 +702,7 @@ WHERE a.cis_active = 1
                                                 ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
                                                 lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
                                                 cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1.GetOrdinal("cremarks")),
-                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(sdr1["inext_seqno"]),
+                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? string.Empty : Convert.ToString(sdr1["inext_seqno"]),
                                                 cnextseqtype = sdr1.IsDBNull(sdr1.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(sdr1["cnext_seqtype"]),
                                                 cprevtype = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
                                                 csla_day = sdr1.IsDBNull(sdr1.GetOrdinal("csla_day")) ? 0 : Convert.ToInt32(sdr1["csla_day"]),
@@ -812,7 +814,7 @@ WHERE a.cis_active = 1
                                                 ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
                                                 lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
                                                 cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1.GetOrdinal("cremarks")),
-                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(sdr1["inext_seqno"]),
+                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? string.Empty : Convert.ToString(sdr1["inext_seqno"]),
                                                 cnextseqtype = sdr1.IsDBNull(sdr1.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(sdr1["cnext_seqtype"]),
                                                 cprevtype = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
                                                 csla_day = sdr1.IsDBNull(sdr1.GetOrdinal("csla_day")) ? 0 : Convert.ToInt32(sdr1["csla_day"]),
@@ -922,7 +924,7 @@ WHERE a.cis_active = 1
                                                 ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
                                                 lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
                                                 cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1.GetOrdinal("cremarks")),
-                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(sdr1["inext_seqno"]),
+                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? string.Empty : Convert.ToString(sdr1["inext_seqno"]),
                                                 cnextseqtype = sdr1.IsDBNull(sdr1.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(sdr1["cnext_seqtype"]),
                                                 cprevtype = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
                                                 csla_day = sdr1.IsDBNull(sdr1.GetOrdinal("csla_day")) ? 0 : Convert.ToInt32(sdr1["csla_day"]),
@@ -1501,6 +1503,21 @@ WHERE a.cis_active = 1
                             }
                         }
                     }
+
+
+                    if (model.status == "A")
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_update_pendingtasks_V1", conn, transaction))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@itasknoo", model.itaskno);
+                            cmd.Parameters.AddWithValue("@ID", model.ID);
+                            cmd.Parameters.AddWithValue("@ctenantid", cTenantID);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+
                     transaction.Commit();
                     return true;
                 }

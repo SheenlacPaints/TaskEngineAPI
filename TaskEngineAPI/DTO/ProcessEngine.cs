@@ -117,6 +117,16 @@ namespace TaskEngineAPI.DTO
         
     }
 
+    public class GetProcessEngineCountDTO
+    {
+        public int? totalCount { get; set; }
+        public List<GetProcessEngineDTO> data { get; set; }
+
+
+
+    }
+
+
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }
@@ -263,7 +273,7 @@ namespace TaskEngineAPI.DTO
         public string? ccurrentstatus { get; set; }
         public DateTime? lcurrentstatusdate { get; set; }
         public string? cremarks { get; set; }
-        public int? inextseqno { get; set; }
+        public string? inextseqno { get; set; }
         public string? cnextseqtype { get; set; }
         public string? cprevtype { get; set; }
         public int? csla_day { get; set; }
