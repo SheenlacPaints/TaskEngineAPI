@@ -155,6 +155,7 @@ namespace TaskEngineAPI.DTO
         public string cpassword { get; set; }
 
         public string? crolecode { get; set; }
+        public string? crolename { get; set; }
         public string? cfirstName { get; set; }
         public string? clastName { get; set; }
         public string? cphoneno { get; set; }
