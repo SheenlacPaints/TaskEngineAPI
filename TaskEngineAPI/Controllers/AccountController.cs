@@ -1586,6 +1586,33 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("GetImage")]
+        public IActionResult GetImage(string type, string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(fileName))
+                return BadRequest("Invalid request");
+
+            // ✅ Decode URL-encoded file name
+            fileName = Uri.UnescapeDataString(fileName);
+
+            string basePath = type.ToLower() switch
+            {
+                "user" => _config["UploadSettings:userUploadPath"],
+                "superadmin" => _config["UploadSettings:SuperadminUploadPath"],
+                _ => throw new Exception("Invalid type")
+            };
+
+            string fullPath = Path.Combine(basePath, fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                return NotFound($"Image not found → {fullPath}");
+
+            return PhysicalFile(fullPath, "image/jpeg");
+        }
+
+
+
         //[Authorize]
         //[HttpPost("CreateUsersBulk")]
         //public async Task<IActionResult> CreateUsersBulk([FromBody] pay request)
