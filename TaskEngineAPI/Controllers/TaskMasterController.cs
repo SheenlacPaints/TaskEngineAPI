@@ -145,6 +145,10 @@ namespace TaskEngineAPI.Controllers
             var (cTenantID, _) = GetUserInfoFromToken();
             var json = await taskMasterService.GetAllProcessmetaAsync(cTenantID, processid);
             var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+            if (data == null || !data.Any())
+            {
+                return CreateEncryptedResponse(400, $"{processid} not found.", new { status = 400, data = Array.Empty<object>() });
+            }
             return CreatedDataResponse(data);
         }
 
