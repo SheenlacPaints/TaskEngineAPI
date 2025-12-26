@@ -115,6 +115,10 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<TaskMasterDTO>(request.payload);
                 int insertedUserId = await taskMasterService.InsertTaskMasterAsync(model, cTenantID, username);
@@ -201,10 +205,25 @@ namespace TaskEngineAPI.Controllers
         [Route("Getdepartmentroleposition")]
         public async Task<IActionResult> Getdepartmentroleposition([FromQuery] string table)
         {
-            var (cTenantID, _) = GetUserInfoFromToken();
-            var json = await taskMasterService.Getdepartmentroleposition(cTenantID, table);
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-            return CreatedDataResponse(data);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(table))
+                {
+                    return CreateEncryptedResponse(400, "table parameter is required");
+                }
+                var (cTenantID, _) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getdepartmentroleposition(cTenantID, table);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
@@ -212,10 +231,29 @@ namespace TaskEngineAPI.Controllers
         [Route("Getprocessengineprivilege")]
         public async Task<IActionResult> Getprocessengineprivilege([FromQuery] string value, string cprivilege)
         {
-            var (cTenantID, _) = GetUserInfoFromToken();
-            var json = await taskMasterService.Getprocessengineprivilege(cTenantID, value, cprivilege);
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-            return CreatedDataResponse(data);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return CreateEncryptedResponse(400, "value parameter is required");
+                }
+                if (string.IsNullOrWhiteSpace(cprivilege))
+                {
+                    return CreateEncryptedResponse(400, "cprivilege parameter is required");
+                }
+                var (cTenantID, _) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getprocessengineprivilege(cTenantID, value, cprivilege);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
@@ -223,10 +261,25 @@ namespace TaskEngineAPI.Controllers
         [Route("Getdropdown")]
         public async Task<IActionResult> Getdropdown([FromQuery] string column)
         {
-            var (cTenantID, _) = GetUserInfoFromToken();
-            var json = await taskMasterService.Getdropdown(cTenantID, column);
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-            return CreatedDataResponse(data);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(column))
+                {
+                    return CreateEncryptedResponse(400, "column parameter is required");
+                }
+                var (cTenantID, _) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getdropdown(cTenantID, column);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
@@ -239,6 +292,10 @@ namespace TaskEngineAPI.Controllers
                 if (request == null || string.IsNullOrWhiteSpace(request.payload))
                 {
                     return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
                 }
 
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
@@ -271,10 +328,25 @@ namespace TaskEngineAPI.Controllers
         [Route("Gettaskapprove")]
         public async Task<IActionResult> Gettaskapprove()
         {
-            var (cTenantID, username) = GetUserInfoFromToken();
-            var json = await taskMasterService.Gettaskapprove(cTenantID, username);
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-            return CreatedDataResponse(data);
+            try
+            {
+                if(!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.Gettaskapprove(cTenantID, username);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
@@ -282,13 +354,33 @@ namespace TaskEngineAPI.Controllers
         [Route("DeptposrolecrudAsync")]
         public async Task<IActionResult> DeptposrolecrudAsync([FromBody] pay request)
         {
-            var (cTenantID, username) = GetUserInfoFromToken();
 
-            var model = DeserializePayload<DeptPostRoleDTO>(request.payload);
-            var json = (await taskMasterService.DeptposrolecrudAsync(model, cTenantID, username)).ToString();
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
 
-            return CreatedDataResponse(data);
+                var model = DeserializePayload<DeptPostRoleDTO>(request.payload);
+                var json = (await taskMasterService.DeptposrolecrudAsync(model, cTenantID, username)).ToString();
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
         }
 
 
@@ -299,6 +391,14 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
                 var (cTenantID, username) = GetUserInfoFromToken();
 
                 var model = DeserializePayload<privilegeMappingDTO>(request.payload);
@@ -351,12 +451,27 @@ namespace TaskEngineAPI.Controllers
         [Route("Gettaskinitiator")]
         public async Task<IActionResult> Gettaskinitiator()
         {
-            var (cTenantID, username) = GetUserInfoFromToken();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
 
-            var json = await taskMasterService.GetTaskInitiator(cTenantID, username);
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                var json = await taskMasterService.GetTaskInitiator(cTenantID, username);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
-            return CreatedSuccessResponse(data);
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
@@ -364,12 +479,27 @@ namespace TaskEngineAPI.Controllers
         [Route("Gettaskinbox")]
         public async Task<IActionResult> Gettaskinbox()
         {
-            var (cTenantID, username) = GetUserInfoFromToken();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
 
-            var json = await taskMasterService.Gettaskinbox(cTenantID, username);
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                var json = await taskMasterService.Gettaskinbox(cTenantID, username);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
-            return CreatedSuccessResponse(data);
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
 
@@ -378,16 +508,35 @@ namespace TaskEngineAPI.Controllers
         [Route("GetboarddetailByid")]
         public async Task<IActionResult> GetboarddetailByid([FromQuery] int id)
         {
-            var (cTenantID, username) = GetUserInfoFromToken();
-
-            var data = await taskMasterService.GetTaskConditionBoard(cTenantID, id);
-
-            if (data == null || !data.Any())
+            try
             {
-                return CreateEncryptedResponse(400, $"{id} not found.", new { status = 400, data = Array.Empty<object>() });
-            }
+                if (id <= 0)
+                {
+                    return CreateEncryptedResponse(400, "ID must be greater than 0");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
 
-            return CreatedSuccessResponse(data);
+                var data = await taskMasterService.GetTaskConditionBoard(cTenantID, id);
+
+                if (data == null || !data.Any())
+                {
+                    return CreateEncryptedResponse(400, $"{id} not found.", new { status = 400, data = Array.Empty<object>() });
+                }
+
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
@@ -395,16 +544,36 @@ namespace TaskEngineAPI.Controllers
         [Route("Gettaskinboxdatabyid")]
         public async Task<IActionResult> Gettaskinboxdatabyid([FromQuery] int id)
         {
-            var (cTenantID, username) = GetUserInfoFromToken();
-
-            var data = await taskMasterService.Gettaskinboxdatabyid(cTenantID, id);
-
-            if (data == null || !data.Any())
+            try
             {
-                return CreateEncryptedResponse(400, $"{id} not found.", new { status = 400, data = Array.Empty<object>() });
-            }
+                if (id <= 0)
+                {
+                    return CreateEncryptedResponse(400, "ID must be greater than 0");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
 
-            return CreatedSuccessResponse(data);
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var data = await taskMasterService.Gettaskinboxdatabyid(cTenantID, id);
+
+                if (data == null || !data.Any())
+                {
+                    return CreateEncryptedResponse(400, $"{id} not found.", new { status = 400, data = Array.Empty<object>() });
+                }
+
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
@@ -412,16 +581,36 @@ namespace TaskEngineAPI.Controllers
         [Route("GettaskApprovedatabyid")]
         public async Task<IActionResult> GettaskApprovedatabyid([FromQuery] int id)
         {
-            var (cTenantID, username) = GetUserInfoFromToken();
-
-            var data = await taskMasterService.Gettaskapprovedatabyid(cTenantID, id);
-
-            if (data == null || !data.Any())
+            try
             {
-                return CreateEncryptedResponse(400, $"{id} not found.", new { status = 400, data = Array.Empty<object>() });
+                if (id <= 0)
+                {
+                    return CreateEncryptedResponse(400, "ID must be greater than 0");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var data = await taskMasterService.Gettaskapprovedatabyid(cTenantID, id);
+
+                if (data == null || !data.Any())
+                {
+                    return CreateEncryptedResponse(400, $"{id} not found.", new { status = 400, data = Array.Empty<object>() });
+                }
+
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
 
-            return CreatedSuccessResponse(data);
         }
 
         [Authorize]
@@ -429,16 +618,36 @@ namespace TaskEngineAPI.Controllers
         [Route("GetmetalayoutByid")]
         public async Task<IActionResult> GetmetalayoutByid([FromQuery] int itaskno)
         {
-            var (cTenantID, username) = GetUserInfoFromToken();
-
-            var data = await taskMasterService.GetmetalayoutByid(cTenantID, itaskno);
-
-            if (data == null || !data.Any())
+            try
             {
-                return CreateEncryptedResponse(400, $"{itaskno} not found.", new { status = 400, data = Array.Empty<object>() });
-            }
+                if (itaskno <= 0)
+                {
+                    return CreateEncryptedResponse(400, "itaskno must be greater than 0");
+                }
+                if(!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
 
-            return CreatedSuccessResponse(data);
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var data = await taskMasterService.GetmetalayoutByid(cTenantID, itaskno);
+
+                if (data == null || !data.Any())
+                {
+                    return CreateEncryptedResponse(400, $"{itaskno} not found.", new { status = 400, data = Array.Empty<object>() });
+                }
+
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
