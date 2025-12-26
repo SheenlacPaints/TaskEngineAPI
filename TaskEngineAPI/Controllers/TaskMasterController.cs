@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
@@ -142,14 +143,29 @@ namespace TaskEngineAPI.Controllers
         [Route("GetMetadetailbyid")]
         public async Task<IActionResult> GetMetadetailbyid([FromQuery] int processid)
         {
-            var (cTenantID, _) = GetUserInfoFromToken();
-            var json = await taskMasterService.GetAllProcessmetaAsync(cTenantID, processid);
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-            if (data == null || !data.Any())
+            try
             {
-                return CreateEncryptedResponse(400, $"{processid} not found.", new { status = 400, data = Array.Empty<object>() });
+                if (processid <= 0)
+                {
+                    return CreateEncryptedResponse(400, "processid must be greater than 0");
+                }
+                var (cTenantID, _) = GetUserInfoFromToken();
+                var json = await taskMasterService.GetAllProcessmetaAsync(cTenantID, processid);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                if (data == null || !data.Any())
+                {
+                    return CreateEncryptedResponse(400, $"{processid} not found.", new { status = 400, data = Array.Empty<object>() });
+                }
+                return CreatedDataResponse(data);
             }
-            return CreatedDataResponse(data);
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
         [Authorize]
@@ -157,10 +173,26 @@ namespace TaskEngineAPI.Controllers
         [Route("GetProcessMetadetailbyid")]
         public async Task<IActionResult> GetProcessMetadetailbyid([FromQuery] int metaid)
         {
-            var (cTenantID, _) = GetUserInfoFromToken();
-            var json = await taskMasterService.GetAllProcessmetadetailAsync(cTenantID, metaid);
-            var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-            return CreatedDataResponse(data);
+            try
+            {
+
+                if (metaid <= 0)
+                {
+                    return CreateEncryptedResponse(400, "metaid must be greater than 0");
+                }
+                var (cTenantID, _) = GetUserInfoFromToken();
+                var json = await taskMasterService.GetAllProcessmetadetailAsync(cTenantID, metaid);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
         }
 
 
