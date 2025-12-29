@@ -131,6 +131,10 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
                 var (cTenantID, _) = GetUserInfoFromToken();
                 var processtypes = await _processEngineService.GetAllProcessenginetypeAsync(cTenantID);
 
@@ -647,6 +651,10 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var mappingList = await _processEngineService.GetMappingListAsync(cTenantID);
 
