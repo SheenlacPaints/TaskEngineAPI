@@ -1382,7 +1382,7 @@ WHERE a.cis_active = 1
             LEFT JOIN tbl_process_engine_details ped ON ped.cheader_id = a.cprocess_id AND ped.ciseqno = b.iseqno
             WHERE a.ID IN ( SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)) t
             INNER JOIN Users u ON t.cmapping_code = u.cdept_code OR t.cmapping_code = u.cposition_code
-            OR t.cmapping_code = u.croll_id OR t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid)
+            OR t.cmapping_code = u.croll_id OR t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid) and u.nIs_deleted=0
             ORDER BY t.id asc";
 
             using (SqlCommand cmd = new SqlCommand(timelineQuery, conn))
