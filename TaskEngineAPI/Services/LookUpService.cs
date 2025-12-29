@@ -318,7 +318,7 @@ namespace TaskEngineAPI.Services
 
                     string query = @"
                 SELECT 
-                    ID, ctenent_id, cprocess_privilege, nis_active,
+                    ID, ctenant_id, cprocess_privilege, nis_active,
                     ccreated_by, lcreated_date, cmodified_by, lmodified_date, slug
                 FROM tbl_process_privilege_type 
                 WHERE ctenant_id = @TenantID 
