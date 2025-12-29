@@ -2275,11 +2275,11 @@ namespace TaskEngineAPI.Controllers
 
                     if (string.IsNullOrWhiteSpace(user.cfirstName))
                         errors.Add("cfirstName: Field is required");
-                    nullMandatoryFields.Add("cfirstName");
+                   
 
                     if (string.IsNullOrWhiteSpace(user.clastName))
                         errors.Add("clastName: Field is required");
-                    nullMandatoryFields.Add("clastName");
+                    
 
                     if (string.IsNullOrWhiteSpace(user.cnation))
                         errors.Add("cnation: Field is required");
@@ -2335,7 +2335,6 @@ namespace TaskEngineAPI.Controllers
                     var optionalFields = new Dictionary<string, object?>
                      {
                          { "cAlternatePhone", user.cAlternatePhone },
-                         { "ldob", user.ldob },
                          { "cMaritalStatus", user.cMaritalStatus },
                          { "caddress", user.caddress },
                          { "caddress1", user.caddress1 },
@@ -2397,6 +2396,7 @@ namespace TaskEngineAPI.Controllers
                             clastName = user.clastName ?? "NULL",
                             cnation = user.cnation ?? "NULL",
                             cemploymentStatus = user.cemploymentStatus ?? "NULL",
+                            ldoj = user.ldoj?.ToString("yyyy-MM-dd") ?? "NULL",
                             ldob = user.ldob?.ToString("yyyy-MM-dd") ?? "NULL",
                             nnoticePeriodDays = user.nnoticePeriodDays?.ToString() ?? "NULL",
                             cgradecode = user.cgradecode ?? "NULL",
@@ -2435,6 +2435,20 @@ namespace TaskEngineAPI.Controllers
                                 u.cemail,
                                 u.cuserid,
                                 u.cphoneno,
+                                u.cgender,
+                                u.cfirstName,
+                                u.clastName,
+                                u.cnation,
+                                u.cemploymentStatus,
+                                u.ldob,
+                                u.ldoj,
+                                u.nnoticePeriodDays,
+                                u.cgradecode,
+                                u.crolecode,
+                                u.crolename,
+                                u.cdeptcode,
+                                u.cdeptdesc,
+                                u.creportmgrcode,
                                 validation_status = "PASSED"
                             }),
                             note = "Mandatory fields validated. Shows exactly which fields are null or invalid."
@@ -2472,6 +2486,20 @@ namespace TaskEngineAPI.Controllers
                                     cemail = user.cemail ?? "NULL",
                                     cuserid = user.cuserid,
                                     cphoneno = user.cphoneno ?? "NULL",
+                                    cgender = user.cgender ?? "NULL",
+                                    cfirstName = user.cfirstName ?? "NULL",
+                                    clastName = user.clastName ?? "NULL",
+                                    cnation = user.cnation ?? "NULL",
+                                    cemploymentStatus = user.cemploymentStatus ?? "NULL",
+                                    ldoj = user.ldoj?.ToString("yyyy-MM-dd") ?? "NULL",
+                                    ldob = user.ldob?.ToString("yyyy-MM-dd") ?? "NULL",
+                                    nnoticePeriodDays = user.nnoticePeriodDays?.ToString() ?? "NULL",
+                                    cgradecode = user.cgradecode ?? "NULL",
+                                    crolecode = user.crolecode ?? "NULL",
+                                    crolename = user.crolename ?? "NULL",
+                                    cdeptcode = user.cdeptcode ?? "NULL",
+                                    cdeptdesc = user.cdeptdesc ?? "NULL",
+                                    creportmgrcode = user.creportmgrcode ?? "NULL",
                                     error = "Insert returned false",
                                     note = "User may not have been inserted"
                                 });
@@ -2484,6 +2512,20 @@ namespace TaskEngineAPI.Controllers
                                 cemail = user.cemail ?? "NULL",
                                 cuserid = user.cuserid,
                                 cphoneno = user.cphoneno ?? "NULL",
+                                cgender = user.cgender ?? "NULL",
+                                cfirstName = user.cfirstName ?? "NULL",
+                                clastName = user.clastName ?? "NULL",
+                                cnation = user.cnation ?? "NULL",
+                                cemploymentStatus = user.cemploymentStatus ?? "NULL",
+                                ldoj = user.ldoj?.ToString("yyyy-MM-dd") ?? "NULL",
+                                ldob = user.ldob?.ToString("yyyy-MM-dd") ?? "NULL",
+                                nnoticePeriodDays = user.nnoticePeriodDays?.ToString() ?? "NULL",
+                                cgradecode = user.cgradecode ?? "NULL",
+                                crolecode = user.crolecode ?? "NULL",
+                                crolename = user.crolename ?? "NULL",
+                                cdeptcode = user.cdeptcode ?? "NULL",
+                                cdeptdesc = user.cdeptdesc ?? "NULL",
+                                creportmgrcode = user.creportmgrcode ?? "NULL",
                                 error = singleUserEx.Message,
                                 note = "Failed to insert this specific user - may already exist or have constraint violations"
                             });
@@ -2496,17 +2538,27 @@ namespace TaskEngineAPI.Controllers
                     u.cemail,
                     u.cuserid,
                     u.cphoneno,
+                    u.cgender,
+                    u.cfirstName,
+                    u.clastName,
+                    u.cnation,
+                    u.cemploymentStatus,
+                    u.ldob,
+                    u.ldoj,
+                    u.nnoticePeriodDays,
+                    u.cgradecode,
+                    u. crolecode,
+                    u.crolename,
+                    u.cdeptcode,
+                    u.cdeptdesc,
+                    u.creportmgrcode,
                     validation_status = "PASSED",
                     null_mandatory_fields = new List<string> { "None" },
                     missing_optional_fields = new Dictionary<string, object?>
                      {
-                         { "cfirstName", u.cfirstName },
-                         { "clastName", u.clastName },
-                         { "cAlternatePhone", u.cAlternatePhone },
+                          { "cAlternatePhone", u.cAlternatePhone },
                          { "ldob", u.ldob },
                          { "cMaritalStatus", u.cMaritalStatus },
-                         { "cnation", u.cnation },
-                         { "cgender", u.cgender },
                          { "caddress", u.caddress },
                          { "caddress1", u.caddress1 },
                          { "caddress2", u.caddress2 },
@@ -2518,22 +2570,12 @@ namespace TaskEngineAPI.Controllers
                          { "cbankName", u.cbankName },
                          { "caccountNumber", u.caccountNumber },
                          { "ciFSC_code", u.ciFSC_code },
-                         { "cpAN" , u.cpAN },
-                         { "ldoj", u.ldoj },
-                         { "cemploymentStatus", u.cemploymentStatus },
+                         { "cpAN", u.cpAN },
                          { "nnoticePeriodDays", u.nnoticePeriodDays },
-                         { "cempcategory", u.cempcategory },
-                         { "cworkloccode", u.cworkloccode },
-                         { "cworklocname", u.cworklocname },
-                         { "cgradecode", u.cgradecode },
-                         { "cgradedesc", u.cgradedesc },
                          { "csubrolecode", u.csubrolecode },
-                         { "cdeptcode", u.cdeptcode },
-                         { "cdeptdesc", u.cdeptdesc },
                          { "cjobcode", u.cjobcode },
                          { "cjobdesc", u.cjobdesc },
-                         { "creportmgrcode", u.creportmgrcode },
-                         { "creportmgrname", u.creportmgrname },
+                         { "croll_id", u.croll_id },
                          { "croll_name", u.croll_name },
                          { "croll_id_mngr", u.croll_id_mngr },
                          { "croll_id_mngr_desc" , u.croll_id_mngr_desc },
