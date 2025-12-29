@@ -273,7 +273,7 @@ namespace TaskEngineAPI.DTO
         public string? ccurrentstatus { get; set; }
         public DateTime? lcurrentstatusdate { get; set; }
         public string? cremarks { get; set; }
-        public string? inextseqno { get; set; }
+        public int? inextseqno { get; set; }
         public string? cnextseqtype { get; set; }
         public string? cprevtype { get; set; }
         public int? csla_day { get; set; }
