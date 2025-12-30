@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -2222,12 +2223,42 @@ namespace TaskEngineAPI.Controllers
         [HttpGet("Getfile")]
         public async Task<IActionResult> Getfile(string fileName, string type)
         {
-            var (stream, contentType) = await _minioService.GetFileAsync(fileName);
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(401, encryptedError);
+            }
+
+            var (stream, contentType) = await _minioService.GetuserFileAsync(fileName,type, cTenantID);
 
             Response.Headers.Add("Content-Disposition", "inline");
 
             return File(stream, contentType);
         }
-
+        private ActionResult EncryptedError(int status, string message)
+        {
+            var response = new APIResponse { status = status, statusText = message };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return Ok(encrypted);
+        }
     }
 }
