@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
+using TaskEngineAPI.Interfaces;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -17,10 +18,12 @@ namespace TaskEngineAPI.Controllers
     {
         private readonly HttpClient _httpClient;
         private readonly string _baseUrl;
-        public ProxyController(IHttpClientFactory httpClientFactory, IConfiguration config)
+        private readonly IMinioService _minioService;
+        public ProxyController(IHttpClientFactory httpClientFactory, IConfiguration config, IMinioService MinioService)
         {
             _httpClient = httpClientFactory.CreateClient();
             _baseUrl = config["Proxy:SheenlacApiBaseUrl"];
+            _minioService = MinioService;
         }
 
         [HttpPost("adminLogin")]
@@ -906,7 +909,7 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing Authorization token.");
                 }
 
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/fileUpload");
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/UserfileUpload");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
@@ -2215,7 +2218,16 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        
+        [Authorize]
+        [HttpGet("Getfile")]
+        public async Task<IActionResult> Getfile(string fileName, string type)
+        {
+            var (stream, contentType) = await _minioService.GetFileAsync(fileName);
+
+            Response.Headers.Add("Content-Disposition", "inline");
+
+            return File(stream, contentType);
+        }
 
     }
 }

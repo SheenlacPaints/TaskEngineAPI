@@ -10,6 +10,7 @@ using TaskEngineAPI.Middlewares;
 using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
 using Serilog;
+using TaskEngineAPI.Helpers;
 
 
 
@@ -66,6 +67,11 @@ builder.Services.AddHttpClient();
 //builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(swagger =>
 {
+    swagger.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "TaskEngineAPI",
+        Version = "v1"
+    });
     swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
         Name = "Authorization",
@@ -73,7 +79,9 @@ builder.Services.AddSwaggerGen(swagger =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+       // Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 12345abcdef\"",
+        Description = "Enter 'Bearer {token}'"
+
     });
     swagger.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
@@ -86,9 +94,11 @@ builder.Services.AddSwaggerGen(swagger =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+           // new string[] {}
+           Array.Empty<string>()
         }
     });
+    swagger.OperationFilter<TaskEngineAPI.Helpers.FileUploadOperationFilter>();
 });
 
 
@@ -101,6 +111,7 @@ builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IProcessEngineService, ProcessEngineService>();
 builder.Services.AddScoped<ITaskMasterService, TaskMasterService>();
 builder.Services.AddScoped<ILookUpService, LookUpService>();
+builder.Services.AddScoped<IMinioService, MinioService>();
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {

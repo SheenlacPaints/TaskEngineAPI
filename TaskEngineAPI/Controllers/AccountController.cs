@@ -40,13 +40,16 @@ namespace TaskEngineAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly IJwtService _jwtService;
         private readonly IAdminService _AccountService;
+        private readonly IMinioService _minioService;
         private readonly ApplicationDbContext _context;
-        public AccountController(IConfiguration configuration, IJwtService jwtService, IAdminService AccountService)
+        public AccountController(IConfiguration configuration, IJwtService jwtService, IAdminService AccountService, IMinioService MinioService)
         {
 
             _config = configuration;
             _jwtService = jwtService;
             _AccountService = AccountService;
+            _minioService = MinioService;
+           
         }
 
         [HttpPost]
@@ -5391,5 +5394,129 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encryptedError);
             }
         }
+
+
+        [Authorize]
+        [HttpPost("UserfileUpload")]
+        public async Task<IActionResult> UserfileUpload([FromForm] FileUploadDTO model)
+        {
+            if (model == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(401, encryptedError);
+            }
+
+            try
+            {
+                if (model.file == null || model.file.Length == 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "File not selected."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                await _minioService.FileUploadFileAsync(model.file,model.type,cTenantID);
+
+                // Step 3: Update database (optional success)
+                try
+                {
+
+
+                    string connStr = _config.GetConnectionString("Database");
+                    using (var conn = new SqlConnection(connStr))
+                    {
+                        await conn.OpenAsync();
+
+                        string targetTable = model.type.ToLower() switch
+                        {
+                            "user" => "Users",
+                            "superadmin" => "AdminUsers",
+                            _ => throw new Exception("Invalid type. Must be 'Superadmin' or 'user'.")
+                        };
+
+                        string query = $@"
+                    UPDATE {targetTable}
+                    SET cprofile_image_name = @ProfilePath,
+                        cprofile_image_path = @FilePath
+                    WHERE id = @UserId";
+
+                        using (var cmd = new SqlCommand(query, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@ProfilePath", model.file.FileName);
+                            cmd.Parameters.AddWithValue("@FilePath", model.file.FileName);
+                            cmd.Parameters.AddWithValue("@UserId", model.id);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                }
+                catch (Exception dbEx)
+                {                 
+                }
+              
+                var response = new APIResponse
+                {
+                    status = 200,
+                    statusText = "File uploaded successfully."
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error occurred: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet("Getuserfile")]
+        public async Task<IActionResult> Getuserfile(string fileName, string type)
+        {
+            var (stream, contentType) = await _minioService.GetFileAsync(fileName);
+
+            Response.Headers.Add("Content-Disposition", "inline");
+
+            return File(stream, contentType);
+        }
+
+
     }
 }
