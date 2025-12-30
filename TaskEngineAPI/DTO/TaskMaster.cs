@@ -15,6 +15,7 @@ namespace TaskEngineAPI.DTO
         public string? ctask_name { get; set; }
         public string? ctask_description { get; set; }
         public int? cprocess_id { get; set; }
+        public string? cremarks { get; set; }
         public List<metaData> metaData { get; set; }
     }
     public class metaData

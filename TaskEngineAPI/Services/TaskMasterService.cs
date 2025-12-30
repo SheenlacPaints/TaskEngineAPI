@@ -68,10 +68,10 @@ namespace TaskEngineAPI.Services
                         string queryMaster = @"
                     INSERT INTO tbl_taskflow_master (
                         itaskno, ctenant_id, ctask_type, ctask_name, ctask_description, cstatus,  
-                        lcreated_date, ccreated_by, cmodified_by, lmodified_date, cprocess_id
+                        lcreated_date, ccreated_by, cmodified_by, lmodified_date, cprocess_id,cremarks
                     ) VALUES (
                         @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
-                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cprocess_id
+                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cprocess_id,@cremarks
                     );
                     SELECT SCOPE_IDENTITY();";
 
@@ -88,6 +88,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@cmodified_by", userName);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cremarks", (object?)model.cremarks ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
