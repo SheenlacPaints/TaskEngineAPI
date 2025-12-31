@@ -76,7 +76,8 @@ namespace TaskEngineAPI.DTO
         public int? cslaHour { get; set; }
         public bool? nboardEnabled { get; set; }
         public string? cactionPrivilege { get; set; }
-        public string? crejectionPrivilege { get; set; }        
+        public string? crejectionPrivilege { get; set; }
+        public string? cboard_visablity { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
    
