@@ -2260,5 +2260,19 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return Ok(encrypted);
         }
+    
+        [HttpGet("Getfileview")]
+        public async Task<IActionResult> Getfileview(string fileName, string type,int tenant)
+        {
+            
+            var (stream, contentType) = await _minioService.GetuserFileAsync(fileName, type, tenant);
+
+            Response.Headers.Add("Content-Disposition", "inline");
+
+            return File(stream, contentType);
+        }
+       
     }
+
+
 }
