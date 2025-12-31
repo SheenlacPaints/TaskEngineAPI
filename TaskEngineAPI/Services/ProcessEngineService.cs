@@ -563,8 +563,10 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 while (await metaReader.ReadAsync())
                 {
                     int masterId = metaReader.SafeGetInt("MasterID");
-
-                    if (result.TryGetValue(masterId, out var engine))
+                    var inputType = metaReader.SafeGetString("cinput_type");
+                    if (string.IsNullOrWhiteSpace(inputType))
+                        continue;                   
+                        if (result.TryGetValue(masterId, out var engine))
                     {
                         engine.processEngineMeta.Add(new processEngineMeta
                         {
