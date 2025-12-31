@@ -283,46 +283,29 @@ public class MinioService : IMinioService
         }
     }
 
-    public async Task<(MemoryStream stream, string contentType)> GetuserFileAsync(string fileName,string type,int ctenantid)
+ 
+    public async Task<(MemoryStream stream, string contentType)>
+    GetuserFileAsync(string fileName, string type, int ctenantid)
     {
         var safeFileName = Path.GetFileName(fileName);
-      
-        string objectName = safeFileName != null? $"{ctenantid}/{type}/{safeFileName}": safeFileName;
+        var safeType = Path.GetFileName(type);
+        string objectName = $"{ctenantid}/{safeType}/{safeFileName}";
 
         var memoryStream = new MemoryStream();
 
-        try
-        {
-            // 🔹 1st attempt: folder-based path
-            await _minio.GetObjectAsync(
-                new GetObjectArgs()
-                    .WithBucket(_bucketName)
-                    .WithObject(objectName)
-                    .WithCallbackStream(stream =>
-                    {
-                        stream.CopyTo(memoryStream);
-                    })
-            );
-        }
-        catch (Minio.Exceptions.ObjectNotFoundException)
-        {
-            // 🔹 2nd attempt: root-level file
-            memoryStream = new MemoryStream();
-
-            await _minio.GetObjectAsync(
-                new GetObjectArgs()
-                    .WithBucket(_bucketName)
-                    .WithObject(safeFileName)
-                    .WithCallbackStream(stream =>
-                    {
-                        stream.CopyTo(memoryStream);
-                    })
-            );
-        }
+        await _minio.GetObjectAsync(
+            new GetObjectArgs()
+                .WithBucket(_bucketName)     
+                .WithObject(objectName)           
+                .WithCallbackStream(stream =>
+                {
+                    stream.CopyTo(memoryStream);
+                })
+        );
 
         memoryStream.Position = 0;
 
-        var contentType = Path.GetExtension(safeFileName).ToLower() switch
+        var contentType = Path.GetExtension(safeFileName).ToLowerInvariant() switch
         {
             ".png" => "image/png",
             ".jpg" => "image/jpeg",
