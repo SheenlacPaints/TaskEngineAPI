@@ -1255,11 +1255,11 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 string queryCondition = @"INSERT INTO tbl_process_engine_condition (
                                 ctenant_id, cheader_id, cprocesscode, ciseqno, icond_seqno, ctype,  
                                 clabel, cfield_value, ccondition, lcreated_date, ccreated_by, 
-                                cmodified_by, lmodified_date, cplaceholder, cis_required, cis_readonly, cis_disabled) 
+                                cmodified_by, lmodified_date, cplaceholder, cis_required, cis_readonly, cis_disabled,cdata_source) 
                                 VALUES (
                                 @TenantID, @cheader_id, @cprocesscode, @ciseqno, @icondseqno, @ctype,  
                                 @clabel, @cfieldvalue, @ccondition, @lcreated_date, @ccreated_by, 
-                                @cmodified_by, @lmodified_date, @cplaceholder, @cis_required, @cis_readonly, @cis_disabled);";
+                                @cmodified_by, @lmodified_date, @cplaceholder, @cis_required, @cis_readonly, @cis_disabled,@cdata_source);";
 
                                 foreach (var cond in detail.processEngineConditionDetails)
                                 {
@@ -1282,6 +1282,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                         cmdCond.Parameters.AddWithValue("@cis_required", (object?)cond.cisRequired ?? DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_readonly", (object?)cond.cisReadonly ?? DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_disabled", (object?)cond.cis_disabled ?? DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@cdata_source", (object?)cond.cdatasource ?? DBNull.Value);
 
                                         await cmdCond.ExecuteNonQueryAsync();
                                     }
