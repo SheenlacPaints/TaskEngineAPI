@@ -213,7 +213,16 @@ namespace TaskEngineAPI.Services
                                 }
                             }
                         }
-
+                     
+                            using (SqlCommand cmd = new SqlCommand("sp_task_updatereportingflow", conn, transaction))
+                            {
+                                cmd.CommandType = CommandType.StoredProcedure;
+                                cmd.Parameters.AddWithValue("@ID", masterId);
+                                cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
+                                cmd.Parameters.AddWithValue("@ctenantID", tenantId);
+                                cmd.ExecuteNonQuery();
+                            }
+                        
                         transaction.Commit();
                     }
                     catch (Exception ex)
