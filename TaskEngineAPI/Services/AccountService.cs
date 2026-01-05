@@ -433,8 +433,53 @@ VALUES (
             cmd.Parameters.AddWithValue("@cposition_code", (object?)model.cposition_code ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@cposition_name", (object?)model.cposition_name ?? DBNull.Value);
 
-            var newId = await cmd.ExecuteScalarAsync();
-            return newId != null ? Convert.ToInt32(newId) : 0;
+            try
+            {
+                var newId = await cmd.ExecuteScalarAsync();
+                return newId != null ? Convert.ToInt32(newId) : 0;
+            }
+            catch (SqlException sqlEx) when (sqlEx.Number == 2601 || sqlEx.Number == 2627)
+            {
+                throw new InvalidOperationException($"User ID '{model.cuserid}' already exists in the system.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error creating user: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<bool> CheckUserIdInUsersAsync(int cuserid, int ctenantID)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            string query = "SELECT COUNT(*) FROM Users WHERE cuserid = @cuserid AND ctenant_id = @ctenantID";
+
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@cuserid", cuserid);
+            cmd.Parameters.AddWithValue("@ctenantID", ctenantID);
+
+            var count = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(count) > 0;
+        }
+
+        public async Task<bool> CheckUserIdInAdminUsersAsync(int cuserid, int ctenantID)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            string query = "SELECT COUNT(*) FROM AdminUsers WHERE cuserid = @cuserid AND ctenant_id = @ctenantID";
+
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@cuserid", cuserid);
+            cmd.Parameters.AddWithValue("@ctenantID", ctenantID);
+
+            var count = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(count) > 0;
         }
 
         public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)
@@ -3225,5 +3270,40 @@ VALUES (
 
             return insertedCount;
         }
+
+        public async Task<bool> CheckUserIdInUsersAsync(string cuserid, string ctenantID)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            string query = "SELECT COUNT(*) FROM Users WHERE cuserid = @cuserid AND ctenant_id = @ctenantID";
+
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@cuserid", cuserid);
+            cmd.Parameters.AddWithValue("@ctenantID", ctenantID);
+
+            var count = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(count) > 0;
+        }
+
+        public async Task<bool> CheckUserIdInAdminUsersAsync(string cuserid, string ctenantID)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            string query = "SELECT COUNT(*) FROM AdminUsers WHERE cuserid = @cuserid AND ctenant_id = @ctenantID";
+
+            using var cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@cuserid", cuserid);
+            cmd.Parameters.AddWithValue("@ctenantID", ctenantID);
+
+            var count = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(count) > 0;
+        }
     }
 }
+

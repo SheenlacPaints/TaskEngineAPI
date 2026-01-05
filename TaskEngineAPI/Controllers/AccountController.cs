@@ -729,6 +729,34 @@ namespace TaskEngineAPI.Controllers
             string decryptedJson = AesEncryption.Decrypt(request.payload);
             var model = JsonConvert.DeserializeObject<CreateUserDTO>(decryptedJson);
 
+            bool userIdInUsers = await _AccountService.CheckUserIdInUsersAsync(model.cuserid, model.ctenantID);
+            bool userIdInAdminUsers = await _AccountService.CheckUserIdInAdminUsersAsync(model.cuserid, model.ctenantID);
+            if (userIdInUsers)
+            {
+                var errorResponse = new
+                {
+                    status = 500,
+                    error = "Internal Server Error",
+                    message = $"User ID '{model.cuserid}' is already in use in Users table."
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+
+            if (userIdInAdminUsers)
+            {
+                var errorResponse = new
+                {
+                    status = 500,
+                    error = "Internal Server Error",
+                    message = $"User ID '{model.cuserid}' is already in use in AdminUsers table."
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                var encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(500, encryptedError);
+            }
+
             bool usernameExists = await _AccountService.CheckuserUsernameExistsAsync(model.cuserid, model.ctenantID);
             if (usernameExists)
             {
