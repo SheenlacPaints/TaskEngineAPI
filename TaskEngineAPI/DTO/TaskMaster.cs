@@ -134,7 +134,7 @@ namespace TaskEngineAPI.DTO
         public List<processEnginetaskMeta> meta { get; set; }
 
         public List<GetprocessEngineConditionDTO> board { get; set; }
-
+        public List<PreviousapproverDTO> approvers { get; set; }
     }
 
 
@@ -169,7 +169,7 @@ namespace TaskEngineAPI.DTO
         public List<processEnginetaskMeta> meta { get; set; }
 
         public List<GetprocessEngineConditionDTO> board { get; set; }
-
+        
     }
 }
 
@@ -239,5 +239,17 @@ public class GetDropDownFilterDTO
     public string? filtervalue3 { get; set; }
     public string? filtervalue4 { get; set; }
     public string? filtervalue5 { get; set; }
+
+}
+
+public class PreviousapproverDTO
+{
+    public string? activity { get; set; }
+    public string? description { get; set; }
+    public string? status { get; set; }
+    public DateTime? datatime { get; set; }
+    public string? cremarks { get; set; }
+    public string? pendingwith { get; set; }
+    public string? pendingwithavatar { get; set; }
 
 }
