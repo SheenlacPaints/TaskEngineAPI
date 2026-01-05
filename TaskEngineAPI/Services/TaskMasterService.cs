@@ -213,6 +213,17 @@ namespace TaskEngineAPI.Services
                                 }
                             }
                         }
+                     
+                            using (SqlCommand cmd = new SqlCommand("sp_task_updatereportingflow", conn, transaction))
+                            {
+                                cmd.CommandType = CommandType.StoredProcedure;
+                                cmd.Parameters.AddWithValue("@ID", masterId);
+                                cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
+                                cmd.Parameters.AddWithValue("@ctenantID", tenantId);
+                                cmd.ExecuteNonQuery();
+                            }
+                        
+
 
                         transaction.Commit();
                     }
@@ -1220,7 +1231,8 @@ WHERE a.cis_active = 1
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno
+                    a.itaskno,
+                    a.cremarks
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -1263,6 +1275,7 @@ WHERE a.cis_active = 1
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",                                                                      
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
+                                    cremarks= reader["cremarks"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
