@@ -73,7 +73,8 @@ namespace TaskEngineAPI.Controllers
             }
 
             var connStr = _config.GetConnectionString("Database");
-            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "", role_name = "";
+            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "", 
+                role_name = "", useravatar="";
 
             try
             {
@@ -101,6 +102,7 @@ namespace TaskEngineAPI.Controllers
                                 cposition_name = reader["cposition_name"]?.ToString() ?? string.Empty;
                                 role = reader["role"] == DBNull.Value ? "" : reader["role"]?.ToString() ?? "";
                                 role_name = reader["role_name"] == DBNull.Value ? "" : reader["role_name"]?.ToString() ?? "";
+                                useravatar = reader["useravatar"] == DBNull.Value ? "" : reader["roluseravatare_name"]?.ToString() ?? "";
                             }
                             else
                             {
@@ -173,6 +175,7 @@ namespace TaskEngineAPI.Controllers
                     position_code = cposition_code,
                     role = role,
                     role_name = role_name,
+                    useravatar= useravatar,
                     token = accessToken,
                     refreshToken = refreshToken
 
