@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Minio.DataModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Data;
@@ -5553,6 +5554,115 @@ namespace TaskEngineAPI.Controllers
             return File(stream, contentType);
         }
 
+
+            [HttpPost("createSaasTest")]
+            public async Task<IActionResult> Create([FromBody] CreateSaasTestDTO request)
+            {
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(request.name))
+                        return BadRequest(new { error = "Name is required" });
+
+                    if (request.name.Length > 100)
+                        return BadRequest(new { error = "Name cannot exceed 100 characters" });
+
+                    var id = await _AccountService.CreateAsync(request.name);
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Test created successfully",
+                        id = id
+                    });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new { error = ex.Message });
+                }
+            }
+
+            [HttpPut("UpdateSaasTest")]
+            public async Task<IActionResult> UpdateSaasTest([FromBody] UpdateSaasTestDTO request)
+            {
+                try
+                {
+                    if (request.Id <= 0)
+                        return BadRequest(new { error = "Invalid ID" });
+
+                    if (string.IsNullOrWhiteSpace(request.name))
+                        return BadRequest(new { error = "Name is required" });
+
+                    if (request.name.Length > 100)
+                        return BadRequest(new { error = "Name cannot exceed 100 characters" });
+
+                    var existing = await _AccountService.GetByIdAsync(request.Id);
+                    if (existing == null)
+                        return NotFound(new { error = $"Test with ID {request.Id} not found" });
+
+                    var success = await _AccountService.UpdateAsync(request.Id, request.name);
+
+                    if (!success)
+                        return StatusCode(500, new { error = "Failed to update test" });
+
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Test updated successfully"
+                    });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new { error = ex.Message });
+                }
+            }
+
+        [HttpPost]
+        [Route("Test")]
+        public ActionResult Test(Param prsModel)
+        {
+            try
+            {
+                DataSet ds = new DataSet();
+                string query = "sp_test ";
+                using (SqlConnection con = new SqlConnection(this._configuration.GetConnectionString("SDatabase")))
+                {
+
+                    using (SqlCommand cmd = new SqlCommand(query))
+                    {
+                        cmd.Connection = con;
+                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@FilterValue1", prsModel.filtervalue1);
+                        cmd.Parameters.AddWithValue("@FilterValue2", prsModel.filtervalue2);
+                        cmd.Parameters.AddWithValue("@FilterValue3", prsModel.filtervalue3);
+                        cmd.Parameters.AddWithValue("@FilterValue4", prsModel.filtervalue4);
+                        cmd.Parameters.AddWithValue("@FilterValue5", prsModel.filtervalue5);
+                        cmd.Parameters.AddWithValue("@FilterValue6", prsModel.filtervalue6);
+                        cmd.Parameters.AddWithValue("@FilterValue7", prsModel.filtervalue7);
+                        cmd.Parameters.AddWithValue("@FilterValue8", prsModel.filtervalue8);
+                        cmd.Parameters.AddWithValue("@FilterValue9", prsModel.filtervalue9);
+                        cmd.Parameters.AddWithValue("@FilterValue10", prsModel.filtervalue10);
+                        cmd.Parameters.AddWithValue("@FilterValue11", prsModel.filtervalue11);
+                        cmd.Parameters.AddWithValue("@FilterValue12", prsModel.filtervalue12);
+                        cmd.Parameters.AddWithValue("@FilterValue13", prsModel.filtervalue13);
+                        cmd.Parameters.AddWithValue("@FilterValue14", prsModel.filtervalue14);
+                        cmd.Parameters.AddWithValue("@FilterValue15", prsModel.filtervalue15);
+
+                        con.Open();
+
+                        SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                        adapter.Fill(ds);
+                        con.Close();
+                    }
+                }
+                string op = JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+
+                return new JsonResult(op);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
     }
 }

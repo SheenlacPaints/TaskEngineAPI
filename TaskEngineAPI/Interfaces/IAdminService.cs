@@ -46,6 +46,9 @@ namespace TaskEngineAPI.Interfaces
         Task<int> InsertPositionsAsync(List<PositionDTO> positions, int cTenantID, string usernameClaim);
         Task<bool> CheckUserIdInUsersAsync(int cuserid, int ctenantID);
         Task<bool> CheckUserIdInAdminUsersAsync(int cuserid, int ctenantID);
+        Task<int> CreateAsync(string name);
+        Task<bool> UpdateAsync(int id, string name);
+        Task<object> GetByIdAsync(int id);
 
 
         //public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
