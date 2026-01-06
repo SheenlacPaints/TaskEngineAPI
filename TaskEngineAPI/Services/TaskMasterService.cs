@@ -1615,7 +1615,7 @@ WHERE a.cis_active = 1
                     a.lcreated_date AS taskInitiatedDate,
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
-                    d.id AS processdetailid,c.cvalue,
+                    d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno
                 FROM tbl_taskflow_master a
