@@ -50,7 +50,7 @@ namespace TaskEngineAPI.Controllers
             _jwtService = jwtService;
             _AccountService = AccountService;
             _minioService = MinioService;
-           
+
         }
 
         [HttpPost]
@@ -74,8 +74,8 @@ namespace TaskEngineAPI.Controllers
             }
 
             var connStr = _config.GetConnectionString("Database");
-            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "", 
-                role_name = "", useravatar="",type="";
+            string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "",
+                role_name = "", useravatar = "", type = "";
 
             try
             {
@@ -177,8 +177,8 @@ namespace TaskEngineAPI.Controllers
                     position_code = cposition_code,
                     role = role,
                     role_name = role_name,
-                    useravatar= useravatar,
-                    type=type,
+                    useravatar = useravatar,
+                    type = type,
                     token = accessToken,
                     refreshToken = refreshToken
 
@@ -2312,11 +2312,11 @@ namespace TaskEngineAPI.Controllers
 
                     if (string.IsNullOrWhiteSpace(user.cfirstName))
                         errors.Add("cfirstName: Field is required");
-                   
+
 
                     if (string.IsNullOrWhiteSpace(user.clastName))
                         errors.Add("clastName: Field is required");
-                    
+
 
                     if (string.IsNullOrWhiteSpace(user.cnation))
                         errors.Add("cnation: Field is required");
@@ -2584,7 +2584,7 @@ namespace TaskEngineAPI.Controllers
                     u.ldoj,
                     u.nnoticePeriodDays,
                     u.cgradecode,
-                    u. crolecode,
+                    u.crolecode,
                     u.crolename,
                     u.cdeptcode,
                     u.cdeptdesc,
@@ -5476,7 +5476,7 @@ namespace TaskEngineAPI.Controllers
                     return BadRequest(encryptedError);
                 }
 
-                await _minioService.FileUploadFileAsync(model.file,model.type,cTenantID);
+                await _minioService.FileUploadFileAsync(model.file, model.type, cTenantID);
 
                 // Step 3: Update database (optional success)
                 try
@@ -5513,9 +5513,9 @@ namespace TaskEngineAPI.Controllers
 
                 }
                 catch (Exception dbEx)
-                {                 
+                {
                 }
-              
+
                 var response = new APIResponse
                 {
                     status = 200,
@@ -5555,76 +5555,76 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-            [HttpPost("createSaasTest")]
-            public async Task<IActionResult> Create([FromBody] CreateSaasTestDTO request)
+        [HttpPost("createSaasTest")]
+        public async Task<IActionResult> Create([FromBody] CreateSaasTestDTO request)
+        {
+            try
             {
-                try
+                if (string.IsNullOrWhiteSpace(request.name))
+                    return BadRequest(new { error = "Name is required" });
+
+                if (request.name.Length > 100)
+                    return BadRequest(new { error = "Name cannot exceed 100 characters" });
+
+                var id = await _AccountService.CreateAsync(request.name);
+
+                return Ok(new
                 {
-                    if (string.IsNullOrWhiteSpace(request.name))
-                        return BadRequest(new { error = "Name is required" });
-
-                    if (request.name.Length > 100)
-                        return BadRequest(new { error = "Name cannot exceed 100 characters" });
-
-                    var id = await _AccountService.CreateAsync(request.name);
-
-                    return Ok(new
-                    {
-                        success = true,
-                        message = "Test created successfully",
-                        id = id
-                    });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { error = ex.Message });
-                }
+                    success = true,
+                    message = "Test created successfully",
+                    id = id
+                });
             }
-
-            [HttpPut("UpdateSaasTest")]
-            public async Task<IActionResult> UpdateSaasTest([FromBody] UpdateSaasTestDTO request)
+            catch (Exception ex)
             {
-                try
-                {
-                    if (request.Id <= 0)
-                        return BadRequest(new { error = "Invalid ID" });
-
-                    if (string.IsNullOrWhiteSpace(request.name))
-                        return BadRequest(new { error = "Name is required" });
-
-                    if (request.name.Length > 100)
-                        return BadRequest(new { error = "Name cannot exceed 100 characters" });
-
-                    var existing = await _AccountService.GetByIdAsync(request.Id);
-                    if (existing == null)
-                        return NotFound(new { error = $"Test with ID {request.Id} not found" });
-
-                    var success = await _AccountService.UpdateAsync(request.Id, request.name);
-
-                    if (!success)
-                        return StatusCode(500, new { error = "Failed to update test" });
-
-                    return Ok(new
-                    {
-                        success = true,
-                        message = "Test updated successfully"
-                    });
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, new { error = ex.Message });
-                }
+                return StatusCode(500, new { error = ex.Message });
             }
+        }
+
+        [HttpPut("UpdateSaasTest")]
+        public async Task<IActionResult> UpdateSaasTest([FromBody] UpdateSaasTestDTO request)
+        {
+            try
+            {
+                if (request.Id <= 0)
+                    return BadRequest(new { error = "Invalid ID" });
+
+                if (string.IsNullOrWhiteSpace(request.name))
+                    return BadRequest(new { error = "Name is required" });
+
+                if (request.name.Length > 100)
+                    return BadRequest(new { error = "Name cannot exceed 100 characters" });
+
+                var existing = await _AccountService.GetByIdAsync(request.Id);
+                if (existing == null)
+                    return NotFound(new { error = $"Test with ID {request.Id} not found" });
+
+                var success = await _AccountService.UpdateAsync(request.Id, request.name);
+
+                if (!success)
+                    return StatusCode(500, new { error = "Failed to update test" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Test updated successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
 
         [HttpPost]
-        [Route("Test")]
-        public ActionResult Test(Param prsModel)
+        [Route("SaasTest")]
+        public ActionResult SaasTest(Param prsModel)
         {
             try
             {
                 DataSet ds = new DataSet();
-                string query = "sp_test ";
-                using (SqlConnection con = new SqlConnection(this._configuration.GetConnectionString("SDatabase")))
+                string query = "sp_test";
+                using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("SDatabase")))
                 {
 
                     using (SqlCommand cmd = new SqlCommand(query))
@@ -5634,18 +5634,7 @@ namespace TaskEngineAPI.Controllers
                         cmd.Parameters.AddWithValue("@FilterValue1", prsModel.filtervalue1);
                         cmd.Parameters.AddWithValue("@FilterValue2", prsModel.filtervalue2);
                         cmd.Parameters.AddWithValue("@FilterValue3", prsModel.filtervalue3);
-                        cmd.Parameters.AddWithValue("@FilterValue4", prsModel.filtervalue4);
-                        cmd.Parameters.AddWithValue("@FilterValue5", prsModel.filtervalue5);
-                        cmd.Parameters.AddWithValue("@FilterValue6", prsModel.filtervalue6);
-                        cmd.Parameters.AddWithValue("@FilterValue7", prsModel.filtervalue7);
-                        cmd.Parameters.AddWithValue("@FilterValue8", prsModel.filtervalue8);
-                        cmd.Parameters.AddWithValue("@FilterValue9", prsModel.filtervalue9);
-                        cmd.Parameters.AddWithValue("@FilterValue10", prsModel.filtervalue10);
-                        cmd.Parameters.AddWithValue("@FilterValue11", prsModel.filtervalue11);
-                        cmd.Parameters.AddWithValue("@FilterValue12", prsModel.filtervalue12);
-                        cmd.Parameters.AddWithValue("@FilterValue13", prsModel.filtervalue13);
-                        cmd.Parameters.AddWithValue("@FilterValue14", prsModel.filtervalue14);
-                        cmd.Parameters.AddWithValue("@FilterValue15", prsModel.filtervalue15);
+
 
                         con.Open();
 
@@ -5663,6 +5652,5 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
     }
 }
