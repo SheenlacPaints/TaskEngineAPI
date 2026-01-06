@@ -559,7 +559,7 @@ VALUES (
 
             using var cmd = new SqlCommand(query, conn);
 
-         
+
             model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
             cmd.Parameters.AddWithValue("@id", model.id);
@@ -1468,7 +1468,7 @@ VALUES (
 
             var table = new DataTable();
 
-            table.Columns.Add("ID", typeof(int)); 
+            table.Columns.Add("ID", typeof(int));
             table.Columns.Add("cuserid", typeof(int));
             table.Columns.Add("ctenant_id", typeof(int));
             table.Columns.Add("cuser_name", typeof(string));
@@ -1549,16 +1549,16 @@ VALUES (
 
                 row["cuserid"] = u.cuserid;
                 row["ctenant_id"] = cTenantID;
-                row["cuser_name"] = u.cusername ?? (object)DBNull.Value; 
+                row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
                 row["cemail"] = u.cemail ?? (object)DBNull.Value;
                 row["cpassword"] = u.cpassword ?? (object)DBNull.Value;
-                row["nIs_active"] = u.nIsActive ?? true; 
-                row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value; 
-                row["clast_name"] = u.clastName ?? (object)DBNull.Value; 
+                row["nIs_active"] = u.nIsActive ?? true;
+                row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value;
+                row["clast_name"] = u.clastName ?? (object)DBNull.Value;
                 row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
-                row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value; 
+                row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
                 row["ldob"] = u.ldob.HasValue ? u.ldob.Value : (object)DBNull.Value;
-                row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value; 
+                row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
                 row["cnation"] = u.cnation ?? (object)DBNull.Value;
                 row["cgender"] = u.cgender ?? (object)DBNull.Value;
                 row["caddress"] = u.caddress ?? (object)DBNull.Value;
@@ -1566,47 +1566,47 @@ VALUES (
                 row["caddress2"] = u.caddress2 ?? (object)DBNull.Value;
                 row["cpincode"] = u.cpincode;
                 row["ccity"] = u.ccity ?? (object)DBNull.Value;
-                row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value; 
-                row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value; 
-                row["ccountry_code"] = u.ccountrycode ?? (object)DBNull.Value; 
+                row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value;
+                row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value;
+                row["ccountry_code"] = u.ccountrycode ?? (object)DBNull.Value;
                 row["profile_image"] = DBNull.Value;
-                row["cbank_name"] = u.cbankName ?? (object)DBNull.Value; 
-                row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value; 
-                row["ciFSC_code"] = u.ciFSCCode ?? (object)DBNull.Value; 
-                row["cpan"] = u.cpAN ?? (object)DBNull.Value; 
+                row["cbank_name"] = u.cbankName ?? (object)DBNull.Value;
+                row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value;
+                row["ciFSC_code"] = u.ciFSCCode ?? (object)DBNull.Value;
+                row["cpan"] = u.cpAN ?? (object)DBNull.Value;
                 row["ldoj"] = u.ldoj.HasValue ? u.ldoj.Value : (object)DBNull.Value;
-                row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value; 
+                row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
                 row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
                 row["lresignation_date"] = DBNull.Value;
-                row["llast_working_date"] = DBNull.Value; 
-                row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value; 
-                row["cwork_loc_code"] = DBNull.Value; 
+                row["llast_working_date"] = DBNull.Value;
+                row["cemp_category"] = u.cempcategory ?? (object)DBNull.Value;
+                row["cwork_loc_code"] = DBNull.Value;
                 row["cwork_loc_name"] = DBNull.Value;
                 row["crole_id"] = u.croleID ?? 3;
-                row["crole_code"] = u.crolecode ?? usernameClaim; 
-                row["crole_name"] = u.crolename ?? usernameClaim; 
+                row["crole_code"] = u.crolecode ?? usernameClaim;
+                row["crole_name"] = u.crolename ?? usernameClaim;
                 row["cgrade_code"] = DBNull.Value;
                 row["cgrade_desc"] = DBNull.Value;
-                row["csub_role_code"] = DBNull.Value; 
-                row["cdept_code"] = u.cdeptcode ?? (object)DBNull.Value; 
-                row["cdept_desc"] = u.cdeptdesc ?? (object)DBNull.Value; 
-                row["cjob_code"] = DBNull.Value; 
-                row["cjob_desc"] = DBNull.Value; 
-                row["creport_mgr_code"] = u.creportmgrcode ?? (object)DBNull.Value; 
-                row["creport_mgr_name"] = u.creportmgrname ?? (object)DBNull.Value; 
-                row["croll_id"] = u.cRoll_id ?? (object)DBNull.Value; 
-                row["croll_name"] = u.cRoll_name ?? (object)DBNull.Value; 
-                row["croll_id_mngr"] = DBNull.Value; 
-                row["croll_id_mngr_desc"] = DBNull.Value; 
-                row["creport_manager_empcode"] = DBNull.Value; 
-                row["creport_manager_poscode"] = DBNull.Value; 
+                row["csub_role_code"] = DBNull.Value;
+                row["cdept_code"] = u.cdeptcode ?? (object)DBNull.Value;
+                row["cdept_desc"] = u.cdeptdesc ?? (object)DBNull.Value;
+                row["cjob_code"] = DBNull.Value;
+                row["cjob_desc"] = DBNull.Value;
+                row["creport_mgr_code"] = u.creportmgrcode ?? (object)DBNull.Value;
+                row["creport_mgr_name"] = u.creportmgrname ?? (object)DBNull.Value;
+                row["croll_id"] = u.cRoll_id ?? (object)DBNull.Value;
+                row["croll_name"] = u.cRoll_name ?? (object)DBNull.Value;
+                row["croll_id_mngr"] = DBNull.Value;
+                row["croll_id_mngr_desc"] = DBNull.Value;
+                row["creport_manager_empcode"] = DBNull.Value;
+                row["creport_manager_poscode"] = DBNull.Value;
                 row["creport_manager_pos_desc"] = DBNull.Value;
-                row["nis_web_access_enabled"] = true; 
-                row["nis_event_read"] = true; 
+                row["nis_web_access_enabled"] = true;
+                row["nis_event_read"] = true;
                 row["llast_login_at"] = DBNull.Value;
-                row["nfailed_logina_attempts"] = 0; 
+                row["nfailed_logina_attempts"] = 0;
                 row["cpassword_changed_at"] = DBNull.Value;
-                row["nis_locked"] = false; 
+                row["nis_locked"] = false;
                 row["last_login_ip"] = DBNull.Value;
                 row["last_login_device"] = DBNull.Value;
                 row["ccreated_date"] = DateTime.Now;
@@ -1635,7 +1635,7 @@ VALUES (
 
             foreach (DataColumn column in table.Columns)
             {
-                if (column.ColumnName != "ID") 
+                if (column.ColumnName != "ID")
                 {
                     bulkCopy.ColumnMappings.Add(column.ColumnName, column.ColumnName);
                 }
@@ -1648,7 +1648,7 @@ VALUES (
             }
             catch (SqlException ex)
             {
-               
+
                 throw;
             }
         }
@@ -1811,7 +1811,7 @@ VALUES (
             using var bulkCopy = new SqlBulkCopy(conn)
             {
                 DestinationTableName = "Users",
-                BatchSize = 1 
+                BatchSize = 1
             };
 
             foreach (DataColumn column in table.Columns)
@@ -1822,7 +1822,7 @@ VALUES (
             try
             {
                 await bulkCopy.WriteToServerAsync(table);
-                return table.Rows.Count>0; 
+                return table.Rows.Count > 0;
             }
             catch (SqlException ex)
             {
@@ -2743,13 +2743,13 @@ VALUES (
 
             return existingCodes;
         }
-      
+
         public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(
     int cTenantID,
     string? searchText = null,
-    string syncType = null,  
-    string apiMethod = null, 
-    bool? isActive = null)  
+    string syncType = null,
+    string apiMethod = null,
+    bool? isActive = null)
         {
             var connStr = _config.GetConnectionString("Database");
             var results = new List<GetusersapisyncDTO>();
@@ -2973,7 +2973,7 @@ VALUES (
                                     capi_config = reader["capi_config"] != DBNull.Value ? reader["capi_config"].ToString() : null,
                                     capi_settings = reader["capi_settings"] != DBNull.Value ? reader["capi_settings"].ToString() : null,
                                     cbody = reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null,
-                                    cname= reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
+                                    cname = reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
                                     nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
@@ -3229,7 +3229,7 @@ VALUES (
                     )";
 
                         using var cmd = new SqlCommand(insertQuery, conn);
-                        
+
                         cmd.Parameters.AddWithValue("@TenantID", cTenantID);
                         cmd.Parameters.AddWithValue("@DeptCode", dept.cdepartment_code);
                         cmd.Parameters.AddWithValue("@DeptName", (object)dept.cdepartment_name ?? DBNull.Value);
@@ -3304,6 +3304,63 @@ VALUES (
             var count = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(count) > 0;
         }
+        public async Task<int> CreateAsync(string name)
+        {
+            var connStr = _config.GetConnectionString("SDatabase");
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            var sql = "INSERT INTO tbl_saas_test (name) VALUES (@Name); SELECT SCOPE_IDENTITY();";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Name", name);
+
+            var id = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            return id;
+        }
+
+        public async Task<bool> UpdateAsync(int id, string name)
+        {
+            var connStr = _config.GetConnectionString("SDatabase");
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            var sql = "UPDATE tbl_saas_test SET name = @Name WHERE id = @Id";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+            cmd.Parameters.AddWithValue("@Name", name);
+
+            var rowsAffected = await cmd.ExecuteNonQueryAsync();
+            return rowsAffected > 0;
+        }
+
+        public async Task<object> GetByIdAsync(int id)
+        {
+            var connStr = _config.GetConnectionString("SDatabase");
+
+            using var conn = new SqlConnection(connStr);
+            await conn.OpenAsync();
+
+            var sql = "SELECT id, name FROM tbl_saas_test WHERE id = @Id";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@Id", id);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                return new
+                {
+                    Id = reader.GetInt32(0),
+                    Name = reader.GetString(1)
+                };
+            }
+
+            return null;
+        }
     }
 }
-

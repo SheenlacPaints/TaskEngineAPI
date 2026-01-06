@@ -136,6 +136,28 @@ namespace TaskEngineAPI.DTO
 
     }
 
+    public class CreateSaasTestDTO
+
+    {
+        //public int id { get; set; }
+        public string name { get; set; }
+    }
+
+    public class UpdateSaasTestDTO
+    {
+        public int Id { get; set; }
+        public string name { get; set; }
+    }
+
+
+    public class Param
+    {
+        public string? filtervalue1 { get; set; }
+        public string? filtervalue2 { get; set; }
+        public string? filtervalue3 { get; set; }
+
+    }
+
 }
 
 
