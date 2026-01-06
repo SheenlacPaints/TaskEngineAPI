@@ -1079,7 +1079,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskReject")]
-        public async Task<IActionResult> GettaskHold()
+        public async Task<IActionResult> GettaskReject()
         {
             try
             {
@@ -1115,7 +1115,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskHold")]
-        public async Task<IActionResult> Gettaskhold()
+        public async Task<IActionResult> GettaskHold()
         {
             try
             {
@@ -2151,6 +2151,39 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("GettaskHolddatabyid")]
+        public async Task<IActionResult> GettaskHolddatabyid([FromQuery] int id)
+        {
+            try
+            {
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");
+
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHolddatabyid?id={id}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
 
         [Authorize]
         [HttpGet("GettaskRejectdatabyid")]
