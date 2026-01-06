@@ -1078,7 +1078,43 @@ namespace TaskEngineAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet("Gettaskhold")]
+        [HttpGet("GettaskReject")]
+        public async Task<IActionResult> GettaskHold()
+        {
+            try
+            {
+                // 🔐 Extract token
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");
+                // 🔗 Build full URL with encrypted query             
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReject";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                // 📡 Forward request
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+
+                // 🔐 Wrap encrypted response in quotes
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("GettaskHold")]
         public async Task<IActionResult> Gettaskhold()
         {
             try
@@ -1088,7 +1124,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskhold";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
