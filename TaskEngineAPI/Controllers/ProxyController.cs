@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -1007,7 +1008,7 @@ namespace TaskEngineAPI.Controllers
         
         [Authorize]
         [HttpGet("Gettaskinbox")]
-        public async Task<IActionResult> Gettaskinbox()
+        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1016,7 +1017,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinbox";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinbox?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
