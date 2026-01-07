@@ -1426,20 +1426,85 @@ WHERE a.cis_active = 1
             return timelineList;
         }
 
+        //private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID)
+        //{
+        //    var timelineList = new List<PreviousapproverDTO>();
+
+        //    string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks,t.ID,
+        //    t.lcurrent_status_date AS statusDate,t.cmapping_code,t.cprocess_id,t.cactivityname,
+        //    u.cuserid,u.cfirst_name + ' ' + u.clast_name AS userName,u.cprofile_image_path AS userAvatar
+        //    FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,b.ID,
+        //    ped.cactivityname FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
+        //    LEFT JOIN tbl_process_engine_details ped ON ped.cheader_id = a.cprocess_id AND ped.ciseqno = b.iseqno
+        //    WHERE a.ID IN ( SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)) t
+        //    INNER JOIN Users u ON t.cmapping_code = u.cdept_code OR t.cmapping_code = u.cposition_code
+        //    OR t.cmapping_code = u.croll_id OR t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid) and u.nIs_deleted=0
+        //    ORDER BY t.id asc";
+
+        //    using (SqlCommand cmd = new SqlCommand(timelineQuery, conn))
+        //    {
+        //        cmd.Parameters.AddWithValue("@ID", ID);
+
+        //        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+        //        {
+        //            while (await reader.ReadAsync())
+        //            {
+        //                timelineList.Add(new PreviousapproverDTO
+        //                {
+        //                    activity = reader["cactivityname"]?.ToString() ?? "",                          
+        //                    status = reader["status"]?.ToString() ?? "",
+        //                    cremarks = reader["cremarks"]?.ToString() ?? "",                          
+        //                    datatime =reader.IsDBNull(reader.GetOrdinal("statusDate")) ? null: reader.GetDateTime(reader.GetOrdinal("statusDate")),
+        //                    pendingwith = reader["userName"]?.ToString() ?? "",
+        //                    pendingwithavatar = reader["userAvatar"]?.ToString() ?? ""
+
+        //                });
+        //            }
+        //        }
+        //    }
+
+        //    return timelineList;
+        //}
+
         private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID)
         {
             var timelineList = new List<PreviousapproverDTO>();
-
-            string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks,t.ID,
-            t.lcurrent_status_date AS statusDate,t.cmapping_code,t.cprocess_id,t.cactivityname,
-            u.cuserid,u.cfirst_name + ' ' + u.clast_name AS userName,u.cprofile_image_path AS userAvatar
-            FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,b.ID,
-            ped.cactivityname FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
+            string timelineQuery = @"
+        SELECT 
+            t.ccurrent_status AS status,
+            t.cremarks,
+            t.ID,
+            t.lcurrent_status_date AS statusDate,
+            t.cmapping_code,
+            t.cprocess_id,
+            t.cactivityname,
+            u.cuserid,
+            u.cfirst_name + ' ' + u.clast_name AS userName,
+            u.cprofile_image_path AS userAvatar
+        FROM (
+            SELECT 
+                b.ccurrent_status,
+                b.lcurrent_status_date,
+                b.cremarks,
+                b.cmapping_code,
+                a.cprocess_id,
+                b.ID,
+                b.iseqno,
+                ped.cactivityname 
+            FROM tbl_taskflow_master a 
+            LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
             LEFT JOIN tbl_process_engine_details ped ON ped.cheader_id = a.cprocess_id AND ped.ciseqno = b.iseqno
-            WHERE a.ID IN ( SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)) t
-            INNER JOIN Users u ON t.cmapping_code = u.cdept_code OR t.cmapping_code = u.cposition_code
-            OR t.cmapping_code = u.croll_id OR t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid) and u.nIs_deleted=0
-            ORDER BY t.id asc";
+            WHERE a.ID = (SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)
+              AND b.iseqno < (SELECT iseqno FROM tbl_taskflow_detail WHERE id = @ID) 
+        ) t
+        INNER JOIN Users u ON (
+            t.cmapping_code = u.cdept_code OR 
+            t.cmapping_code = u.cposition_code OR 
+            t.cmapping_code = u.croll_id OR 
+            t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid)
+        ) 
+        WHERE u.nIs_deleted = 0
+        ORDER BY t.iseqno ASC"; // Ordered by sequence to show progress chronologically
 
             using (SqlCommand cmd = new SqlCommand(timelineQuery, conn))
             {
@@ -1451,13 +1516,12 @@ WHERE a.cis_active = 1
                     {
                         timelineList.Add(new PreviousapproverDTO
                         {
-                            activity = reader["cactivityname"]?.ToString() ?? "",                          
+                            activity = reader["cactivityname"]?.ToString() ?? "",
                             status = reader["status"]?.ToString() ?? "",
-                            cremarks = reader["cremarks"]?.ToString() ?? "",                          
-                            datatime =reader.IsDBNull(reader.GetOrdinal("statusDate")) ? null: reader.GetDateTime(reader.GetOrdinal("statusDate")),
+                            cremarks = reader["cremarks"]?.ToString() ?? "",
+                            datatime = reader.IsDBNull(reader.GetOrdinal("statusDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("statusDate")),
                             pendingwith = reader["userName"]?.ToString() ?? "",
                             pendingwithavatar = reader["userAvatar"]?.ToString() ?? ""
-
                         });
                     }
                 }
@@ -1465,8 +1529,6 @@ WHERE a.cis_active = 1
 
             return timelineList;
         }
-
-
         public async Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
