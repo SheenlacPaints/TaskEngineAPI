@@ -1520,6 +1520,77 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
+        [HttpPut("UpdateUserpassword")]
+        public async Task<IActionResult> UpdateUserpassword([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return EncryptedError(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Payload cannot be empty");
+                }
+
+                var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return EncryptedError(401, "Authorization header is missing or invalid");
+                }
+
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+
+                var tenantIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "cTenantID")?.Value;
+                var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
+
+                if (string.IsNullOrEmpty(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token");
+                }
+
+                if (string.IsNullOrEmpty(usernameClaim))
+                {
+                    return EncryptedError(401, "Invalid or missing username in token");
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<UpdateUserPasswordDTO>(decryptedJson);
+
+                if (model == null || string.IsNullOrWhiteSpace(model.cpassword))
+                {
+                    return EncryptedError(400, "Invalid payload or password");
+                }
+
+                bool success = await _AccountService.UpdatePasswordUserAsync(model, cTenantID, usernameClaim);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ? "Password updated successfully" : "SuperAdmin not found"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (SecurityTokenException ex)
+            {
+                return EncryptedError(401, $"Invalid token: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [Authorize]
         [HttpPost("fileUpload")]
         public async Task<IActionResult> fileUpload([FromForm] FileUploadDTO model)
