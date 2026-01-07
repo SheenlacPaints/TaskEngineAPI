@@ -186,7 +186,7 @@ namespace TaskEngineAPI.Services
                                 cmdStatus.Parameters.AddWithValue("@cheader_id", 1);
                                 cmdStatus.Parameters.AddWithValue("@cdetail_id", detailId);
                                 cmdStatus.Parameters.AddWithValue("@cstatus", currentStatus);
-                                cmdStatus.Parameters.AddWithValue("@cstatus_with", userName);
+                                cmdStatus.Parameters.AddWithValue("@cstatus_with", row["cmapping_code"]);
                                 cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
                                 await cmdStatus.ExecuteNonQueryAsync();
                             }
@@ -1486,7 +1486,7 @@ WHERE a.cis_active = 1
                     {
                         updateQuery = @"UPDATE tbl_taskflow_detail SET 
                                 creassign_to = @creassign_to,  lreassign_Date = @lreassign_Date, 
-                                cis_reassigned = @cis_reassigned  WHERE ID = @ID";
+                                cis_reassigned = @cis_reassigned,cremarks = @remarks  WHERE ID = @ID";
                     }
                     else
                     {
@@ -1502,6 +1502,7 @@ WHERE a.cis_active = 1
                             updateCmd.Parameters.AddWithValue("@creassign_to", model.reassignto);
                             updateCmd.Parameters.AddWithValue("@lreassign_Date", DateTime.Now); // Or model property
                             updateCmd.Parameters.AddWithValue("@cis_reassigned", "Y");
+                            updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
                         }
                         else
                         {
