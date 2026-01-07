@@ -2741,7 +2741,7 @@ WHERE a.cis_active = 1
                 {
                     cmd.Connection = con;
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@userid", username);
+                    //cmd.Parameters.AddWithValue("@userid", username);
                     cmd.Parameters.AddWithValue("@tenentid", cTenantID);
                     cmd.Parameters.AddWithValue("@searchtext", searchText);
                     con.Open();
@@ -2784,7 +2784,7 @@ WHERE a.cis_active = 1
                                 {
                                     cmd1.Connection = con1;
                                     cmd1.CommandType = CommandType.StoredProcedure;
-                                    cmd1.Parameters.AddWithValue("@userid", username);
+                                    //cmd1.Parameters.AddWithValue("@userid", username);
                                     cmd1.Parameters.AddWithValue("@tenentid", cTenantID);
                                     cmd1.Parameters.AddWithValue("@itaskno", p.itaskno);
 
