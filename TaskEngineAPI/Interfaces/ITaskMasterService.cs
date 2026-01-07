@@ -13,9 +13,8 @@ namespace TaskEngineAPI.Interfaces
         Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege);
         Task<string> Getdropdown(int cTenantID, string column);
         //Task<string> Gettaskinbox(int cTenantID, string username);
-
         Task<string> Gettaskinbox(int cTenantID, string username, string searchText);
-        Task<string> Gettaskapprove(int cTenantID, string username);
+        Task<string> Gettaskapprove(int cTenantID, string username, string? searchText);
         //  Task<string> Gettaskhold(int cTenantID, string username);
         Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username);
         Task<int> Processprivilege_mapping(privilegeMappingDTO model, int tenantId, string username);
@@ -26,13 +25,13 @@ namespace TaskEngineAPI.Interfaces
         Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int itaskno);
         Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username);
         Task<string> GetDropDownFilterAsync(int cTenantID, GetDropDownFilterDTO filterDto);
-        Task<string> GettaskHold(int cTenantID, string username);
+        Task<string> GettaskHold(int cTenantID, string username, string? searchText);
         Task<List<GettaskHolddatabyidDTO>> GettaskHolddatabyid(int cTenantID, int id);
         Task<bool> UpdatetaskHoldAsync(updatetaskDTO model, int cTenantID, string username);
-        Task<string> GettaskReject(int cTenantID, string username);
+        Task<string> GettaskReject(int cTenantID, string username, string? searchText);
         Task <List<GettaskRejectdatabyidDTO>>GettaskRejectdatabyid(int cTenantID, int id);
         Task<bool> UpdatetaskRejectAsync(updatetaskDTO model, int cTenantID, string username);
-        Task<string> Getopentasklist(int cTenantID, string username);
+        Task<string> Getopentasklist(int cTenantID, string username, string? searchText);
         Task <List<GetopentasklistdatabyidDTO>> Getopentasklistdatabyid(int cTenantID, int id);
     }
 

@@ -326,7 +326,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Gettaskapprove")]
-        public async Task<IActionResult> Gettaskapprove()
+        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null)
         {
             try
             {
@@ -335,7 +335,7 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.Gettaskapprove(cTenantID, username);
+                var json = await taskMasterService.Gettaskapprove(cTenantID, username,searchText);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
                 return CreatedDataResponse(data);
             }
@@ -353,7 +353,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GettaskHold")]
-        public async Task<IActionResult> GettaskHold()
+        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null)
         {
             try
             {
@@ -362,7 +362,7 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.GettaskHold(cTenantID, username);
+                var json = await taskMasterService.GettaskHold(cTenantID, username,searchText);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
                 return CreatedDataResponse(data);
             }
@@ -380,7 +380,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GettaskReject")]
-        public async Task<IActionResult> GettaskReject()
+        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null)
         {
             try
             {
@@ -389,7 +389,7 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.GettaskReject(cTenantID, username);
+                var json = await taskMasterService.GettaskReject(cTenantID, username, searchText);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
                 return CreatedDataResponse(data);
             }
@@ -406,7 +406,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Getopentasklist")]
-        public async Task<IActionResult> Getopentasklist()
+        public async Task<IActionResult> Getopentasklist([FromQuery] string? searchText = null)
         {
             try
             {
@@ -415,7 +415,7 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.Getopentasklist(cTenantID, username);
+                var json = await taskMasterService.Getopentasklist(cTenantID, username,searchText);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
                 return CreatedDataResponse(data);
             }
