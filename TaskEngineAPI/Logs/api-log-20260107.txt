@@ -1,0 +1,50 @@
+2026-01-07 09:51:25.606 +05:30 [INF] User profile is available. Using 'C:\Users\Keerthana Devi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-01-07 09:51:26.142 +05:30 [INF] Now listening on: https://localhost:7278
+2026-01-07 09:51:26.150 +05:30 [INF] Now listening on: http://localhost:5268
+2026-01-07 09:51:26.493 +05:30 [INF] Application started. Press Ctrl+C to shut down.
+2026-01-07 09:51:26.499 +05:30 [INF] Hosting environment: Development
+2026-01-07 09:51:26.516 +05:30 [INF] Content root path: C:\Users\Keerthana Devi\Source\Repos\TaskEngineAPI\TaskEngineAPI
+2026-01-07 09:51:26.972 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/swagger/index.html - null null
+2026-01-07 09:51:27.878 +05:30 [INF] HTTP GET /swagger/index.html responded 200 in 339.6135 ms
+2026-01-07 09:51:27.935 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/_vs/browserLink - null null
+2026-01-07 09:51:27.935 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/_framework/aspnetcore-browser-refresh.js - null null
+2026-01-07 09:51:27.951 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/swagger/index.html - 200 null text/html;charset=utf-8 1007.0086ms
+2026-01-07 09:51:28.018 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/_framework/aspnetcore-browser-refresh.js - 200 13762 application/javascript; charset=utf-8 83.1072ms
+2026-01-07 09:51:28.146 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/_vs/browserLink - 200 null text/javascript; charset=UTF-8 211.4101ms
+2026-01-07 09:51:28.250 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/swagger/v1/swagger.json - null null
+2026-01-07 09:51:28.450 +05:30 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 168.3476 ms
+2026-01-07 09:51:28.463 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 213.0703ms
+2026-01-07 09:52:02.213 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/api/TaskMaster/GettaskReject?searchText=test%20today - null null
+2026-01-07 09:52:02.940 +05:30 [INF] Executing endpoint 'TaskEngineAPI.Controllers.TaskMasterController.GettaskReject (TaskEngineAPI)'
+2026-01-07 09:52:03.082 +05:30 [INF] Route matched with {action = "GettaskReject", controller = "TaskMaster"}. Executing controller action with signature System.Threading.Tasks.Task`1[Microsoft.AspNetCore.Mvc.IActionResult] GettaskReject(System.String) on controller TaskEngineAPI.Controllers.TaskMasterController (TaskEngineAPI).
+2026-01-07 09:52:05.042 +05:30 [INF] Executing ObjectResult, writing value of type 'System.String'.
+2026-01-07 09:52:05.071 +05:30 [INF] Executed action TaskEngineAPI.Controllers.TaskMasterController.GettaskReject (TaskEngineAPI) in 1962.306ms
+2026-01-07 09:52:05.085 +05:30 [INF] Executed endpoint 'TaskEngineAPI.Controllers.TaskMasterController.GettaskReject (TaskEngineAPI)'
+2026-01-07 09:52:05.093 +05:30 [INF] HTTP GET /api/TaskMaster/GettaskReject responded 200 in 2824.1329 ms
+2026-01-07 09:52:05.106 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/api/TaskMaster/GettaskReject?searchText=test%20today - 200 null text/plain; charset=utf-8 2896.6107ms
+2026-01-07 09:52:23.473 +05:30 [INF] Request starting HTTP/2 POST https://localhost:7278/api/Internal/DecryptedInput_API - application/json 2350
+2026-01-07 09:52:23.520 +05:30 [INF] CORS policy execution failed.
+2026-01-07 09:52:23.558 +05:30 [INF] Request origin https://localhost:7278 does not have permission to access the resource.
+2026-01-07 09:52:23.577 +05:30 [INF] Executing endpoint 'TaskEngineAPI.Controllers.InternalController.DecryptedInput_API (TaskEngineAPI)'
+2026-01-07 09:52:23.601 +05:30 [INF] Route matched with {action = "DecryptedInput_API", controller = "Internal"}. Executing controller action with signature Microsoft.AspNetCore.Mvc.ActionResult`1[System.String] DecryptedInput_API(System.String) on controller TaskEngineAPI.Controllers.InternalController (TaskEngineAPI).
+2026-01-07 09:52:23.717 +05:30 [INF] Executing OkObjectResult, writing value of type 'System.String'.
+2026-01-07 09:52:23.794 +05:30 [INF] Executed action TaskEngineAPI.Controllers.InternalController.DecryptedInput_API (TaskEngineAPI) in 180.9426ms
+2026-01-07 09:52:23.822 +05:30 [INF] Executed endpoint 'TaskEngineAPI.Controllers.InternalController.DecryptedInput_API (TaskEngineAPI)'
+2026-01-07 09:52:23.831 +05:30 [INF] HTTP POST /api/Internal/DecryptedInput_API responded 200 in 339.5107 ms
+2026-01-07 09:52:23.849 +05:30 [INF] Request finished HTTP/2 POST https://localhost:7278/api/Internal/DecryptedInput_API - 200 null text/plain; charset=utf-8 375.3724ms
+2026-01-07 09:56:38.490 +05:30 [INF] User profile is available. Using 'C:\Users\Keerthana Devi\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-01-07 09:56:39.028 +05:30 [INF] Now listening on: https://localhost:7278
+2026-01-07 09:56:39.031 +05:30 [INF] Now listening on: http://localhost:5268
+2026-01-07 09:56:39.293 +05:30 [INF] Application started. Press Ctrl+C to shut down.
+2026-01-07 09:56:39.302 +05:30 [INF] Hosting environment: Development
+2026-01-07 09:56:39.305 +05:30 [INF] Content root path: C:\Users\Keerthana Devi\Source\Repos\TaskEngineAPI\TaskEngineAPI
+2026-01-07 09:56:40.147 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/swagger/index.html - null null
+2026-01-07 09:56:40.641 +05:30 [INF] HTTP GET /swagger/index.html responded 200 in 206.8724 ms
+2026-01-07 09:56:40.648 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/_framework/aspnetcore-browser-refresh.js - null null
+2026-01-07 09:56:40.659 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/swagger/index.html - 200 null text/html;charset=utf-8 526.0116ms
+2026-01-07 09:56:40.668 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/_framework/aspnetcore-browser-refresh.js - 200 13762 application/javascript; charset=utf-8 20.8658ms
+2026-01-07 09:56:40.671 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/_vs/browserLink - null null
+2026-01-07 09:56:40.762 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/_vs/browserLink - 200 null text/javascript; charset=UTF-8 91.3724ms
+2026-01-07 09:56:40.837 +05:30 [INF] Request starting HTTP/2 GET https://localhost:7278/swagger/v1/swagger.json - null null
+2026-01-07 09:56:40.942 +05:30 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 95.7045 ms
+2026-01-07 09:56:40.959 +05:30 [INF] Request finished HTTP/2 GET https://localhost:7278/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 120.646ms

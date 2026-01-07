@@ -1044,7 +1044,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Gettaskapprove")]
-        public async Task<IActionResult> Gettaskapprove()
+        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1053,7 +1053,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskapprove";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskapprove?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1080,7 +1080,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskReject")]
-        public async Task<IActionResult> GettaskReject()
+        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1089,7 +1089,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReject";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReject?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1116,7 +1116,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskHold")]
-        public async Task<IActionResult> GettaskHold()
+        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1125,7 +1125,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1150,6 +1150,42 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
+        [HttpGet("Getopentasklist")]
+        public async Task<IActionResult> Getopentasklist([FromQuery] string? searchText = null)
+        {
+            try
+            {
+                // 🔐 Extract token
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");
+                // 🔗 Build full URL with encrypted query             
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Getopentasklist?searchText={searchText}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                // 📡 Forward request
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+
+                // 🔐 Wrap encrypted response in quotes
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
 
         [Authorize]
         [HttpPost("DeptposrolecrudAsync")]
@@ -2198,6 +2234,40 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing Authorization token.");
 
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskRejectdatabyid?id={id}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("Getopentasklistdatabyid")]
+        public async Task<IActionResult> Getopentasklistdatabyid([FromQuery] int id)
+        {
+            try
+            {
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");
+
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Getopentasklistdatabyid?id={id}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 var response = await _httpClient.SendAsync(requestMessage);
