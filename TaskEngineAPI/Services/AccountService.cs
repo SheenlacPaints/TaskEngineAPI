@@ -951,7 +951,7 @@ VALUES (
         UPDATE AdminUsers SET
             cpassword = @Password,
             cpassword_changed_at =@cPasswordChangedAt          
-        WHERE cuser_name = @ID AND  ctenant_Id = @TenantID";
+        WHERE cuserid = @ID AND  ctenant_Id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
