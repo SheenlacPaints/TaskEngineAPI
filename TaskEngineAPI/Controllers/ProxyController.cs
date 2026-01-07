@@ -1044,7 +1044,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Gettaskapprove")]
-        public async Task<IActionResult> Gettaskapprove()
+        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1053,7 +1053,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskapprove";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskapprove?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1080,7 +1080,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskReject")]
-        public async Task<IActionResult> GettaskReject()
+        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1089,7 +1089,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReject";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReject?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1116,7 +1116,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskHold")]
-        public async Task<IActionResult> GettaskHold()
+        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1125,7 +1125,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1153,7 +1153,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Getopentasklist")]
-        public async Task<IActionResult> Getopentasklist()
+        public async Task<IActionResult> Getopentasklist([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1162,7 +1162,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Getopentasklist";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Getopentasklist?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
