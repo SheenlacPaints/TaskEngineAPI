@@ -1479,88 +1479,103 @@ WHERE a.cis_active = 1
                 int? taskNo = null;
                 try
                 {
-                    string updateQuery = @"UPDATE tbl_taskflow_detail  SET ccurrent_status = @status, 
-                 lcurrent_status_date = @status_date ,cremarks=@remarks,creassign_to=@creassign_to WHERE ID = @ID";
-
+                    string updateQuery;
+                    bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+                    if (isReassigning)
+                    {
+                        updateQuery = @"UPDATE tbl_taskflow_detail SET 
+                                creassign_to = @creassign_to,  lreassign_Date = @lreassign_Date, 
+                                cis_reassigned = @cis_reassigned  WHERE ID = @ID";
+                    }
+                    else
+                    {
+                        updateQuery = @"UPDATE tbl_taskflow_detail SET 
+                                ccurrent_status = @status, lcurrent_status_date = @status_date, cremarks = @remarks  WHERE ID = @ID";
+                    }
                     using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
                     {
-                        updateCmd.Parameters.AddWithValue("@status", (object?)model.status ?? DBNull.Value);
-                        updateCmd.Parameters.AddWithValue("@status_date", (object?)model.status_date ?? DBNull.Value);
-                        updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@ID", model.ID);
-                        updateCmd.Parameters.AddWithValue("@creassign_to", (object?)model.reassignto ?? DBNull.Value);
-                        int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
 
+                        if (isReassigning)
+                        {
+                            updateCmd.Parameters.AddWithValue("@creassign_to", model.reassignto);
+                            updateCmd.Parameters.AddWithValue("@lreassign_Date", DateTime.Now); // Or model property
+                            updateCmd.Parameters.AddWithValue("@cis_reassigned", "Y");
+                        }
+                        else
+                        {
+                            updateCmd.Parameters.AddWithValue("@status", (object?)model.status ?? DBNull.Value);
+                            updateCmd.Parameters.AddWithValue("@status_date", (object?)model.status_date ?? DBNull.Value);
+                            updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
+                        }
+
+                        int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
                         if (rowsAffected == 0)
                         {
                             transaction.Rollback();
                             return false;
                         }
                     }
-                
                     string selectQuery = @"
                 SELECT a.itaskno, b.cprocess_id FROM tbl_taskflow_detail a
-                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID WHERE a.ID = @ID"; 
+                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID WHERE a.ID = @ID";
 
                     using (SqlCommand selectCmd = new SqlCommand(selectQuery, conn, transaction))
                     {
                         selectCmd.Parameters.AddWithValue("@ID", model.ID);
-
                         using (var reader = await selectCmd.ExecuteReaderAsync())
                         {
                             if (await reader.ReadAsync())
-                            {                              
+                            {
                                 taskNo = reader["itaskno"] as int? ?? model.itaskno;
                                 processId = reader["cprocess_id"] as int?;
                             }
-                          
                             reader.Close();
                         }
                     }
-                
+
+
                     string statusQuery = @"
                 INSERT INTO tbl_transaction_taskflow_detail_and_status
-                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date,cremarks,crejected_reason)
-                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date,@cremarks,@crejected_reason);";
+                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date, cremarks, crejected_reason)
+                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date, @cremarks, @crejected_reason);";
 
                     using (SqlCommand statusCmd = new SqlCommand(statusQuery, conn, transaction))
                     {
-                        statusCmd.Parameters.AddWithValue("@itaskno", taskNo); 
+                        statusCmd.Parameters.AddWithValue("@itaskno", taskNo ?? (object)DBNull.Value);
                         statusCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
-                        statusCmd.Parameters.AddWithValue("@cheader_id", 2); 
+                        statusCmd.Parameters.AddWithValue("@cheader_id", 2);
                         statusCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
-                        statusCmd.Parameters.AddWithValue("@cstatus", (object?)model.status ?? DBNull.Value);
+                        statusCmd.Parameters.AddWithValue("@cstatus", isReassigning ? "Reassign" : (object?)model.status ?? DBNull.Value);
                         statusCmd.Parameters.AddWithValue("@cstatus_with", username);
-                        statusCmd.Parameters.AddWithValue("@lstatus_date", (object?)model.status_date ?? DBNull.Value); 
+                        statusCmd.Parameters.AddWithValue("@lstatus_date", (object?)model.status_date ?? DateTime.Now);
                         statusCmd.Parameters.AddWithValue("@cremarks", (object?)model.remarks ?? DBNull.Value);
-                        statusCmd.Parameters.AddWithValue("@crejected_reason",(object?)model.rejectedreason ?? DBNull.Value);
+                        statusCmd.Parameters.AddWithValue("@crejected_reason", (object?)model.rejectedreason ?? DBNull.Value);
                         await statusCmd.ExecuteNonQueryAsync();
                     }
-
-                    string metaQuery = @"
-                INSERT INTO tbl_transaction_process_meta_layout (
-                [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) VALUES (
-                @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id);";
-                    if (model.metaData != null)
+                    if (model.metaData != null && model.metaData.Any())
                     {
+                        string metaQuery = @"
+                    INSERT INTO tbl_transaction_process_meta_layout 
+                    ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) 
+                    VALUES (@cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id);";
+
                         foreach (var metaData in model.metaData)
                         {
                             using (SqlCommand metaInsertCmd = new SqlCommand(metaQuery, conn, transaction))
                             {
                                 metaInsertCmd.Parameters.AddWithValue("@TenantID", cTenantID);
                                 metaInsertCmd.Parameters.AddWithValue("@cmeta_id", (object?)metaData.cmeta_id ?? DBNull.Value);
-                                metaInsertCmd.Parameters.AddWithValue("@cprocess_id", processId ?? (object)DBNull.Value); // Using retrieved value
+                                metaInsertCmd.Parameters.AddWithValue("@cprocess_id", processId ?? (object)DBNull.Value);
                                 metaInsertCmd.Parameters.AddWithValue("@cprocess_code", "");
                                 metaInsertCmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
-                                metaInsertCmd.Parameters.AddWithValue("@citaskno", taskNo); 
+                                metaInsertCmd.Parameters.AddWithValue("@citaskno", taskNo ?? (object)DBNull.Value);
                                 metaInsertCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
                                 await metaInsertCmd.ExecuteNonQueryAsync();
                             }
                         }
                     }
-
-
-                    if (model.status == "A")
+                    if (model.status == "A" && !isReassigning)
                     {
                         using (SqlCommand cmd = new SqlCommand("sp_update_pendingtasks_V1", conn, transaction))
                         {
@@ -1568,11 +1583,9 @@ WHERE a.cis_active = 1
                             cmd.Parameters.AddWithValue("@itasknoo", model.itaskno);
                             cmd.Parameters.AddWithValue("@ID", model.ID);
                             cmd.Parameters.AddWithValue("@ctenantid", cTenantID);
-                            cmd.ExecuteNonQuery();
+                            await cmd.ExecuteNonQueryAsync(); // Switched to Async
                         }
                     }
-
-
                     transaction.Commit();
                     return true;
                 }
