@@ -485,14 +485,13 @@ VALUES (
         public async Task<bool> UpdateUserAsync(UpdateUserDTO model, int cTenantID)
         {
             var connStr = _config.GetConnectionString("Database");
-
-
             using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
-            string query = @"UPDATE Users SET
+            bool hasPassword = !string.IsNullOrWhiteSpace(model.cpassword);
+
+            string queryWithoutPassword = @"UPDATE Users SET
             cuser_name = @cusername,
-            cemail = @cemail,
-            cpassword = @cpassword,
+            cemail = @cemail,          
             [nIs_active] = @nIsActive,
             [cfirst_name] = @cfirstName,
             [clast_name] = @clastName,
@@ -545,8 +544,7 @@ VALUES (
             nis_web_access_enabled = @nIsWebAccessEnabled,
             nis_event_read = @nIsEventRead,
             llast_login_at = @lLastLoginAt,
-            nfailed_logina_attempts = @nFailedLoginAttempts,
-            cpassword_changed_at = @cPasswordChangedAt,
+            nfailed_logina_attempts = @nFailedLoginAttempts,        
             nis_locked = @nIsLocked,
             last_login_ip = @LastLoginIP,
             last_login_device = @LastLoginDevice,
@@ -557,17 +555,27 @@ VALUES (
             ldeleted_date = @lDeletedDate        
             WHERE ctenant_id = @ctenantID and id=@id";
 
-            using var cmd = new SqlCommand(query, conn);
+            string queryWithPassword = @"
+             UPDATE Users SET   
+            cpassword = @cpassword,
+            cpassword_changed_at = @cPasswordChangedAt     
+            WHERE ctenant_id = @ctenantID AND id = @id";
 
+            string query = hasPassword ? queryWithPassword : queryWithoutPassword;
 
-            model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+            using var cmd = new SqlCommand(query, conn);                             
+            if (hasPassword)
+            {
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
 
+                cmd.Parameters.AddWithValue("@cpassword", hashedPassword);
+                cmd.Parameters.AddWithValue("@cPasswordChangedAt", DateTime.Now);
+            }
             cmd.Parameters.AddWithValue("@id", model.id);
             cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
             cmd.Parameters.AddWithValue("@ctenantID", cTenantID);
             cmd.Parameters.AddWithValue("@cusername", (object?)model.cusername ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@cemail", (object?)model.cemail ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@cpassword", (object?)model.cpassword ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cemail", (object?)model.cemail ?? DBNull.Value);                   
             cmd.Parameters.AddWithValue("@nIsActive", (object?)model.nIsActive ?? true);
             cmd.Parameters.AddWithValue("@cfirstName", (object?)model.cfirstName ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@clastName", (object?)model.clastName ?? DBNull.Value);
@@ -620,8 +628,7 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsWebAccessEnabled", (object?)model.nIsWebAccessEnabled ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@nIsEventRead", (object?)model.nIsEventRead ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lLastLoginAt", (object?)model.lLastLoginAt ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@nFailedLoginAttempts", (object?)model.nFailedLoginAttempts ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@cPasswordChangedAt", (object?)model.cPasswordChangedAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@nFailedLoginAttempts", (object?)model.nFailedLoginAttempts ?? DBNull.Value);       
             cmd.Parameters.AddWithValue("@nIsLocked", (object?)model.nIsLocked ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.LastLoginIP ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.LastLoginDevice ?? DBNull.Value);
