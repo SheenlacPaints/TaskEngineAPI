@@ -17,7 +17,8 @@ Debug/
 Release/
 Debug*/  
 Release*/
-
+# Ignore the logs directory and all its contents
+logs/
 # Explicitly ignore Debug/net6.0 directories
 **/bin/Debug/net6.0/
 **/bin/Debug/net6.0/**

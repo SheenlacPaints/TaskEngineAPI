@@ -186,7 +186,7 @@ namespace TaskEngineAPI.Services
                                 cmdStatus.Parameters.AddWithValue("@cheader_id", 1);
                                 cmdStatus.Parameters.AddWithValue("@cdetail_id", detailId);
                                 cmdStatus.Parameters.AddWithValue("@cstatus", currentStatus);
-                                cmdStatus.Parameters.AddWithValue("@cstatus_with", userName);
+                                cmdStatus.Parameters.AddWithValue("@cstatus_with", row["cmapping_code"]);
                                 cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
                                 await cmdStatus.ExecuteNonQueryAsync();
                             }
@@ -1426,20 +1426,85 @@ WHERE a.cis_active = 1
             return timelineList;
         }
 
+        //private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID)
+        //{
+        //    var timelineList = new List<PreviousapproverDTO>();
+
+        //    string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks,t.ID,
+        //    t.lcurrent_status_date AS statusDate,t.cmapping_code,t.cprocess_id,t.cactivityname,
+        //    u.cuserid,u.cfirst_name + ' ' + u.clast_name AS userName,u.cprofile_image_path AS userAvatar
+        //    FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,b.ID,
+        //    ped.cactivityname FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
+        //    LEFT JOIN tbl_process_engine_details ped ON ped.cheader_id = a.cprocess_id AND ped.ciseqno = b.iseqno
+        //    WHERE a.ID IN ( SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)) t
+        //    INNER JOIN Users u ON t.cmapping_code = u.cdept_code OR t.cmapping_code = u.cposition_code
+        //    OR t.cmapping_code = u.croll_id OR t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid) and u.nIs_deleted=0
+        //    ORDER BY t.id asc";
+
+        //    using (SqlCommand cmd = new SqlCommand(timelineQuery, conn))
+        //    {
+        //        cmd.Parameters.AddWithValue("@ID", ID);
+
+        //        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+        //        {
+        //            while (await reader.ReadAsync())
+        //            {
+        //                timelineList.Add(new PreviousapproverDTO
+        //                {
+        //                    activity = reader["cactivityname"]?.ToString() ?? "",                          
+        //                    status = reader["status"]?.ToString() ?? "",
+        //                    cremarks = reader["cremarks"]?.ToString() ?? "",                          
+        //                    datatime =reader.IsDBNull(reader.GetOrdinal("statusDate")) ? null: reader.GetDateTime(reader.GetOrdinal("statusDate")),
+        //                    pendingwith = reader["userName"]?.ToString() ?? "",
+        //                    pendingwithavatar = reader["userAvatar"]?.ToString() ?? ""
+
+        //                });
+        //            }
+        //        }
+        //    }
+
+        //    return timelineList;
+        //}
+
         private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID)
         {
             var timelineList = new List<PreviousapproverDTO>();
-
-            string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks,t.ID,
-            t.lcurrent_status_date AS statusDate,t.cmapping_code,t.cprocess_id,t.cactivityname,
-            u.cuserid,u.cfirst_name + ' ' + u.clast_name AS userName,u.cprofile_image_path AS userAvatar
-            FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,b.ID,
-            ped.cactivityname FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
+            string timelineQuery = @"
+        SELECT 
+            t.ccurrent_status AS status,
+            t.cremarks,
+            t.ID,
+            t.lcurrent_status_date AS statusDate,
+            t.cmapping_code,
+            t.cprocess_id,
+            t.cactivityname,
+            u.cuserid,
+            u.cfirst_name + ' ' + u.clast_name AS userName,
+            u.cprofile_image_path AS userAvatar
+        FROM (
+            SELECT 
+                b.ccurrent_status,
+                b.lcurrent_status_date,
+                b.cremarks,
+                b.cmapping_code,
+                a.cprocess_id,
+                b.ID,
+                b.iseqno,
+                ped.cactivityname 
+            FROM tbl_taskflow_master a 
+            LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
             LEFT JOIN tbl_process_engine_details ped ON ped.cheader_id = a.cprocess_id AND ped.ciseqno = b.iseqno
-            WHERE a.ID IN ( SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)) t
-            INNER JOIN Users u ON t.cmapping_code = u.cdept_code OR t.cmapping_code = u.cposition_code
-            OR t.cmapping_code = u.croll_id OR t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid) and u.nIs_deleted=0
-            ORDER BY t.id asc";
+            WHERE a.ID = (SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)
+              AND b.iseqno < (SELECT iseqno FROM tbl_taskflow_detail WHERE id = @ID) 
+        ) t
+        INNER JOIN Users u ON (
+            t.cmapping_code = u.cdept_code OR 
+            t.cmapping_code = u.cposition_code OR 
+            t.cmapping_code = u.croll_id OR 
+            t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid)
+        ) 
+        WHERE u.nIs_deleted = 0
+        ORDER BY t.iseqno ASC"; // Ordered by sequence to show progress chronologically
 
             using (SqlCommand cmd = new SqlCommand(timelineQuery, conn))
             {
@@ -1451,13 +1516,12 @@ WHERE a.cis_active = 1
                     {
                         timelineList.Add(new PreviousapproverDTO
                         {
-                            activity = reader["cactivityname"]?.ToString() ?? "",                          
+                            activity = reader["cactivityname"]?.ToString() ?? "",
                             status = reader["status"]?.ToString() ?? "",
-                            cremarks = reader["cremarks"]?.ToString() ?? "",                          
-                            datatime =reader.IsDBNull(reader.GetOrdinal("statusDate")) ? null: reader.GetDateTime(reader.GetOrdinal("statusDate")),
+                            cremarks = reader["cremarks"]?.ToString() ?? "",
+                            datatime = reader.IsDBNull(reader.GetOrdinal("statusDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("statusDate")),
                             pendingwith = reader["userName"]?.ToString() ?? "",
                             pendingwithavatar = reader["userAvatar"]?.ToString() ?? ""
-
                         });
                     }
                 }
@@ -1465,8 +1529,6 @@ WHERE a.cis_active = 1
 
             return timelineList;
         }
-
-
         public async Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -1480,88 +1542,104 @@ WHERE a.cis_active = 1
                 int? taskNo = null;
                 try
                 {
-                    string updateQuery = @"UPDATE tbl_taskflow_detail  SET ccurrent_status = @status, 
-                 lcurrent_status_date = @status_date ,cremarks=@remarks,creassign_to=@creassign_to WHERE ID = @ID";
-
+                    string updateQuery;
+                    bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+                    if (isReassigning)
+                    {
+                        updateQuery = @"UPDATE tbl_taskflow_detail SET 
+                                creassign_to = @creassign_to,  lreassign_Date = @lreassign_Date, 
+                                cis_reassigned = @cis_reassigned,cremarks = @remarks  WHERE ID = @ID";
+                    }
+                    else
+                    {
+                        updateQuery = @"UPDATE tbl_taskflow_detail SET 
+                                ccurrent_status = @status, lcurrent_status_date = @status_date, cremarks = @remarks  WHERE ID = @ID";
+                    }
                     using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
                     {
-                        updateCmd.Parameters.AddWithValue("@status", (object?)model.status ?? DBNull.Value);
-                        updateCmd.Parameters.AddWithValue("@status_date", (object?)model.status_date ?? DBNull.Value);
-                        updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
                         updateCmd.Parameters.AddWithValue("@ID", model.ID);
-                        updateCmd.Parameters.AddWithValue("@creassign_to", (object?)model.reassignto ?? DBNull.Value);
-                        int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
 
+                        if (isReassigning)
+                        {
+                            updateCmd.Parameters.AddWithValue("@creassign_to", model.reassignto);
+                            updateCmd.Parameters.AddWithValue("@lreassign_Date", DateTime.Now); // Or model property
+                            updateCmd.Parameters.AddWithValue("@cis_reassigned", "Y");
+                            updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
+                        }
+                        else
+                        {
+                            updateCmd.Parameters.AddWithValue("@status", (object?)model.status ?? DBNull.Value);
+                            updateCmd.Parameters.AddWithValue("@status_date", (object?)model.status_date ?? DBNull.Value);
+                            updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
+                        }
+
+                        int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
                         if (rowsAffected == 0)
                         {
                             transaction.Rollback();
                             return false;
                         }
                     }
-                
                     string selectQuery = @"
                 SELECT a.itaskno, b.cprocess_id FROM tbl_taskflow_detail a
-                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID WHERE a.ID = @ID"; 
+                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID WHERE a.ID = @ID";
 
                     using (SqlCommand selectCmd = new SqlCommand(selectQuery, conn, transaction))
                     {
                         selectCmd.Parameters.AddWithValue("@ID", model.ID);
-
                         using (var reader = await selectCmd.ExecuteReaderAsync())
                         {
                             if (await reader.ReadAsync())
-                            {                              
+                            {
                                 taskNo = reader["itaskno"] as int? ?? model.itaskno;
                                 processId = reader["cprocess_id"] as int?;
                             }
-                          
                             reader.Close();
                         }
                     }
-                
+
+
                     string statusQuery = @"
                 INSERT INTO tbl_transaction_taskflow_detail_and_status
-                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date,cremarks,crejected_reason)
-                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date,@cremarks,@crejected_reason);";
+                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date, cremarks, crejected_reason)
+                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date, @cremarks, @crejected_reason);";
 
                     using (SqlCommand statusCmd = new SqlCommand(statusQuery, conn, transaction))
                     {
-                        statusCmd.Parameters.AddWithValue("@itaskno", taskNo); 
+                        statusCmd.Parameters.AddWithValue("@itaskno", taskNo ?? (object)DBNull.Value);
                         statusCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
-                        statusCmd.Parameters.AddWithValue("@cheader_id", 2); 
+                        statusCmd.Parameters.AddWithValue("@cheader_id", 2);
                         statusCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
-                        statusCmd.Parameters.AddWithValue("@cstatus", (object?)model.status ?? DBNull.Value);
+                        statusCmd.Parameters.AddWithValue("@cstatus", isReassigning ? "Reassign" : (object?)model.status ?? DBNull.Value);
                         statusCmd.Parameters.AddWithValue("@cstatus_with", username);
-                        statusCmd.Parameters.AddWithValue("@lstatus_date", (object?)model.status_date ?? DBNull.Value); 
+                        statusCmd.Parameters.AddWithValue("@lstatus_date", (object?)model.status_date ?? DateTime.Now);
                         statusCmd.Parameters.AddWithValue("@cremarks", (object?)model.remarks ?? DBNull.Value);
-                        statusCmd.Parameters.AddWithValue("@crejected_reason",(object?)model.rejectedreason ?? DBNull.Value);
+                        statusCmd.Parameters.AddWithValue("@crejected_reason", (object?)model.rejectedreason ?? DBNull.Value);
                         await statusCmd.ExecuteNonQueryAsync();
                     }
-
-                    string metaQuery = @"
-                INSERT INTO tbl_transaction_process_meta_layout (
-                [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) VALUES (
-                @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id);";
-                    if (model.metaData != null)
+                    if (model.metaData != null && model.metaData.Any())
                     {
+                        string metaQuery = @"
+                    INSERT INTO tbl_transaction_process_meta_layout 
+                    ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) 
+                    VALUES (@cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id);";
+
                         foreach (var metaData in model.metaData)
                         {
                             using (SqlCommand metaInsertCmd = new SqlCommand(metaQuery, conn, transaction))
                             {
                                 metaInsertCmd.Parameters.AddWithValue("@TenantID", cTenantID);
                                 metaInsertCmd.Parameters.AddWithValue("@cmeta_id", (object?)metaData.cmeta_id ?? DBNull.Value);
-                                metaInsertCmd.Parameters.AddWithValue("@cprocess_id", processId ?? (object)DBNull.Value); // Using retrieved value
+                                metaInsertCmd.Parameters.AddWithValue("@cprocess_id", processId ?? (object)DBNull.Value);
                                 metaInsertCmd.Parameters.AddWithValue("@cprocess_code", "");
                                 metaInsertCmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
-                                metaInsertCmd.Parameters.AddWithValue("@citaskno", taskNo); 
+                                metaInsertCmd.Parameters.AddWithValue("@citaskno", taskNo ?? (object)DBNull.Value);
                                 metaInsertCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
                                 await metaInsertCmd.ExecuteNonQueryAsync();
                             }
                         }
                     }
-
-
-                    if (model.status == "A")
+                    if (model.status == "A" && !isReassigning)
                     {
                         using (SqlCommand cmd = new SqlCommand("sp_update_pendingtasks_V1", conn, transaction))
                         {
@@ -1569,11 +1647,9 @@ WHERE a.cis_active = 1
                             cmd.Parameters.AddWithValue("@itasknoo", model.itaskno);
                             cmd.Parameters.AddWithValue("@ID", model.ID);
                             cmd.Parameters.AddWithValue("@ctenantid", cTenantID);
-                            cmd.ExecuteNonQuery();
+                            await cmd.ExecuteNonQueryAsync(); // Switched to Async
                         }
                     }
-
-
                     transaction.Commit();
                     return true;
                 }
