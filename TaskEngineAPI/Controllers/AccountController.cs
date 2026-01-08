@@ -2972,7 +2972,8 @@ namespace TaskEngineAPI.Controllers
                 "cdepartment_manager_position_code",
                 "cdepartment_manager_name",
                 "cdepartment_email",
-                "cdepartment_phone"
+                "cdepartment_phone",
+                "nis_active"
             };
 
                     var jArray = JArray.Parse(decryptedJson);
@@ -3091,7 +3092,9 @@ namespace TaskEngineAPI.Controllers
                 { "cdepartment_manager_rolecode", dept.cdepartment_manager_rolecode },
                 { "cdepartment_manager_position_code", dept.cdepartment_manager_position_code },
                 { "cdepartment_manager_name", dept.cdepartment_manager_name },
-                { "cdepartment_phone", dept.cdepartment_phone }
+                { "cdepartment_phone", dept.cdepartment_phone },
+                        {"nis_active",dept.nis_active }
+
             };
 
                     var missingOptionalFields = optionalFields
@@ -3340,7 +3343,8 @@ namespace TaskEngineAPI.Controllers
                 "cdepartment_code",
                 "creporting_manager_code",
                 "creporting_manager_name",
-                "crole_description"
+                "crole_description",
+                "nis_active"
 
             };
                     var jArray = JArray.Parse(decryptedJson);
@@ -3459,7 +3463,8 @@ namespace TaskEngineAPI.Controllers
                 { "cdepartment_code", role.cdepartment_code },
                 { "creporting_manager_code", role.creporting_manager_code },
                 { "creporting_manager_name", role.creporting_manager_name },
-                { "crole_description", role.crole_description }
+                { "crole_description", role.crole_description },
+                        {"nis_active",role.nis_active }
             };
 
                     var missingOptionalFields = optionalFields
@@ -3706,7 +3711,8 @@ namespace TaskEngineAPI.Controllers
                 "cposition_decsription",
                 "cdepartment_code",
                 "creporting_manager_positionid",
-                "creporting_manager_name"
+                "creporting_manager_name",
+                "nis_active"
             };
                     var jArray = JArray.Parse(decryptedJson);
                     foreach (var item in jArray)
@@ -3823,7 +3829,8 @@ namespace TaskEngineAPI.Controllers
                 { "cposition_decsription", position.cposition_decsription },
                 { "cdepartment_code", position.cdepartment_code },
                 { "creporting_manager_positionid", position.creporting_manager_positionid },
-                { "creporting_manager_name", position.creporting_manager_name }
+                { "creporting_manager_name", position.creporting_manager_name },
+                {"nis_active",position.nis_active }
             };
 
                     var missingOptionalFields = optionalFields
