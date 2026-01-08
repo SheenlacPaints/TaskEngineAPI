@@ -265,7 +265,6 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
         public async Task<string> GetAllProcessmetadetailAsync(int cTenantID, int metaid)
         {
             try
@@ -751,7 +750,6 @@ WHERE a.cis_active = 1
             return JsonConvert.SerializeObject(tsk, Formatting.Indented);
         }
 
-
         public async Task<string> Gettaskapprove(int cTenantID, string username, string? searchText)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -1032,7 +1030,6 @@ WHERE a.cis_active = 1
                 throw new Exception($"Error retrieving task condition list: {ex.Message}");
             }
         }
-
 
         //public async Task<List<GettaskinboxbyidDTO>> Getinboxdatabyidold(int cTenantID, int ID)
         //{
@@ -1388,7 +1385,6 @@ WHERE a.cis_active = 1
                 });
             }
         }
-
         private async Task<List<TimelineDTO>> GetTimelineAsync(SqlConnection conn, int ID)
         {
             var timelineList = new List<TimelineDTO>();
@@ -1426,48 +1422,7 @@ WHERE a.cis_active = 1
             }
 
             return timelineList;
-        }
-
-        //private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID)
-        //{
-        //    var timelineList = new List<PreviousapproverDTO>();
-
-        //    string timelineQuery = @"SELECT t.ccurrent_status AS status,t.cremarks,t.ID,
-        //    t.lcurrent_status_date AS statusDate,t.cmapping_code,t.cprocess_id,t.cactivityname,
-        //    u.cuserid,u.cfirst_name + ' ' + u.clast_name AS userName,u.cprofile_image_path AS userAvatar
-        //    FROM (SELECT b.ccurrent_status,b.lcurrent_status_date,b.cremarks,b.cmapping_code,a.cprocess_id,b.ID,
-        //    ped.cactivityname FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.ID = b.iheader_id
-        //    LEFT JOIN tbl_process_engine_details ped ON ped.cheader_id = a.cprocess_id AND ped.ciseqno = b.iseqno
-        //    WHERE a.ID IN ( SELECT iheader_id FROM tbl_taskflow_detail WHERE id = @ID)) t
-        //    INNER JOIN Users u ON t.cmapping_code = u.cdept_code OR t.cmapping_code = u.cposition_code
-        //    OR t.cmapping_code = u.croll_id OR t.cmapping_code = CONVERT(VARCHAR(250), u.cuserid) and u.nIs_deleted=0
-        //    ORDER BY t.id asc";
-
-        //    using (SqlCommand cmd = new SqlCommand(timelineQuery, conn))
-        //    {
-        //        cmd.Parameters.AddWithValue("@ID", ID);
-
-        //        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //        {
-        //            while (await reader.ReadAsync())
-        //            {
-        //                timelineList.Add(new PreviousapproverDTO
-        //                {
-        //                    activity = reader["cactivityname"]?.ToString() ?? "",                          
-        //                    status = reader["status"]?.ToString() ?? "",
-        //                    cremarks = reader["cremarks"]?.ToString() ?? "",                          
-        //                    datatime =reader.IsDBNull(reader.GetOrdinal("statusDate")) ? null: reader.GetDateTime(reader.GetOrdinal("statusDate")),
-        //                    pendingwith = reader["userName"]?.ToString() ?? "",
-        //                    pendingwithavatar = reader["userAvatar"]?.ToString() ?? ""
-
-        //                });
-        //            }
-        //        }
-        //    }
-
-        //    return timelineList;
-        //}
-
+        }    
         private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID)
         {
             var timelineList = new List<PreviousapproverDTO>();
@@ -2001,7 +1956,6 @@ WHERE a.cis_active = 1
             }
         }
 
-
         public async Task<string> GettaskHold(int cTenantID, string username, string? searchText = null)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -2113,7 +2067,6 @@ WHERE a.cis_active = 1
             // ✅ Serialize the result to JSON
             return JsonConvert.SerializeObject(tsk, Formatting.Indented);
         }
-
 
         public async Task<bool> UpdatetaskHoldAsync(updatetaskDTO model, int cTenantID, string username)
         {
@@ -2919,6 +2872,64 @@ WHERE a.cis_active = 1
             // ✅ Serialize the result to JSON
             return JsonConvert.SerializeObject(tsk, Formatting.Indented);
         }
+
+        public async Task<List<GetmetaviewdataDTO>> Getmetaviewdatabyid(int cTenantID, int id)
+        {
+            try
+            {
+                var result = new List<GetmetaviewdataDTO>();
+                var connStr = _config.GetConnectionString("Database");
+
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"select d.citaskno,b.icond_seqno,b.ctype,b.clabel,b.cplaceholder,b.cfield_value,b.ccondition,
+                                     b.cdata_source,d.cdata,cdetail_id
+                                     from tbl_process_engine_details  a
+                                     inner join  tbl_process_engine_condition b on a.cheader_id=b.cheader_id
+                                     inner join tbl_taskflow_detail c on c.iseqno=a.ciseqno and a.ID=b.ciseqno
+                                     inner join tbl_transaction_process_meta_layout d on d.citaskno=c.itaskno and d.cdetail_id=c.id
+                                     and d.cmeta_id=b.id
+                                     inner join tbl_taskflow_master e on e.itaskno=c.itaskno and e.ID=c.iheader_id
+                                     where a.cheader_id=e.cprocess_id and c.itaskno=d.citaskno and c.id=@ID order by b.icond_seqno asc";
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", id);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var mapping = new GetmetaviewdataDTO
+                                {
+                                    ID = reader["cdetail_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cdetail_id"]),
+                                    itaskno= reader["citaskno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["citaskno"]),
+                                    icond_seqno = reader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["icond_seqno"]),
+                                    ctype=reader["ctype"]?.ToString() ?? "",
+                                    clabel = reader["clabel"]?.ToString() ?? "",
+                                    cplaceholder = reader["cplaceholder"]?.ToString() ?? "",
+                                    cfield_value = reader["cfield_value"]?.ToString() ?? "",
+                                    ccondition = reader["ccondition"]?.ToString() ?? "",
+                                    cdata_source = reader["cdata_source"]?.ToString() ?? "",
+                                    cdata = reader["cdata"]?.ToString() ?? "",
+                                   
+                                };
+                                result.Add(mapping);
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving task condition list: {ex.Message}");
+            }
+        }
+
+
 
     }
 }

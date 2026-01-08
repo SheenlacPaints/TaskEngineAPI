@@ -33,6 +33,8 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> UpdatetaskRejectAsync(updatetaskDTO model, int cTenantID, string username);
         Task<string> Getopentasklist(int cTenantID, string username, string? searchText);
         Task <List<GetopentasklistdatabyidDTO>> Getopentasklistdatabyid(int cTenantID, int id);
+
+        Task<List<GetmetaviewdataDTO>> Getmetaviewdatabyid(int cTenantID, int id);
     }
 
 }
