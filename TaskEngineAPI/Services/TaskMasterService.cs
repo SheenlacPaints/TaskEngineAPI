@@ -1485,6 +1485,8 @@ WHERE a.cis_active = 1
                     {
                         timelineList.Add(new PreviousapproverDTO
                         {
+                            
+                            ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ID"]),
                             activity = reader["cactivityname"]?.ToString() ?? "",
                             status = reader["status"]?.ToString() ?? "",
                             cremarks = reader["cremarks"]?.ToString() ?? "",
