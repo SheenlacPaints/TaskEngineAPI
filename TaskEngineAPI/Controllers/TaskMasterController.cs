@@ -326,22 +326,36 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Gettaskapprove")]
-        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null)
+        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
-                if(!ModelState.IsValid)
+                if (!ModelState.IsValid)
                 {
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.Gettaskapprove(cTenantID, username,searchText);
-                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-                return CreatedDataResponse(data);
+                var json = await taskMasterService.Gettaskapprove(cTenantID, username, searchText, pageNo, pageSize);
+                var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
+                if (response == null)
+                {
+                    return CreateEncryptedResponse(500, "Invalid response format from service");
+                }
+
+                if (response.TotalCount == 0)
+                {
+                    return CreateEncryptedResponse(404, "No tasks found in your inbox");
+                }
+
+                return CreatedSuccessResponse(response);
             }
             catch (UnauthorizedAccessException ex)
             {
                 return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (JsonException jsonEx)
+            {
+                return CreateEncryptedResponse(500, "Invalid JSON response", error: jsonEx.Message);
             }
             catch (Exception ex)
             {
@@ -353,7 +367,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GettaskHold")]
-        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null)
+        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -362,9 +376,18 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.GettaskHold(cTenantID, username,searchText);
-                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-                return CreatedDataResponse(data);
+                var json = await taskMasterService.GettaskHold(cTenantID, username, searchText, pageNo, pageSize);
+                var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
+                if (response == null)
+                {
+                    return CreateEncryptedResponse(500, "Invalid response format from service");
+                }
+
+                if (response.TotalCount == 0)
+                {
+                    return CreateEncryptedResponse(404, "No tasks found in your inbox");
+                }
+                return CreatedSuccessResponse(response);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -380,7 +403,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GettaskReject")]
-        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null)
+        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -389,9 +412,18 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.GettaskReject(cTenantID, username, searchText);
-                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-                return CreatedDataResponse(data);
+                var json = await taskMasterService.GettaskReject(cTenantID, username, searchText, pageNo, pageSize);
+                var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
+                if (response == null)
+                {
+                    return CreateEncryptedResponse(500, "Invalid response format from service");
+                }
+
+                if (response.TotalCount == 0)
+                {
+                    return CreateEncryptedResponse(404, "No tasks found in your inbox");
+                }
+                return CreatedSuccessResponse(response);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -529,7 +561,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Gettaskinitiator")]
-        public async Task<IActionResult> Gettaskinitiator()
+        public async Task<IActionResult> Gettaskinitiator([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -539,10 +571,20 @@ namespace TaskEngineAPI.Controllers
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await taskMasterService.GetTaskInitiator(cTenantID, username);
-                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                var json = await taskMasterService.GetTaskInitiator(cTenantID, username,searchText,pageNo,pageSize);
+                var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
 
-                return CreatedSuccessResponse(data);
+                if(response == null)
+                {
+                    return CreateEncryptedResponse(500, "Invalid response format from service");
+                }
+
+                if (response.TotalCount == 0)
+                {
+                    return CreateEncryptedResponse(404, "No tasks found in your inbox");
+                }
+
+                return CreatedSuccessResponse(response);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -571,6 +613,15 @@ namespace TaskEngineAPI.Controllers
                 var json = await taskMasterService.Gettaskinbox(cTenantID, username, searchText, pageNo, pageSize);
 
                 var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
+                if (response == null)
+                {
+                    return CreateEncryptedResponse(500, "Invalid response format from service");
+                }
+
+                if (response.TotalCount == 0)
+                {
+                    return CreateEncryptedResponse(404, "No tasks found in your inbox");
+                }
 
                 return CreatedSuccessResponse(response);
             }
