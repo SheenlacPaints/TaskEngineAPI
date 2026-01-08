@@ -951,7 +951,34 @@ VALUES (
         UPDATE AdminUsers SET
             cpassword = @Password,
             cpassword_changed_at =@cPasswordChangedAt          
-        WHERE cuser_name = @ID AND  ctenant_Id = @TenantID";
+        WHERE cuserid = @ID AND  ctenant_Id = @TenantID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@cPasswordChangedAt", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@ID", username);
+                    cmd.Parameters.AddWithValue("@TenantID", tenantId);
+
+                    int rowsAffected = await cmd.ExecuteNonQueryAsync();
+                    return rowsAffected > 0;
+                }
+            }
+        }
+
+        public async Task<bool> UpdatePasswordUserAsync(UpdateUserPasswordDTO model, int tenantId, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+                model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+                string query = @"
+        UPDATE Users SET
+            cpassword = @Password,
+            cpassword_changed_at =@cPasswordChangedAt          
+        WHERE cuserid = @ID AND  ctenant_Id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {

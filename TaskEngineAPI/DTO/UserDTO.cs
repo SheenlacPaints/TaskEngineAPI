@@ -456,6 +456,7 @@ namespace TaskEngineAPI.DTO
         public string? creporting_manager_code { get; set; }
         public string? creporting_manager_name { get; set; }
         public string? crole_description { get; set; }
+        public bool? nis_active { get; set; }
     }
 
 
@@ -482,6 +483,7 @@ namespace TaskEngineAPI.DTO
         public string? cdepartment_manager_name { get; set; }
         public string? cdepartment_email { get; set; }
         public string? cdepartment_phone { get; set; }
+        public bool? nis_active { get; set; }
     }
 
     public class DepartmentDTO
@@ -518,6 +520,7 @@ namespace TaskEngineAPI.DTO
         public string? cdepartment_code { get; set; }
         public string? creporting_manager_positionid { get; set; } 
         public string? creporting_manager_name { get; set; }
+        public bool? nis_active { get; set; }
     }
 
 

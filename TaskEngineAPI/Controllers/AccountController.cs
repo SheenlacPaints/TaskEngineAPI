@@ -1454,42 +1454,141 @@ namespace TaskEngineAPI.Controllers
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
         {
-            if (request == null)
+            try
             {
-                return EncryptedError(400, "Request body cannot be null");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.payload))
-            {
-                return EncryptedError(400, "Payload cannot be empty");
-            }
-            if (!HttpContext.Items.TryGetValue("cTenantID", out var tenantIdObj) ||
-                !HttpContext.Items.TryGetValue("username", out var usernameObj) ||
-                !(tenantIdObj is int cTenantID) || string.IsNullOrWhiteSpace(usernameObj?.ToString()))
-            {
-                var error = new APIResponse
+                if (request == null)
                 {
-                    status = 401,
-                    statusText = "Invalid or missing token claims."
+                    return EncryptedError(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Payload cannot be empty");
+                }
+
+                var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return EncryptedError(401, "Authorization header is missing or invalid");
+                }
+
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+
+                var tenantIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "cTenantID")?.Value;
+                var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
+
+                if (string.IsNullOrEmpty(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token");
+                }
+
+                if (string.IsNullOrEmpty(usernameClaim))
+                {
+                    return EncryptedError(401, "Invalid or missing username in token");
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
+
+                if (model == null || string.IsNullOrWhiteSpace(model.cpassword))
+                {
+                    return EncryptedError(400, "Invalid payload or password");
+                }
+
+                bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, usernameClaim);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ? "Password updated successfully" : "SuperAdmin not found"
                 };
-                string errorJson = JsonConvert.SerializeObject(error);
-                string encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(401, encryptedError);
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
             }
-
-            string decryptedJson = AesEncryption.Decrypt(request.payload);
-            var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
-            bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, usernameObj.ToString());
-
-            var response = new APIResponse
+            catch (SecurityTokenException ex)
             {
-                status = success ? 200 : 204,
-                statusText = success ? "Update successful" : "SuperAdmin not found or update failed"
-            };
+                return EncryptedError(401, $"Invalid token: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
-            string json = JsonConvert.SerializeObject(response);
-            string encrypted = AesEncryption.Encrypt(json);
-            return StatusCode(response.status, encrypted);
+
+        [Authorize]
+        [HttpPut("UpdateUserpassword")]
+        public async Task<IActionResult> UpdateUserpassword([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return EncryptedError(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Payload cannot be empty");
+                }
+
+                var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    return EncryptedError(401, "Authorization header is missing or invalid");
+                }
+
+                var token = authHeader.Substring("Bearer ".Length).Trim();
+
+                var handler = new JwtSecurityTokenHandler();
+                var jwtToken = handler.ReadJwtToken(token);
+
+                var tenantIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "cTenantID")?.Value;
+                var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
+
+                if (string.IsNullOrEmpty(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token");
+                }
+
+                if (string.IsNullOrEmpty(usernameClaim))
+                {
+                    return EncryptedError(401, "Invalid or missing username in token");
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<UpdateUserPasswordDTO>(decryptedJson);
+
+                if (model == null || string.IsNullOrWhiteSpace(model.cpassword))
+                {
+                    return EncryptedError(400, "Invalid payload or password");
+                }
+
+                bool success = await _AccountService.UpdatePasswordUserAsync(model, cTenantID, usernameClaim);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ? "Password updated successfully" : "SuperAdmin not found"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (SecurityTokenException ex)
+            {
+                return EncryptedError(401, $"Invalid token: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [Authorize]
@@ -2873,7 +2972,8 @@ namespace TaskEngineAPI.Controllers
                 "cdepartment_manager_position_code",
                 "cdepartment_manager_name",
                 "cdepartment_email",
-                "cdepartment_phone"
+                "cdepartment_phone",
+                "nis_active"
             };
 
                     var jArray = JArray.Parse(decryptedJson);
@@ -2992,7 +3092,9 @@ namespace TaskEngineAPI.Controllers
                 { "cdepartment_manager_rolecode", dept.cdepartment_manager_rolecode },
                 { "cdepartment_manager_position_code", dept.cdepartment_manager_position_code },
                 { "cdepartment_manager_name", dept.cdepartment_manager_name },
-                { "cdepartment_phone", dept.cdepartment_phone }
+                { "cdepartment_phone", dept.cdepartment_phone },
+                        {"nis_active",dept.nis_active }
+
             };
 
                     var missingOptionalFields = optionalFields
@@ -3241,7 +3343,8 @@ namespace TaskEngineAPI.Controllers
                 "cdepartment_code",
                 "creporting_manager_code",
                 "creporting_manager_name",
-                "crole_description"
+                "crole_description",
+                "nis_active"
 
             };
                     var jArray = JArray.Parse(decryptedJson);
@@ -3360,7 +3463,8 @@ namespace TaskEngineAPI.Controllers
                 { "cdepartment_code", role.cdepartment_code },
                 { "creporting_manager_code", role.creporting_manager_code },
                 { "creporting_manager_name", role.creporting_manager_name },
-                { "crole_description", role.crole_description }
+                { "crole_description", role.crole_description },
+                        {"nis_active",role.nis_active }
             };
 
                     var missingOptionalFields = optionalFields
@@ -3607,7 +3711,8 @@ namespace TaskEngineAPI.Controllers
                 "cposition_decsription",
                 "cdepartment_code",
                 "creporting_manager_positionid",
-                "creporting_manager_name"
+                "creporting_manager_name",
+                "nis_active"
             };
                     var jArray = JArray.Parse(decryptedJson);
                     foreach (var item in jArray)
@@ -3724,7 +3829,8 @@ namespace TaskEngineAPI.Controllers
                 { "cposition_decsription", position.cposition_decsription },
                 { "cdepartment_code", position.cdepartment_code },
                 { "creporting_manager_positionid", position.creporting_manager_positionid },
-                { "creporting_manager_name", position.creporting_manager_name }
+                { "creporting_manager_name", position.creporting_manager_name },
+                {"nis_active",position.nis_active }
             };
 
                     var missingOptionalFields = optionalFields

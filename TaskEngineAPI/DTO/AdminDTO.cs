@@ -136,6 +136,12 @@ namespace TaskEngineAPI.DTO
 
     }
 
+    public class UpdateUserPasswordDTO {
+
+        public string? otp { get; set; }
+        public string? cpassword { get; set; } 
+    }
+
     public class CreateSaasTestDTO
 
     {
