@@ -1296,7 +1296,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Gettaskinitiator")]
-        public async Task<IActionResult> Gettaskinitiator()
+        public async Task<IActionResult> Gettaskinitiator([FromQuery] string? searchText = null)
         {
             try
             {
@@ -1305,7 +1305,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinitiator";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinitiator?searchText={searchText}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -2186,6 +2186,74 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
+        [HttpGet("GettaskReassigndatabyid")]
+        public async Task<IActionResult> GettaskReassigndatabyid([FromQuery] int id)
+        {
+            try
+            {
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");
+
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReassigndatabyid?id={id}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("GettaskInitiatordatabyid ")]
+        public async Task<IActionResult> GettaskInitiatordatabyid([FromQuery] int id)
+        {
+            try
+            {
+
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");
+
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskInitiatordatabyid?id={id}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
 
         [Authorize]
         [HttpGet("GettaskApprovedatabyid")]

@@ -169,10 +169,77 @@ namespace TaskEngineAPI.DTO
         public List<processEnginetaskMeta> meta { get; set; }
 
         public List<GetprocessEngineConditionDTO> board { get; set; }
-        
+
     }
 
     public class GettaskHolddatabyidDTO
+    {
+        public int? itaskno { get; set; }
+        public int? processId { get; set; }
+        public string? processName { get; set; }
+        public string? processDesc { get; set; }
+        public string? activityName { get; set; }
+        public string? priorityLabel { get; set; }
+        public string? activityDesc { get; set; }
+        public string? taskStatus { get; set; }
+        public string? participantType { get; set; }
+        public string? actionPrivilege { get; set; }
+
+        public string? crejection_privilege { get; set; }
+        public string? assigneeType { get; set; }
+        public string? assigneeValue { get; set; }
+        public int? slaDays { get; set; }
+        public int? slaHours { get; set; }
+        public string? executionType { get; set; }
+        public DateTime? taskAssignedDate { get; set; }
+        public DateTime? taskInitiatedDate { get; set; }
+
+        public string? taskinitiatedbyname { get; set; }
+
+        public bool? showTimeline { get; set; }
+        public List<TimelineDTO>? timeline { get; set; }
+
+        public List<processEnginetaskMeta> meta { get; set; }
+
+        public List<GetprocessEngineConditionDTO> board { get; set; }
+
+    }
+
+    public class GettaskInitiatordatabyidDTO
+    {
+        public int? itaskno { get; set; }
+        public int? processId { get; set; }
+        public string? processName { get; set; }
+        public string? processDesc { get; set; }
+        public string? activityName { get; set; }
+        public string? priorityLabel { get; set; }
+        public string? activityDesc { get; set; }
+        public string? taskStatus { get; set; }
+        public string? participantType { get; set; }
+        public string? actionPrivilege { get; set; }
+
+        public string? crejection_privilege { get; set; }
+        public string? assigneeType { get; set; }
+        public string? assigneeValue { get; set; }
+        public int? slaDays { get; set; }
+        public int? slaHours { get; set; }
+        public string? executionType { get; set; }
+        public DateTime? taskAssignedDate { get; set; }
+        public DateTime? taskInitiatedDate { get; set; }
+
+        public string? taskinitiatedbyname { get; set; }
+
+        public bool? showTimeline { get; set; }
+        public List<TimelineDTO>? timeline { get; set; }
+
+        public List<processEnginetaskMeta> meta { get; set; }
+
+        public List<GetprocessEngineConditionDTO> board { get; set; }
+
+    }
+
+
+    public class GettaskReassigndatabyidDTO
     {
         public int? itaskno { get; set; }
         public int? processId { get; set; }
@@ -373,7 +440,7 @@ public class GetmetaviewdataDTO
 public class TaskInboxResponse
 {
     //public bool Success { get; set; }
-    public int TotalCount { get; set; }  
+    public int TotalCount { get; set; }
     public List<GetTaskList> Data { get; set; }
 }
 
