@@ -353,3 +353,28 @@ public class PreviousapproverDTO
     public string? pendingwithavatar { get; set; }
 
 }
+
+
+public class GetmetaviewdataDTO
+{
+    public int? ID { get; set; }
+    public int? itaskno { get; set; }
+    public int? icond_seqno { get; set; }
+    public string? ctype { get; set; }
+    public string? clabel { get; set; }
+    public string? cplaceholder { get; set; }
+    public string? cfield_value { get; set; }
+    public string? ccondition { get; set; }
+    public string? cdata_source { get; set; }
+    public string? cdata { get; set; }
+
+}
+
+
+
+
+
+
+
+
+
