@@ -1086,6 +1086,42 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+      
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("GettaskReassign")]
+        public async Task<IActionResult> GettaskReassign([FromQuery] string? searchText = null, int page = 1, int pageSize = 50)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();             
+                var result = await taskMasterService.GettaskReassign(cTenantID, username, searchText, page, pageSize);
+
+                
+                if (result == null || result.data == null || result.data.Count == 0)
+                {
+                    return CreateEncryptedResponse(400, "No data found");
+                }
+
+                return CreatedSuccessResponse(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
 
     }
 }

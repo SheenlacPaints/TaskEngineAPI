@@ -2929,8 +2929,118 @@ WHERE a.cis_active = 1
             }
         }
 
+        public async Task<GettaskreassignCountDTO> GettaskReassign(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
+        {
+            List<GetTaskList> tsk = new List<GetTaskList>();
+            int totalCount = 0;
+
+            string connectionString = this._config.GetConnectionString("Database");
+            string query = "sp_get_worflow_Reassign";
+
+            using (SqlConnection con = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@userid", username);
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@searchtext", (object)searchText ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PageNo", page);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    await con.OpenAsync();
+
+                    using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                    {
+
+                        while (await sdr.ReadAsync())
+                        {
+                            GetTaskList p = new GetTaskList
+                            {
+                                ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
+                                ctasktype = sdr["ctask_type"]?.ToString() ?? string.Empty,
+                                ctaskname = sdr["ctask_name"]?.ToString() ?? string.Empty,
+                                ctaskdescription = sdr["ctask_description"]?.ToString() ?? string.Empty,
+                                cstatus = sdr["cstatus"]?.ToString() ?? string.Empty,
+                                lcompleteddate = sdr.IsDBNull(sdr.GetOrdinal("lcompleted_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcompleted_date")),
+                                ccreatedby = sdr["ccreated_by"]?.ToString() ?? string.Empty,
+                                ccreatedbyname = sdr["ccreated_byname"]?.ToString() ?? string.Empty,
+                                lcreateddate = sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
+                                cmodifiedby = sdr["cmodified_by"]?.ToString() ?? string.Empty,
+                                cmodifiedbyname = sdr["cmodified_byname"]?.ToString() ?? string.Empty,
+                                lmodifieddate = sdr.IsDBNull(sdr.GetOrdinal("lmodified_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date")),
+                                Employeecode = sdr["Employeecode"]?.ToString() ?? string.Empty,
+                                Employeename = sdr["Employeename"]?.ToString() ?? string.Empty,
+                                EmpDepartment = sdr["EmpDepartment"]?.ToString() ?? string.Empty,
+                                cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
+                                cprocesscode = sdr["cprocesscode"]?.ToString() ?? string.Empty,
+                                cprocessname = sdr["cprocessname"]?.ToString() ?? string.Empty,
+                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? string.Empty
+                            };
+                            tsk.Add(p);
+                        }
+
+                        if (await sdr.NextResultAsync())
+                        {
+                            if (await sdr.ReadAsync())
+                            {
+                                totalCount = sdr.IsDBNull(sdr.GetOrdinal("TotalCount")) ? 0 : Convert.ToInt32(sdr["TotalCount"]);
+                            }
+                        }
+                    }
+                }
+            }
 
 
+            foreach (var item in tsk)
+            {
+                item.TaskChildItems = await GetTaskDetailsInternalAsync(connectionString, username, cTenantID, item.itaskno);
+            }
+
+            return new GettaskreassignCountDTO
+            {
+                totalCount = totalCount,
+                data = tsk
+            };
+        }
+
+        private async Task<List<GetTaskDetails>> GetTaskDetailsInternalAsync(string connString, string user, int tenant, int taskNo)
+        {
+            List<GetTaskDetails> details = new List<GetTaskDetails>();
+            using (SqlConnection con = new SqlConnection(connString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_get_worflow_Reassign_details", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@userid", user);
+                    cmd.Parameters.AddWithValue("@tenentid", tenant);
+                    cmd.Parameters.AddWithValue("@itaskno", taskNo);
+
+                    await con.OpenAsync();
+                    using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await sdr.ReadAsync())
+                        {
+                            details.Add(new GetTaskDetails
+                            {
+                                ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                iheader_id = sdr.IsDBNull(sdr.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(sdr["iheader_id"]),
+                                itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
+                                iseqno = sdr.IsDBNull(sdr.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(sdr["iseqno"]),
+                                cmappingcode = sdr["cmapping_code"]?.ToString() ?? string.Empty,
+                                ccurrentstatus = sdr["ccurrent_status"]?.ToString() ?? string.Empty,
+                                lcurrentstatusdate = sdr.IsDBNull(sdr.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcurrent_status_date")),
+                                cremarks = sdr["cremarks"]?.ToString() ?? string.Empty,
+                                cactivityname = sdr["cactivityname"]?.ToString() ?? string.Empty,
+                                cactivity_description = sdr["cactivity_description"]?.ToString() ?? string.Empty
+                            });
+                        }
+                    }
+                }
+            }
+            return details;
+        }
     }
 }
 
