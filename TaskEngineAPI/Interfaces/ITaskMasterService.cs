@@ -13,7 +13,7 @@ namespace TaskEngineAPI.Interfaces
         Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege);
         Task<string> Getdropdown(int cTenantID, string column);
         //Task<string> Gettaskinbox(int cTenantID, string username);
-        Task<string> Gettaskinbox(int cTenantID, string username, string searchText);
+        Task<string> Gettaskinbox(int cTenantID, string username, string searchText, int pageNo,int pageSize);
         Task<string> Gettaskapprove(int cTenantID, string username, string? searchText);
         //  Task<string> Gettaskhold(int cTenantID, string username);
         Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username);

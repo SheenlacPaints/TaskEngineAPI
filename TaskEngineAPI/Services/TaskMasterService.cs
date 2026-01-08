@@ -863,7 +863,7 @@ WHERE a.cis_active = 1
             // ✅ Serialize the result to JSON
             return JsonConvert.SerializeObject(tsk, Formatting.Indented);
         }
-        public async Task<string> Gettaskinbox(int cTenantID, string username, string? searchText=null)
+        public async Task<string> Gettaskinbox(int cTenantID, string username, string? searchText=null, int pageNo = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
 
@@ -877,6 +877,8 @@ WHERE a.cis_active = 1
                     cmd.Parameters.AddWithValue("@userid", username);
                     cmd.Parameters.AddWithValue("@tenentid", cTenantID);
                     cmd.Parameters.AddWithValue("@searchtext", searchText);
+                    cmd.Parameters.AddWithValue("pageNo", pageNo);
+                    cmd.Parameters.AddWithValue("pageSize", pageSize);
                     con.Open();
 
                     using (SqlDataReader sdr = cmd.ExecuteReader())

@@ -557,7 +557,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Gettaskinbox")]
-        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null)
+        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -567,7 +567,7 @@ namespace TaskEngineAPI.Controllers
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await taskMasterService.Gettaskinbox(cTenantID, username, searchText);
+                var json = await taskMasterService.Gettaskinbox(cTenantID, username, searchText,pageNo,pageSize);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
                 return CreatedSuccessResponse(data);
