@@ -344,6 +344,7 @@ public class GetDropDownFilterDTO
 
 public class PreviousapproverDTO
 {
+    public int? ID { get; set; }
     public string? activity { get; set; }
     public string? description { get; set; }
     public string? status { get; set; }
