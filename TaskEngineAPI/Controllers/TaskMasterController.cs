@@ -557,7 +557,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Gettaskinbox")]
-        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null)
+        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -565,22 +565,29 @@ namespace TaskEngineAPI.Controllers
                 {
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
+
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await taskMasterService.Gettaskinbox(cTenantID, username, searchText);
-                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                var json = await taskMasterService.Gettaskinbox(cTenantID, username, searchText, pageNo, pageSize);
 
-                return CreatedSuccessResponse(data);
+                var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
+
+                return CreatedSuccessResponse(response);
             }
             catch (UnauthorizedAccessException ex)
             {
                 return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (JsonException jsonEx)
+            {
+                return CreateEncryptedResponse(500, "Invalid JSON response", error: jsonEx.Message);
             }
             catch (Exception ex)
             {
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
+
 
 
         [Authorize]

@@ -861,9 +861,11 @@ WHERE a.cis_active = 1
             // ✅ Serialize the result to JSON
             return JsonConvert.SerializeObject(tsk, Formatting.Indented);
         }
-        public async Task<string> Gettaskinbox(int cTenantID, string username, string? searchText=null)
+
+        public async Task<string> Gettaskinbox(int cTenantID, string username, string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
+            int totalCount = 0;
 
             string query = "sp_get_worflow_inbox";
             using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -874,12 +876,15 @@ WHERE a.cis_active = 1
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@userid", username);
                     cmd.Parameters.AddWithValue("@tenentid", cTenantID);
-                    cmd.Parameters.AddWithValue("@searchtext", searchText);
-                    con.Open();
+                    cmd.Parameters.AddWithValue("@searchtext", searchText ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PageNo", pageNo);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
-                    using (SqlDataReader sdr = cmd.ExecuteReader())
+                    await con.OpenAsync();
+
+                    using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
                     {
-                        while (sdr.Read())
+                        while (await sdr.ReadAsync())
                         {
                             List<GetTaskDetails> tskdtl = new List<GetTaskDetails>();
                             GetTaskList p = new GetTaskList
@@ -904,8 +909,6 @@ WHERE a.cis_active = 1
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                                 cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
-                                //privilege_name = sdr.IsDBNull(sdr.GetOrdinal("privilege_name")) ? string.Empty : Convert.ToString(sdr["privilege_name"])
-
                             };
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -919,29 +922,28 @@ WHERE a.cis_active = 1
                                     cmd1.Parameters.AddWithValue("@tenentid", cTenantID);
                                     cmd1.Parameters.AddWithValue("@itaskno", p.itaskno);
 
-                                    con1.Open();
-                                    using (SqlDataReader sdr1 = cmd1.ExecuteReader())
+                                    await con1.OpenAsync();
+                                    using (SqlDataReader sdr1 = await cmd1.ExecuteReaderAsync())
                                     {
-                                        while (sdr1.Read())
+                                        while (await sdr1.ReadAsync())
                                         {
                                             GetTaskDetails pd = new GetTaskDetails
                                             {
-
                                                 ID = sdr1.IsDBNull(sdr1.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr1["ID"]),
                                                 iheader_id = sdr1.IsDBNull(sdr1.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(sdr1["iheader_id"]),
                                                 itaskno = sdr1.IsDBNull(sdr1.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr1["itaskno"]),
                                                 iseqno = sdr1.IsDBNull(sdr1.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(sdr1["iseqno"]),
-                                                ctasktype = sdr1.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr1["ctask_type"]),
+                                                ctasktype = sdr1.IsDBNull(sdr1.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr1["ctask_type"]),
                                                 cmappingcode = sdr1.IsDBNull(sdr1.GetOrdinal("cmapping_code")) ? string.Empty : Convert.ToString(sdr1["cmapping_code"]),
                                                 ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
                                                 lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
-                                                cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1.GetOrdinal("cremarks")),
-                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0: Convert.ToInt32(sdr1["inext_seqno"]),
+                                                cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1["cremarks"]),
+                                                inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(sdr1["inext_seqno"]),
                                                 cnextseqtype = sdr1.IsDBNull(sdr1.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(sdr1["cnext_seqtype"]),
                                                 cprevtype = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
                                                 csla_day = sdr1.IsDBNull(sdr1.GetOrdinal("csla_day")) ? 0 : Convert.ToInt32(sdr1["csla_day"]),
                                                 csla_Hour = sdr1.IsDBNull(sdr1.GetOrdinal("csla_Hour")) ? 0 : Convert.ToInt32(sdr1["csla_Hour"]),
-                                                cprocess_type = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
+                                                cprocess_type = sdr1.IsDBNull(sdr1.GetOrdinal("cprocess_type")) ? string.Empty : Convert.ToString(sdr1["cprocess_type"]),
                                                 nboard_enabled = sdr1.IsDBNull(sdr1.GetOrdinal("nboard_enabled")) ? false : Convert.ToBoolean(sdr1["nboard_enabled"]),
                                                 caction_privilege = sdr1.IsDBNull(sdr1.GetOrdinal("caction_privilege")) ? string.Empty : Convert.ToString(sdr1["caction_privilege"]),
                                                 crejection_privilege = sdr1.IsDBNull(sdr1.GetOrdinal("crejection_privilege")) ? string.Empty : Convert.ToString(sdr1["crejection_privilege"]),
@@ -958,21 +960,33 @@ WHERE a.cis_active = 1
                                             tskdtl.Add(pd);
                                         }
                                     }
-                                    con1.Close();
                                 }
                             }
 
                             p.TaskChildItems = tskdtl;
                             tsk.Add(p);
                         }
+
+                        if (await sdr.NextResultAsync())
+                        {
+                            if (await sdr.ReadAsync())
+                            {
+                                totalCount = sdr.IsDBNull(0) ? 0 : Convert.ToInt32(sdr[0]);
+                            }
+                        }
                     }
-                    con.Close();
                 }
             }
-            // ✅ Serialize the result to JSON
-            return JsonConvert.SerializeObject(tsk, Formatting.Indented);
-        }
 
+            var response = new
+            {
+               // success = true,
+                totalCount = totalCount,
+                data = tsk
+            };
+
+            return JsonConvert.SerializeObject(response, Formatting.Indented);
+        }
         public async Task<List<GetprocessEngineConditionDTO>> GetTaskConditionBoard(int cTenantID, int ID)
         {
             try
