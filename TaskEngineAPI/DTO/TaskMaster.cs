@@ -369,6 +369,12 @@ public class GetmetaviewdataDTO
     public string? cdata { get; set; }
 
 }
+public class TaskInboxResponse
+{
+    //public bool Success { get; set; }
+    public int TotalCount { get; set; }  
+    public List<GetTaskList> Data { get; set; }
+}
 
 
 
