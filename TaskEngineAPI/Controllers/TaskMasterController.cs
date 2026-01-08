@@ -644,7 +644,7 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var data = await taskMasterService.Gettaskinboxdatabyid(cTenantID, id);
+                var data = await taskMasterService.Gettaskinboxdatabyid(cTenantID, id, username);
 
                 if (data == null || !data.Any())
                 {
