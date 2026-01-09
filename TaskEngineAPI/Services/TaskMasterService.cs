@@ -3614,6 +3614,66 @@ WHERE a.cis_active = 1
             }
         }
 
+        public async Task<List<GetTaskDetails>> GettasktimelinedetailAsync(int itaskno, string username, int cTenantID)
+        {
+            var timelineList = new List<GetTaskDetails>();
+            string connectionString = this._config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_get_worflow_timeline_Details", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@userid", username);
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@itaskno", itaskno);
+
+                    await conn.OpenAsync();
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            timelineList.Add(new GetTaskDetails
+                            {
+                                ID = reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : Convert.ToInt32(reader["ID"]),
+                                iheader_id = reader.IsDBNull(reader.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(reader["iheader_id"]),
+                                itaskno = reader.IsDBNull(reader.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(reader["itaskno"]),
+                                iseqno = reader.IsDBNull(reader.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(reader["iseqno"]),
+                                ctasktype = reader.IsDBNull(reader.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(reader["ctask_type"]),
+                                cmappingcode = reader.IsDBNull(reader.GetOrdinal("cmapping_code")) ? string.Empty : Convert.ToString(reader["cmapping_code"]),
+                                ccurrentstatus = reader.IsDBNull(reader.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(reader["ccurrent_status"]),
+                                lcurrentstatusdate = reader.IsDBNull(reader.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("lcurrent_status_date")),
+                                cremarks = reader.IsDBNull(reader.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(reader["cremarks"]),
+                                inextseqno = reader.IsDBNull(reader.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(reader["inext_seqno"]),
+                                cnextseqtype = reader.IsDBNull(reader.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(reader["cnext_seqtype"]),
+                                cprevtype = reader.IsDBNull(reader.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(reader["cprevtype"]),
+                                csla_day = reader.IsDBNull(reader.GetOrdinal("csla_day")) ? 0 : Convert.ToInt32(reader["csla_day"]),
+                                csla_Hour = reader.IsDBNull(reader.GetOrdinal("csla_Hour")) ? 0 : Convert.ToInt32(reader["csla_Hour"]),
+                                cprocess_type = reader.IsDBNull(reader.GetOrdinal("cprocess_type")) ? string.Empty : Convert.ToString(reader["cprocess_type"]),
+                                nboard_enabled = reader.IsDBNull(reader.GetOrdinal("nboard_enabled")) ? false : Convert.ToBoolean(reader["nboard_enabled"]),
+                                caction_privilege = reader.IsDBNull(reader.GetOrdinal("caction_privilege")) ? string.Empty : Convert.ToString(reader["caction_privilege"]),
+                                crejection_privilege = reader.IsDBNull(reader.GetOrdinal("crejection_privilege")) ? string.Empty : Convert.ToString(reader["crejection_privilege"]),
+                                cisforwarded = reader.IsDBNull(reader.GetOrdinal("cis_forwarded")) ? string.Empty : Convert.ToString(reader["cis_forwarded"]),
+                                lfwd_date = reader.IsDBNull(reader.GetOrdinal("lfwd_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("lfwd_date")),
+                                cfwd_to = reader.IsDBNull(reader.GetOrdinal("cfwd_to")) ? string.Empty : Convert.ToString(reader["cfwd_to"]),
+                                cis_reassigned = reader.IsDBNull(reader.GetOrdinal("cis_reassigned")) ? string.Empty : Convert.ToString(reader["cis_reassigned"]),
+                                creassign_name = reader.IsDBNull(reader.GetOrdinal("creassign_name")) ? string.Empty : Convert.ToString(reader["creassign_name"]),
+                                lreassign_date = reader.IsDBNull(reader.GetOrdinal("lreassign_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("lreassign_date")),
+                                creassign_to = reader.IsDBNull(reader.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(reader["creassign_to"]),
+                                cactivityname = reader.IsDBNull(reader.GetOrdinal("cactivityname")) ? string.Empty : Convert.ToString(reader["cactivityname"]),
+                                cactivity_description = reader.IsDBNull(reader.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(reader["cactivity_description"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return timelineList;
+        }
+
+
+
     }
 }
 
