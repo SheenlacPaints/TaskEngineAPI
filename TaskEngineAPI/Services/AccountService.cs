@@ -2511,7 +2511,6 @@ VALUES (
             table.Columns.Add("crole_level", typeof(string));
             table.Columns.Add("cdepartment_code", typeof(string));
             table.Columns.Add("creporting_manager_code", typeof(string));
-            table.Columns.Add("creporting_manager_name", typeof(string));
             table.Columns.Add("nis_active", typeof(bool));
             table.Columns.Add("ccreated_by", typeof(string));
             table.Columns.Add("lcreated_date", typeof(DateTime));
@@ -2529,7 +2528,6 @@ VALUES (
                 row["crole_level"] = role.crole_level ?? (object)DBNull.Value;
                 row["cdepartment_code"] = role.cdepartment_code ?? (object)DBNull.Value;
                 row["creporting_manager_code"] = role.creporting_manager_code ?? (object)DBNull.Value;
-                row["creporting_manager_name"] = role.creporting_manager_name ?? (object)DBNull.Value;
                 row["nis_active"] = true;
                 row["ccreated_by"] = username;
                 row["lcreated_date"] = DateTime.Now;
@@ -2558,7 +2556,7 @@ VALUES (
             bulkCopy.ColumnMappings.Add("crole_level", "crole_level");
             bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
             bulkCopy.ColumnMappings.Add("creporting_manager_code", "creporting_manager_code");
-            bulkCopy.ColumnMappings.Add("creporting_manager_name", "creporting_manager_name");
+            bulkCopy.ColumnMappings.Add("creporting_manager_name ", "creporting_manager_name");
             bulkCopy.ColumnMappings.Add("nis_active", "nis_active");
             bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
             bulkCopy.ColumnMappings.Add("lcreated_date", "lcreated_date");
