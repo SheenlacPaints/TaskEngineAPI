@@ -454,7 +454,6 @@ namespace TaskEngineAPI.DTO
         public string crole_level { get; set; }
         public string? cdepartment_code { get; set; }
         public string? creporting_manager_code { get; set; }
-        public string? creporting_manager_name { get; set; }
         public string? crole_description { get; set; }
         public bool? nis_active { get; set; }
     }
