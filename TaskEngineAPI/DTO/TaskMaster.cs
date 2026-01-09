@@ -425,6 +425,12 @@ public class PreviousapproverDTO
     public string? pendingwith { get; set; }
     public string? pendingwithavatar { get; set; }
 
+    public string? cboard_visablity_flag { get; set; }
+    public string? cboard_visablity { get;set; }
+
+    
+
+
 }
 
 

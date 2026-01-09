@@ -1561,7 +1561,9 @@ WHERE a.cis_active = 1
                             cremarks = reader["cremarks"]?.ToString() ?? "",                          
                             datatime = reader.IsDBNull(reader.GetOrdinal("statusDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("statusDate")),
                             pendingwith = reader["userName"]?.ToString() ?? "",
-                            pendingwithavatar = reader["userAvatar"]?.ToString() ?? ""
+                            pendingwithavatar = reader["userAvatar"]?.ToString() ?? "",
+                            cboard_visablity_flag = reader["userAvatar"]?.ToString() ?? "",
+                            cboard_visablity = reader["userAvatar"]?.ToString() ?? "",
                         });
                     }
                 }
