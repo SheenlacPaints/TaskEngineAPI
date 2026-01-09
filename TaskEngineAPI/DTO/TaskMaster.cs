@@ -195,13 +195,15 @@ namespace TaskEngineAPI.DTO
         public DateTime? taskInitiatedDate { get; set; }
 
         public string? taskinitiatedbyname { get; set; }
-
+        public string? HoldRemarks { get; set; }
+        public string? RejectReason { get; set; }
         public bool? showTimeline { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
 
         public List<GetprocessEngineConditionDTO> board { get; set; }
+        public List<PreviousapproverDTO> approvers { get; set; }
 
     }
 

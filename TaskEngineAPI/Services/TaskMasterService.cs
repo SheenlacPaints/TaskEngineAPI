@@ -1889,7 +1889,7 @@ WHERE a.cis_active = 1
             }
         }
 
-        public async Task<List<GettaskHolddatabyidDTO>> GettaskHolddatabyid(int cTenantID, int ID)
+        public async Task<List<GettaskHolddatabyidDTO>> GettaskHolddatabyid(int cTenantID, int ID,string username)
         {
             var result = new List<GettaskHolddatabyidDTO>();
             var connStr = _config.GetConnectionString("Database");
@@ -1923,13 +1923,15 @@ WHERE a.cis_active = 1
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno
+                    a.itaskno,t.cremarks as HoldRemarks,t.crejected_reason as RejectReason
                 FROM tbl_taskflow_master a
-                INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
+                INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
                                    AND e.ctenant_id = a.ctenant_id
+                INNER JOIN tbl_transaction_taskflow_detail_and_status t
+                ON t.cdetail_id = d.id
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -1965,20 +1967,24 @@ WHERE a.cis_active = 1
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
+                                    HoldRemarks = reader["HoldRemarks"]?.ToString() ?? "",
+                                    RejectReason = reader["RejectReason"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
-                                    meta = new List<processEnginetaskMeta>()
+                                    meta = new List<processEnginetaskMeta>(),
+                                    approvers = new List<PreviousapproverDTO>()
                                 };
 
                                 if (mapping.showTimeline == true)
                                 {
                                     mapping.timeline = await GetTimelineAsync(conn, ID);
                                 }
-
+                                mapping.approvers = await GetPreviousapproverAsync(conn, ID, username, cTenantID);
                                 await LoadProcessConditionsForHold(conn, mapping, processdetailid);
 
                                 await LoadMetaForHold(conn, mapping, itaskno, cTenantID);
+                                await GetPreviousapproverAsync(conn, ID, username, cTenantID);
 
                                 result.Add(mapping);
                             }
@@ -2339,7 +2345,7 @@ WHERE a.cis_active = 1
                     c.cmeta_id,
                     a.itaskno
                 FROM tbl_taskflow_master a
-                INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
+                INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
