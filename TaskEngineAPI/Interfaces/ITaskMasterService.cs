@@ -28,7 +28,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username);
         Task<string> GetDropDownFilterAsync(int cTenantID, GetDropDownFilterDTO filterDto);
         Task<string> GettaskHold(int cTenantID, string username, string? searchText, int pageNo, int pageSize);
-        Task<List<GettaskHolddatabyidDTO>> GettaskHolddatabyid(int cTenantID, int id);
+        Task<List<GettaskHolddatabyidDTO>> GettaskHolddatabyid(int cTenantID, int id,string username);
         Task<bool> UpdatetaskHoldAsync(updatetaskDTO model, int cTenantID, string username);
         Task<string> GettaskReject(int cTenantID, string username, string? searchText, int pageNo, int pageSize);
         Task <List<GettaskRejectdatabyidDTO>>GettaskRejectdatabyid(int cTenantID, int id);

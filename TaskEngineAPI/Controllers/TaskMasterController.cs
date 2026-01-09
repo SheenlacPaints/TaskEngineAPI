@@ -844,7 +844,7 @@ namespace TaskEngineAPI.Controllers
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var data = await taskMasterService.GettaskHolddatabyid(cTenantID, id);
+                var data = await taskMasterService.GettaskHolddatabyid(cTenantID, id,username);
 
                 if (data == null || !data.Any())
                 {
