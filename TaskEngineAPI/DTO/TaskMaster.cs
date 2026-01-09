@@ -264,6 +264,10 @@ namespace TaskEngineAPI.DTO
         public string? taskinitiatedbyname { get; set; }
 
         public bool? showTimeline { get; set; }
+        public DateTime? ReassignedDate { get; set; }
+        public string? ReassignedTo { get; set; }
+        public string? Remarks { get; set; }
+
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
