@@ -1577,33 +1577,68 @@ WHERE a.cis_active = 1
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
-
                 SqlTransaction transaction = conn.BeginTransaction();
                 int? processId = null;
                 int? taskNo = null;
+
                 try
                 {
+                    string checkQuery = @"
+                SELECT a.itaskno, b.cprocess_id, a.cis_reassigned 
+                FROM tbl_taskflow_detail a
+                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
+                WHERE a.ID = @ID";
+
+                    using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
+                    {
+                        checkCmd.Parameters.AddWithValue("@ID", model.ID);
+                        using (var reader = await checkCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                taskNo = reader["itaskno"] as int? ?? model.itaskno;
+                                processId = reader["cprocess_id"] as int?;
+                                string alreadyReassigned = reader["cis_reassigned"]?.ToString() ?? "";
+
+                                if (!string.IsNullOrEmpty(model.reassignto) && alreadyReassigned == "Y")
+                                {
+                                    reader.Close();
+                                    transaction.Rollback();
+                                    throw new InvalidOperationException("This task has already been reassigned and cannot be reassigned again.");
+                                }
+                            }
+                            else
+                            {
+                                reader.Close();
+                                transaction.Rollback();
+                                return false; 
+                            }
+                            reader.Close();
+                        }
+                    }
+
                     string updateQuery;
                     bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+
                     if (isReassigning)
                     {
                         updateQuery = @"UPDATE tbl_taskflow_detail SET 
-                                creassign_to = @creassign_to,  lreassign_Date = @lreassign_Date, 
-                                cis_reassigned = @cis_reassigned,cremarks = @remarks  WHERE ID = @ID";
+                                creassign_to = @creassign_to, lreassign_Date = @lreassign_Date, 
+                                cis_reassigned = @cis_reassigned, cremarks = @remarks WHERE ID = @ID";
                     }
                     else
                     {
                         updateQuery = @"UPDATE tbl_taskflow_detail SET 
-                                ccurrent_status = @status, lcurrent_status_date = @status_date, cremarks = @remarks  WHERE ID = @ID";
+                                ccurrent_status = @status, lcurrent_status_date = @status_date, cremarks = @remarks WHERE ID = @ID";
                     }
+
                     using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
                     {
                         updateCmd.Parameters.AddWithValue("@ID", model.ID);
-
                         if (isReassigning)
                         {
                             updateCmd.Parameters.AddWithValue("@creassign_to", model.reassignto);
-                            updateCmd.Parameters.AddWithValue("@lreassign_Date", DateTime.Now); // Or model property
+                            updateCmd.Parameters.AddWithValue("@lreassign_Date", DateTime.Now);
                             updateCmd.Parameters.AddWithValue("@cis_reassigned", "Y");
                             updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
                         }
@@ -1614,31 +1649,8 @@ WHERE a.cis_active = 1
                             updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
                         }
 
-                        int rowsAffected = await updateCmd.ExecuteNonQueryAsync();
-                        if (rowsAffected == 0)
-                        {
-                            transaction.Rollback();
-                            return false;
-                        }
+                        await updateCmd.ExecuteNonQueryAsync();
                     }
-                    string selectQuery = @"
-                SELECT a.itaskno, b.cprocess_id FROM tbl_taskflow_detail a
-                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID WHERE a.ID = @ID";
-
-                    using (SqlCommand selectCmd = new SqlCommand(selectQuery, conn, transaction))
-                    {
-                        selectCmd.Parameters.AddWithValue("@ID", model.ID);
-                        using (var reader = await selectCmd.ExecuteReaderAsync())
-                        {
-                            if (await reader.ReadAsync())
-                            {
-                                taskNo = reader["itaskno"] as int? ?? model.itaskno;
-                                processId = reader["cprocess_id"] as int?;
-                            }
-                            reader.Close();
-                        }
-                    }
-
 
                     string statusQuery = @"
                 INSERT INTO tbl_transaction_taskflow_detail_and_status
@@ -1658,6 +1670,7 @@ WHERE a.cis_active = 1
                         statusCmd.Parameters.AddWithValue("@crejected_reason", (object?)model.rejectedreason ?? DBNull.Value);
                         await statusCmd.ExecuteNonQueryAsync();
                     }
+
                     if (model.metaData != null && model.metaData.Any())
                     {
                         string metaQuery = @"
@@ -1680,7 +1693,8 @@ WHERE a.cis_active = 1
                             }
                         }
                     }
-                    if (model.status == "A" && !isReassigning)
+
+                    if (model.status == "A")
                     {
                         using (SqlCommand cmd = new SqlCommand("sp_update_pendingtasks_V1", conn, transaction))
                         {
@@ -1688,20 +1702,24 @@ WHERE a.cis_active = 1
                             cmd.Parameters.AddWithValue("@itasknoo", model.itaskno);
                             cmd.Parameters.AddWithValue("@ID", model.ID);
                             cmd.Parameters.AddWithValue("@ctenantid", cTenantID);
-                            await cmd.ExecuteNonQueryAsync(); // Switched to Async
+                            await cmd.ExecuteNonQueryAsync();
                         }
                     }
+
                     transaction.Commit();
                     return true;
                 }
+                catch (InvalidOperationException ex)
+                {
+                    throw new Exception(ex.Message);
+                }
                 catch (Exception)
-                {                 
+                {
                     transaction.Rollback();
                     throw;
                 }
             }
         }
-
         public async Task<List<GettaskApprovedatabyidDTO>> Gettaskapprovedatabyid(int cTenantID, int ID)
         {
             var result = new List<GettaskApprovedatabyidDTO>();
