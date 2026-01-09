@@ -1562,8 +1562,8 @@ WHERE a.cis_active = 1
                             datatime = reader.IsDBNull(reader.GetOrdinal("statusDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("statusDate")),
                             pendingwith = reader["userName"]?.ToString() ?? "",
                             pendingwithavatar = reader["userAvatar"]?.ToString() ?? "",
-                            cboard_visablity_flag = reader["userAvatar"]?.ToString() ?? "",
-                            cboard_visablity = reader["userAvatar"]?.ToString() ?? "",
+                            cboard_visablity_flag = reader["cboard_visablity_flag"]?.ToString() ?? "",
+                            cboard_visablity = reader["cboard_visablity"]?.ToString() ?? ""
                         });
                     }
                 }
