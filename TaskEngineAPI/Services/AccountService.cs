@@ -2556,6 +2556,7 @@ VALUES (
             bulkCopy.ColumnMappings.Add("crole_level", "crole_level");
             bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
             bulkCopy.ColumnMappings.Add("creporting_manager_code", "creporting_manager_code");
+            bulkCopy.ColumnMappings.Add("creporting_manager_name ", "creporting_manager_name");
             bulkCopy.ColumnMappings.Add("nis_active", "nis_active");
             bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
             bulkCopy.ColumnMappings.Add("lcreated_date", "lcreated_date");
