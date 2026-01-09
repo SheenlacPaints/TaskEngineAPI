@@ -3360,7 +3360,7 @@ WHERE a.cis_active = 1
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno,b.cremarks as Remarks ,b.creassign_to as ReassignedTo,b.lreassign_date as ReassignedDate
+                    a.itaskno,b.cremarks as Remarks ,b.creassign_to as ReassignedTo,b.lreassign_date as ReassignedDate,e.cuser_name as Username
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -3406,6 +3406,7 @@ WHERE a.cis_active = 1
                                     Remarks = reader["Remarks"]?.ToString() ?? "",
                                     ReassignedTo = reader["ReassignedTo"]?.ToString() ?? "",
                                     ReassignedDate = reader.SafeGetDateTime("ReassignedDate"),
+                                    Username = reader["Username"]?.ToString()??"",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()

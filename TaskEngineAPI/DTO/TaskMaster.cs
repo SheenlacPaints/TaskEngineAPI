@@ -267,6 +267,7 @@ namespace TaskEngineAPI.DTO
         public DateTime? ReassignedDate { get; set; }
         public string? ReassignedTo { get; set; }
         public string? Remarks { get; set; }
+        public string? Username { get; set; }
 
         public List<TimelineDTO>? timeline { get; set; }
 
