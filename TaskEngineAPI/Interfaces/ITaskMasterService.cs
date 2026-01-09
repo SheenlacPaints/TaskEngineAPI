@@ -21,7 +21,8 @@ namespace TaskEngineAPI.Interfaces
         Task<int> Processprivilege_mapping(privilegeMappingDTO model, int tenantId, string username);
         Task<string> GetTaskInitiator(int cTenantID, string username, string? searchText, int pageNo, int pageSize);
         Task<List<GetprocessEngineConditionDTO>> GetTaskConditionBoard(int cTenantID, int ID);
-        Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID);
+        Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID, string username);
+     
         Task<List<GettaskApprovedatabyidDTO>> Gettaskapprovedatabyid(int cTenantID, int ID);
         Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int itaskno);
         Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username);
