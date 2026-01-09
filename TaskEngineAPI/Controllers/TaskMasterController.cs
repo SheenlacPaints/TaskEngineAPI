@@ -1301,5 +1301,43 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+
+        [Authorize]
+        [HttpGet]
+        [Route("GettaskTimelineDetails")]
+        public async Task<IActionResult> GettaskTimelineDetails([FromQuery] int itaskno)
+        {
+            try
+            {
+                if (itaskno <= 0)
+                {
+                    return CreateEncryptedResponse(400, "ID must be greater than 0");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var data = await taskMasterService.GettasktimelinedetailAsync(itaskno, username,cTenantID);
+
+                if (data == null || !data.Any())
+                {
+                    return CreateEncryptedResponse(400, $"{itaskno} not found.", new { status = 400, data = Array.Empty<object>() });
+                }
+
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+
+        }
+
     }
 }
