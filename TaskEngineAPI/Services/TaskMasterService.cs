@@ -213,16 +213,16 @@ namespace TaskEngineAPI.Services
                                 }
                             }
                         }
-                     
-                            using (SqlCommand cmd = new SqlCommand("sp_task_updatereportingflow", conn, transaction))
-                            {
-                                cmd.CommandType = CommandType.StoredProcedure;
-                                cmd.Parameters.AddWithValue("@ID", masterId);
-                                cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
-                                cmd.Parameters.AddWithValue("@ctenantID", tenantId);
-                                cmd.ExecuteNonQuery();
-                            }
-                        
+
+                        using (SqlCommand cmd = new SqlCommand("sp_task_updatereportingflow", conn, transaction))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@ID", masterId);
+                            cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
+                            cmd.Parameters.AddWithValue("@ctenantID", tenantId);
+                            cmd.ExecuteNonQuery();
+                        }
+
 
 
                         transaction.Commit();
@@ -1014,7 +1014,7 @@ WHERE a.cis_active = 1
 
             var response = new
             {
-               // success = true,
+                // success = true,
                 totalCount = totalCount,
                 data = tsk
             };
@@ -1088,12 +1088,12 @@ WHERE a.cis_active = 1
         //            await conn.OpenAsync();
 
         //            string query = @"select a.cprocess_id as processId,c.cprocessname as processName,c.cprocessdescription as processDesc,
-	       //     d.cactivityname as activityName,d.cactivity_description as activityDesc,c.cpriority_label as priorityLabel ,
-	       //     b.ccurrent_status as taskStatus,d.cparticipant_type as participantType,
-	       //     d.caction_privilege as actionPrivilege,d.cmapping_type as assigneeType,d.cmapping_code as assigneeValue,
-	       //     d.csla_day as slaDays,d.csla_Hour as slaHours,d.ctask_type as executionType,
-	       //     c.nshow_timeline as showTimeline,a.lcreated_date as taskInitiatedDate,		 
-	       //     b.lcurrent_status_date as taskAssignedDate ,e.cfirst_name+ ' '+e.clast_name as assigneeName
+        //     d.cactivityname as activityName,d.cactivity_description as activityDesc,c.cpriority_label as priorityLabel ,
+        //     b.ccurrent_status as taskStatus,d.cparticipant_type as participantType,
+        //     d.caction_privilege as actionPrivilege,d.cmapping_type as assigneeType,d.cmapping_code as assigneeValue,
+        //     d.csla_day as slaDays,d.csla_Hour as slaHours,d.ctask_type as executionType,
+        //     c.nshow_timeline as showTimeline,a.lcreated_date as taskInitiatedDate,		 
+        //     b.lcurrent_status_date as taskAssignedDate ,e.cfirst_name+ ' '+e.clast_name as assigneeName
         //    from tbl_taskflow_master a 
         //    inner join tbl_taskflow_detail b on a.id=b.iheader_id
         //    inner join tbl_process_engine_master c on a.cprocess_id=c.ID 
@@ -1245,6 +1245,7 @@ WHERE a.cis_active = 1
         }
 
         public async Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID, string username)
+  
         {
             var result = new List<GettaskinboxbyidDTO>();
             var connStr = _config.GetConnectionString("Database");
@@ -1320,13 +1321,13 @@ WHERE a.cis_active = 1
                                     executionType = reader["executionType"]?.ToString() ?? "",
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
-                                    taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",                                                                      
+                                    taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
-                                    cremarks= reader["cremarks"]?.ToString() ?? "",
+                                    cremarks = reader["cremarks"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
-                                    approvers= new List<PreviousapproverDTO>()
+                                    approvers = new List<PreviousapproverDTO>()
                                 };
 
                                 // Add timeline
@@ -1346,14 +1347,14 @@ WHERE a.cis_active = 1
                                 {
                                     mapping.timeline = await GetTimelineAsync(conn, ID);
                                 }
-                                mapping.approvers= await GetPreviousapproverAsync(conn, ID, username, cTenantID);
+                                mapping.approvers = await GetPreviousapproverAsync(conn, ID, username, cTenantID);
 
                                 // Load Conditions
                                 await LoadProcessConditions(conn, mapping, processdetailid);
 
                                 // Load Meta
                                 await LoadMeta(conn, mapping, itaskno, cTenantID);
-                                await GetPreviousapproverAsync (conn, ID, username, cTenantID);
+                                await GetPreviousapproverAsync(conn, ID, username, cTenantID);
 
                                 result.Add(mapping);
                             }
@@ -1448,7 +1449,7 @@ WHERE a.cis_active = 1
 
             using (SqlCommand cmd = new SqlCommand(timelineQuery, conn))
             {
-                cmd.Parameters.AddWithValue("@ID",ID);
+                cmd.Parameters.AddWithValue("@ID", ID);
 
                 using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                 {
@@ -1457,11 +1458,11 @@ WHERE a.cis_active = 1
                         timelineList.Add(new TimelineDTO
                         {
                             status = reader["status"]?.ToString() ?? "",
-                            remarks= reader["cremarks"]?.ToString() ?? "",
-                            taskName = reader["cactivityname"]?.ToString() ?? "",                          
+                            remarks = reader["cremarks"]?.ToString() ?? "",
+                            taskName = reader["cactivityname"]?.ToString() ?? "",
                             userName = reader["userName"]?.ToString() ?? "",
                             userAvatar = reader["userAvatar"]?.ToString() ?? ""
-                          
+
                         });
                     }
                 }
@@ -1535,7 +1536,7 @@ WHERE a.cis_active = 1
         //    return timelineList;
         //}
 
-        private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID,string userid, int tenantid)
+        private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID, string userid, int tenantid)
         {
             var timelineList = new List<PreviousapproverDTO>();
 
@@ -1558,7 +1559,7 @@ WHERE a.cis_active = 1
                             ID = reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : Convert.ToInt32(reader["ID"]),
                             activity = reader["cactivityname"]?.ToString() ?? "",
                             status = reader["status"]?.ToString() ?? "",
-                            cremarks = reader["cremarks"]?.ToString() ?? "",                          
+                            cremarks = reader["cremarks"]?.ToString() ?? "",
                             datatime = reader.IsDBNull(reader.GetOrdinal("statusDate")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("statusDate")),
                             pendingwith = reader["userName"]?.ToString() ?? "",
                             pendingwithavatar = reader["userAvatar"]?.ToString() ?? "",
@@ -1613,7 +1614,7 @@ WHERE a.cis_active = 1
                             {
                                 reader.Close();
                                 transaction.Rollback();
-                                return false; 
+                                return false;
                             }
                             reader.Close();
                         }
@@ -1891,7 +1892,7 @@ WHERE a.cis_active = 1
             }
         }
 
-        public async Task<List<GettaskHolddatabyidDTO>> GettaskHolddatabyid(int cTenantID, int ID,string username)
+        public async Task<List<GettaskHolddatabyidDTO>> GettaskHolddatabyid(int cTenantID, int ID, string username)
         {
             var result = new List<GettaskHolddatabyidDTO>();
             var connStr = _config.GetConnectionString("Database");
@@ -2886,7 +2887,7 @@ WHERE a.cis_active = 1
                 mapping.meta.Add(new processEnginetaskMeta
                 {
                     cdata = dr["cdata"]?.ToString() ?? "",
-                    cinputType = dr["cinput_type"]?.ToString() ?? "", 
+                    cinputType = dr["cinput_type"]?.ToString() ?? "",
                     clabel = dr["label"]?.ToString() ?? "",
                     cplaceholder = dr["cplaceholder"]?.ToString() ?? "",
 
@@ -3044,16 +3045,16 @@ WHERE a.cis_active = 1
                                 var mapping = new GetmetaviewdataDTO
                                 {
                                     ID = reader["cdetail_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cdetail_id"]),
-                                    itaskno= reader["citaskno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["citaskno"]),
+                                    itaskno = reader["citaskno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["citaskno"]),
                                     icond_seqno = reader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["icond_seqno"]),
-                                    ctype=reader["ctype"]?.ToString() ?? "",
+                                    ctype = reader["ctype"]?.ToString() ?? "",
                                     clabel = reader["clabel"]?.ToString() ?? "",
                                     cplaceholder = reader["cplaceholder"]?.ToString() ?? "",
                                     cfield_value = reader["cfield_value"]?.ToString() ?? "",
                                     ccondition = reader["ccondition"]?.ToString() ?? "",
                                     cdata_source = reader["cdata_source"]?.ToString() ?? "",
                                     cdata = reader["cdata"]?.ToString() ?? "",
-                                   
+
                                 };
                                 result.Add(mapping);
                             }
@@ -3435,7 +3436,7 @@ WHERE a.cis_active = 1
                                     Remarks = reader["Remarks"]?.ToString() ?? "",
                                     ReassignedTo = reader["ReassignedTo"]?.ToString() ?? "",
                                     ReassignedDate = reader.SafeGetDateTime("ReassignedDate"),
-                                    ReassignedUsername = reader["ReassignedUsername"]?.ToString()??"",
+                                    ReassignedUsername = reader["ReassignedUsername"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
@@ -3524,6 +3525,91 @@ WHERE a.cis_active = 1
                     cisDisabled = dr.SafeGetBoolean("cis_disabled"),
                     cfieldValue = dr["cfield_value"]?.ToString() ?? "",
                     cdatasource = dr["cdata_source"]?.ToString() ?? ""
+                });
+            }
+        }
+
+
+        public async Task<string> Gettasktimeline(
+        int cTenantID,
+        string username,
+        string? searchText = null,
+        int pageNo = 1,
+        int pageSize = 50)
+        {
+            List<GetTaskList> tsk = new List<GetTaskList>();
+            int totalCount = 0;
+
+            try
+            {
+                string query = "sp_get_worflow_timeline";
+
+                using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (SqlCommand cmd = new SqlCommand(query, con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@userid", username);
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@searchtext", (object?)searchText ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PageNo", pageNo);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                    await con.OpenAsync();
+
+                    using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await sdr.ReadAsync())
+                        {
+                            GetTaskList p = new GetTaskList
+                            {
+                                ID = sdr.IsDBNull("ID") ? 0 : Convert.ToInt32(sdr["ID"]),
+                                itaskno = sdr.IsDBNull("itaskno") ? 0 : Convert.ToInt32(sdr["itaskno"]),
+                                ctasktype = sdr["ctask_type"]?.ToString() ?? "",
+                                ctaskname = sdr["ctask_name"]?.ToString() ?? "",
+                                ctaskdescription = sdr["ctask_description"]?.ToString() ?? "",
+                                cstatus = sdr["cstatus"]?.ToString() ?? "",
+                                lcompleteddate = sdr.IsDBNull("lcompleted_date") ? null : sdr.GetDateTime(sdr.GetOrdinal("lcompleted_date")),
+                                ccreatedby = sdr["ccreated_by"]?.ToString() ?? "",
+                                ccreatedbyname = sdr["ccreated_byname"]?.ToString() ?? "",
+                                lcreateddate = sdr.IsDBNull("lcreated_date") ? null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
+                                cmodifiedby = sdr["cmodified_by"]?.ToString() ?? "",
+                                cmodifiedbyname = sdr["cmodified_byname"]?.ToString() ?? "",
+                                lmodifieddate = sdr.IsDBNull("lmodified_date") ? null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date")),
+                                Employeecode = sdr["Employeecode"]?.ToString() ?? "",
+                                Employeename = sdr["Employeename"]?.ToString() ?? "",
+                                EmpDepartment = sdr["EmpDepartment"]?.ToString() ?? "",
+                                cprocess_id = sdr.IsDBNull("cprocess_id") ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
+                                cprocesscode = sdr["cprocesscode"]?.ToString() ?? "",
+                                cprocessname = sdr["cprocessname"]?.ToString() ?? "",
+                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? ""
+                            };
+
+                            tsk.Add(p);
+                        }
+                        if (await sdr.NextResultAsync() && await sdr.ReadAsync())
+                        {
+                            totalCount = sdr.IsDBNull(0) ? 0 : Convert.ToInt32(sdr[0]);
+                        }
+                    }
+                }
+
+                var response = new
+                {
+                    data = tsk,
+                    totalCount = totalCount,
+                    pageNo = pageNo,
+                    pageSize = pageSize
+                };
+
+                return JsonConvert.SerializeObject(response);
+            }
+            catch (Exception ex)
+            {              
+                return JsonConvert.SerializeObject(new
+                {
+                    data = new List<GetTaskList>(),
+                    totalCount = 0,
+                    error = ex.Message
                 });
             }
         }

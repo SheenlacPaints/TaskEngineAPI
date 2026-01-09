@@ -1256,6 +1256,50 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("GettaskTimeline")]
+        public async Task<IActionResult> GettaskTimeline([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var json = await taskMasterService.Gettasktimeline(cTenantID, username, searchText, pageNo, pageSize);
+
+
+                var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
+                if (response == null)
+                {
+                    return CreateEncryptedResponse(500, "Invalid response format from service");
+                }
+
+                if (response.TotalCount == 0)
+                {
+                    return CreateEncryptedResponse(404, "No tasks found in your inbox");
+                }
+
+                return CreatedSuccessResponse(response);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (JsonException jsonEx)
+            {
+                return CreateEncryptedResponse(500, "Invalid JSON response", error: jsonEx.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
 
     }
 }
