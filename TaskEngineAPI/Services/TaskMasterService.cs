@@ -3338,7 +3338,7 @@ WHERE a.cis_active = 1
                     await conn.OpenAsync();
 
                     string query = @"
-                SELECT 
+                    SELECT 
                     a.cprocess_id AS processId,
                     c.cprocessname AS processName,
                     c.cprocessdescription AS processDesc,
@@ -3360,13 +3360,16 @@ WHERE a.cis_active = 1
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno,b.cremarks as Remarks ,b.creassign_to as ReassignedTo,b.lreassign_date as ReassignedDate,e.cuser_name as Username
+                    a.itaskno,b.cremarks as Remarks,b.creassign_to as ReassignedTo ,b.lreassign_date as ReassignedDate,
+					    ru.cfirst_name + ' ' + ru.clast_name AS ReassignedUsername
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
-                                   AND e.ctenant_id = a.ctenant_id
+                                   AND e.ctenant_id = a.ctenant_id 
+                LEFT JOIN Users ru ON ru.cuserid = CONVERT(int, b.creassign_to) 
+                   AND ru.ctenant_id = a.ctenant_id
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -3406,7 +3409,7 @@ WHERE a.cis_active = 1
                                     Remarks = reader["Remarks"]?.ToString() ?? "",
                                     ReassignedTo = reader["ReassignedTo"]?.ToString() ?? "",
                                     ReassignedDate = reader.SafeGetDateTime("ReassignedDate"),
-                                    Username = reader["Username"]?.ToString()??"",
+                                    ReassignedUsername = reader["ReassignedUsername"]?.ToString()??"",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
