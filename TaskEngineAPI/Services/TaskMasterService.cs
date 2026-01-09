@@ -1930,7 +1930,7 @@ WHERE a.cis_active = 1
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
                                    AND e.ctenant_id = a.ctenant_id
-                INNER JOIN tbl_transaction_taskflow_detail_and_status t
+                left JOIN tbl_transaction_taskflow_detail_and_status t
                 ON t.cdetail_id = d.id
                 WHERE b.id = @ID";
 
