@@ -1926,7 +1926,7 @@ WHERE a.cis_active = 1
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno,t.cremarks as HoldRemarks,t.crejected_reason as RejectReason
+                    a.itaskno,b.cremarks as HoldRemarks,t.crejected_reason as RejectReason
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
