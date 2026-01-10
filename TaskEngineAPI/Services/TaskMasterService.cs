@@ -645,7 +645,7 @@ WHERE a.cis_active = 1
 
         public async Task<string> GetTaskInitiator(int cTenantID, string username, string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
-            List<GetTaskList> tsk = new List<GetTaskList>();
+            List<GetTaskinitiateList> tsk = new List<GetTaskinitiateList>();
             int totalCount = 0;
 
             string query = "sp_get_workflow_initiator";
@@ -667,8 +667,8 @@ WHERE a.cis_active = 1
                     {
                         while (await sdr.ReadAsync())
                         {
-                            List<GetTaskDetails> tskdtl = new List<GetTaskDetails>();
-                            GetTaskList p = new GetTaskList
+                            List<GetTaskinitiateDetails> tskdtl = new List<GetTaskinitiateDetails>();
+                            GetTaskinitiateList p = new GetTaskinitiateList
                             {
                                 ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
                                 itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
@@ -708,7 +708,7 @@ WHERE a.cis_active = 1
                                     {
                                         while (await sdr1.ReadAsync())
                                         {
-                                            GetTaskDetails pd = new GetTaskDetails
+                                            GetTaskinitiateDetails pd = new GetTaskinitiateDetails
                                             {
                                                 ID = sdr1.IsDBNull(sdr1.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr1["ID"]),
                                                 iheader_id = sdr1.IsDBNull(sdr1.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(sdr1["iheader_id"]),
@@ -716,6 +716,7 @@ WHERE a.cis_active = 1
                                                 iseqno = sdr1.IsDBNull(sdr1.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(sdr1["iseqno"]),
                                                 ctasktype = sdr1.IsDBNull(sdr1.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr1["ctask_type"]),
                                                 cmappingcode = sdr1.IsDBNull(sdr1.GetOrdinal("cmapping_code")) ? string.Empty : Convert.ToString(sdr1["cmapping_code"]),
+                                                cmappingcodename = sdr1.IsDBNull(sdr1.GetOrdinal("cmappingcodename")) ? string.Empty : Convert.ToString(sdr1["cmappingcodename"]),
                                                 ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
                                                 lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
                                                 cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1["cremarks"]),
@@ -3674,7 +3675,34 @@ WHERE a.cis_active = 1
         }
 
 
+        public async Task<string> Getworkflowdashboard(int cTenantID, string username, string searchtext)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_workflow_dashboard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@userid", username);
+                    cmd.Parameters.AddWithValue("@searchtext", searchtext);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); 
 
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }
 

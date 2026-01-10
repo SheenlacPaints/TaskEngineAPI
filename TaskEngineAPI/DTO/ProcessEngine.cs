@@ -307,6 +307,73 @@ namespace TaskEngineAPI.DTO
 
     }
 
+    public class GetTaskinitiateList
+    {
+        public int ID { get; set; }
+        public int itaskno { get; set; }
+        public string? ctasktype { get; set; }
+        public string? ctaskname { get; set; }
+        public string? ctaskdescription { get; set; }
+        public string? cstatus { get; set; }
+        public DateTime? lcompleteddate { get; set; }
+        public string? ccreatedby { get; set; }
+        public string? ccreatedbyname { get; set; }
+        public DateTime? lcreateddate { get; set; }
+        public string? cmodifiedby { get; set; }
+        public string? cmodifiedbyname { get; set; }
+
+        public DateTime? lmodifieddate { get; set; }
+        public string? Employeecode { get; set; }
+        public string? Employeename { get; set; }
+
+        public string? EmpDepartment { get; set; }
+        public int? cprocess_id { get; set; }
+
+        public string? cprocesscode { get; set; }
+        public string? cprocessname { get; set; }
+        public string? cprocessdescription { get; set; }
+
+        public string? cremarks { get; set; }
+
+        //public string? privilege_name { get; set; }
+        public List<GetTaskinitiateDetails>? TaskChildItems { get; set; }
+
+    }
+    public class GetTaskinitiateDetails
+    {
+        public int? ID { get; set; }
+        public int? iheader_id { get; set; }
+        public int? itaskno { get; set; }
+        public int? iseqno { get; set; }
+        public string? ctasktype { get; set; }
+        public string? cmappingcode { get; set; }
+        public string? cmappingcodename { get; set; }
+        public string? ccurrentstatus { get; set; }
+        public DateTime? lcurrentstatusdate { get; set; }
+        public string? cremarks { get; set; }
+        public int? inextseqno { get; set; }
+        public string? cnextseqtype { get; set; }
+        public string? cprevtype { get; set; }
+        public int? csla_day { get; set; }
+        public int? csla_Hour { get; set; }
+        public string? cprocess_type { get; set; }
+        public bool? nboard_enabled { get; set; }
+        public string? caction_privilege { get; set; }
+        public string? crejection_privilege { get; set; }
+        public string? cisforwarded { get; set; }
+        public DateTime? lfwd_date { get; set; }
+        public string? cfwd_to { get; set; }
+        public string? cis_reassigned { get; set; }
+        public DateTime? lreassign_date { get; set; }
+        public string? creassign_to { get; set; }
+
+        public string? creassign_name { get; set; }
+        public string? cactivityname { get; set; }
+        public string? cactivity_description { get; set; }
+
+    }
+
+
     public class GetIDProcessEngineDTO
     {
         public int? ID { get; set; }
