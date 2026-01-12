@@ -772,6 +772,7 @@ namespace TaskEngineAPI.Services
                             GetTaskinitiateList p = new GetTaskinitiateList
                             {
                                 ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                cprocessID = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                 itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
                                 ctasktype = sdr.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr["ctask_type"]),
                                 ctaskname = sdr.IsDBNull(sdr.GetOrdinal("ctask_name")) ? string.Empty : Convert.ToString(sdr["ctask_name"]),
@@ -1862,7 +1863,7 @@ namespace TaskEngineAPI.Services
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
-                    c.cmeta_id,
+                    c.cmeta_id,t.cremarks as HoldRemarks,t.crejected_reason as RejectReason,
                     a.itaskno
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
@@ -1870,6 +1871,8 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
                                    AND e.ctenant_id = a.ctenant_id
+                left JOIN tbl_transaction_taskflow_detail_and_status t
+                ON t.cdetail_id = d.id
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -1904,6 +1907,8 @@ namespace TaskEngineAPI.Services
                                     executionType = reader["executionType"]?.ToString() ?? "",
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
+                                    HoldRemarks = reader["HoldRemarks"]?.ToString() ?? "",
+                                    RejectReason = reader["RejectReason"]?.ToString() ?? "",
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     timeline = new List<TimelineDTO>(),

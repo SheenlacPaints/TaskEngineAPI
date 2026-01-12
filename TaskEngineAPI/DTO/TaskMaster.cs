@@ -158,6 +158,8 @@ namespace TaskEngineAPI.DTO
         public int? slaDays { get; set; }
         public int? slaHours { get; set; }
         public string? executionType { get; set; }
+        public string? HoldRemarks { get; set; }
+        public string? RejectReason { get; set; }
         public DateTime? taskAssignedDate { get; set; }
         public DateTime? taskInitiatedDate { get; set; }
 
