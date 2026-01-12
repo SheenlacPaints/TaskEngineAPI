@@ -1863,7 +1863,7 @@ namespace TaskEngineAPI.Services
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
-                    c.cmeta_id,t.cremarks as HoldRemarks,t.crejected_reason as RejectReason,
+                    c.cmeta_id,a.cremarks,
                     a.itaskno
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
@@ -1871,8 +1871,6 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
                                    AND e.ctenant_id = a.ctenant_id
-                left JOIN tbl_transaction_taskflow_detail_and_status t
-                ON t.cdetail_id = d.id
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -1907,8 +1905,7 @@ namespace TaskEngineAPI.Services
                                     executionType = reader["executionType"]?.ToString() ?? "",
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
-                                    HoldRemarks = reader["HoldRemarks"]?.ToString() ?? "",
-                                    RejectReason = reader["RejectReason"]?.ToString() ?? "",
+                                    cremarks= reader["cremarks"]?.ToString() ?? "",
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     timeline = new List<TimelineDTO>(),

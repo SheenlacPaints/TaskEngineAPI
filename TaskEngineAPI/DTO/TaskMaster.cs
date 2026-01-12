@@ -151,7 +151,7 @@ namespace TaskEngineAPI.DTO
         public string? taskStatus { get; set; }
         public string? participantType { get; set; }
         public string? actionPrivilege { get; set; }
-
+        public string? cremarks { get; set; }
         public string? crejection_privilege { get; set; }
         public string? assigneeType { get; set; }
         public string? assigneeValue { get; set; }
