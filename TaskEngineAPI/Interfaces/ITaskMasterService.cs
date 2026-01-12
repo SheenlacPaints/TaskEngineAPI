@@ -46,6 +46,8 @@ namespace TaskEngineAPI.Interfaces
         Task<string> Gettasktimeline(int cTenantID, string username, string? searchText = null, int pageNo = 1, int pageSize = 50);
 
         Task<List<GetTaskDetails>> GettasktimelinedetailAsync(int itaskno, string userid, int tenantid);
+
+        Task<string> Getworkflowdashboard(int cTenantID, string username, string searchtext);
     }
 
 }

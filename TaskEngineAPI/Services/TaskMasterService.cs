@@ -645,7 +645,7 @@ WHERE a.cis_active = 1
 
         public async Task<string> GetTaskInitiator(int cTenantID, string username, string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
-            List<GetTaskList> tsk = new List<GetTaskList>();
+            List<GetTaskinitiateList> tsk = new List<GetTaskinitiateList>();
             int totalCount = 0;
 
             string query = "sp_get_workflow_initiator";
@@ -667,8 +667,8 @@ WHERE a.cis_active = 1
                     {
                         while (await sdr.ReadAsync())
                         {
-                            List<GetTaskDetails> tskdtl = new List<GetTaskDetails>();
-                            GetTaskList p = new GetTaskList
+                            List<GetTaskinitiateDetails> tskdtl = new List<GetTaskinitiateDetails>();
+                            GetTaskinitiateList p = new GetTaskinitiateList
                             {
                                 ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
                                 itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
@@ -690,6 +690,8 @@ WHERE a.cis_active = 1
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                                 cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
+
                             };
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -708,7 +710,7 @@ WHERE a.cis_active = 1
                                     {
                                         while (await sdr1.ReadAsync())
                                         {
-                                            GetTaskDetails pd = new GetTaskDetails
+                                            GetTaskinitiateDetails pd = new GetTaskinitiateDetails
                                             {
                                                 ID = sdr1.IsDBNull(sdr1.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr1["ID"]),
                                                 iheader_id = sdr1.IsDBNull(sdr1.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(sdr1["iheader_id"]),
@@ -716,6 +718,7 @@ WHERE a.cis_active = 1
                                                 iseqno = sdr1.IsDBNull(sdr1.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(sdr1["iseqno"]),
                                                 ctasktype = sdr1.IsDBNull(sdr1.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr1["ctask_type"]),
                                                 cmappingcode = sdr1.IsDBNull(sdr1.GetOrdinal("cmapping_code")) ? string.Empty : Convert.ToString(sdr1["cmapping_code"]),
+                                                cmappingcodename = sdr1.IsDBNull(sdr1.GetOrdinal("cmappingcodename")) ? string.Empty : Convert.ToString(sdr1["cmappingcodename"]),
                                                 ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
                                                 lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
                                                 cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1["cremarks"]),
@@ -736,7 +739,8 @@ WHERE a.cis_active = 1
                                                 lreassign_date = sdr1.IsDBNull(sdr1.GetOrdinal("lreassign_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lreassign_date")),
                                                 creassign_to = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(sdr1["creassign_to"]),
                                                 cactivityname = sdr1.IsDBNull(sdr1.GetOrdinal("cactivityname")) ? string.Empty : Convert.ToString(sdr1["cactivityname"]),
-                                                cactivity_description = sdr1.IsDBNull(sdr1.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(sdr1["cactivity_description"])
+                                                cactivity_description = sdr1.IsDBNull(sdr1.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(sdr1["cactivity_description"]),
+                                                cmappingcode_name = sdr1.IsDBNull(sdr1.GetOrdinal("cmappingcodename")) ? string.Empty : Convert.ToString(sdr1["cmappingcodename"]),
                                             };
                                             tskdtl.Add(pd);
                                         }
@@ -943,6 +947,7 @@ WHERE a.cis_active = 1
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                                 cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
                             };
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -1930,7 +1935,7 @@ WHERE a.cis_active = 1
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno,t.cremarks as HoldRemarks,t.crejected_reason as RejectReason
+                    a.itaskno,b.cremarks as HoldRemarks,t.crejected_reason as RejectReason
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2119,6 +2124,7 @@ WHERE a.cis_active = 1
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                                 cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
                             };
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -2948,6 +2954,8 @@ WHERE a.cis_active = 1
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                                 cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
+
                                 //privilege_name = sdr.IsDBNull(sdr.GetOrdinal("privilege_name")) ? string.Empty : Convert.ToString(sdr["privilege_name"])
 
                             };
@@ -3677,7 +3685,34 @@ WHERE a.cis_active = 1
         }
 
 
+        public async Task<string> Getworkflowdashboard(int cTenantID, string username, string searchtext)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_workflow_dashboard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@userid", username);
+                    cmd.Parameters.AddWithValue("@searchtext", searchtext);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); 
 
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }
 

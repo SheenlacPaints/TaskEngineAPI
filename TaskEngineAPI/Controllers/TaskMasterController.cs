@@ -1339,5 +1339,32 @@ namespace TaskEngineAPI.Controllers
 
         }
 
+
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("Getworkflowdashboard")]
+        public async Task<IActionResult> Getworkflowdashboard([FromQuery] string? searchtext)
+        {
+            try
+            {
+                
+                
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getworkflowdashboard(cTenantID, username, searchtext);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
     }
 }
