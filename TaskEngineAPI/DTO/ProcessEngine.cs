@@ -310,6 +310,7 @@ namespace TaskEngineAPI.DTO
     public class GetTaskinitiateList
     {
         public int ID { get; set; }
+        public int cprocessID { get; set; }
         public int itaskno { get; set; }
         public string? ctasktype { get; set; }
         public string? ctaskname { get; set; }
