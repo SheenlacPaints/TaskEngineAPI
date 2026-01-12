@@ -690,6 +690,8 @@ WHERE a.cis_active = 1
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                                 cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
+
                             };
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -2118,6 +2120,7 @@ WHERE a.cis_active = 1
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                                 cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
                             };
 
                             using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -2947,6 +2950,8 @@ WHERE a.cis_active = 1
                                 cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                 cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
                                 cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
+
                                 //privilege_name = sdr.IsDBNull(sdr.GetOrdinal("privilege_name")) ? string.Empty : Convert.ToString(sdr["privilege_name"])
 
                             };
