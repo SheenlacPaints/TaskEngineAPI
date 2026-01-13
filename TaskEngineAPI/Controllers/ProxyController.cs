@@ -1041,7 +1041,7 @@ namespace TaskEngineAPI.Controllers
         
         [Authorize]
         [HttpGet("Gettaskinbox")]
-        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null, [FromQuery] int pageNo = 1, [FromQuery] int pageSize = 50)
         {
             try
             {
@@ -1077,7 +1077,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Gettaskapprove")]
-        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null, [FromQuery] int pageNo = 1, [FromQuery] int pageSize = 50)
         {
             try
             {
@@ -1113,7 +1113,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskReject")]
-        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null, [FromQuery] int pageNo = 1, [FromQuery] int pageSize = 50)
         {
             try
             {
@@ -1149,7 +1149,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskHold")]
-        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null, [FromQuery] int pageNo = 1, [FromQuery] int pageSize = 50)
         {
             try
             {
