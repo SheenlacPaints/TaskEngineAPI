@@ -248,6 +248,8 @@ namespace TaskEngineAPI.DTO
         public string? ctaskname { get; set; }
         public string? ctaskdescription { get; set; }
         public string? cstatus { get; set; }
+        public string? createdbyavatar { get; set; }
+        public string? modifiedbyavatar { get; set; }
         public DateTime? lcompleteddate { get; set; }
         public string? ccreatedby { get; set; }
         public string? ccreatedbyname { get; set; }
