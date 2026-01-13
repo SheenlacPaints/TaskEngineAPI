@@ -207,7 +207,7 @@ namespace TaskEngineAPI.Services
                                     cmd.Parameters.AddWithValue("@cprocess_code", (object?)model.ctask_name ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@citaskno", newTaskNo);
-                                    cmd.Parameters.AddWithValue("@cdetail_id", primaryDetailId);
+                                    cmd.Parameters.AddWithValue("@cdetail_id", userName);
 
                                     await cmd.ExecuteNonQueryAsync();
                                 }
@@ -1647,12 +1647,9 @@ namespace TaskEngineAPI.Services
         {
             var timelineList = new List<PreviousapproverDTO>();
 
-            // Use the Stored Procedure name instead of the raw SQL string
             using (SqlCommand cmd = new SqlCommand("sp_get_worflow_previous_approver", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-
-                // Add the parameters defined in your ALTER PROC
                 cmd.Parameters.AddWithValue("@userid", userid);
                 cmd.Parameters.AddWithValue("@tenentid", tenantid);
                 cmd.Parameters.AddWithValue("@ID", ID);
@@ -1834,7 +1831,6 @@ namespace TaskEngineAPI.Services
         {
             var result = new List<GettaskApprovedatabyidDTO>();
             var connStr = _config.GetConnectionString("Database");
-
             try
             {
                 using (SqlConnection conn = new SqlConnection(connStr))
@@ -1927,7 +1923,6 @@ namespace TaskEngineAPI.Services
                         }
                     }
                 }
-
                 return result;
             }
             catch (Exception ex)
@@ -1944,9 +1939,7 @@ namespace TaskEngineAPI.Services
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
             cmd.Parameters.AddWithValue("@Seqno", seqno);
-
             using var dr = await cmd.ExecuteReaderAsync();
-
             while (await dr.ReadAsync())
             {
                 mapping.board.Add(new GetprocessEngineConditionDTO
