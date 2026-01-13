@@ -1,4 +1,10 @@
 ﻿
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using RestSharp;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -7,11 +13,6 @@ using System.Net.NetworkInformation;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
 using System.Xml.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using RestSharp;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
@@ -880,6 +881,8 @@ namespace TaskEngineAPI.Services
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
             int totalCount = 0;
+            if (pageNo < 1) pageNo = 1;
+            if (pageSize < 1) pageSize = 50;
 
             string query = "sp_get_worflow_approve";
             using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -1006,6 +1009,8 @@ namespace TaskEngineAPI.Services
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
             int totalCount = 0;
+            if (pageNo < 1) pageNo = 1;
+            if (pageSize < 1) pageSize = 50;
 
             string query = "sp_get_worflow_inbox";
             using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -2172,6 +2177,10 @@ namespace TaskEngineAPI.Services
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
             int totalCount = 0;
+            if (pageNo < 1) pageNo = 1;
+            if (pageSize < 1) pageSize = 50;
+
+            //int skip = (pageNo - 1) * pageSize;
 
             string query = "sp_get_worflow_Hold_New";
             using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -2587,6 +2596,8 @@ namespace TaskEngineAPI.Services
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
             int totalCount = 0;
+            if (pageNo < 1) pageNo = 1;
+            if (pageSize < 1) pageSize = 50;
 
             string query = "sp_get_worflow_reject";
             using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
