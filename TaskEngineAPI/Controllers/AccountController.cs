@@ -5820,8 +5820,8 @@ namespace TaskEngineAPI.Controllers
 
                         string targetTable = model.type.ToLower() switch
                         {
-                            "Task" => "tbl_taskflow_master",
-                            "Taskdetail" => "tbl_taskflow_detail",
+                            "task" => "tbl_taskflow_master",
+                            "taskdetail" => "tbl_taskflow_detail",
                             _ => throw new Exception("Invalid type. Must be 'Task' or 'Taskdetail'.")
                         };
 
