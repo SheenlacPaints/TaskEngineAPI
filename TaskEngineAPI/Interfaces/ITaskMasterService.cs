@@ -21,8 +21,7 @@ namespace TaskEngineAPI.Interfaces
         Task<int> Processprivilege_mapping(privilegeMappingDTO model, int tenantId, string username);
         Task<string> GetTaskInitiator(int cTenantID, string username, string? searchText, int pageNo, int pageSize);
         Task<List<GetprocessEngineConditionDTO>> GetTaskConditionBoard(int cTenantID, int ID);
-        Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID, string username);
-     
+        Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID, string username);  
         Task<List<GettaskApprovedatabyidDTO>> Gettaskapprovedatabyid(int cTenantID, int ID);
         Task<List<GetmetalayoutDTO>> GetmetalayoutByid(int cTenantID, int itaskno);
         Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username);
@@ -35,19 +34,14 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> UpdatetaskRejectAsync(updatetaskDTO model, int cTenantID, string username);
         Task<string> Getopentasklist(int cTenantID, string username, string? searchText);
         Task <List<GetopentasklistdatabyidDTO>> Getopentasklistdatabyid(int cTenantID, int id);
-
         Task<List<GetmetaviewdataDTO>> Getmetaviewdatabyid(int cTenantID, int id);
-
-
         Task<GettaskreassignCountDTO> GettaskReassign(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50);
         Task<List<GettaskInitiatordatabyidDTO>> GettaskInitiatordatabyid(int cTenantID, int id);
         Task<List<GettaskReassigndatabyidDTO>> GettaskReassigndatabyid(int cTenantID, int id);
-
         Task<string> Gettasktimeline(int cTenantID, string username, string? searchText = null, int pageNo = 1, int pageSize = 50);
-
         Task<List<GetTaskDetails>> GettasktimelinedetailAsync(int itaskno, string userid, int tenantid);
-
         Task<string> Getworkflowdashboard(int cTenantID, string username, string searchtext);
+        Task<string> GetProcessmetadetailsbyid(int itaskno, int cTenantID, int processid);
     }
 
 }

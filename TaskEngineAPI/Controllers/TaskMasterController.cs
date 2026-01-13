@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Data.SqlClient;
+using System.Data;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using TaskEngineAPI.DTO;
@@ -1355,6 +1357,41 @@ namespace TaskEngineAPI.Controllers
                 var json = await taskMasterService.Getworkflowdashboard(cTenantID, username, searchtext);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
                 return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetProcessmetadetailsbyid")]
+        public async Task<IActionResult> GetProcessmetadetailsbyid([FromQuery] int itaskno, [FromQuery] int processid)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                string jsonResult = await taskMasterService.GetProcessmetadetailsbyid(itaskno, cTenantID, processid);
+
+                var dataList = JsonConvert.DeserializeObject<List<object>>(jsonResult);
+
+                if (dataList == null || !dataList.Any())
+                {
+                    return CreateEncryptedResponse(404, $"Task No {itaskno} metadata not found.", new { status = 404, data = Array.Empty<object>() });
+                }
+                return CreatedSuccessResponse(dataList);
             }
             catch (UnauthorizedAccessException ex)
             {

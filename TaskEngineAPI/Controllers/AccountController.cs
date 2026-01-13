@@ -5758,5 +5758,118 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+
+        [Authorize]
+        [HttpPost("taskfileUpload")]
+        public async Task<IActionResult> taskfileUpload([FromForm] FileUploadDTO model)
+        {
+            if (model == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(401, encryptedError);
+            }
+
+            try
+            {
+                if (model.file == null || model.file.Length == 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "File not selected."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest(encryptedError);
+                }
+
+                await _minioService.TaskFileUploadFileAsync(model.file, model.type, cTenantID);
+
+                // Step 3: Update database (optional success)
+                try
+                {
+
+
+                    string connStr = _config.GetConnectionString("Database");
+                    using (var conn = new SqlConnection(connStr))
+                    {
+                        await conn.OpenAsync();
+
+                        string targetTable = model.type.ToLower() switch
+                        {
+                            "Task" => "tbl_taskflow_master",
+                            "Taskdetail" => "tbl_taskflow_detail",
+                            _ => throw new Exception("Invalid type. Must be 'Task' or 'Taskdetail'.")
+                        };
+
+                        string query = $@"
+                    UPDATE {targetTable}
+                    SET cattachment = @ProfilePath
+                    WHERE id = @UserId";
+
+                        using (var cmd = new SqlCommand(query, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@ProfilePath", model.file.FileName);                          
+                            cmd.Parameters.AddWithValue("@UserId", model.id);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                }
+                catch (Exception dbEx)
+                {
+                }
+
+                var response = new APIResponse
+                {
+                    status = 200,
+                    statusText = "File uploaded successfully."
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                string encc = $"\"{encrypted}\"";
+                return StatusCode(200, encc);
+
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error occurred: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                string encc = $"\"{encryptedError}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+
     }
 }

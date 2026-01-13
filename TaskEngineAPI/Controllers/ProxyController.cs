@@ -4,6 +4,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
@@ -1158,7 +1159,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold?searchText={searchText}&page={pageNo}&pageSize={pageSize}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold?searchText={searchText}&pageNo={pageNo}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -2798,7 +2799,35 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("GetProcessmetadetailsbyid")]
+        public async Task<IActionResult> GetProcessmetadetailsbyid([FromQuery] int itaskno, int processid)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");           
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GetProcessmetadetailsbyid?processid={processid}&itaskno={itaskno}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
     }
-
-
 }

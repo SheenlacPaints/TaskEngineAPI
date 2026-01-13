@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Diagnostics;
 using System.Net.NetworkInformation;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
@@ -3805,6 +3806,52 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
+
+
+        public async Task<string> GetProcessmetadetailsbyid(int itaskno, int cTenantID, int processid)
+        {
+            var metaDetails = new List<object>();
+            string connString = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connString))
+                {
+                    await con.OpenAsync();
+                    using (SqlCommand cmd = new SqlCommand("sp_get_Process_meta_details_common", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
+                        cmd.Parameters.AddWithValue("@ctaskno", itaskno);
+                        cmd.Parameters.AddWithValue("@processid", processid);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                metaDetails.Add(new
+                                {
+                                    id = reader["id"] != DBNull.Value ? Convert.ToInt32(reader["id"]) : 0,
+                                    citaskno = reader["citaskno"] != DBNull.Value ? Convert.ToInt32(reader["citaskno"]) : 0,
+                                    cmeta_id = reader["cmeta_id"] != DBNull.Value ? Convert.ToInt32(reader["cmeta_id"]) : 0,
+                                    cinput_type = reader["cinput_type"]?.ToString() ?? "",
+                                    label = reader["label"]?.ToString() ?? "",
+                                    cdata = reader["cdata"]?.ToString() ?? "",
+                                    cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0
+                                });
+                            }
+                        }
+                    }
+                }
+                return JsonConvert.SerializeObject(metaDetails, Formatting.Indented);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Database error: {ex.Message}");
+            }
+        }
+
+
     }
 }
 

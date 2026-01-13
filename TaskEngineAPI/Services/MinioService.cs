@@ -318,4 +318,78 @@ public class MinioService : IMinioService
         return (memoryStream, contentType);
     }
 
+
+    public async Task TaskFileUploadFileAsync(IFormFile form, string type, int ctenantid)
+    {
+        try
+        {
+            if (form == null)
+                throw new ArgumentException("File not found");
+
+            if (form.Length == 0)
+                throw new ArgumentException("Uploaded file is empty");
+
+            if (string.IsNullOrWhiteSpace(form.FileName))
+                throw new ArgumentException("Invalid file name");
+
+            // 2️⃣ Ensure bucket exists
+            bool bucketExists = await _minio.BucketExistsAsync(
+                new BucketExistsArgs().WithBucket(_bucketName)
+            );
+
+            if (!bucketExists)
+            {
+                await _minio.MakeBucketAsync(
+                    new MakeBucketArgs().WithBucket(_bucketName)
+                );
+            }
+
+            // 3️⃣ Get safe file name
+            var fileName = Path.GetFileName(form.FileName);
+
+            // 4️⃣ Decide object path (NO default folder)
+            string objectName;
+
+
+            var folderName = "Task";
+            objectName = $"{ctenantid}/{folderName}/{fileName}";
+
+
+
+            // 5️⃣ Upload
+            using var stream = form.OpenReadStream();
+
+            await _minio.PutObjectAsync(
+                new PutObjectArgs()
+                    .WithBucket(_bucketName)
+                    .WithObject(objectName)
+                    .WithStreamData(stream)
+                    .WithObjectSize(form.Length)
+                    .WithContentType(form.ContentType ?? "application/octet-stream")
+            );
+        }
+        catch (Minio.Exceptions.ObjectNotFoundException)
+        {
+            throw new Exception("Upload failed: object not found");
+        }
+        catch (Minio.Exceptions.MinioException ex)
+        {
+            // MinIO specific issues
+            throw new Exception($"MinIO error: {ex.Message}");
+        }
+        catch (IOException)
+        {
+            throw new Exception("File stream error while uploading");
+        }
+        catch (ArgumentException ex)
+        {
+            throw new Exception(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Unexpected error during upload: {ex.Message}");
+        }
+    }
+
+
 }
