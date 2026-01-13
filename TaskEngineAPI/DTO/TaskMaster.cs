@@ -199,7 +199,7 @@ namespace TaskEngineAPI.DTO
 
         public string? taskinitiatedbyname { get; set; }
         public string? HoldRemarks { get; set; }
-        public string? RejectReason { get; set; }
+        public string? Remarks { get; set; }
         public bool? showTimeline { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
 
