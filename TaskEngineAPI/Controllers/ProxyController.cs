@@ -1050,7 +1050,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinbox?searchText={searchText}&pageNo={pageNo}&pageSize={pageSize}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinbox?searchText={searchText}&page={pageNo}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1086,7 +1086,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskapprove?searchText={searchText}&pageNo={pageNo}&pageSize={pageSize}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskapprove?searchText={searchText}&page={pageNo}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
