@@ -797,9 +797,7 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
-                                    cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
-                                    TaskChildItems = new List<GetTaskinitiateDetails>()
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -939,9 +937,7 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
-                                    cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]), 
-                                    TaskChildItems = new List<GetTaskDetails>() 
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -1083,9 +1079,7 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
-                                    cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
-                                    TaskChildItems = new List<GetTaskDetails>()
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(_config.GetConnectionString("Database")))
@@ -2259,9 +2253,7 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
-                                    cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
-                                    TaskChildItems = new List<GetTaskDetails>() 
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
                                 };
 
                                 using (SqlCommand cmd1 = new SqlCommand("sp_get_worflow_Hold_details", con))
@@ -2681,9 +2673,7 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
-                                    cremarks = sdr.IsDBNull(sdr.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr["cremarks"]),
-                                    TaskChildItems = new List<GetTaskDetails>() 
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
