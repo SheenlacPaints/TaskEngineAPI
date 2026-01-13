@@ -328,7 +328,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Gettaskapprove")]
-        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null, int page = 1, int pageSize = 50)
         {
             try
             {
@@ -337,7 +337,7 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.Gettaskapprove(cTenantID, username, searchText, pageNo, pageSize);
+                var json = await taskMasterService.Gettaskapprove(cTenantID, username, searchText, page, pageSize);
                 var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
                 if (response == null)
                 {
@@ -369,7 +369,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GettaskHold")]
-        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null, int page = 1, int pageSize = 50)
         {
             try
             {
@@ -378,7 +378,7 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.GettaskHold(cTenantID, username, searchText, pageNo, pageSize);
+                var json = await taskMasterService.GettaskHold(cTenantID, username, searchText, page, pageSize);
                 var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
                 if (response == null)
                 {
@@ -405,7 +405,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("GettaskReject")]
-        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null, int page = 1, int pageSize = 50)
         {
             try
             {
@@ -414,7 +414,7 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid request payload");
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.GettaskReject(cTenantID, username, searchText, pageNo, pageSize);
+                var json = await taskMasterService.GettaskReject(cTenantID, username, searchText, page, pageSize);
                 var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
                 if (response == null)
                 {
@@ -563,7 +563,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Gettaskinitiator")]
-        public async Task<IActionResult> Gettaskinitiator([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> Gettaskinitiator([FromQuery] string? searchText = null, int page = 1, int pageSize = 50)
         {
             try
             {
@@ -573,7 +573,7 @@ namespace TaskEngineAPI.Controllers
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await taskMasterService.GetTaskInitiator(cTenantID, username,searchText,pageNo,pageSize);
+                var json = await taskMasterService.GetTaskInitiator(cTenantID, username,searchText,page,pageSize);
                 var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
 
                 if(response == null)
@@ -601,7 +601,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Gettaskinbox")]
-        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
+        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null, int page = 1, int pageSize = 50)
         {
             try
             {
@@ -612,7 +612,7 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await taskMasterService.Gettaskinbox(cTenantID, username, searchText, pageNo, pageSize);
+                var json = await taskMasterService.Gettaskinbox(cTenantID, username, searchText, page, pageSize);
 
                 var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
                 if (response == null)
