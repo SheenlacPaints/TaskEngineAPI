@@ -1191,7 +1191,7 @@ namespace TaskEngineAPI.Controllers
 
                 var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold?searchText={searchText}&page={pageNo}&pageSize={pageSize}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold?searchText={searchText}&page={page}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
