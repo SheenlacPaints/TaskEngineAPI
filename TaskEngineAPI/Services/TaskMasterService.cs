@@ -3899,7 +3899,7 @@ namespace TaskEngineAPI.Services
                                     citaskno = reader["citaskno"] != DBNull.Value ? Convert.ToInt32(reader["citaskno"]) : 0,
                                     cmeta_id = reader["cmeta_id"] != DBNull.Value ? Convert.ToInt32(reader["cmeta_id"]) : 0,
                                     cinput_type = reader["cinput_type"]?.ToString() ?? "",
-                                    label = reader["label"]?.ToString() ?? "",
+                                    clabel = reader["label"]?.ToString() ?? "",
                                     cdata = reader["cdata"]?.ToString() ?? "",
                                     cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0
                                 });
