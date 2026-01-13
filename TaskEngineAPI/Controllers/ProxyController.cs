@@ -1041,7 +1041,7 @@ namespace TaskEngineAPI.Controllers
         
         [Authorize]
         [HttpGet("Gettaskinbox")]
-        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null)
+        public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -1050,7 +1050,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinbox?searchText={searchText}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinbox?searchText={searchText}&page={pageNo}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1077,7 +1077,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Gettaskapprove")]
-        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null)
+        public async Task<IActionResult> Gettaskapprove([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -1086,7 +1086,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskapprove?searchText={searchText}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskapprove?searchText={searchText}&page={pageNo}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1113,7 +1113,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskReject")]
-        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null)
+        public async Task<IActionResult> GettaskReject([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -1122,7 +1122,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReject?searchText={searchText}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReject?searchText={searchText}&page={pageNo}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
@@ -1149,7 +1149,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskHold")]
-        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null)
+        public async Task<IActionResult> GettaskHold([FromQuery] string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             try
             {
@@ -1158,7 +1158,7 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
                 // 🔗 Build full URL with encrypted query             
-                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold?searchText={searchText}";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskHold?searchText={searchText}&page={pageNo}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 // 📡 Forward request
