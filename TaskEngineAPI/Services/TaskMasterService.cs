@@ -1423,7 +1423,7 @@ namespace TaskEngineAPI.Services
                     a.lcreated_date AS taskInitiatedDate,
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
-                    d.id AS processdetailid,
+                    d.id AS processdetailid,e.cprofile_image_name,
                     c.cmeta_id,
                     a.itaskno,
                     a.cremarks
@@ -1469,6 +1469,8 @@ namespace TaskEngineAPI.Services
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
+                                    createdbyavatar =reader["cprofile_image_name"]?.ToString() ?? "",
+                                    modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     cremarks = reader["cremarks"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
