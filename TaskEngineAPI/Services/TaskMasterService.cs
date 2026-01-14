@@ -2198,7 +2198,7 @@ namespace TaskEngineAPI.Services
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno,b.cremarks as HoldRemarks,a.cremarks as Remarks
+                    a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks  
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2240,8 +2240,8 @@ namespace TaskEngineAPI.Services
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
-                                    HoldRemarks = reader["cremarks"]?.ToString() ?? "",
-                                    Remarks = reader["cremarks"]?.ToString() ?? "",
+                                    HoldRemarks = reader["HoldRemarks"]?.ToString() ?? "",
+                                    Remarks = reader["TaskRemarks"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
