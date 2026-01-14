@@ -929,6 +929,7 @@ namespace TaskEngineAPI.Services
                         header = new GetTaskinitiateList
                         {
                             ID = reader["ID"] as int? ?? 0,
+                            cprocessID= reader["cprocess_id"] as int? ?? 0,
                             itaskno = taskNo,
                             ctasktype = reader["ctask_type"]?.ToString() ?? "",
                             ctaskname = reader["ctask_name"]?.ToString() ?? "",
@@ -938,13 +939,17 @@ namespace TaskEngineAPI.Services
                             ccreatedby = reader["ccreated_by"]?.ToString() ?? "",
                             ccreatedbyname = reader["ccreated_byname"]?.ToString() ?? "",
                             lcreateddate = reader["lcreated_date"] as DateTime?,
+                            lmodifieddate = reader["lcreated_date"] as DateTime?,
                             cmodifiedby = reader["cmodified_by"]?.ToString() ?? "",
                             cmodifiedbyname = reader["cmodified_byname"]?.ToString() ?? "",
                             EmpDepartment = reader["EmpDepartment"]?.ToString() ?? "",
-                            cprocessID = reader["cprocess_id"] as int? ?? 0,
+                            Employeecode=reader["ccreated_by"]?.ToString() ?? "",
+                            Employeename=reader["ccreated_byname"]?.ToString() ?? "",
+                            cprocess_id = reader["cprocess_id"] as int? ?? 0,
                             cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
                             cprocessname = reader["cprocessname"]?.ToString() ?? "",
                             cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
+                            cremarks = reader["cremarks"]?.ToString() ?? "",                 
                             TaskChildItems = new List<GetTaskinitiateDetails>()
                         };
 
