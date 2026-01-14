@@ -424,6 +424,109 @@ namespace TaskEngineAPI.Services
         //        }, Formatting.Indented);
         //            }
         //        }
+        //       public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege)
+        //       {
+        //           try
+        //           {
+        //               using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+        //               {
+        //                   await con.OpenAsync();
+
+        //                   if (!int.TryParse(cprivilege, out int privilegeId))
+        //                   {
+        //                       return JsonConvert.SerializeObject(new List<object>
+        //        {
+        //            new { name = value, workflow = new List<object>() }
+        //        }, Formatting.Indented);
+        //                   }
+
+        //                   string query = @"
+        //    SELECT DISTINCT    
+        //        a.cprocess_id,
+        //        a.[cprocesscode],
+        //        b.[cprocessname],
+        //        b.[cprocessdescription],
+        //        b.cmeta_id,
+        //        b.cvalue,
+        //        CASE  
+        //            WHEN p.cprocess_privilege = 'role' THEN 
+        //                (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = b.cvalue)
+        //            WHEN p.cprocess_privilege = 'user' THEN 
+        //                (SELECT TOP 1 cuser_name FROM users WHERE CAST(cuserid AS VARCHAR(50)) = b.cvalue)
+        //            WHEN p.cprocess_privilege = 'department' THEN
+        //                (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = b.cvalue)
+        //            WHEN p.cprocess_privilege = 'position' THEN 
+        //                (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = b.cvalue)
+        //            ELSE b.cvalue
+        //        END AS entity_name
+        //    FROM [dbo].[tbl_engine_master_to_process_privilege] a 
+        //    INNER JOIN tbl_process_engine_master b ON a.cprocess_id = b.ID
+        //    INNER JOIN tbl_process_privilege_type p ON b.cprivilege_type = p.ID AND b.ctenant_id = p.ctenant_id
+        //    WHERE a.cis_active = 1 
+        //        AND a.[cprocess_privilege] = @privilegeId 
+        //        AND b.cvalue = @cvalue 
+        //        AND b.ctenant_id = @tenantId";
+
+        //                   // Dictionary to group workflows by entity_name
+        //                   var groupedWorkflows = new Dictionary<string, List<object>>();
+
+        //                   using (var cmd = new SqlCommand(query, con))
+        //                   {
+        //                       cmd.Parameters.AddWithValue("@privilegeId", privilegeId);
+        //                       cmd.Parameters.AddWithValue("@cvalue", value);
+        //                       cmd.Parameters.AddWithValue("@tenantId", cTenantID);
+
+        //                       using (var reader = await cmd.ExecuteReaderAsync())
+        //                       {
+        //                           while (await reader.ReadAsync())
+        //                           {
+        //                               string entityName = reader["entity_name"]?.ToString() ?? value;
+
+        //                               var workflowItem = new
+        //                               {
+        //                                   cprocess_id = reader.IsDBNull(reader.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(reader["cprocess_id"]),
+        //                                   cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
+        //                                   cprocessname = reader["cprocessname"]?.ToString() ?? "",
+        //                                   cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
+        //                                   cmeta_id = reader.IsDBNull(reader.GetOrdinal("cmeta_id")) ? 0 : Convert.ToInt32(reader["cmeta_id"])
+        //                               };
+
+        //                               if (!groupedWorkflows.ContainsKey(entityName))
+        //                               {
+        //                                   groupedWorkflows[entityName] = new List<object>();
+        //                               }
+        //                               groupedWorkflows[entityName].Add(workflowItem);
+        //                           }
+        //                       }
+        //                   }
+
+        //                   var result = groupedWorkflows.Select(g => new
+        //                   {
+        //                       name = g.Key,
+        //                       workflow = g.Value
+        //                   }).ToList();
+        //                   if (result.Count == 0)
+        //                   {
+        //                       result.Add(new { name = value, workflow = new List<object>() });
+        //                   }
+
+        //                   return JsonConvert.SerializeObject(result, Formatting.Indented);
+        //               }
+        //           }
+        //           catch (Exception ex)
+        //           {
+        //               return JsonConvert.SerializeObject(new List<object>
+        //{
+        //    new
+        //    {
+        //        name = value,
+        //        workflow = new List<object>(),
+        //        error = ex.Message
+        //    }
+        //}, Formatting.Indented);
+        //           }
+        //       }
+
         public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege)
         {
             try
@@ -431,50 +534,13 @@ namespace TaskEngineAPI.Services
                 using (var con = new SqlConnection(_config.GetConnectionString("Database")))
                 {
                     await con.OpenAsync();
-
-                    if (!int.TryParse(cprivilege, out int privilegeId))
-                    {
-                        return JsonConvert.SerializeObject(new List<object>
-         {
-             new { name = value, workflow = new List<object>() }
-         }, Formatting.Indented);
-                    }
-
-                    string query = @"
-     SELECT DISTINCT    
-         a.cprocess_id,
-         a.[cprocesscode],
-         b.[cprocessname],
-         b.[cprocessdescription],
-         b.cmeta_id,
-         b.cvalue,
-         CASE  
-             WHEN p.cprocess_privilege = 'role' THEN 
-                 (SELECT TOP 1 crole_name FROM tbl_role_master WHERE crole_code = b.cvalue)
-             WHEN p.cprocess_privilege = 'user' THEN 
-                 (SELECT TOP 1 cuser_name FROM users WHERE CAST(cuserid AS VARCHAR(50)) = b.cvalue)
-             WHEN p.cprocess_privilege = 'department' THEN
-                 (SELECT TOP 1 cdepartment_name FROM tbl_department_master WHERE cdepartment_code = b.cvalue)
-             WHEN p.cprocess_privilege = 'position' THEN 
-                 (SELECT TOP 1 cposition_name FROM tbl_position_master WHERE cposition_code = b.cvalue)
-             ELSE b.cvalue
-         END AS entity_name
-     FROM [dbo].[tbl_engine_master_to_process_privilege] a 
-     INNER JOIN tbl_process_engine_master b ON a.cprocess_id = b.ID
-     INNER JOIN tbl_process_privilege_type p ON b.cprivilege_type = p.ID AND b.ctenant_id = p.ctenant_id
-     WHERE a.cis_active = 1 
-         AND a.[cprocess_privilege] = @privilegeId 
-         AND b.cvalue = @cvalue 
-         AND b.ctenant_id = @tenantId";
-
-                    // Dictionary to group workflows by entity_name
                     var groupedWorkflows = new Dictionary<string, List<object>>();
-
-                    using (var cmd = new SqlCommand(query, con))
+                    using (SqlCommand cmd = new SqlCommand("sp_get_workflow_access", con))
                     {
-                        cmd.Parameters.AddWithValue("@privilegeId", privilegeId);
-                        cmd.Parameters.AddWithValue("@cvalue", value);
-                        cmd.Parameters.AddWithValue("@tenantId", cTenantID);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
+                        cmd.Parameters.AddWithValue("@value", value);
+                        cmd.Parameters.AddWithValue("@cprivilege", cprivilege);
 
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
@@ -499,12 +565,12 @@ namespace TaskEngineAPI.Services
                             }
                         }
                     }
-
                     var result = groupedWorkflows.Select(g => new
                     {
                         name = g.Key,
                         workflow = g.Value
                     }).ToList();
+
                     if (result.Count == 0)
                     {
                         result.Add(new { name = value, workflow = new List<object>() });
@@ -516,16 +582,16 @@ namespace TaskEngineAPI.Services
             catch (Exception ex)
             {
                 return JsonConvert.SerializeObject(new List<object>
- {
-     new
-     {
-         name = value,
-         workflow = new List<object>(),
-         error = ex.Message
-     }
- }, Formatting.Indented);
+        {
+            new { name = value, workflow = new List<object>(), error = ex.Message }
+        }, Formatting.Indented);
             }
         }
+
+
+
+
+
         public async Task<string> Getdropdown(int cTenantID, string @column)
         {
             try
