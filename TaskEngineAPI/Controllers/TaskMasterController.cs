@@ -573,7 +573,7 @@ namespace TaskEngineAPI.Controllers
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await taskMasterService.GetTaskInitiator(cTenantID, username,searchText,page,pageSize);
+                var json = await taskMasterService.GetTaskInitiatornew(cTenantID, username,searchText,page,pageSize);
                 var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
 
                 if(response == null)

@@ -42,6 +42,8 @@ namespace TaskEngineAPI.Interfaces
         Task<List<GetTaskDetails>> GettasktimelinedetailAsync(int itaskno, string userid, int tenantid);
         Task<string> Getworkflowdashboard(int cTenantID, string username, string searchtext);
         Task<string> GetProcessmetadetailsbyid(int itaskno, int cTenantID, int processid);
+
+        Task<string> GetTaskInitiatornew(int cTenantID,string username,string? searchText = null,int page = 1,int pageSize = 50);
     }
 
 }

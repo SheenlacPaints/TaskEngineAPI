@@ -929,6 +929,7 @@ namespace TaskEngineAPI.Services
                         header = new GetTaskinitiateList
                         {
                             ID = reader["ID"] as int? ?? 0,
+                            cprocessID= reader["cprocess_id"] as int? ?? 0,
                             itaskno = taskNo,
                             ctasktype = reader["ctask_type"]?.ToString() ?? "",
                             ctaskname = reader["ctask_name"]?.ToString() ?? "",
@@ -937,14 +938,19 @@ namespace TaskEngineAPI.Services
                             lcompleteddate = reader["lcompleted_date"] as DateTime?,
                             ccreatedby = reader["ccreated_by"]?.ToString() ?? "",
                             ccreatedbyname = reader["ccreated_byname"]?.ToString() ?? "",
+                            createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",                           
                             lcreateddate = reader["lcreated_date"] as DateTime?,
+                            lmodifieddate = reader["lcreated_date"] as DateTime?,
                             cmodifiedby = reader["cmodified_by"]?.ToString() ?? "",
                             cmodifiedbyname = reader["cmodified_byname"]?.ToString() ?? "",
                             EmpDepartment = reader["EmpDepartment"]?.ToString() ?? "",
-                            cprocessID = reader["cprocess_id"] as int? ?? 0,
+                            Employeecode=reader["ccreated_by"]?.ToString() ?? "",
+                            Employeename=reader["ccreated_byname"]?.ToString() ?? "",
+                            cprocess_id = reader["cprocess_id"] as int? ?? 0,
                             cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
                             cprocessname = reader["cprocessname"]?.ToString() ?? "",
                             cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
+                            cremarks = reader["cremarks"]?.ToString() ?? "",                 
                             TaskChildItems = new List<GetTaskinitiateDetails>()
                         };
 
@@ -1011,6 +1017,131 @@ namespace TaskEngineAPI.Services
                 }, Formatting.Indented);
             }
         }
+
+        public async Task<string> GetTaskInitiatornew(
+    int cTenantID,
+    string username,
+    string? searchText = null,
+    int page = 1,
+    int pageSize = 50)
+        {
+            var headerDict = new Dictionary<int, GetTaskinitiateList>();
+            int totalCount = 0;
+
+            try
+            {
+                using var con = new SqlConnection(_config.GetConnectionString("Database"));
+                using var cmd = new SqlCommand("sp_get_workflow_initiator_common", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                cmd.Parameters.AddWithValue("@userid", username);
+                cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                cmd.Parameters.AddWithValue("@searchtext", string.IsNullOrWhiteSpace(searchText) ? DBNull.Value : searchText);
+                cmd.Parameters.AddWithValue("@PageNo", page);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                await con.OpenAsync();
+
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    int taskNo = reader["itaskno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["itaskno"]);
+
+                    if (!headerDict.TryGetValue(taskNo, out var header))
+                    {
+                        header = new GetTaskinitiateList
+                        {
+                            ID = reader["ID"] as int? ?? 0,
+                            cprocessID = reader["cprocess_id"] as int? ?? 0,
+                            itaskno = taskNo,
+                            ctasktype = reader["ctask_type"]?.ToString() ?? "",
+                            ctaskname = reader["ctask_name"]?.ToString() ?? "",
+                            ctaskdescription = reader["ctask_description"]?.ToString() ?? "",
+                            cstatus = reader["cstatus"]?.ToString() ?? "",
+                            lcompleteddate = reader["lcompleted_date"] as DateTime?,
+                            ccreatedby = reader["ccreated_by"]?.ToString() ?? "",
+                            ccreatedbyname = reader["ccreated_byname"]?.ToString() ?? "",
+                            createdbyavatar = reader["createdbyavatar"]?.ToString() ?? "",                        
+                            lcreateddate = reader["lcreated_date"] as DateTime?,
+                            lmodifieddate = reader["lcreated_date"] as DateTime?, 
+                            cmodifiedby = reader["cmodified_by"]?.ToString() ?? "",
+                            cmodifiedbyname = reader["cmodified_byname"]?.ToString() ?? "",
+                            EmpDepartment = reader["EmpDepartment"]?.ToString() ?? "",
+                            Employeecode = reader["ccreated_by"]?.ToString() ?? "",
+                            Employeename = reader["ccreated_byname"]?.ToString() ?? "",
+                            cprocess_id = reader["cprocess_id"] as int? ?? 0,
+                            cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
+                            cprocessname = reader["cprocessname"]?.ToString() ?? "",
+                            cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
+                            cremarks = reader["cremarks"]?.ToString() ?? "",
+                            TaskChildItems = new List<GetTaskinitiateDetails>()
+                        };
+
+                        headerDict.Add(taskNo, header);
+                    }
+
+                    if (reader["DetailID"] != DBNull.Value)
+                    {
+                        header.TaskChildItems.Add(new GetTaskinitiateDetails
+                        {
+                            ID = reader["DetailID"] as int? ?? 0,
+                            iheader_id = reader["iheader_id"] as int? ?? 0,
+                            itaskno = taskNo,
+                            iseqno = reader["iseqno"] as int? ?? 0,
+                            cmappingcode = reader["cmapping_code"]?.ToString() ?? "",
+                            cmappingcodename = reader["cmappingcodename"]?.ToString() ?? "",
+                            ccurrentstatus = reader["ccurrent_status"]?.ToString() ?? "",
+                            lcurrentstatusdate = reader["lcurrent_status_date"] as DateTime?,
+                            cremarks = reader["DetailRemarks"]?.ToString() ?? "",
+                            inextseqno = reader["inext_seqno"] as int? ?? 0,
+                            cnextseqtype = reader["cnext_seqtype"]?.ToString() ?? "",
+                            cprevtype = reader["cprevtype"]?.ToString() ?? "",
+                            csla_day = reader["csla_day"] as int? ?? 0,
+                            csla_Hour = reader["csla_Hour"] as int? ?? 0,
+                            cprocess_type = reader["cprocess_type"]?.ToString() ?? "",
+                            nboard_enabled = reader["nboard_enabled"] != DBNull.Value && Convert.ToBoolean(reader["nboard_enabled"]),
+                            caction_privilege = reader["caction_privilege"]?.ToString() ?? "",
+                            crejection_privilege = reader["crejection_privilege"]?.ToString() ?? "",
+                            cisforwarded = reader["cis_forwarded"]?.ToString() ?? "",
+                            lfwd_date = reader["lfwd_date"] as DateTime?,
+                            cfwd_to = reader["cfwd_to"]?.ToString() ?? "",
+                            cis_reassigned = reader["cis_reassigned"]?.ToString() ?? "",
+                            lreassign_date = reader["lreassign_date"] as DateTime?,
+                            creassign_to = reader["creassign_to"]?.ToString() ?? "",
+                            creassign_name = reader["creassign_name"]?.ToString() ?? "",
+                            cactivityname = reader["cactivityname"]?.ToString() ?? "",
+                            cactivity_description = reader["cactivity_description"]?.ToString() ?? ""
+                        });
+                    }
+                }
+
+                if (await reader.NextResultAsync() && await reader.ReadAsync())
+                {
+                    totalCount = reader["TotalCount"] as int? ?? 0;
+                }
+
+                var resultResponse = new
+                {
+                    totalCount,
+                    data = headerDict.Values.ToList()
+                };
+
+                return JsonConvert.SerializeObject(resultResponse, Formatting.Indented);
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new
+                {
+                    totalCount = 0,
+                    data = new List<GetTaskinitiateList>(),
+                    error = ex.Message
+                }, Formatting.Indented);
+            }
+        }
+
 
 
         public async Task<string> Gettaskapprove(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
