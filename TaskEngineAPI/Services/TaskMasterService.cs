@@ -546,7 +546,7 @@ namespace TaskEngineAPI.Services
                         {
                             while (await reader.ReadAsync())
                             {
-                                string entityName = reader["entity_name"]?.ToString() ?? value;
+                                string entityName = reader["entity_value"]?.ToString() ?? value;
 
                                 var workflowItem = new
                                 {
@@ -589,9 +589,7 @@ namespace TaskEngineAPI.Services
         }
 
 
-
-
-
+    
         public async Task<string> Getdropdown(int cTenantID, string @column)
         {
             try
