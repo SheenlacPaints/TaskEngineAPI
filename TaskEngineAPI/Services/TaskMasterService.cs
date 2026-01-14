@@ -4223,7 +4223,8 @@ namespace TaskEngineAPI.Services
                                     cinput_type = reader["cinput_type"]?.ToString() ?? "",
                                     clabel = reader["label"]?.ToString() ?? "",
                                     cdata = reader["cdata"]?.ToString() ?? "",
-                                    cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0
+                                    cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0,
+                                    cdata_source=reader["cdata"]?.ToString() ?? ""
                                 });
                             }
                         }
