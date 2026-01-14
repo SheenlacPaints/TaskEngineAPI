@@ -4224,7 +4224,7 @@ namespace TaskEngineAPI.Services
                                     clabel = reader["label"]?.ToString() ?? "",
                                     cdata = reader["cdata"]?.ToString() ?? "",
                                     cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0,
-                                    cdata_source=reader["cdata"]?.ToString() ?? ""
+                                    cdata_source=reader["cdata_source"]?.ToString() ?? ""
                                 });
                             }
                         }
