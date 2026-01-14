@@ -2049,7 +2049,7 @@ namespace TaskEngineAPI.Services
                         else
                         {
                             updateCmd.Parameters.AddWithValue("@status", (object?)model.status ?? DBNull.Value);
-                            updateCmd.Parameters.AddWithValue("@status_date", (object?)model.status_date ?? DBNull.Value);
+                            updateCmd.Parameters.AddWithValue("@status_date", DateTime.Now);
                             updateCmd.Parameters.AddWithValue("@remarks", (object?)model.remarks ?? DBNull.Value);
                         }
 
@@ -2069,7 +2069,7 @@ namespace TaskEngineAPI.Services
                         statusCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
                         statusCmd.Parameters.AddWithValue("@cstatus", isReassigning ? "Reassign" : (object?)model.status ?? DBNull.Value);
                         statusCmd.Parameters.AddWithValue("@cstatus_with", username);
-                        statusCmd.Parameters.AddWithValue("@lstatus_date", (object?)model.status_date ?? DateTime.Now);
+                        statusCmd.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
                         statusCmd.Parameters.AddWithValue("@cremarks", (object?)model.remarks ?? DBNull.Value);
                         statusCmd.Parameters.AddWithValue("@crejected_reason", (object?)model.rejectedreason ?? DBNull.Value);
                         await statusCmd.ExecuteNonQueryAsync();
