@@ -1027,7 +1027,8 @@ namespace TaskEngineAPI.Services
         {
             var headerDict = new Dictionary<int, GetTaskinitiateList>();
             int totalCount = 0;
-
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 50;
             try
             {
                 using var con = new SqlConnection(_config.GetConnectionString("Database"));
