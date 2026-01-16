@@ -265,7 +265,7 @@ namespace TaskEngineAPI.DTO
         public string? executionType { get; set; }
         public DateTime? taskAssignedDate { get; set; }
         public DateTime? taskInitiatedDate { get; set; }
-
+        public string? TaskRemarks { get; set; }
         public string? taskinitiatedbyname { get; set; }
 
         public bool? showTimeline { get; set; }
