@@ -5852,7 +5852,7 @@ namespace TaskEngineAPI.Controllers
 
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
-                string encc = $"{encrypted}";
+                string encc = $"\"{encrypted}\"";
                 return StatusCode(200, encc);
 
             }
@@ -5865,7 +5865,7 @@ namespace TaskEngineAPI.Controllers
                 };
                 string errorJson = JsonConvert.SerializeObject(errorResponse);
                 string encryptedError = AesEncryption.Encrypt(errorJson);
-                string encc = $"{encryptedError}";
+                string encc = $"\"{encryptedError}\"";
                 return StatusCode(500, encc);
             }
         }
