@@ -2749,7 +2749,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskReassign")]
-        public async Task<IActionResult> GettaskReassign([FromQuery] string? searchText = null, int page = 1, int pageSize = 50)
+        public async Task<IActionResult> GettaskReassign([FromQuery] string? searchText = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
         {
             try
             {
@@ -2757,6 +2757,14 @@ namespace TaskEngineAPI.Controllers
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
+                var queryParams = new List<string>();
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    queryParams.Add($"searchText={Uri.EscapeDataString(searchText)}");
+
+                queryParams.Add($"page={page}");
+                queryParams.Add($"pageSize={pageSize}");
+
+                var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
                 // 🔗 Build full URL with encrypted query             
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GettaskReassign?searchText={searchText}&page={page}&pageSize={pageSize}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);

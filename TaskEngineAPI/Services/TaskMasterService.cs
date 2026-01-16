@@ -3567,6 +3567,9 @@ namespace TaskEngineAPI.Services
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
             int totalCount = 0;
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 50;
+
 
             string connectionString = this._config.GetConnectionString("Database");
             string query = "sp_get_worflow_Reassign";
