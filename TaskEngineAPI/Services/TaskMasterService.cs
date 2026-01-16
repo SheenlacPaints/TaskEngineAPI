@@ -1748,7 +1748,7 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,e.cprofile_image_name,
                     c.cmeta_id,
                     a.itaskno,
-                    a.cremarks
+                    a.cremarks,b.cattachment
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -1794,6 +1794,7 @@ namespace TaskEngineAPI.Services
                                     createdbyavatar =reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     cremarks = reader["cremarks"]?.ToString() ?? "",
+                                    cattachment = reader["cattachment"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
@@ -3517,7 +3518,7 @@ namespace TaskEngineAPI.Services
                     await conn.OpenAsync();
 
                     string query = @"select d.citaskno,b.icond_seqno,b.ctype,b.clabel,b.cplaceholder,b.cfield_value,b.ccondition,
-                                     b.cdata_source,d.cdata,cdetail_id
+                                     b.cdata_source,d.cdata,cdetail_id,c.cattachment
                                      from tbl_process_engine_details  a
                                      inner join  tbl_process_engine_condition b on a.cheader_id=b.cheader_id
                                      inner join tbl_taskflow_detail c on c.iseqno=a.ciseqno and a.ID=b.ciseqno
@@ -3545,6 +3546,7 @@ namespace TaskEngineAPI.Services
                                     ccondition = reader["ccondition"]?.ToString() ?? "",
                                     cdata_source = reader["cdata_source"]?.ToString() ?? "",
                                     cdata = reader["cdata"]?.ToString() ?? "",
+                                    cattachment = reader["cattachment"]?.ToString() ?? ""
 
                                 };
                                 result.Add(mapping);

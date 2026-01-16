@@ -127,7 +127,7 @@ namespace TaskEngineAPI.DTO
         public DateTime? taskInitiatedDate { get; set; }
 
         public string? taskinitiatedbyname { get; set; }
-
+        public string? cattachment { get; set; }
         public bool? showTimeline { get; set; }
         public string? cremarks { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
@@ -451,6 +451,7 @@ public class GetmetaviewdataDTO
     public string? ccondition { get; set; }
     public string? cdata_source { get; set; }
     public string? cdata { get; set; }
+    public string? cattachment { get; set; }
 
 }
 public class TaskInboxResponse
