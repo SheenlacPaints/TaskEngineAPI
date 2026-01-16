@@ -5759,10 +5759,9 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpPost("taskfileUpload")]
-        public async Task<IActionResult> taskfileUpload([FromForm] FileUploadDTO model)
+        public async Task<IActionResult> taskfileUpload([FromForm] taskfileUploadDTO model)
         {
             if (model == null)
             {
@@ -5789,72 +5788,82 @@ namespace TaskEngineAPI.Controllers
                 };
                 string errorJson = JsonConvert.SerializeObject(error);
                 string encryptedError = AesEncryption.Encrypt(errorJson);
-                return StatusCode(401, encryptedError);
+                return StatusCode(401, $"\"{encryptedError}\"");
             }
 
             try
             {
-                if (model.file == null || model.file.Length == 0)
+                if (model.files == null || model.files.Count == 0)
                 {
                     var error = new APIResponse
                     {
                         status = 400,
-                        statusText = "File not selected."
+                        statusText = "No files selected."
                     };
                     string errorJson = JsonConvert.SerializeObject(error);
                     string encryptedError = AesEncryption.Encrypt(errorJson);
-                    return BadRequest(encryptedError);
+                    return BadRequest($"\"{encryptedError}\"");
                 }
 
-                await _minioService.TaskFileUploadFileAsync(model.file, model.type, cTenantID);
+                var uploadedFileNames = new List<string>();
 
-                // Step 3: Update database (optional success)
-                try
+                foreach (var file in model.files)
                 {
-
-
-                    string connStr = _config.GetConnectionString("Database");
-                    using (var conn = new SqlConnection(connStr))
+                    if (file != null && file.Length > 0)
                     {
-                        await conn.OpenAsync();
+                        await _minioService.TaskFileUploadFileAsync(file, model.type, cTenantID);
+                        uploadedFileNames.Add(file.FileName);
+                    }
+                }
 
-                        string targetTable = model.type.ToLower() switch
+                if (uploadedFileNames.Count > 0)
+                {
+                    try
+                    {
+                        string connStr = _config.GetConnectionString("Database");
+                        using (var conn = new SqlConnection(connStr))
                         {
-                            "task" => "tbl_taskflow_master",
-                            "taskdetail" => "tbl_taskflow_detail",
-                            _ => throw new Exception("Invalid type. Must be 'Task' or 'Taskdetail'.")
-                        };
+                            await conn.OpenAsync();
 
-                        string query = $@"
-                    UPDATE {targetTable}
-                    SET cattachment = @ProfilePath
-                    WHERE id = @UserId";
+                            string targetTable = model.type.ToLower() switch
+                            {
+                                "task" => "tbl_taskflow_master",
+                                "taskdetail" => "tbl_taskflow_detail",
+                                _ => throw new Exception("Invalid type. Must be 'Task' or 'Taskdetail'.")
+                            };
 
-                        using (var cmd = new SqlCommand(query, conn))
-                        {
-                            cmd.Parameters.AddWithValue("@ProfilePath", model.file.FileName);                          
-                            cmd.Parameters.AddWithValue("@UserId", model.id);
+                            var fileNamesJson = JsonConvert.SerializeObject(uploadedFileNames);
 
-                            await cmd.ExecuteNonQueryAsync();
+                            string query = $@"
+                        UPDATE {targetTable}
+                        SET cattachment = @ProfilePath
+                        WHERE id = @UserId";
+
+                            using (var cmd = new SqlCommand(query, conn))
+                            {
+                                cmd.Parameters.AddWithValue("@ProfilePath", fileNamesJson);
+                                cmd.Parameters.AddWithValue("@UserId", model.id);
+
+                                await cmd.ExecuteNonQueryAsync();
+                            }
                         }
                     }
-
-                }
-                catch (Exception dbEx)
-                {
+                    catch (Exception dbEx)
+                    {
+                        // Log error
+                    }
                 }
 
                 var response = new APIResponse
                 {
                     status = 200,
-                    statusText = "File uploaded successfully."
+                    statusText = $"{uploadedFileNames.Count} file(s) uploaded successfully."
                 };
 
                 string json = JsonConvert.SerializeObject(response);
                 string encrypted = AesEncryption.Encrypt(json);
-                string encc = $"{encrypted}";
+                string encc = $"\"{encrypted}\"";
                 return StatusCode(200, encc);
-
             }
             catch (Exception ex)
             {
@@ -5865,11 +5874,10 @@ namespace TaskEngineAPI.Controllers
                 };
                 string errorJson = JsonConvert.SerializeObject(errorResponse);
                 string encryptedError = AesEncryption.Encrypt(errorJson);
-                string encc = $"{encryptedError}";
+                string encc = $"\"{encryptedError}\"";
                 return StatusCode(500, encc);
             }
         }
-
 
     }
 }

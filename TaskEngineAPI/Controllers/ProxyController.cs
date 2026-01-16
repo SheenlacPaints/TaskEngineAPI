@@ -969,7 +969,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost("taskfileUpload")]
-        public async Task<IActionResult> taskfileUpload([FromForm] FileUploadDTO request)
+        public async Task<IActionResult> taskfileUpload([FromForm] taskfileUploadDTO request)
         {
             try
             {
@@ -982,11 +982,21 @@ namespace TaskEngineAPI.Controllers
 
                 var formContent = new MultipartFormDataContent();
 
-                if (request.file != null && request.file.Length > 0)
+                if (request.files != null && request.files.Count > 0)
                 {
-                    var fileContent = new StreamContent(request.file.OpenReadStream());
-                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(request.file.ContentType);
-                    formContent.Add(fileContent, "file", request.file.FileName);
+                    foreach (var file in request.files)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var fileContent = new StreamContent(file.OpenReadStream());
+                            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                            formContent.Add(fileContent, "files", file.FileName);
+                        }
+                    }
+                }
+                else
+                {
+                    return BadRequest("No files selected.");
                 }
 
                 if (!string.IsNullOrEmpty(request.type))
@@ -1021,7 +1031,6 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
         [Authorize]
         [HttpGet("Getdropdown")]
         public async Task<IActionResult> Getdropdown([FromQuery] string? column)

@@ -35,7 +35,7 @@ namespace TaskEngineAPI.DTO
         public IFormFile? attachment { get; set; }
     }
 
-
+    
     public class FileUploadDTO
     {
         [Required]
@@ -47,7 +47,16 @@ namespace TaskEngineAPI.DTO
         public IFormFile file { get; set; } 
     }
 
+    public class taskfileUploadDTO
+    {
+        [Required]
+        public string type { get; set; }
+        [Required]
+        public string id { get; set; }
 
+        [Required]
+        public List<IFormFile> files { get; set; }
+    }
     public class FileUploadRequest
     {
         public IFormFile File { get; set; }
