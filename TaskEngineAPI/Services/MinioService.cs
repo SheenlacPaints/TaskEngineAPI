@@ -332,7 +332,6 @@ public class MinioService : IMinioService
             if (string.IsNullOrWhiteSpace(form.FileName))
                 throw new ArgumentException("Invalid file name");
 
-            // 2️⃣ Ensure bucket exists
             bool bucketExists = await _minio.BucketExistsAsync(
                 new BucketExistsArgs().WithBucket(_bucketName)
             );
@@ -344,10 +343,8 @@ public class MinioService : IMinioService
                 );
             }
 
-            // 3️⃣ Get safe file name
             var fileName = Path.GetFileName(form.FileName);
-
-            // 4️⃣ Decide object path (NO default folder)
+            
             string objectName;
 
 
@@ -356,7 +353,6 @@ public class MinioService : IMinioService
 
 
 
-            // 5️⃣ Upload
             using var stream = form.OpenReadStream();
 
             await _minio.PutObjectAsync(
@@ -374,7 +370,6 @@ public class MinioService : IMinioService
         }
         catch (Minio.Exceptions.MinioException ex)
         {
-            // MinIO specific issues
             throw new Exception($"MinIO error: {ex.Message}");
         }
         catch (IOException)
