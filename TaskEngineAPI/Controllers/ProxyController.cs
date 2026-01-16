@@ -973,7 +973,6 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-                // Extract token from incoming request
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
 
                 if (string.IsNullOrWhiteSpace(jwtToken))
@@ -981,9 +980,29 @@ namespace TaskEngineAPI.Controllers
                     return Unauthorized("Missing Authorization token.");
                 }
 
+                var formContent = new MultipartFormDataContent();
+
+                if (request.file != null && request.file.Length > 0)
+                {
+                    var fileContent = new StreamContent(request.file.OpenReadStream());
+                    fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(request.file.ContentType);
+                    formContent.Add(fileContent, "file", request.file.FileName);
+                }
+
+                if (!string.IsNullOrEmpty(request.type))
+                {
+                    formContent.Add(new StringContent(request.type), "type");
+                }
+
+                if (!string.IsNullOrEmpty(request.id))
+                {
+                    formContent.Add(new StringContent(request.id), "id");
+                }
+
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/taskfileUpload");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                requestMessage.Content = formContent;
+
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
