@@ -11,7 +11,7 @@ namespace TaskEngineAPI.Interfaces
         Task<string> GetAllProcessmetaAsync(int cTenantID, int processid);
         Task<string> GetAllProcessmetadetailAsync(int cTenantID, int metaid);
         Task<string> Getdepartmentroleposition(int cTenantID, string table);
-        Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege);
+        Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege, string username);
         Task<string> Getdropdown(int cTenantID, string column);
         //Task<string> Gettaskinbox(int cTenantID, string username);
         Task<string> Gettaskinbox(int cTenantID, string username, string searchText, int page,int pageSize);

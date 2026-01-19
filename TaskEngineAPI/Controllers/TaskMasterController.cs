@@ -242,9 +242,9 @@ namespace TaskEngineAPI.Controllers
                 if (string.IsNullOrWhiteSpace(cprivilege))
                 {
                     return CreateEncryptedResponse(400, "cprivilege parameter is required");
-                }
-                var (cTenantID, _) = GetUserInfoFromToken();
-                var json = await taskMasterService.Getprocessengineprivilege(cTenantID, value, cprivilege);
+                }             
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getprocessengineprivilege(cTenantID, value, cprivilege, username);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
                 return CreatedDataResponse(data);
             }

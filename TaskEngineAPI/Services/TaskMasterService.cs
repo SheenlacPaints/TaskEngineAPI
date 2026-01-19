@@ -527,7 +527,7 @@ namespace TaskEngineAPI.Services
         //           }
         //       }
 
-        public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege)
+        public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege, string username)
         {
             try
             {
@@ -541,6 +541,8 @@ namespace TaskEngineAPI.Services
                         cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
                         cmd.Parameters.AddWithValue("@value", value);
                         cmd.Parameters.AddWithValue("@cprivilege", cprivilege);
+                        cmd.Parameters.AddWithValue("@userid", username);
+                        
 
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
