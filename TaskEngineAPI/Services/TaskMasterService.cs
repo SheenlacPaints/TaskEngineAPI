@@ -4139,6 +4139,7 @@ namespace TaskEngineAPI.Services
                                 iseqno = reader.IsDBNull(reader.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(reader["iseqno"]),
                                 ctasktype = reader.IsDBNull(reader.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(reader["ctask_type"]),
                                 cmappingcode = reader.IsDBNull(reader.GetOrdinal("cmapping_code")) ? string.Empty : Convert.ToString(reader["cmapping_code"]),
+                                cmappingcode_name = reader.IsDBNull(reader.GetOrdinal("cmappingcodename")) ? string.Empty : Convert.ToString(reader["cmappingcodename"]),
                                 ccurrentstatus = reader.IsDBNull(reader.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(reader["ccurrent_status"]),
                                 lcurrentstatusdate = reader.IsDBNull(reader.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("lcurrent_status_date")),
                                 cremarks = reader.IsDBNull(reader.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(reader["cremarks"]),

@@ -28,44 +28,7 @@ public class MinioService : IMinioService
     }
 
 
-    //public async Task UploadFileAsync(IFormFile form)
-    //{
-    //    bool bucketExists = await _minio.BucketExistsAsync(
-    //        new BucketExistsArgs().WithBucket(_bucketName)
-    //    );
-
-    //    if (!bucketExists)
-    //    {
-    //        await _minio.MakeBucketAsync(
-    //            new MakeBucketArgs().WithBucket(_bucketName)
-    //        );
-    //    }
-
-    //    // Original filename from frontend
-    //    var fileName = Path.GetFileName(form.FileName);
-    //    // example: task~251223114644~download
-
-    //    // Get folder name = before first ~
-    //    var folderName = fileName.Contains("~")
-    //        ? fileName.Split('~')[0]
-    //        : "default";
-
-    //    // Final object path in MinIO
-    //    var objectName = $"{folderName}/{fileName}";
-    //    // task/task~251223114644~download
-
-    //    using var stream = form.OpenReadStream();
-
-    //    await _minio.PutObjectAsync(
-    //        new PutObjectArgs()
-    //            .WithBucket(_bucketName)
-    //            .WithObject(objectName)
-    //            .WithStreamData(stream)
-    //            .WithObjectSize(form.Length)
-    //            .WithContentType(form.ContentType)
-    //    );
-    //}
-
+   
     public async Task UploadFileAsync(IFormFile form)
     {
         try
@@ -217,38 +180,23 @@ public class MinioService : IMinioService
         {       
             if (form == null)
                 throw new ArgumentException("File not found");
-
             if (form.Length == 0)
                 throw new ArgumentException("Uploaded file is empty");
-
             if (string.IsNullOrWhiteSpace(form.FileName))
                 throw new ArgumentException("Invalid file name");
-
-            // 2️⃣ Ensure bucket exists
             bool bucketExists = await _minio.BucketExistsAsync(
                 new BucketExistsArgs().WithBucket(_bucketName)
             );
-
             if (!bucketExists)
             {
                 await _minio.MakeBucketAsync(
                     new MakeBucketArgs().WithBucket(_bucketName)
                 );
             }
-
-            // 3️⃣ Get safe file name
             var fileName = Path.GetFileName(form.FileName);
-
-            // 4️⃣ Decide object path (NO default folder)
             string objectName;
-
-           
-                var folderName = type;
-                objectName = $"{ctenantid}/{folderName}/{fileName}";
-            
-           
-
-            // 5️⃣ Upload
+            var folderName = type;
+            objectName = $"{ctenantid}/{folderName}/{fileName}";
             using var stream = form.OpenReadStream();
 
             await _minio.PutObjectAsync(
@@ -346,13 +294,10 @@ public class MinioService : IMinioService
             var fileName = Path.GetFileName(form.FileName);
             
             string objectName;
-
-
-            var folderName = "Task";
+            //if (string.IsNullOrWhiteSpace(type))            
+            //var folderName = "Task";
+            var folderName = type;
             objectName = $"{ctenantid}/{folderName}/{fileName}";
-
-
-
             using var stream = form.OpenReadStream();
 
             await _minio.PutObjectAsync(
