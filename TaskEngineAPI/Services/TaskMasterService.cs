@@ -527,6 +527,68 @@ namespace TaskEngineAPI.Services
         //           }
         //       }
 
+        //public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege, string username)
+        //{
+        //    try
+        //    {
+        //        using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+        //        {
+        //            await con.OpenAsync();
+        //            var groupedWorkflows = new Dictionary<string, List<object>>();
+        //            using (SqlCommand cmd = new SqlCommand("sp_get_workflow_access", con))
+        //            {
+        //                cmd.CommandType = CommandType.StoredProcedure;
+        //                cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
+        //                cmd.Parameters.AddWithValue("@value", value);
+        //                cmd.Parameters.AddWithValue("@cprivilege", cprivilege);
+        //                cmd.Parameters.AddWithValue("@userid", username);
+
+
+        //                using (var reader = await cmd.ExecuteReaderAsync())
+        //                {
+        //                    while (await reader.ReadAsync())
+        //                    {
+        //                        string entityName = reader["entity_value"]?.ToString() ?? value;
+
+        //                        var workflowItem = new
+        //                        {
+        //                            cprocess_id = reader.IsDBNull(reader.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(reader["cprocess_id"]),
+        //                            cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
+        //                            cprocessname = reader["cprocessname"]?.ToString() ?? "",
+        //                            cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
+        //                            cmeta_id = reader.IsDBNull(reader.GetOrdinal("cmeta_id")) ? 0 : Convert.ToInt32(reader["cmeta_id"])
+        //                        };
+
+        //                        if (!groupedWorkflows.ContainsKey(entityName))
+        //                        {
+        //                            groupedWorkflows[entityName] = new List<object>();
+        //                        }
+        //                        groupedWorkflows[entityName].Add(workflowItem);
+        //                    }
+        //                }
+        //            }
+        //            var result = groupedWorkflows.Select(g => new
+        //            {
+        //                name = g.Key,
+        //                workflow = g.Value
+        //            }).ToList();
+
+        //            if (result.Count == 0)
+        //            {
+        //                result.Add(new { name = value, workflow = new List<object>() });
+        //            }
+
+        //            return JsonConvert.SerializeObject(result, Formatting.Indented);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return JsonConvert.SerializeObject(new List<object>
+        //{
+        //    new { name = value, workflow = new List<object>(), error = ex.Message }
+        //}, Formatting.Indented);
+        //    }
+        //}
         public async Task<string> Getprocessengineprivilege(int cTenantID, string value, string cprivilege, string username)
         {
             try
@@ -534,23 +596,22 @@ namespace TaskEngineAPI.Services
                 using (var con = new SqlConnection(_config.GetConnectionString("Database")))
                 {
                     await con.OpenAsync();
-                    var groupedWorkflows = new Dictionary<string, List<object>>();
+                    var workflowList = new List<object>();
+
                     using (SqlCommand cmd = new SqlCommand("sp_get_workflow_access", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
+
                         cmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
                         cmd.Parameters.AddWithValue("@value", value);
                         cmd.Parameters.AddWithValue("@cprivilege", cprivilege);
                         cmd.Parameters.AddWithValue("@userid", username);
-                        
 
                         using (var reader = await cmd.ExecuteReaderAsync())
                         {
                             while (await reader.ReadAsync())
                             {
-                                string entityName = reader["entity_value"]?.ToString() ?? value;
-
-                                var workflowItem = new
+                                var item = new
                                 {
                                     cprocess_id = reader.IsDBNull(reader.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(reader["cprocess_id"]),
                                     cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
@@ -559,39 +620,36 @@ namespace TaskEngineAPI.Services
                                     cmeta_id = reader.IsDBNull(reader.GetOrdinal("cmeta_id")) ? 0 : Convert.ToInt32(reader["cmeta_id"])
                                 };
 
-                                if (!groupedWorkflows.ContainsKey(entityName))
-                                {
-                                    groupedWorkflows[entityName] = new List<object>();
-                                }
-                                groupedWorkflows[entityName].Add(workflowItem);
+                                workflowList.Add(item);
                             }
                         }
                     }
-                    var result = groupedWorkflows.Select(g => new
-                    {
-                        name = g.Key,
-                        workflow = g.Value
-                    }).ToList();
+                    var result = new List<object>
+            {
+                new
+                {
+                    workflow = workflowList
+                }
+            };
 
-                    if (result.Count == 0)
-                    {
-                        result.Add(new { name = value, workflow = new List<object>() });
-                    }
-
+           
                     return JsonConvert.SerializeObject(result, Formatting.Indented);
                 }
             }
             catch (Exception ex)
             {
+                
                 return JsonConvert.SerializeObject(new List<object>
         {
-            new { name = value, workflow = new List<object>(), error = ex.Message }
+            new
+            {
+                workflow = new List<object>(),
+                error = ex.Message
+            }
         }, Formatting.Indented);
             }
         }
 
-
-    
         public async Task<string> Getdropdown(int cTenantID, string @column)
         {
             try
