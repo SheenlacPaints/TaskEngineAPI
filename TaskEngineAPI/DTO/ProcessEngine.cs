@@ -30,6 +30,8 @@ namespace TaskEngineAPI.DTO
         public string? cmetaType { get; set; }
         public int? cmetaId { get; set; }
         public string? cmetaName { get; set; }
+
+        public bool? nshow_table { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }   
 
@@ -52,6 +54,7 @@ namespace TaskEngineAPI.DTO
         public string? cmetaType { get; set; }
         public int? cmetaId { get; set; }
         public string? cmetaName { get; set; }
+        public bool? nshow_table { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }
 
@@ -147,6 +150,9 @@ namespace TaskEngineAPI.DTO
         public string? privilege_name { get; set; }
         public int? cprivilege_type { get; set; }
         public bool? nshow_timeline { get; set; }
+
+        public bool? nshow_table { get; set; }
+        
         public int? cnotification_type { get; set; }
         public string? cprocessdescription { get; set; }
         public string? cprocessvalue { get; set; }     
@@ -402,6 +408,8 @@ namespace TaskEngineAPI.DTO
         public string? privilege_name { get;set; }
         public int? cprivilege_type { get; set; }
 
+        public bool? nshow_table { get; set; }
+        
         public List<GetIDprocessEngineChildItems> processEngineChildItems { get; set; }
        
        public List<processEngineMeta> processEngineMeta { get; set; }
