@@ -1049,7 +1049,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 }
 
                 query += @" GROUP BY m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname,
-        m.cprivilege_type, p.cprocess_privilege, m.cvalue, m.cpriority_label,m.ccreated_by, m.nshow_timeline,
+        m.cprivilege_type, p.cprocess_privilege, m.cvalue, m.cpriority_label,m.ccreated_by, m.nshow_timeline,m.nshow_table,
         m.cnotification_type, m.cstatus, ISNULL(u1.cfirst_name,'') + ' ' + ISNULL(u1.clast_name,''),
         m.lcreated_date,ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,''),m.lmodified_date, m.cmeta_id,
         n.notification_type, s.cstatus_description, meta.meta_Name, meta.meta_Description ORDER BY m.ID DESC";
