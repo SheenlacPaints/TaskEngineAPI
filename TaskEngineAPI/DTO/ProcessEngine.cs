@@ -168,6 +168,8 @@ namespace TaskEngineAPI.DTO
         public string? Notification_Description { get; set; }
         public int processEngineChildItems { get; set; }
         public string slasum { get; set; }
+        public int Usedcount { get; set; }
+        public int Activecount { get; set; }
     }
 
 

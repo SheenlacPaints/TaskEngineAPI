@@ -113,6 +113,8 @@ builder.Services.AddScoped<ITaskMasterService, TaskMasterService>();
 builder.Services.AddScoped<ILookUpService, LookUpService>();
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ProjectService>();
+builder.Services.AddSingleton<ProjectSocketHandler>();
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
@@ -157,6 +159,12 @@ app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseLookUpMiddleware();
+app.UseWebSockets();
 app.MapControllers();
+app.Map("/ws/project", async context =>
+{
+    var handler = context.RequestServices.GetRequiredService<ProjectSocketHandler>();
+    await handler.HandleAsync(context);
+});
 
 app.Run();

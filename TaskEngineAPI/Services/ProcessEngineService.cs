@@ -1017,7 +1017,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 s.cstatus_description,meta.meta_Name, meta.meta_Description,COUNT(d.ID) AS DetailCount,COUNT(*) OVER() AS headerCount,
                                 CASE WHEN SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) > 0
                                 THEN CAST(SUM(ISNULL(d.csla_day, 0)) + SUM(ISNULL(d.csla_Hour, 0)) / 24 AS VARCHAR(10)) + ' days ' + 
-                                CAST(SUM(ISNULL(d.csla_Hour, 0)) % 24 AS VARCHAR(10)) + ' hrs' ELSE '' END AS sla_Sum,m.nshow_table
+                                CAST(SUM(ISNULL(d.csla_Hour, 0)) % 24 AS VARCHAR(10)) + ' hrs' ELSE '' END AS sla_Sum,m.nshow_table,'0' as Usedcount,'0' as Activecount
                                 FROM tbl_process_engine_master m
                                 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = CAST(u1.cuserid AS VARCHAR(50))
                                 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = CAST(u2.cuserid AS VARCHAR(50))
@@ -1107,7 +1107,12 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         cstatus_description = reader["cstatus_description"]?.ToString() ?? "",
                         processEngineChildItems = reader["DetailCount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["DetailCount"]),
                         slasum = reader["sla_Sum"]?.ToString() ?? "",
-                        nshow_table = reader["nshow_table"] != DBNull.Value && Convert.ToBoolean(reader["nshow_table"])
+                        nshow_table = reader["nshow_table"] != DBNull.Value && Convert.ToBoolean(reader["nshow_table"]),
+                        Activecount = reader["Activecount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Activecount"]),
+                        Usedcount = reader["Usedcount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Usedcount"]),
+
+
+                        
                     });
                 }
             }
