@@ -1136,23 +1136,23 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();              
-                string checkDuplicateQuery = @"SELECT COUNT(1) FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.itaskno = b.itaskno
-                                              WHERE ccurrent_status IN ('P', 'H') AND cprocess_id = @cprocess_id AND a.ctenant_id = @ctenant_id;"; 
+                //string checkDuplicateQuery = @"SELECT COUNT(1) FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.itaskno = b.itaskno
+                //                              WHERE ccurrent_status IN ('P', 'H') AND cprocess_id = @cprocess_id AND a.ctenant_id = @ctenant_id;"; 
 
-                using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn))
-                {
+                //using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn))
+                //{
                    
-                    checkCmd.Parameters.AddWithValue("@cprocess_id", model.ID);
-                    checkCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
+                //    checkCmd.Parameters.AddWithValue("@cprocess_id", model.ID);
+                //    checkCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
 
-                    int duplicateCount = (int)await checkCmd.ExecuteScalarAsync();
+                //    int duplicateCount = (int)await checkCmd.ExecuteScalarAsync();
 
-                    if (duplicateCount > 0)
-                    {
+                //    if (duplicateCount > 0)
+                //    {
                         
-                        return false;
-                    }
-                }
+                //        return false;
+                //    }
+                //}
 
                 using (var transaction = conn.BeginTransaction())
                 {
