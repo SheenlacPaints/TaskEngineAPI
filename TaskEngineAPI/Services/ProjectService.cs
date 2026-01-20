@@ -10,6 +10,7 @@ using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
 using Newtonsoft.Json;
 using System.Net.Mail;
+using Microsoft.Extensions.Options;
 namespace TaskEngineAPI.Services
 {
     public class ProjectService: IProjectService
@@ -18,6 +19,14 @@ namespace TaskEngineAPI.Services
         private readonly IConfiguration _config;
         private readonly IAdminRepository _AdminRepository;
         private readonly UploadSettings _uploadSettings;
+        public ProjectService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository, IOptions<UploadSettings> uploadSettings)
+        {
+            _repository = repository;
+            _config = _configuration;
+            _AdminRepository = AdminRepository;
+            _uploadSettings = uploadSettings.Value;
+        }
+
 
         public async Task<int> InsertProjectMasterAsync(CreateProjectDTO model, int tenantId, string userName)
         {

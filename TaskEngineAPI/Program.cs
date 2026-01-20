@@ -112,6 +112,8 @@ builder.Services.AddScoped<IProcessEngineService, ProcessEngineService>();
 builder.Services.AddScoped<ITaskMasterService, TaskMasterService>();
 builder.Services.AddScoped<ILookUpService, LookUpService>();
 builder.Services.AddScoped<IMinioService, MinioService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {

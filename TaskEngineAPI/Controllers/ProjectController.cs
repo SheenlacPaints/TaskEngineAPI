@@ -1,9 +1,10 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using TaskEngineAPI.Data;
+using System.Data.SqlClient;
+using System.Data;
+using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
@@ -11,9 +12,9 @@ using TaskEngineAPI.Services;
 
 namespace TaskEngineAPI.Controllers
 {
-
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
+ 
     public class ProjectController : ControllerBase
     {
 
@@ -22,7 +23,7 @@ namespace TaskEngineAPI.Controllers
         private readonly IJwtService _jwtService;
         private readonly IProjectService _ProjectService;
         private readonly IMinioService _minioService;
-        private readonly ApplicationDbContext _context;
+       
         public ProjectController(IConfiguration configuration, IJwtService jwtService, IProjectService ProjectService, IMinioService MinioService)
         {
 
