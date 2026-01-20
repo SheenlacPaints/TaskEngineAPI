@@ -8,6 +8,8 @@ using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
+using Newtonsoft.Json;
+using System.Net.Mail;
 namespace TaskEngineAPI.Services
 {
     public class ProjectService: IProjectService
@@ -57,6 +59,114 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
+
+
+        public async Task<string> Getprojectmaster(int cTenantID, string username,string? type, string? searchText = null, int page = 1, int pageSize = 50)
+        {
+            List<GetProjectList> tsk = new List<GetProjectList>();
+            int totalCount = 0;
+
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 50;
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_get_project_details", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                        cmd.Parameters.AddWithValue("@@cuserid", username);                   
+                        cmd.Parameters.AddWithValue("@searchtext", searchText ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);                      
+                        cmd.Parameters.AddWithValue("@PageNo", page);
+                        cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                        await con.OpenAsync();
+
+                        using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await sdr.ReadAsync())
+                            {
+                                GetProjectList p = new GetProjectList
+                                {                              
+                                    ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ProjectId")) ? 0 : Convert.ToInt32(sdr["ProjectId"]),
+                                    ClientTenantId = sdr.IsDBNull(sdr.GetOrdinal("ClientTenantId")) ? 0 : Convert.ToInt32(sdr["ClientTenantId"]),
+                                    RaisedByUserId = sdr.IsDBNull(sdr.GetOrdinal("RaisedByUserId")) ? 0 : Convert.ToInt32(sdr["RaisedByUserId"]),
+                                    AssignedManagerId = sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerId")) ? 0 : Convert.ToInt32(sdr["AssignedManagerId"]),
+                                    ProjectName = sdr.IsDBNull(sdr.GetOrdinal("ProjectName")) ? string.Empty : Convert.ToString(sdr["ProjectName"]),
+                                    Description = sdr.IsDBNull(sdr.GetOrdinal("Description")) ? string.Empty : Convert.ToString(sdr["Description"]),
+                                    CreatedDate = sdr.IsDBNull(sdr.GetOrdinal("CreatedDate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("CreatedDate")),
+                                    Status = sdr.IsDBNull(sdr.GetOrdinal("Status")) ? string.Empty : Convert.ToString(sdr["Status"]),
+                                    Attachments = sdr.IsDBNull(sdr.GetOrdinal("Attachments")) ? string.Empty : Convert.ToString(sdr["Attachments"]),
+                                    };
+                                                                                     
+                            }
+
+                            if (await sdr.NextResultAsync())
+                            {
+                                if (await sdr.ReadAsync())
+                                {
+                                    totalCount = sdr.IsDBNull(0) ? 0 : Convert.ToInt32(sdr[0]);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                var response = new
+                {
+                    totalCount = totalCount,
+                    data = tsk
+                };
+
+                return JsonConvert.SerializeObject(response, Formatting.Indented);
+            }
+            catch (Exception ex)
+            {
+
+                var errorResponse = new
+                {
+                    totalCount = 0,
+                    data = new List<GetProjectList>(),
+                    error = ex.Message
+                };
+                return JsonConvert.SerializeObject(errorResponse, Formatting.Indented);
+            }
+        }
+
+
+        public async Task<string> Getprojectdropdown(int cTenantID, string username, string? type, string? searchText = null)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_project_dropdown", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@tenantid", cTenantID);
+                    cmd.Parameters.AddWithValue("@cuserid", username);                  
+                    cmd.Parameters.AddWithValue("@searchtext", searchText ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
 
 
     }

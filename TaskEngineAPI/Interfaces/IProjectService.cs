@@ -5,5 +5,10 @@ namespace TaskEngineAPI.Interfaces
     public interface IProjectService
     {       
         Task<int> InsertProjectMasterAsync(CreateProjectDTO model, int tenantId, string userName);
+
+        Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50);
+        Task<string> Getprojectdropdown(int cTenantID, string username, string? type, string? searchText = null);
+
+
     }
 }
