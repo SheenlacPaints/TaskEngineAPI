@@ -111,7 +111,9 @@ namespace TaskEngineAPI.Services
                                     CreatedDate = sdr.IsDBNull(sdr.GetOrdinal("CreatedDate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("CreatedDate")),
                                     Status = sdr.IsDBNull(sdr.GetOrdinal("Status")) ? string.Empty : Convert.ToString(sdr["Status"]),
                                     Attachments = sdr.IsDBNull(sdr.GetOrdinal("Attachments")) ? string.Empty : Convert.ToString(sdr["Attachments"]),
-                                    };
+                                    ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
+                                    expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate"))
+                                };
                                                                                      
                             }
 
