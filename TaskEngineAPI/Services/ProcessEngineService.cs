@@ -16,6 +16,7 @@ using System;
 using System.Diagnostics;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace TaskEngineAPI.Services
 {
@@ -989,7 +990,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 throw new Exception($"Error retrieving mapping list: {ex.Message}");
             }
         }
-        public async Task<GetProcessEngineCountDTO> GetAllProcessengineAsync(int cTenantID,string searchText = null,int page = 1,int pageSize = 10,int? created_by = null,string priority = null,int? status = null)
+        public async Task<GetProcessEngineCountDTO> newGetAllProcessengineAsync(int cTenantID,string searchText = null,int page = 1,int pageSize = 10,int? created_by = null,string priority = null,int? status = null)
         {
             
             var result = new List<GetProcessEngineDTO>();
@@ -1127,8 +1128,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 data = result
             };
         }
-
-
 
         public async Task<bool> UpdateProcessEngineAsync(UpdateProcessEngineDTO model, int cTenantID, string username)
         {
@@ -1540,10 +1539,77 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
             return result;
         }
 
+        public async Task<List<GetProcessEngineCountDTO>> GetAllProcessengineAsync(int cTenantID, string username, string searchText = null, int page = 1, int pageSize = 10, int? created_by = null, string priority = null, int? status = null)
+        {
+            var result = new List<GetProcessEngineDTO>();
+            int totalCount = 0;
+            string connectionString = this._config.GetConnectionString("Database");
 
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_get_processflow_list", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@userid", username);
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@ccreated_by", (object?)created_by ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@cpriority_label", (object?)priority ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@cstatus", (object?)status ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@searchtext", (object?)searchText ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@PageNo", page);
+                    cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
+                    await conn.OpenAsync();
 
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            if (result.Count == 0)
+                            {
+                                totalCount = reader["headerCount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["headerCount"]);
+                            }
 
+                            result.Add(new GetProcessEngineDTO
+                            {
+                                ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ID"]),
+                                cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
+                                cprocessname = reader["cprocessname"]?.ToString() ?? "",
+                                privilege_name = reader["privilege_name"]?.ToString() ?? "",
+                                cprivilege_type = reader["cprivilege_type"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cprivilege_type"]),
+                                cprocessType = reader["cprocessname"]?.ToString() ?? "",
+                                cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
+                                cstatus = reader["cstatus"]?.ToString() ?? "",
+                                cprocessvalueid = reader["cvalue"]?.ToString() ?? "",
+                                cpriority_label = reader["cpriority_label"]?.ToString() ?? "",
+                                nshow_timeline = reader["nshow_timeline"] != DBNull.Value && Convert.ToBoolean(reader["nshow_timeline"]),
+                                cnotification_type = reader["cnotification_type"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cnotification_type"]),
+                                cmeta_id = reader["cmeta_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmeta_id"]),
+                                cmetaName = reader["meta_Name"]?.ToString() ?? "",
+                                created_by = reader["ccreated_by"]?.ToString() ?? "",
+                                ccreated_date = reader["lcreated_date"] == DBNull.Value ? null : (DateTime?)reader["lcreated_date"],
+                                modified_by = reader["modified_by"]?.ToString() ?? "",
+                                lmodified_date = reader["lmodified_date"] == DBNull.Value ? null : (DateTime?)reader["lmodified_date"],
+                                cstatus_description = reader["cstatus_description"]?.ToString() ?? "",
+                                processEngineChildItems = reader["DetailCount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["DetailCount"]),
+                                slasum = reader["sla_Sum"]?.ToString() ?? "",
+                                nshow_table = reader["nshow_table"] != DBNull.Value && Convert.ToBoolean(reader["nshow_table"]),
+                                Activecount = reader["Activecount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Activecount"]),
+                                Usedcount = reader["Usedcount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Usedcount"])
+                            });
+                        }
+                    }
+                }
+            }
+            return new List<GetProcessEngineCountDTO>
+{
+    new GetProcessEngineCountDTO
+    {
+        totalCount = totalCount,
+        data = result
+    }
+};
+        }
     }
 }
 

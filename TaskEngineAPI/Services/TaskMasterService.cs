@@ -1939,7 +1939,7 @@ namespace TaskEngineAPI.Services
                   c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
                    from [tbl_transaction_process_meta_layout] a 
                    inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-                 inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+                 left join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
                  where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);

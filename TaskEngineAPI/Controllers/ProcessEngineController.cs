@@ -389,8 +389,10 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var engines = await _processEngineService.GetAllProcessengineAsync(
-                    cTenantID, searchText, page, pageSize, created_by, priority, status);
+                    cTenantID, username, searchText, page, pageSize, created_by, priority, status);
 
+
+               
                 return CreatedSuccessResponse(engines, "Successful");
             }
             catch (UnauthorizedAccessException ex)
