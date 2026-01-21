@@ -53,7 +53,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@ProjectName", (object?)model.ProjectName ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@Description", (object?)model.Description ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", "Initiated");
-                            cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }                                         
