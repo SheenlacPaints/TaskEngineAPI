@@ -5829,7 +5829,9 @@ namespace TaskEngineAPI.Controllers
                             {
                                 "task" => "tbl_taskflow_master",
                                 "taskdetail" => "tbl_taskflow_detail",
-                                _ => throw new Exception("Invalid type. Must be 'Task' or 'Taskdetail'.")
+                                "process" => "tbl_process_engine_master",
+                                "project" => "Tbl_Project_Master",
+                                _ => throw new Exception("Invalid type. Must be 'Task' or 'Taskdetail' or 'Process'or 'Project'.")
                             };
 
                             var fileNamesJson = JsonConvert.SerializeObject(uploadedFileNames);
