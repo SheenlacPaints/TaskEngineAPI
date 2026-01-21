@@ -552,7 +552,9 @@ VALUES (
             lmodified_date = @lmodifieddate,
             nIs_deleted = @nIsDeleted,
             cdeleted_by = @cDeletedBy,
-            ldeleted_date = @lDeletedDate        
+            ldeleted_date = @lDeletedDate,
+            cposition_code=@cposition_code,
+            cposition_name=@cposition_name
             WHERE ctenant_id = @ctenantID and id=@id";
 
             string queryWithPassword = @"
@@ -638,6 +640,8 @@ VALUES (
             cmd.Parameters.AddWithValue("@cDeletedBy", (object?)model.cDeletedBy ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lDeletedDate", (object?)model.lDeletedDate ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@ProfileImageName", (object?)model.ProfileImage ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cposition_code", (object?)model.cposition_code ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@cposition_name", (object?)model.cposition_name ?? DBNull.Value);
             int rows = await cmd.ExecuteNonQueryAsync();
             return rows > 0;
         }
