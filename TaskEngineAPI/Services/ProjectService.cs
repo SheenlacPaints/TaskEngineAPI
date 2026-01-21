@@ -40,10 +40,10 @@ namespace TaskEngineAPI.Services
                     try
                     { 
                         string queryMaster = @"
-                    INSERT INTO Tbl_Project_Master (ClientTenantId,RaisedByUserId,AssignedManagerId,ProjectName,Description,
-                     CreatedDate,Status) VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName, @Description, 
-                     @CreatedDate, @Status);SELECT SCOPE_IDENTITY();";
-
+                    INSERT INTO Tbl_Project_Master (ClientTenantId,RaisedByUserId,AssignedManagerId,ProjectName,ProjectType,Description,
+                     CreatedDate,Status,expecteddate) VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType, @Description, 
+                     @CreatedDate, @Status,@expecteddate);SELECT SCOPE_IDENTITY();";
+            
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
                             
@@ -52,8 +52,10 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@AssignedManagerId", (object?)model.AssignedManagerId ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ProjectName", (object?)model.ProjectName ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@Description", (object?)model.Description ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Status", "Initiated");
+                            cmd.Parameters.AddWithValue("@Status", "Pending");
                             cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@ProjectType", (object?)model.ProjectType ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@expecteddate", (object?)model.expecteddate ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }                                         
