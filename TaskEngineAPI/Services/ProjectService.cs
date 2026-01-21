@@ -87,9 +87,9 @@ namespace TaskEngineAPI.Services
                     using (SqlCommand cmd = new SqlCommand("sp_get_project_details", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@tenentid", cTenantID);
-                        cmd.Parameters.AddWithValue("@@cuserid", username);                   
-                        cmd.Parameters.AddWithValue("@searchtext", searchText ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@tenantid", cTenantID);
+                        cmd.Parameters.AddWithValue("@cuserid", username);                   
+                        cmd.Parameters.AddWithValue("@searchtxt", searchText ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);                      
                         cmd.Parameters.AddWithValue("@PageNo", page);
                         cmd.Parameters.AddWithValue("@PageSize", pageSize);
@@ -114,7 +114,7 @@ namespace TaskEngineAPI.Services
                                     ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
                                     expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate"))
                                 };
-                                                                                     
+                                tsk.Add(p);
                             }
 
                             if (await sdr.NextResultAsync())
