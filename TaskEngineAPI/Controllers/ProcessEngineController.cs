@@ -274,7 +274,7 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(404, "Data not found or update failed");
                 }
 
-                return CreatedSuccessResponse(null, "Updated successfully");
+                return CreatedSuccessResponse(model.ID, "Updated successfully");
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("already assigned"))
             {

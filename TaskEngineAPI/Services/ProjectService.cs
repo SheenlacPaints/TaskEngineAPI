@@ -102,7 +102,7 @@ namespace TaskEngineAPI.Services
                             {
                                 GetProjectList p = new GetProjectList
                                 {                              
-                                    ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ProjectId")) ? 0 : Convert.ToInt32(sdr["ProjectId"]),
+                                    ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
                                     ClientTenantId = sdr.IsDBNull(sdr.GetOrdinal("ClientTenantId")) ? 0 : Convert.ToInt32(sdr["ClientTenantId"]),
                                     RaisedByUserId = sdr.IsDBNull(sdr.GetOrdinal("RaisedByUserId")) ? 0 : Convert.ToInt32(sdr["RaisedByUserId"]),
                                     AssignedManagerId = sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerId")) ? 0 : Convert.ToInt32(sdr["AssignedManagerId"]),
