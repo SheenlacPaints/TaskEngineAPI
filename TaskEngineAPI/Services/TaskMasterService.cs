@@ -4131,6 +4131,7 @@ namespace TaskEngineAPI.Services
                                 lcompleteddate = sdr.IsDBNull("lcompleted_date") ? null : sdr.GetDateTime(sdr.GetOrdinal("lcompleted_date")),
                                 ccreatedby = sdr["ccreated_by"]?.ToString() ?? "",
                                 ccreatedbyname = sdr["ccreated_byname"]?.ToString() ?? "",
+                                createdbyavatar = sdr["createdbyavatar"]?.ToString() ?? "",
                                 lcreateddate = sdr.IsDBNull("lcreated_date") ? null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
                                 cmodifiedby = sdr["cmodified_by"]?.ToString() ?? "",
                                 cmodifiedbyname = sdr["cmodified_byname"]?.ToString() ?? "",
