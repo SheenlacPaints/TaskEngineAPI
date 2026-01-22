@@ -26,4 +26,12 @@
        
     }
 
+    public class TaskProjectResponse
+    {
+        //public bool Success { get; set; }
+        public int TotalCount { get; set; }
+        public List<GetProjectList> Data { get; set; }
+    }
+
+
 }

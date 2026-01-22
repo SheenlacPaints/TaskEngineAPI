@@ -195,7 +195,7 @@ namespace TaskEngineAPI.Controllers
 
                 var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize);
 
-                var response = JsonConvert.DeserializeObject<TaskInboxResponse>(json);
+                var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
                 if (response == null)
                 {
                     return CreateEncryptedResponse(500, "Invalid response format from service");
