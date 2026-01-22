@@ -1584,12 +1584,14 @@ VALUES (
             foreach (var u in users)
             {
                 var row = table.NewRow();
-
+                string hashedPassword = !string.IsNullOrEmpty(u.cpassword)
+           ? BCrypt.Net.BCrypt.HashPassword(u.cpassword)  
+           : null;
                 row["cuserid"] = u.cuserid;
                 row["ctenant_id"] = cTenantID;
                 row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
                 row["cemail"] = u.cemail ?? (object)DBNull.Value;
-                row["cpassword"] = u.cpassword ?? (object)DBNull.Value;
+                row["cpassword"] = hashedPassword ?? (object)DBNull.Value; //u.cpassword ?? (object)DBNull.Value;
                 row["nIs_active"] = u.nIsActive ?? true;
                 row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value;
                 row["clast_name"] = u.clastName ?? (object)DBNull.Value;
