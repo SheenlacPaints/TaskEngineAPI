@@ -1,67 +1,180 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
-using Newtonsoft.Json;
-using TaskEngineAPI.DTO;
+using System.Text.Json;
+using System.Security.Claims;
 using TaskEngineAPI.Services;
-using TaskEngineAPI.Models;
+
+namespace TaskEngineAPI.WebSockets;
+
 public class ProjectSocketHandler
 {
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<ProjectSocketHandler> _logger;
+    private readonly WebSocketConnectionManager _connectionManager;
+    private readonly Interfaces.IWorkflowService _workflowService;
 
-    public ProjectSocketHandler(IServiceProvider serviceProvider)
+    public ProjectSocketHandler(
+        ILogger<ProjectSocketHandler> logger,
+        WebSocketConnectionManager connectionManager,
+        Interfaces.IWorkflowService workflowService)
     {
-        _serviceProvider = serviceProvider;
+        _logger = logger;
+        _connectionManager = connectionManager;
+        _workflowService = workflowService;
     }
 
     public async Task HandleAsync(HttpContext context)
     {
+        // 1. Authentication check
+        if (!context.User.Identity?.IsAuthenticated ?? true)
+        {
+            context.Response.StatusCode = 401;
+            await context.Response.WriteAsync("Unauthorized");
+            return;
+        }
+
+        // 2. Extract tenant and user from JWT claims
+        var tenantId = context.User.FindFirst("cTenantID")?.Value
+                       ?? context.User.FindFirst("cTenantID")?.Value;
+        var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                     ?? context.User.FindFirst("username")?.Value;
+
+        if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(userId))
+        {
+            context.Response.StatusCode = 403;
+            await context.Response.WriteAsync("Missing tenant or user information");
+            return;
+        }
+
+        // 3. Check connection limits per tenant
+        if (_connectionManager.GetConnectionCount(tenantId) >= 100)
+        {
+            context.Response.StatusCode = 429;
+            await context.Response.WriteAsync("Connection limit reached for tenant");
+            return;
+        }
+
         if (!context.WebSockets.IsWebSocketRequest)
         {
             context.Response.StatusCode = 400;
             return;
         }
 
-        var socket = await context.WebSockets.AcceptWebSocketAsync();
+        var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+        _connectionManager.AddConnection(tenantId, userId, webSocket);
 
+        _logger.LogInformation("WebSocket connected - Tenant: {TenantId}, User: {UserId}", tenantId, userId);
+
+        try
+        {
+            await ReceiveMessagesAsync(webSocket, tenantId, userId);
+        }
+        finally
+        {
+            _connectionManager.RemoveConnection(tenantId, webSocket);
+            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Connection closed", CancellationToken.None);
+            _logger.LogInformation("WebSocket disconnected - Tenant: {TenantId}, User: {UserId}", tenantId, userId);
+        }
+    }
+
+    private async Task ReceiveMessagesAsync(WebSocket webSocket, string tenantId, string userId)
+    {
         var buffer = new byte[1024 * 4];
 
-        while (socket.State == WebSocketState.Open)
+        while (webSocket.State == WebSocketState.Open)
         {
-            var result = await socket.ReceiveAsync(
-                new ArraySegment<byte>(buffer),
-                CancellationToken.None
-            );
+            try
+            {
+                var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-            if (result.MessageType == WebSocketMessageType.Close)
-                break;
+                if (result.MessageType == WebSocketMessageType.Close)
+                    break;
 
-            var requestJson = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                if (result.MessageType == WebSocketMessageType.Text)
+                {
+                    var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    _logger.LogInformation("Received message from Tenant: {TenantId}, User: {UserId}, Message: {Message}",
+                        tenantId, userId, message);
 
-            var request = JsonConvert.DeserializeObject<SocketRequest>(requestJson);
+                    var response = await ProcessMessageAsync(message, tenantId, userId);
+                    await SendMessageAsync(webSocket, response);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing message for tenant {TenantId}", tenantId);
+                await SendMessageAsync(webSocket, JsonSerializer.Serialize(new { error = "Internal error" }));
+            }
+        }
+    }
 
-            // 🔥 Call your existing service
-            using var scope = _serviceProvider.CreateScope();
-            var service = scope.ServiceProvider.GetRequiredService<TaskMasterService>();
+    private async Task<string> ProcessMessageAsync(string message, string tenantId, string userId)
+    {
+        try
+        {
+            var request = JsonSerializer.Deserialize<WebSocketRequest>(message);
 
-            var data = await service.Getworkflowdashboard(
-                request.cTenantID,
-                request.username,            
-                request.searchText
-            );
-            var responseBytes = Encoding.UTF8.GetBytes(data);
+            switch (request?.Action?.ToLower())
+            {
+                case "getworkflowdashboard":
+                    var data = await _workflowService.GetWorkflowDashboardAsync(tenantId, userId);
+                    return JsonSerializer.Serialize(new
+                    {
+                        type = "workflowDashboard",
+                        success = true,
+                        data = data,
+                        timestamp = DateTime.UtcNow
+                    });
 
-            await socket.SendAsync(
-                new ArraySegment<byte>(responseBytes),
+                case "ping":
+                    return JsonSerializer.Serialize(new
+                    {
+                        type = "pong",
+                        timestamp = DateTime.UtcNow
+                    });
+
+                default:
+                    return JsonSerializer.Serialize(new
+                    {
+                        success = false,
+                        error = "Unknown action",
+                        availableActions = new[] { "getWorkflowDashboard", "ping" }
+                    });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing message");
+            return JsonSerializer.Serialize(new { success = false, error = "Processing error" });
+        }
+    }
+
+    private async Task SendMessageAsync(WebSocket webSocket, string message)
+    {
+        if (webSocket.State == WebSocketState.Open)
+        {
+            var bytes = Encoding.UTF8.GetBytes(message);
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(bytes),
                 WebSocketMessageType.Text,
                 true,
-                CancellationToken.None
-            );
+                CancellationToken.None);
         }
-
-        await socket.CloseAsync(
-            WebSocketCloseStatus.NormalClosure,
-            "Closed",
-            CancellationToken.None
-        );
     }
+
+    public async Task BroadcastToTenantAsync(string tenantId, object data)
+    {
+        var message = JsonSerializer.Serialize(data);
+        var clients = _connectionManager.GetTenantConnections(tenantId);
+
+        var tasks = clients
+            .Where(c => c.Socket.State == WebSocketState.Open)
+            .Select(c => SendMessageAsync(c.Socket, message));
+
+        await Task.WhenAll(tasks);
+    }
+}
+
+public class WebSocketRequest
+{
+    public string Action { get; set; }
 }

@@ -11,6 +11,7 @@ using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
 using Serilog;
 using TaskEngineAPI.Helpers;
+using TaskEngineAPI.WebSockets;
 
 
 
@@ -44,7 +45,8 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(o =>
+})
+.AddJwtBearer(o =>
 {
     o.TokenValidationParameters = new TokenValidationParameters
     {
@@ -54,8 +56,33 @@ builder.Services.AddAuthentication(options =>
             (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = false,
-        ValidateIssuerSigningKey = true
+        ValidateLifetime = false, // Great for testing!
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero
+    };
+
+    // --- CRITICAL FOR WEBSOCKETS ---
+    o.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // Extract token from query string (e.g., ?access_token=eyJ...)
+            var accessToken = context.Request.Query["access_token"];
+
+            // If the request is for our WebSocket path, assign the token
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/ws"))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            // Logs the reason for 401 in your console
+            Console.WriteLine("Auth Failed: " + context.Exception.Message);
+            return Task.CompletedTask;
+        }
     };
 });
 
@@ -103,7 +130,7 @@ builder.Services.AddSwaggerGen(swagger =>
 
 
 
-
+builder.Services.AddWebSocketServices();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminService, AccountService>();
@@ -113,9 +140,7 @@ builder.Services.AddScoped<ITaskMasterService, TaskMasterService>();
 builder.Services.AddScoped<ILookUpService, LookUpService>();
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<TaskMasterService>();
-builder.Services.AddSingleton<ProjectSocketHandler>();
-
+builder.Services.AddScoped<ProjectSocketHandler>();
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
@@ -141,6 +166,16 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
         });
 });
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowAll", policy =>
+//    {
+//        policy.SetIsOriginAllowed(_ => true) // Essential for Postman/Localhost
+//              .AllowAnyHeader()
+//              .AllowAnyMethod()
+//              .AllowCredentials(); // Essential for WebSockets using Auth
+//    });
+//});
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
@@ -156,15 +191,18 @@ if (app.Environment.IsDevelopment())
 
 app.UseExceptionHandler("/Error");
 app.UseCors(MyAllowSpecificOrigins);
+//app.UseCors("AllowAll");
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseLookUpMiddleware();
 app.UseWebSockets();
+app.UseWebSocketEndpoints();
 app.MapControllers();
-app.Map("/ws/project", async context =>
-{
-    var handler = context.RequestServices.GetRequiredService<ProjectSocketHandler>();
-    await handler.HandleAsync(context);
-});
+//app.Map("/ws/project", async context =>
+//{
+//    var handler = context.RequestServices.GetRequiredService<ProjectSocketHandler>();
+//    await handler.HandleAsync(context);
+//});
 
 app.Run();
