@@ -41,15 +41,13 @@ public class ProjectSocketHandler
 
             // 🔥 Call your existing service
             using var scope = _serviceProvider.CreateScope();
-            var service = scope.ServiceProvider.GetRequiredService<ProjectService>();
+            var service = scope.ServiceProvider.GetRequiredService<TaskMasterService>();
 
-            var data = await service.Getprojectdropdown(
+            var data = await service.Getworkflowdashboard(
                 request.cTenantID,
-                request.username,
-                request.type,
+                request.username,            
                 request.searchText
             );
-
             var responseBytes = Encoding.UTF8.GetBytes(data);
 
             await socket.SendAsync(

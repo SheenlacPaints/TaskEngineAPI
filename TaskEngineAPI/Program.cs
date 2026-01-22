@@ -113,7 +113,7 @@ builder.Services.AddScoped<ITaskMasterService, TaskMasterService>();
 builder.Services.AddScoped<ILookUpService, LookUpService>();
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<ProjectService>();
+builder.Services.AddScoped<TaskMasterService>();
 builder.Services.AddSingleton<ProjectSocketHandler>();
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
