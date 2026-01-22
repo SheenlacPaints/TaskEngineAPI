@@ -2283,6 +2283,7 @@ namespace TaskEngineAPI.Services
                     a.lcreated_date AS taskInitiatedDate,
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
+                    e.cprofile_image_name,
                     d.id AS processdetailid,
                     c.cmeta_id,a.cremarks,
                     a.itaskno
@@ -2329,6 +2330,8 @@ namespace TaskEngineAPI.Services
                                     cremarks= reader["cremarks"]?.ToString() ?? "",
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
+                                    createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
@@ -2450,6 +2453,7 @@ namespace TaskEngineAPI.Services
                     a.lcreated_date AS taskInitiatedDate,
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
+                    e.cprofile_image_name,
                     d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks  
@@ -2497,6 +2501,8 @@ namespace TaskEngineAPI.Services
                                     HoldRemarks = reader["HoldRemarks"]?.ToString() ?? "",
                                     Remarks = reader["TaskRemarks"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
+                                    createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
@@ -3309,6 +3315,7 @@ namespace TaskEngineAPI.Services
                     a.lcreated_date AS taskInitiatedDate,
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
+                    e.cprofile_image_name,
                     d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno
@@ -3357,7 +3364,8 @@ namespace TaskEngineAPI.Services
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
 
                                     showTimeline = reader["showTimeline"] == DBNull.Value ? false : Convert.ToBoolean(reader["showTimeline"]),
-
+                                    createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
@@ -3775,6 +3783,7 @@ namespace TaskEngineAPI.Services
                     a.lcreated_date AS taskInitiatedDate,
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
+                    e.cprofile_image_name,
                     d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno
@@ -3820,6 +3829,8 @@ namespace TaskEngineAPI.Services
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
+                                    createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
@@ -3944,6 +3955,7 @@ namespace TaskEngineAPI.Services
                     a.lcreated_date AS taskInitiatedDate,
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
+                    e.cprofile_image_name,
                     d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno,b.cremarks as Remarks,a.cremarks as TaskRemarks,b.creassign_to as ReassignedTo ,b.lreassign_date as ReassignedDate,
@@ -3997,6 +4009,8 @@ namespace TaskEngineAPI.Services
                                     ReassignedDate = reader.SafeGetDateTime("ReassignedDate"),
                                     ReassignedUsername = reader["ReassignedUsername"]?.ToString() ?? "",
                                     TaskRemarks= reader["TaskRemarks"]?.ToString()??"",
+                                    createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
