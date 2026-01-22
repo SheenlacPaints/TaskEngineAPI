@@ -167,9 +167,10 @@ namespace TaskEngineAPI.DTO
         public string? cstatus_description { get; set; }
         public string? Notification_Description { get; set; }
         public int processEngineChildItems { get; set; }
-        public string slasum { get; set; }
-        public int Usedcount { get; set; }
-        public int Activecount { get; set; }
+        public string? slasum { get; set; }
+        public int? Usedcount { get; set; }
+        public int? Activecount { get; set; }
+       
     }
 
 
@@ -411,7 +412,8 @@ namespace TaskEngineAPI.DTO
         public int? cprivilege_type { get; set; }
 
         public bool? nshow_table { get; set; }
-        
+
+        public string? cattachment { get; set; }
         public List<GetIDprocessEngineChildItems> processEngineChildItems { get; set; }
        
        public List<processEngineMeta> processEngineMeta { get; set; }

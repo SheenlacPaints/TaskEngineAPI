@@ -429,7 +429,7 @@ p.cprocess_privilege as privilege_name,
     m.lmodified_date, m.cmeta_id,d.cactivitycode,d.cactivity_description,  d.ctask_type, d.cprev_step, d.cactivityname,  d.cnext_seqno, d.nboard_enabled, 
     d.cmapping_code, d.cmapping_type,  d.cparticipant_type,   d.csla_day,  d.csla_Hour, d.caction_privilege,  d.crejection_privilege,
    d.cboard_visablity,n.notification_type AS Notification_Description,
-    s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table  
+    s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table,m.cattachment  
 FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
@@ -468,6 +468,7 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             cmeta_id = reader.SafeGetInt("cmeta_id"),
                             cmetaname = reader.SafeGetString("meta_Name"),
                             nshow_table = reader.SafeGetBoolean("nshow_table"),
+                            cattachment= reader.SafeGetString("cattachment"),
                             Notification_Description = reader.SafeGetString("Notification_Description"),
                             processEngineChildItems = new List<GetIDprocessEngineChildItems>(),
                             processEngineMeta = new List<processEngineMeta>()
@@ -1596,6 +1597,7 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                                 nshow_table = reader["nshow_table"] != DBNull.Value && Convert.ToBoolean(reader["nshow_table"]),
                                 Activecount = reader["Activecount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Activecount"]),
                                 Usedcount = reader["Usedcount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Usedcount"])
+                           
                             });
                         }
                     }
