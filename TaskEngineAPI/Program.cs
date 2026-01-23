@@ -142,40 +142,40 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ProjectSocketHandler>();
 builder.Services.AddSingleton<WebSocketConnectionManager>();
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy(name: MyAllowSpecificOrigins,
-//        policy =>
-//        {
-//            policy.WithOrigins(
-//                "https://portal.sheenlac.com",
-//                "https://AllPaintsEcomAPI.sheenlac.com",
-//                "https://vendor.sheenlac.com",
-//                "https://devmisportal.sheenlac.com",
-//                "https://misportal.sheenlac.com",
-//                "http://localhost:4200",
-//                "http://localhost:5000",
-//                "https://localhost:7257",
-//                "https://devvendor.sheenlac.com",
-//                "https://devportal.sheenlac.com",
-//                "https://devtaskflow.sheenlac.com"
-
-//            )
-
-//            .AllowAnyHeader()
-//            .AllowAnyMethod();
-//        });
-//});
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.SetIsOriginAllowed(_ => true) // Essential for Postman/Localhost
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials(); // Essential for WebSockets using Auth
-    });
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+        policy =>
+        {
+            policy.WithOrigins(
+                "https://portal.sheenlac.com",
+                "https://AllPaintsEcomAPI.sheenlac.com",
+                "https://vendor.sheenlac.com",
+                "https://devmisportal.sheenlac.com",
+                "https://misportal.sheenlac.com",
+                "http://localhost:4200",
+                "http://localhost:5000",
+                "https://localhost:7257",
+                "https://devvendor.sheenlac.com",
+                "https://devportal.sheenlac.com",
+                "https://devtaskflow.sheenlac.com"
+
+            )
+
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+        });
 });
+//builder.Services.AddCors(options =>
+//{
+//    options.AddPolicy("AllowAll", policy =>
+//    {
+//        policy.SetIsOriginAllowed(_ => true) // Essential for Postman/Localhost
+//              .AllowAnyHeader()
+//              .AllowAnyMethod()
+//              .AllowCredentials(); // Essential for WebSockets using Auth
+//    });
+//});
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
@@ -190,8 +190,8 @@ if (app.Environment.IsDevelopment())
 //app.UseMiddleware<JwtValidationMiddleware>();
 
 app.UseExceptionHandler("/Error");
-//app.UseCors(MyAllowSpecificOrigins);
-app.UseCors("AllowAll");
+app.UseCors(MyAllowSpecificOrigins);
+//app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
