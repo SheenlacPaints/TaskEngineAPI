@@ -87,7 +87,11 @@ public class ProjectSocketHandler
                 var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
                 if (result.MessageType == WebSocketMessageType.Close)
-                    break;
+                {
+                    _logger.LogInformation("Client requested disconnect.");
+                    break; // Exit loop, which triggers the 'finally' close logic
+                }
+               // break;
 
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
