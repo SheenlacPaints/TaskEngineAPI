@@ -76,40 +76,67 @@ public class ProjectSocketHandler
         }
     }
 
+    //private async Task ReceiveMessagesAsync(WebSocket webSocket, string tenantId, string userId)
+    //{
+    //    var buffer = new byte[1024 * 4];
+
+    //    while (webSocket.State == WebSocketState.Open)
+    //    {
+    //        try
+    //        {
+    //            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+    //            if (result.MessageType == WebSocketMessageType.Close)
+    //            {
+    //                _logger.LogInformation("Client requested disconnect.");
+    //                break; // Exit loop, which triggers the 'finally' close logic
+    //            }
+    //           // break;
+
+    //            if (result.MessageType == WebSocketMessageType.Text)
+    //            {
+    //                var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+    //                _logger.LogInformation("Received message from Tenant: {TenantId}, User: {UserId}, Message: {Message}",
+    //                    tenantId, userId, message);
+
+    //                var response = await ProcessMessageAsync(message, tenantId, userId);
+    //                await SendMessageAsync(webSocket, response);
+    //            }
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            _logger.LogError(ex, "Error processing message for tenant {TenantId}", tenantId);
+    //            await SendMessageAsync(webSocket, JsonSerializer.Serialize(new { error = "Internal error" }));
+    //        }
+    //    }
+    //}
+
     private async Task ReceiveMessagesAsync(WebSocket webSocket, string tenantId, string userId)
     {
         var buffer = new byte[1024 * 4];
-
         while (webSocket.State == WebSocketState.Open)
         {
+            using var ms = new MemoryStream();
+            WebSocketReceiveResult result;
             try
             {
-                var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-                if (result.MessageType == WebSocketMessageType.Close)
+                do
                 {
-                    _logger.LogInformation("Client requested disconnect.");
-                    break; // Exit loop, which triggers the 'finally' close logic
-                }
-               // break;
-
-                if (result.MessageType == WebSocketMessageType.Text)
-                {
-                    var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    _logger.LogInformation("Received message from Tenant: {TenantId}, User: {UserId}, Message: {Message}",
-                        tenantId, userId, message);
-
-                    var response = await ProcessMessageAsync(message, tenantId, userId);
-                    await SendMessageAsync(webSocket, response);
-                }
+                    result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    ms.Write(buffer, 0, result.Count);
+                } while (!result.EndOfMessage); 
+                if (result.MessageType == WebSocketMessageType.Close) break;
+                ms.Seek(0, SeekOrigin.Begin);
+                using var reader = new StreamReader(ms, Encoding.UTF8);
+                var message = await reader.ReadToEndAsync();
+                var response = await ProcessMessageAsync(message, tenantId, userId);
+                await SendMessageAsync(webSocket, response);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing message for tenant {TenantId}", tenantId);
-                await SendMessageAsync(webSocket, JsonSerializer.Serialize(new { error = "Internal error" }));
-            }
+            catch { break; }
         }
     }
+
+
 
     private async Task<string> ProcessMessageAsync(string message, string tenantId, string userId)
     {
@@ -152,9 +179,25 @@ public class ProjectSocketHandler
         }
     }
 
+    //private async Task SendMessageAsync(WebSocket webSocket, string message)
+    //{
+    //    if (webSocket.State == WebSocketState.Open)
+    //    {
+    //        var bytes = Encoding.UTF8.GetBytes(message);
+    //        await webSocket.SendAsync(
+    //            new ArraySegment<byte>(bytes),
+    //            WebSocketMessageType.Text,
+    //            true,
+    //            CancellationToken.None);
+    //    }
+    //}
+    private readonly SemaphoreSlim _sendLock = new SemaphoreSlim(1, 1);
     private async Task SendMessageAsync(WebSocket webSocket, string message)
     {
-        if (webSocket.State == WebSocketState.Open)
+        if (webSocket == null || webSocket.State != WebSocketState.Open) return;
+
+        await _sendLock.WaitAsync(); 
+        try
         {
             var bytes = Encoding.UTF8.GetBytes(message);
             await webSocket.SendAsync(
@@ -163,7 +206,16 @@ public class ProjectSocketHandler
                 true,
                 CancellationToken.None);
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Send failed - connection may have dropped.");
+        }
+        finally
+        {
+            _sendLock.Release(); 
+        }
     }
+
 
     public async Task BroadcastToTenantAsync(string tenantId, object data)
     {
