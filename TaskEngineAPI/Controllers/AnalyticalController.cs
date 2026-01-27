@@ -176,5 +176,50 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetAnalyticalhub")]
+        public async Task<IActionResult> GetAnalyticalhub([FromQuery] string? searchText = null, string? type = null, int page = 1, int pageSize = 50)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var json = await _AnalyticalService.GetAnalyticalhub(cTenantID, username, type, searchText, page, pageSize);
+
+                var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
+                if (response == null)
+                {
+                    return CreateEncryptedResponse(500, "Invalid response format from service");
+                }
+
+                if (response.TotalCount == 0)
+                {
+                    return CreateEncryptedResponse(404, "No tasks found");
+                }
+
+                return CreatedSuccessResponse(response);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (JsonException jsonEx)
+            {
+                return CreateEncryptedResponse(500, "Invalid JSON response", error: jsonEx.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
     }
 }

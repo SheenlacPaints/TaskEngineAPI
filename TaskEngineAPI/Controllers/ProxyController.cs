@@ -3085,6 +3085,46 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet("GetAnalyticalhub")]
+        public async Task<IActionResult> GetAnalyticalhub([FromQuery] string? searchText = null, string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                    return Unauthorized("Missing Authorization token.");
+                var queryParams = new List<string>();
+                if (!string.IsNullOrWhiteSpace(searchText))
+                    queryParams.Add($"searchText={Uri.EscapeDataString(searchText)}");
+                if (!string.IsNullOrWhiteSpace(type))
+                    queryParams.Add($"type={Uri.EscapeDataString(type)}");
+                queryParams.Add($"page={page}");
+                queryParams.Add($"pageSize={pageSize}");
+                var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
+                string targetUrl = $"{_baseUrl.TrimEnd('/')}/Analytical/GetAnalyticalhub{queryString}";
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+
 
     }
 }
