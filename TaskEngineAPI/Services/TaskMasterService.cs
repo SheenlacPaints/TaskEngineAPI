@@ -1815,7 +1815,7 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
-                                   AND e.ctenant_id = a.ctenant_id
+                                   AND e.ctenant_id = a.ctenant_id and e.nIs_deleted=0
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -2292,7 +2292,7 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
-                                   AND e.ctenant_id = a.ctenant_id
+                                   AND e.ctenant_id = a.ctenant_id and e.nIs_deleted=0
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -2462,7 +2462,7 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
-                                   AND e.ctenant_id = a.ctenant_id
+                                   AND e.ctenant_id = a.ctenant_id and e.nIs_deleted=0
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -2896,7 +2896,7 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
-                                   AND e.ctenant_id = a.ctenant_id
+                                   AND e.ctenant_id = a.ctenant_id and e.nIs_deleted=0
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -3324,7 +3324,7 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
-                                   AND e.ctenant_id = a.ctenant_id
+                                   AND e.ctenant_id = a.ctenant_id and e.nIs_deleted=0
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -3792,7 +3792,7 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
-                                   AND e.ctenant_id = a.ctenant_id
+                                   AND e.ctenant_id = a.ctenant_id and e.nIs_deleted=0
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -3965,9 +3965,9 @@ namespace TaskEngineAPI.Services
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
                 INNER JOIN tbl_process_engine_details d ON c.ID = d.cheader_id AND d.ciseqno = b.iseqno
                 INNER JOIN Users e ON e.cuserid = CONVERT(int, a.ccreated_by) 
-                                   AND e.ctenant_id = a.ctenant_id 
+                                   AND e.ctenant_id = a.ctenant_id and e.nIs_deleted=0
                 LEFT JOIN Users ru ON ru.cuserid = CONVERT(int, b.creassign_to) 
-                   AND ru.ctenant_id = a.ctenant_id
+                   AND ru.ctenant_id = a.ctenant_id and ru.nIs_deleted=0
                 WHERE b.id = @ID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
