@@ -8,7 +8,8 @@ using TaskEngineAPI.Middlewares;
 using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
 
-
+using Hangfire;
+using Hangfire.MemoryStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +20,9 @@ builder.Services.AddMemoryCache();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = null; // Keeps PascalCase
+        // CHANGE THIS LINE:
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     });
 
 builder.Services.AddAuthentication(options =>
@@ -76,7 +79,28 @@ builder.Services.AddSwaggerGen(swagger =>
 });
 
 
+builder.Services.AddHttpClient<IWhatsAppSchedulerService, WhatsAppSchedulerService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
+// Add logging
+builder.Services.AddLogging();
+
+// Add scheduler services
+builder.Services.AddSingleton<BackgroundSchedulerService>();
+builder.Services.AddSingleton<ISchedulerService>(provider =>
+    provider.GetRequiredService<BackgroundSchedulerService>());
+
+// Hangfire configuration
+builder.Services.AddHangfire(config =>
+    config.UseMemoryStorage());
+builder.Services.AddHangfireServer(options =>
+{
+    options.WorkerCount = 1; // Reduce if needed
+    options.ServerTimeout = TimeSpan.FromMinutes(5);
+    options.ServerCheckInterval = TimeSpan.FromSeconds(5);
+});
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminService, AccountService>();
@@ -126,6 +150,7 @@ app.UseExceptionHandler("/Error");
 app.UseCors(MyAllowSpecificOrigins);
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseHangfireDashboard("/hangfire");
 app.UseLookUpMiddleware();
 app.MapControllers();
 
