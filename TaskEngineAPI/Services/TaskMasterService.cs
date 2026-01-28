@@ -1239,7 +1239,8 @@ namespace TaskEngineAPI.Services
                             creassign_name = reader["creassign_name"]?.ToString() ?? "",
                             cactivityname = reader["cactivityname"]?.ToString() ?? "",
                             cactivity_description = reader["cactivity_description"]?.ToString() ?? "",
-                            cmappingcode_name = reader["cmappingcodename"]?.ToString() ?? ""
+                            cmappingcode_name = reader["cmappingcodename"]?.ToString() ?? "",
+                            cprofile_image_name = reader["cprofile_image_name"]?.ToString() ?? ""
                         });
                     }
                 }

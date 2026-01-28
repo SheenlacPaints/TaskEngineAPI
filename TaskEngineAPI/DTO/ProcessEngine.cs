@@ -387,7 +387,7 @@ namespace TaskEngineAPI.DTO
         public string? creassign_name { get; set; }
         public string? cactivityname { get; set; }
         public string? cactivity_description { get; set; }
-
+        public string? cprofile_image_name { get; set; }
         public string? cmappingcode_name { get; set; }
     }
 
