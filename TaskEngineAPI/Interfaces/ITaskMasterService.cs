@@ -44,6 +44,8 @@ namespace TaskEngineAPI.Interfaces
         Task<string> GetProcessmetadetailsbyid(int itaskno, int cTenantID, int processid);
 
         Task<string> GetTaskInitiatornew(int cTenantID,string username,string? searchText = null,int page = 1,int pageSize = 50);
+
+        Task<bool> sendwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
     }
 
 }

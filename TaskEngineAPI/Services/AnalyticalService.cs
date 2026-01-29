@@ -37,10 +37,21 @@ namespace TaskEngineAPI.Services
                     try
                     {
                         string queryMaster = @"
-                    INSERT INTO [tbl_analytical_workspace] (ctenant_id,canalyticalname,canalyticalDescription,canalyticalprompt,capi_method,
-                    capi_url,capi_params,capi_headers,cbody,nis_active,ccreated_by,lcreated_date,cmodified_by,lmodified_date) 
-                     VALUES (@ctenant_id,@canalyticalname,@canalyticalDescription,@canalyticalprompt,@capi_method,@capi_url,@capi_params, 
-                     @capi_headers,@cbody,@nis_active,@ccreated_by,@lcreated_date,@cmodified_by,@lmodified_date );SELECT SCOPE_IDENTITY();";                        
+                    INSERT INTO [tbl_analytical_workspace] (ctenant_id,canalyticalname,canalyticalDescription
+                    ,canalyticalprompt,capi_method,capi_url,capi_params,capi_headers,cbody,cbusiness_function,cstatus
+                    ,csource_type,cdataset_id,crefresh_mode,ctime_range,cdescriptive_analytics,cpredictive_analytics,cdiagnostic_analytics
+                    ,cprescriptive_analytics,canalysis_depth,cexplanation_tone,cauto_follow_up,nmax_row_limit,nquery_depth_limit
+                    ,callowed_join_types,cread_only_mode,caudit_logging,callowed_roles,cmasking_rule,cdefault_chart_type
+                    ,ccolor_scheme,cexport_excel,cexport_pdf,cexport_csv,cexport_json,cexport_png,cenable_drill_down
+                    ,cshow_data_labels,cenable_animations,ccolumn_mappings,nis_active,ccreated_by,lcreated_date,cmodified_by,lmodified_date)
+                      VALUES(@ctenant_id,@canalyticalname,@canalyticalDescription
+                    ,@canalyticalprompt,@capi_method,@capi_url,@capi_params,@capi_headers,@cbody,@cbusiness_function,@cstatus
+                    ,@csource_type,@cdataset_id,@crefresh_mode,@ctime_range,@cdescriptive_analytics,@cpredictive_analytics,@cdiagnostic_analytics
+                    ,@cprescriptive_analytics,@canalysis_depth,@cexplanation_tone,@cauto_follow_up,@nmax_row_limit,@nquery_depth_limit
+                    ,@callowed_join_types,@cread_only_mode,@caudit_logging,@callowed_roles,@cmasking_rule,@cdefault_chart_type
+                    ,@ccolor_scheme,@cexport_excel,@cexport_pdf,@cexport_csv,@cexport_json,@cexport_png,@cenable_drill_down
+                    ,@cshow_data_labels,@cenable_animations,@ccolumn_mappings,@nis_active,@ccreated_by,@lcreated_date,@cmodified_by,@lmodified_date);SELECT SCOPE_IDENTITY();";
+
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@ctenant_id", tenantId);
@@ -52,6 +63,37 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@capi_params", (object?)model.capi_params ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@capi_headers", (object?)model.capi_headers ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cbusiness_function", (object?)model.cbusiness_function ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@csource_type", (object?)model.csource_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cdataset_id", (object?)model.cdataset_id ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@crefresh_mode", (object?)model.crefresh_mode ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctime_range", (object?)model.ctime_range ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cdescriptive_analytics", (object?)model.cdescriptive_analytics ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cpredictive_analytics", (object?)model.cpredictive_analytics ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cdiagnostic_analytics", (object?)model.cdiagnostic_analytics ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cprescriptive_analytics", (object?)model.cprescriptive_analytics ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@canalysis_depth", (object?)model.canalysis_depth ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cexplanation_tone", (object?)model.cexplanation_tone ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cauto_follow_up", (object?)model.cauto_follow_up ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nmax_row_limit", (object?)model.nmax_row_limit ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nquery_depth_limit", (object?)model.nquery_depth_limit ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@callowed_join_types", (object?)model.callowed_join_types ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cread_only_mode", (object?)model.cread_only_mode ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@caudit_logging", (object?)model.caudit_logging ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@callowed_roles", (object?)model.callowed_roles ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cmasking_rule", (object?)model.cmasking_rule ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cdefault_chart_type", (object?)model.cdefault_chart_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ccolor_scheme", (object?)model.ccolor_scheme ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cexport_excel", (object?)model.cexport_excel ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cexport_pdf", (object?)model.cexport_pdf ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cexport_csv", (object?)model.cexport_csv ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cexport_json", (object?)model.cexport_json ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cexport_png", (object?)model.cexport_png ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cenable_drill_down", (object?)model.cenable_drill_down ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cshow_data_labels", (object?)model.cshow_data_labels ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cenable_animations", (object?)model.cenable_animations ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ccolumn_mappings", (object?)model.ccolumn_mappings ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@nis_active", (object?)model.nis_active ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ccreated_by", userName);
                             cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);                     
