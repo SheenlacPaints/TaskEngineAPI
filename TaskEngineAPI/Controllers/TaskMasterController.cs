@@ -9,6 +9,8 @@ using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Services;
+using System.Net.Http;
+using System.Security.Claims;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -20,13 +22,14 @@ namespace TaskEngineAPI.Controllers
         private readonly IJwtService _jwtService;
         private readonly ITaskMasterService taskMasterService;
         private readonly ILogger<TaskMasterController> _logger;
-
-        public TaskMasterController(IConfiguration config, IJwtService jwtService, ITaskMasterService taskMasterService, ILogger<TaskMasterController> logger)
+        private readonly IHttpClientFactory _httpClientFactory;
+        public TaskMasterController(IConfiguration config, IHttpClientFactory httpClientFactory, IJwtService jwtService, ITaskMasterService taskMasterService, ILogger<TaskMasterController> logger)
         {
             _config = config;
             _jwtService = jwtService;
             this.taskMasterService = taskMasterService;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
         private (int cTemantID, string username) GetUserInfoFromToken()
         {
@@ -1027,7 +1030,11 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
-
+                if (model.reassignto != null)
+                {
+                    bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
+                }
+               
                 if (!success)
                 {
                     return CreateEncryptedResponse(404, "Data not found or update failed");
@@ -1403,6 +1410,70 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Getnotification")]
+        public async Task<IActionResult> Getnotification()
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                await SendWhatsAppNotificationAsync();
+
+                return CreateEncryptedResponse(200, "Notification processed successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Notification API failed");
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
+        private async Task SendWhatsAppNotificationAsync()
+        {
+            var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
+
+            var client = _httpClientFactory.CreateClient();
+
+            var payload = new
+            {
+                apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
+                campaignName = "reassighn new process",
+                destination = "917402023513",
+                userName = "Sheenlac Paintss",
+                templateParams = new[] { "$FirstName", "$FirstName", "$FirstName", "$FirstName" },
+                source = "new-landing-page form",
+                media = new { },
+                buttons = new string[] { },
+                carouselCards = new string[] { },
+                location = new { },
+                attributes = new { },
+                paramsFallbackValue = new { FirstName = "user",itaskno= "user" }
+            };
+
+            var response = await client.PostAsJsonAsync(url, payload);
+
+            
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Background WhatsApp sent successfully at {Time}", DateTime.Now);
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                _logger.LogWarning("Background WhatsApp failed with Status {Status}: {Error}", response.StatusCode, error);
+            }
+        }
+
+
+
 
     }
 }
