@@ -38,9 +38,14 @@
         public int HeaderId { get; set; }
         public int DetailId { get; set; }
         public string Module { get; set; }
-        public int EmployeeId { get; set; }
-        public int NoOfEmp { get; set; }
+        public string ProjectDescription { get; set; }
+        public string Resources { get; set; }
+        public int NoOfResources { get; set; }
+        public int Slavalue { get; set; }
+        public string Slaunit { get; set; }
+        public string Version { get; set; }
         public string Remarks { get; set; }
     }
+
 
 }

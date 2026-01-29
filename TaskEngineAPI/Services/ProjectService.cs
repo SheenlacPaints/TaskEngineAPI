@@ -181,79 +181,93 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> InsertProjectDetails(
-    List<ProjectDetailRequest> requests,
-    int tenantId,
-    string username)
+        public async Task<bool> InsertProjectDetails(List<ProjectDetailRequest> requests, int tenantId, string username)
         {
             if (requests == null || !requests.Any())
-                return false;
+                throw new ArgumentException("Request list cannot be empty");
 
+            using var conn = new SqlConnection(_config.GetConnectionString("Database"));
+            await conn.OpenAsync();
+
+            using var transaction = conn.BeginTransaction();
             try
             {
-                using var conn = new SqlConnection(_config.GetConnectionString("Database"));
-                await conn.OpenAsync();
-
                 string query = @"
 INSERT INTO Tbl_Project_detail
-(header_id, Detail_id, Module, employeeid, no_of_emp, Remarks)
-VALUES (@HeaderId, @DetailId, @Module, @EmployeeId, @NoOfEmp, @Remarks);";
+(header_id, Detail_id, module, projectDescription, Resources, No_of_Resources, Slavalue, Slaunit, version, Remarks)
+VALUES (@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources, @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks);";
 
-                foreach (var request in requests)
+                foreach (var r in requests)
                 {
-                    using var cmd = new SqlCommand(query, conn);
-
-                    cmd.Parameters.AddWithValue("@HeaderId", request.HeaderId); 
-                    cmd.Parameters.AddWithValue("@DetailId", request.DetailId);
-                    cmd.Parameters.AddWithValue("@Module", request.Module ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId);
-                    cmd.Parameters.AddWithValue("@NoOfEmp", request.NoOfEmp);
-                    cmd.Parameters.AddWithValue("@Remarks", request.Remarks ?? (object)DBNull.Value);
+                    using var cmd = new SqlCommand(query, conn, transaction);
+                    cmd.Parameters.AddWithValue("@HeaderId", r.HeaderId);
+                    cmd.Parameters.AddWithValue("@DetailId", r.DetailId);
+                    cmd.Parameters.AddWithValue("@Module", r.Module ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ProjectDescription", r.ProjectDescription ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Resources", r.Resources ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@NoOfResources", r.NoOfResources);
+                    cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
+                    cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Version", r.Version ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Remarks", r.Remarks ?? (object)DBNull.Value);
 
                     await cmd.ExecuteNonQueryAsync();
                 }
 
+                transaction.Commit();
                 return true;
             }
-            catch (SqlException sqlEx)
+            catch (SqlException ex) when (ex.Number == 547) 
             {
-                throw new Exception("Database error while inserting project details.", sqlEx);
+                transaction.Rollback();
+                throw new InvalidOperationException("Invalid HeaderId. Project Master record not found.", ex);
+            }
+            catch (SqlException ex) when (ex.Number == 2627) 
+            {
+                transaction.Rollback();
+                throw new InvalidOperationException("Duplicate DetailId. Record already exists.", ex);
             }
             catch (Exception ex)
             {
-                throw new Exception("Unexpected error while inserting project details.", ex);
+                transaction.Rollback();
+                throw new Exception("Failed to insert project details.", ex);
             }
         }
 
-        public async Task<bool> UpdateProjectDetails(
-     ProjectDetailRequest request,
-     int tenantId,
-     string username)
+        public async Task<bool> UpdateProjectDetails(ProjectDetailRequest request, int tenantId, string username)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
+            using var conn = new SqlConnection(_config.GetConnectionString("Database"));
+            await conn.OpenAsync();
+
             try
             {
-                using var conn = new SqlConnection(_config.GetConnectionString("Database"));
-                await conn.OpenAsync();
-
                 string query = @"
-            UPDATE Tbl_Project_detail
-            SET
-                Module      = @Module,
-                employeeid  = @EmployeeId,
-                no_of_emp   = @NoOfEmp,
-                Remarks     = @Remarks
-            WHERE Detail_id = @DetailId
-              AND header_id = @HeaderId;";
-
+                    UPDATE Tbl_Project_detail
+                    SET
+                        module = @Module,
+                        projectDescription = @ProjectDescription,
+                        Resources = @Resources,
+                        No_of_Resources = @NoOfResources,
+                        Slavalue = @Slavalue,
+                        Slaunit = @Slaunit,
+                        version = @Version,
+                    Remarks=@Remarks
+                    WHERE Detail_id = @DetailId
+                      AND header_id = @HeaderId;";
+                    
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@DetailId", request.DetailId);
                 cmd.Parameters.AddWithValue("@HeaderId", request.HeaderId);
-                cmd.Parameters.AddWithValue("@Module", request.Module ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId);
-                cmd.Parameters.AddWithValue("@NoOfEmp", request.NoOfEmp);
+                cmd.Parameters.AddWithValue("@Module", request.Module);
+                cmd.Parameters.AddWithValue("@ProjectDescription", request.ProjectDescription ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Resources", request.Resources ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@NoOfResources", request.NoOfResources);
+                cmd.Parameters.AddWithValue("@Slavalue", request.Slavalue);
+                cmd.Parameters.AddWithValue("@Slaunit", request.Slaunit);
+                cmd.Parameters.AddWithValue("@Version", request.Version);
                 cmd.Parameters.AddWithValue("@Remarks", request.Remarks ?? (object)DBNull.Value);
 
 
