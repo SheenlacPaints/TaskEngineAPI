@@ -1242,7 +1242,8 @@ namespace TaskEngineAPI.Services
                             creassign_name = reader["creassign_name"]?.ToString() ?? "",
                             cactivityname = reader["cactivityname"]?.ToString() ?? "",
                             cactivity_description = reader["cactivity_description"]?.ToString() ?? "",
-                            cmappingcode_name = reader["cmappingcodename"]?.ToString() ?? ""
+                            cmappingcode_name = reader["cmappingcodename"]?.ToString() ?? "",
+                            cprofile_image_name = reader["cprofile_image_name"]?.ToString() ?? ""
                         });
                     }
                 }
@@ -4241,7 +4242,8 @@ namespace TaskEngineAPI.Services
                                 lreassign_date = reader.IsDBNull(reader.GetOrdinal("lreassign_date")) ? (DateTime?)null : reader.GetDateTime(reader.GetOrdinal("lreassign_date")),
                                 creassign_to = reader.IsDBNull(reader.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(reader["creassign_to"]),
                                 cactivityname = reader.IsDBNull(reader.GetOrdinal("cactivityname")) ? string.Empty : Convert.ToString(reader["cactivityname"]),
-                                cactivity_description = reader.IsDBNull(reader.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(reader["cactivity_description"])
+                                cactivity_description = reader.IsDBNull(reader.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(reader["cactivity_description"]),
+                                cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? string.Empty : Convert.ToString(reader["cprofile_image_name"])
                             });
                         }
                     }
@@ -4312,7 +4314,8 @@ namespace TaskEngineAPI.Services
                                     clabel = reader["label"]?.ToString() ?? "",
                                     cdata = reader["cdata"]?.ToString() ?? "",
                                     cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0,
-                                    cdata_source=reader["cdata_source"]?.ToString() ?? ""
+                                    cdata_source=reader["cdata_source"]?.ToString() ?? "",
+                                    cprofile_image_name = reader["cprofile_image_name"]?.ToString() ?? ""
                                 });
                             }
                         }
