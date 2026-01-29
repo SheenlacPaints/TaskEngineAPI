@@ -294,6 +294,40 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost]
+        [Route("UpdateProjectDetails")]
+        public async Task<IActionResult> UpdateProjectDetails([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return CreateEncryptedResponse(400, "Payload is required");
+
+                var (tenantId, username) = GetUserInfoFromToken();
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                var model = JsonConvert.DeserializeObject<ProjectDetailRequest>(decryptedJson);
+
+                if (model == null)
+                    return CreateEncryptedResponse(400, "Invalid payload data");
+
+                var result = await _ProjectService.UpdateProjectDetails(
+                    model,
+                    tenantId,
+                    username);
+
+                if (!result)
+                    return CreateEncryptedResponse(500, "Update failed");
+
+                return CreatedSuccessResponse("Project details updated successfully");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
 
     }
 }

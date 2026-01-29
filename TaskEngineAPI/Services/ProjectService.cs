@@ -225,7 +225,56 @@ VALUES (@HeaderId, @DetailId, @Module, @EmployeeId, @NoOfEmp, @Remarks);";
             }
         }
 
+        public async Task<bool> UpdateProjectDetails(
+     ProjectDetailRequest request,
+     int tenantId,
+     string username)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
 
+            try
+            {
+                using var conn = new SqlConnection(_config.GetConnectionString("Database"));
+                await conn.OpenAsync();
+
+                string query = @"
+            UPDATE Tbl_Project_detail
+            SET
+                Module      = @Module,
+                employeeid  = @EmployeeId,
+                no_of_emp   = @NoOfEmp,
+                Remarks     = @Remarks
+            WHERE Detail_id = @DetailId
+              AND header_id = @HeaderId;";
+
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@DetailId", request.DetailId);
+                cmd.Parameters.AddWithValue("@HeaderId", request.HeaderId);
+                cmd.Parameters.AddWithValue("@Module", request.Module ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId);
+                cmd.Parameters.AddWithValue("@NoOfEmp", request.NoOfEmp);
+                cmd.Parameters.AddWithValue("@Remarks", request.Remarks ?? (object)DBNull.Value);
+
+
+                int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                if (rowsAffected == 0)
+                {
+                    throw new Exception($"No record found for DetailId={request.DetailId}, HeaderId={request.HeaderId}");
+                }
+
+                return true;
+            }
+            catch (SqlException ex) when (ex.Number == 547)
+            {
+                throw new Exception("Invalid HeaderId. Project Master record not found.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to update project detail.", ex);
+            }
+        }
 
 
     }
