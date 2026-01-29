@@ -24,7 +24,6 @@ public class ProjectSocketHandler
 
     public async Task HandleAsync(HttpContext context)
     {
-        // 1. Authentication check
         if (!context.User.Identity?.IsAuthenticated ?? true)
         {
             context.Response.StatusCode = 401;
@@ -32,7 +31,6 @@ public class ProjectSocketHandler
             return;
         }
 
-        // 2. Extract tenant and user from JWT claims
         var tenantId = context.User.FindFirst("cTenantID")?.Value
                        ?? context.User.FindFirst("cTenantID")?.Value;
         var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -45,7 +43,6 @@ public class ProjectSocketHandler
             return;
         }
 
-        // 3. Check connection limits per tenant
         if (_connectionManager.GetConnectionCount(tenantId) >= 100)
         {
             context.Response.StatusCode = 429;
