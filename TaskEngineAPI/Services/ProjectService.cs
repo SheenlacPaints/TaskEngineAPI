@@ -1,16 +1,17 @@
-﻿using System.Data.SqlClient;
+﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.Data;
+using System.Data.SqlClient;
+using System.Net.Mail;
+using TaskEngineAPI.Controllers;
 using TaskEngineAPI.DTO;
-using TaskEngineAPI.Interfaces;
-using TaskEngineAPI.Models;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
+using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
-using Newtonsoft.Json;
-using System.Net.Mail;
-using Microsoft.Extensions.Options;
+using TaskEngineAPI.Models;
 namespace TaskEngineAPI.Services
 {
     public class ProjectService: IProjectService
@@ -179,6 +180,51 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
+
+        public async Task<bool> InsertProjectDetails(
+    List<ProjectDetailRequest> requests,
+    int tenantId,
+    string username)
+        {
+            if (requests == null || !requests.Any())
+                return false;
+
+            try
+            {
+                using var conn = new SqlConnection(_config.GetConnectionString("Database"));
+                await conn.OpenAsync();
+
+                string query = @"
+INSERT INTO Tbl_Project_detail
+(header_id, Detail_id, Module, employeeid, no_of_emp, Remarks)
+VALUES (@HeaderId, @DetailId, @Module, @EmployeeId, @NoOfEmp, @Remarks);";
+
+                foreach (var request in requests)
+                {
+                    using var cmd = new SqlCommand(query, conn);
+
+                    cmd.Parameters.AddWithValue("@HeaderId", request.HeaderId); 
+                    cmd.Parameters.AddWithValue("@DetailId", request.DetailId);
+                    cmd.Parameters.AddWithValue("@Module", request.Module ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EmployeeId", request.EmployeeId);
+                    cmd.Parameters.AddWithValue("@NoOfEmp", request.NoOfEmp);
+                    cmd.Parameters.AddWithValue("@Remarks", request.Remarks ?? (object)DBNull.Value);
+
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                return true;
+            }
+            catch (SqlException sqlEx)
+            {
+                throw new Exception("Database error while inserting project details.", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Unexpected error while inserting project details.", ex);
+            }
+        }
+
 
 
 

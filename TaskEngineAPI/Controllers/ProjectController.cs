@@ -251,7 +251,49 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost]
+        [Route("CreateProjectDetails")]
+        public async Task<IActionResult> CreateProjectDetails([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return CreateEncryptedResponse(400, "Payload is required");
 
-       
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                List<ProjectDetailRequest> model;
+                try
+                {
+                    var decryptedJson = AesEncryption.Decrypt(request.payload);
+                    model = JsonConvert.DeserializeObject<List<ProjectDetailRequest>>(decryptedJson);
+                }
+                catch
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload");
+                }
+
+                if (model == null || !model.Any())
+                    return CreateEncryptedResponse(400, "No project details provided");
+
+                var result = await _ProjectService.InsertProjectDetails(model, cTenantID, username);
+
+                if (!result)
+                    return CreateEncryptedResponse(500, "Failed to insert project details");
+
+                return CreatedSuccessResponse("Project details inserted successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
     }
 }

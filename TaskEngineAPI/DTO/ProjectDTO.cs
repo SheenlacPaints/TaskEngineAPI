@@ -33,5 +33,14 @@
         public List<GetProjectList> Data { get; set; }
     }
 
+    public class ProjectDetailRequest
+    {
+        public int HeaderId { get; set; }
+        public int DetailId { get; set; }
+        public string Module { get; set; }
+        public int EmployeeId { get; set; }
+        public int NoOfEmp { get; set; }
+        public string Remarks { get; set; }
+    }
 
 }
