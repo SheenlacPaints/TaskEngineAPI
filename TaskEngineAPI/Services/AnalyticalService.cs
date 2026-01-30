@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System.Net.Mail;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
+using TaskEngineAPI.Controllers;
 namespace TaskEngineAPI.Services
 {
     public class AnalyticalService: IAnalyticalService
@@ -38,14 +39,14 @@ namespace TaskEngineAPI.Services
                     {
                         string queryMaster = @"
                     INSERT INTO [tbl_analytical_workspace] (ctenant_id,canalyticalname,canalyticalDescription
-                    ,canalyticalprompt,capi_method,capi_url,capi_params,capi_headers,cbody,cbusiness_function,cstatus
+                    ,canalyticalprompt,capi_method,capi_url,capi_params,capi_headers,capi_response,cbody,cbusiness_function,cstatus
                     ,csource_type,cdataset_id,crefresh_mode,ctime_range,cdescriptive_analytics,cpredictive_analytics,cdiagnostic_analytics
                     ,cprescriptive_analytics,canalysis_depth,cexplanation_tone,cauto_follow_up,nmax_row_limit,nquery_depth_limit
                     ,callowed_join_types,cread_only_mode,caudit_logging,callowed_roles,cmasking_rule,cdefault_chart_type
                     ,ccolor_scheme,cexport_excel,cexport_pdf,cexport_csv,cexport_json,cexport_png,cenable_drill_down
                     ,cshow_data_labels,cenable_animations,ccolumn_mappings,nis_active,ccreated_by,lcreated_date,cmodified_by,lmodified_date)
                       VALUES(@ctenant_id,@canalyticalname,@canalyticalDescription
-                    ,@canalyticalprompt,@capi_method,@capi_url,@capi_params,@capi_headers,@cbody,@cbusiness_function,@cstatus
+                    ,@canalyticalprompt,@capi_method,@capi_url,@capi_params,@capi_headers,@capi_response,@cbody,@cbusiness_function,@cstatus
                     ,@csource_type,@cdataset_id,@crefresh_mode,@ctime_range,@cdescriptive_analytics,@cpredictive_analytics,@cdiagnostic_analytics
                     ,@cprescriptive_analytics,@canalysis_depth,@cexplanation_tone,@cauto_follow_up,@nmax_row_limit,@nquery_depth_limit
                     ,@callowed_join_types,@cread_only_mode,@caudit_logging,@callowed_roles,@cmasking_rule,@cdefault_chart_type
@@ -62,6 +63,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@capi_url", (object?)model.capi_url ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@capi_params", (object?)model.capi_params ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@capi_headers", (object?)model.capi_headers ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@capi_response", (object?)model.capi_response ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cbusiness_function", (object?)model.cbusiness_function ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cstatus", (object?)model.cstatus ?? DBNull.Value);
@@ -233,6 +235,7 @@ namespace TaskEngineAPI.Services
                                     capi_url = sdr.IsDBNull(sdr.GetOrdinal("capi_url")) ? string.Empty : Convert.ToString(sdr["capi_url"]),
                                     capi_params = sdr.IsDBNull(sdr.GetOrdinal("capi_params")) ? string.Empty : Convert.ToString(sdr["capi_params"]),
                                     capi_headers = sdr.IsDBNull(sdr.GetOrdinal("capi_headers")) ? string.Empty : Convert.ToString(sdr["capi_headers"]),
+                                    capi_response = sdr.IsDBNull(sdr.GetOrdinal("capi_response")) ? string.Empty : Convert.ToString(sdr["capi_response"]),
                                     cbody = sdr.IsDBNull(sdr.GetOrdinal("cbody")) ? string.Empty : Convert.ToString(sdr["cbody"]),
                                     cstatus = sdr.IsDBNull(sdr.GetOrdinal("cstatus")) ? string.Empty : Convert.ToString(sdr["cstatus"]),
                                     cbusiness_function = sdr.IsDBNull(sdr.GetOrdinal("cbusiness_function")) ? string.Empty : Convert.ToString(sdr["cbusiness_function"]),
