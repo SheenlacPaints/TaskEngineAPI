@@ -214,12 +214,12 @@ VALUES
                     ValidateProjectDetail(r);
 
                     using var cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@HeaderId", r.HeaderId);
-                    cmd.Parameters.AddWithValue("@DetailId", r.DetailId);
-                    cmd.Parameters.AddWithValue("@Module", r.Module);
-                    cmd.Parameters.AddWithValue("@ProjectDescription", r.ProjectDescription);
+                    cmd.Parameters.AddWithValue("@HeaderId", r.header_id);
+                    cmd.Parameters.AddWithValue("@DetailId", r.Detail_id);
+                    cmd.Parameters.AddWithValue("@Module", r.module);
+                    cmd.Parameters.AddWithValue("@ProjectDescription", r.projectDescription);
                     cmd.Parameters.AddWithValue("@Resources", r.Resources);
-                    cmd.Parameters.AddWithValue("@NoOfResources", r.NoOfResources);
+                    cmd.Parameters.AddWithValue("@NoOfResources", r.No_of_Resources);
                     cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
                     cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit);
                     cmd.Parameters.AddWithValue("@Version", r.Version);
@@ -253,23 +253,23 @@ VALUES
         {
             try
             {
-                if (r.HeaderId <= 0)
-                    throw new ArgumentException("HeaderId must be greater than 0");
+                if (r.header_id <= 0)
+                    throw new ArgumentException("header_id must be greater than 0");
 
-                if (r.DetailId <= 0)
-                    throw new ArgumentException("DetailId must be greater than 0");
+                if (r.Detail_id <= 0)
+                    throw new ArgumentException("Detail_id must be greater than 0");
 
-                if (IsInvalidString(r.Module))
-                    throw new ArgumentException("Module is required");
+                if (IsInvalidString(r.module))
+                    throw new ArgumentException("module is required");
 
-                if (IsInvalidString(r.ProjectDescription))
-                    throw new ArgumentException("ProjectDescription is required");
+                if (IsInvalidString(r.projectDescription))
+                    throw new ArgumentException("projectDescription is required");
 
                 if (IsInvalidString(r.Resources))
                     throw new ArgumentException("Resources is required");
 
-                if (r.NoOfResources <= 0)
-                    throw new ArgumentException("NoOfResources must be greater than 0");
+                if (r.No_of_Resources <= 0)
+                    throw new ArgumentException("No_of_Resources must be greater than 0");
 
                 if (r.Slavalue <= 0)
                     throw new ArgumentException("Slavalue must be greater than 0");
@@ -317,12 +317,12 @@ VALUES
                       AND header_id = @HeaderId;";
                     
                 using var cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@DetailId", request.DetailId);
-                cmd.Parameters.AddWithValue("@HeaderId", request.HeaderId);
-                cmd.Parameters.AddWithValue("@Module", request.Module);
-                cmd.Parameters.AddWithValue("@ProjectDescription", request.ProjectDescription );
+                cmd.Parameters.AddWithValue("@DetailId", request.Detail_id);
+                cmd.Parameters.AddWithValue("@HeaderId", request.header_id);
+                cmd.Parameters.AddWithValue("@Module", request.module);
+                cmd.Parameters.AddWithValue("@ProjectDescription", request.projectDescription );
                 cmd.Parameters.AddWithValue("@Resources", request.Resources );
-                cmd.Parameters.AddWithValue("@NoOfResources", request.NoOfResources);
+                cmd.Parameters.AddWithValue("@NoOfResources", request.No_of_Resources);
                 cmd.Parameters.AddWithValue("@Slavalue", request.Slavalue);
                 cmd.Parameters.AddWithValue("@Slaunit", request.Slaunit);
                 cmd.Parameters.AddWithValue("@Version", request.Version);
@@ -333,7 +333,7 @@ VALUES
 
                 if (rowsAffected == 0)
                 {
-                    throw new Exception($"No record found for DetailId={request.DetailId}, HeaderId={request.HeaderId}");
+                    throw new Exception($"No record found for DetailId={request.Detail_id}, HeaderId={request.header_id}");
                 }
 
                 return true;
