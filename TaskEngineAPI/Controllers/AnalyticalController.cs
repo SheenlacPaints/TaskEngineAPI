@@ -193,7 +193,7 @@ namespace TaskEngineAPI.Controllers
 
                 var json = await _AnalyticalService.GetAnalyticalhub(cTenantID, username, type, searchText, page, pageSize);
 
-                var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
+                var response = JsonConvert.DeserializeObject<AnalyticalResponse>(json);
                 if (response == null)
                 {
                     return CreateEncryptedResponse(500, "Invalid response format from service");

@@ -145,8 +145,8 @@ namespace TaskEngineAPI.Services
                             {
                                 GetAnalyticalDTO p = new GetAnalyticalDTO
                                 {
-                                    ID=sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
-                                    ctenant_id= sdr.IsDBNull(sdr.GetOrdinal("ctenant_id")) ? 0 : Convert.ToInt32(sdr["ctenant_id"]),
+                                    ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                    ctenant_id = sdr.IsDBNull(sdr.GetOrdinal("ctenant_id")) ? 0 : Convert.ToInt32(sdr["ctenant_id"]),
                                     canalyticalname = sdr.IsDBNull(sdr.GetOrdinal("canalyticalname")) ? string.Empty : Convert.ToString(sdr["canalyticalname"]),
                                     canalyticalDescription = sdr.IsDBNull(sdr.GetOrdinal("canalyticalDescription")) ? string.Empty : Convert.ToString(sdr["canalyticalDescription"]),
                                     canalyticalprompt = sdr.IsDBNull(sdr.GetOrdinal("canalyticalprompt")) ? string.Empty : Convert.ToString(sdr["canalyticalprompt"]),
@@ -154,12 +154,15 @@ namespace TaskEngineAPI.Services
                                     capi_url = sdr.IsDBNull(sdr.GetOrdinal("capi_url")) ? string.Empty : Convert.ToString(sdr["capi_url"]),
                                     capi_params = sdr.IsDBNull(sdr.GetOrdinal("capi_params")) ? string.Empty : Convert.ToString(sdr["capi_params"]),
                                     capi_headers = sdr.IsDBNull(sdr.GetOrdinal("capi_headers")) ? string.Empty : Convert.ToString(sdr["capi_headers"]),
-                                    cbody = sdr.IsDBNull(sdr.GetOrdinal("cbody")) ? string.Empty : Convert.ToString(sdr["cbody"]),                                 
+                                    cbody = sdr.IsDBNull(sdr.GetOrdinal("cbody")) ? string.Empty : Convert.ToString(sdr["cbody"]),
+                                    cstatus = sdr.IsDBNull(sdr.GetOrdinal("cstatus")) ? string.Empty : Convert.ToString(sdr["cstatus"]),
+                                    cbusiness_function = sdr.IsDBNull(sdr.GetOrdinal("cbusiness_function")) ? string.Empty : Convert.ToString(sdr["cbusiness_function"]),
                                     nis_active = sdr.IsDBNull(sdr.GetOrdinal("nis_active")) ? false : Convert.ToBoolean(sdr["nis_active"]),
                                     ccreated_by = sdr.IsDBNull(sdr.GetOrdinal("ccreated_by")) ? string.Empty : Convert.ToString(sdr["ccreated_by"]),
-                                    lcreated_date= sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
-                                    cmodified_by= sdr.IsDBNull(sdr.GetOrdinal("cmodified_by")) ? string.Empty : Convert.ToString(sdr["cmodified_by"]),
-                                    lmodified_date= sdr.IsDBNull(sdr.GetOrdinal("lmodified_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date"))                        
+                                    lcreated_date = sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
+                                    cmodified_by = sdr.IsDBNull(sdr.GetOrdinal("cmodified_by")) ? string.Empty : Convert.ToString(sdr["cmodified_by"]),
+                                    lmodified_date = sdr.IsDBNull(sdr.GetOrdinal("lmodified_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date"))
+                                
                                 };
                                 tsk.Add(p);
                             }
@@ -189,7 +192,7 @@ namespace TaskEngineAPI.Services
                 var errorResponse = new
                 {
                     totalCount = 0,
-                    data = new List<GetProjectList>(),
+                    data = new List<GetAnalyticalDTO>(),
                     error = ex.Message
                 };
                 return JsonConvert.SerializeObject(errorResponse, Formatting.Indented);
