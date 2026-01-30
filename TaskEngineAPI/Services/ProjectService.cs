@@ -101,6 +101,9 @@ namespace TaskEngineAPI.Services
                         {
                             while (await sdr.ReadAsync())
                             {
+                                string projectDetailsJson = sdr.IsDBNull(sdr.GetOrdinal("project_Details"))
+                                                   ? null
+                                                   : sdr.GetString(sdr.GetOrdinal("project_Details"));
                                 GetProjectList p = new GetProjectList
                                 {                              
                                     ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
@@ -113,7 +116,11 @@ namespace TaskEngineAPI.Services
                                     Status = sdr.IsDBNull(sdr.GetOrdinal("Status")) ? string.Empty : Convert.ToString(sdr["Status"]),
                                     Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
                                     ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
-                                    expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate"))
+                                    expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
+                                    project_Details = projectDetailsJson,
+                                    ProjectDetailsList = string.IsNullOrWhiteSpace(projectDetailsJson)
+                                                 ? new List<ProjectDetailRequest>()
+                                                 : JsonConvert.DeserializeObject<List<ProjectDetailRequest>>(projectDetailsJson)
                                 };
                                 tsk.Add(p);
                             }
