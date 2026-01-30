@@ -221,5 +221,39 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [Authorize]
+        [HttpGet]
+        [Route("GetAnalyticalhubbyid")]
+        public async Task<IActionResult> GetAnalyticalhubbyid([FromQuery] int id)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var data = await _AnalyticalService.GetAnalyticalhubbtid(cTenantID, id);
+
+               
+
+                if (data == null)
+                {
+                    return CreateEncryptedResponse(404, "Analytical record not found");
+                }
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {              
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
     }
 }

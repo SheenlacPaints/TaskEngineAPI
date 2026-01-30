@@ -181,7 +181,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> InsertProjectDetails(
+  public async Task<bool> InsertProjectDetails(
      List<ProjectDetailRequest> requests,
      int tenantId,
      string username)
