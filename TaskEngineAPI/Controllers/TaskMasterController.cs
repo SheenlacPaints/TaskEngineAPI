@@ -1039,7 +1039,10 @@ namespace TaskEngineAPI.Controllers
                     bool holdsuccessss = await taskMasterService.holdwhatappnotificationAsync(model, cTenantID, username);
                 }
 
-                
+                if (model.status == "R")
+                {
+                    bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
+                }
 
 
                 if (!success)
