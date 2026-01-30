@@ -17,10 +17,10 @@
         public int RaisedByUserId { get; set; }
         public int AssignedManagerId { get; set; }
         public string? ProjectName { get; set; }
-        public string? ProjectType { get; set; }      
+        public string? ProjectType { get; set; }
         public string? Description { get; set; }
         public DateTime? CreatedDate { get; set; }
-        public string? Status { get; set; } 
+        public string? Status { get; set; }
         public string? Attachments { get; set; }
         public DateTime? expecteddate { get; set; }
         public string? project_Details { get; set; }
@@ -38,17 +38,16 @@
 
     public class ProjectDetailRequest
     {
-        public int HeaderId { get; set; }
-        public int DetailId { get; set; }
-        public string Module { get; set; }
-        public string ProjectDescription { get; set; }
+
+        public int header_id { get; set; }
+        public int Detail_id { get; set; }
+        public string module { get; set; }
+        public string projectDescription { get; set; }
         public string Resources { get; set; }
-        public int NoOfResources { get; set; }
+        public int No_of_Resources { get; set; }
         public int Slavalue { get; set; }
-        public string Slaunit { get; set; }
-        public string Version { get; set; }
-        public string Remarks { get; set; }
+        public string Slaunit { get; set; } 
+        public string Version { get; set; } 
+        public string Remarks { get; set; } 
     }
-
-
 }
