@@ -1,4 +1,6 @@
-﻿namespace TaskEngineAPI.DTO
+﻿using System.Net.NetworkInformation;
+
+namespace TaskEngineAPI.DTO
 {
    
         public class AnalyticalDTO
@@ -60,6 +62,9 @@
         public string? capi_params { get; set; }
         public string? capi_headers { get; set; }
         public string? cbody { get; set; }
+        public string? cstatus { get; set; }
+        public string? cbusiness_function { get; set; }
+                            
         public bool? nis_active { get; set; }
         public string? ccreated_by { get; set; }
         public DateTime? lcreated_date { get; set; }
