@@ -1,16 +1,17 @@
-﻿using System.Data.SqlClient;
+﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.Data;
+using System.Data.SqlClient;
+using System.Net.Mail;
+using TaskEngineAPI.Controllers;
 using TaskEngineAPI.DTO;
-using TaskEngineAPI.Interfaces;
-using TaskEngineAPI.Models;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
+using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
-using Newtonsoft.Json;
-using System.Net.Mail;
-using Microsoft.Extensions.Options;
+using TaskEngineAPI.Models;
 namespace TaskEngineAPI.Services
 {
     public class ProjectService: IProjectService
@@ -180,6 +181,165 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<bool> InsertProjectDetails(
+     List<ProjectDetailRequest> requests,
+     int tenantId,
+     string username)
+        {
+            try
+            {
+                if (requests == null || !requests.Any())
+                    throw new ArgumentException("Request list cannot be empty");
+
+                using var conn = new SqlConnection(_config.GetConnectionString("Database"));
+                await conn.OpenAsync();
+
+                string query = @"
+INSERT INTO Tbl_Project_detail
+(header_id, Detail_id, module, projectDescription, Resources,
+ No_of_Resources, Slavalue, Slaunit, version, Remarks)
+VALUES
+(@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
+ @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks);";
+
+                foreach (var r in requests)
+                {
+                    ValidateProjectDetail(r);
+
+                    using var cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@HeaderId", r.HeaderId);
+                    cmd.Parameters.AddWithValue("@DetailId", r.DetailId);
+                    cmd.Parameters.AddWithValue("@Module", r.Module);
+                    cmd.Parameters.AddWithValue("@ProjectDescription", r.ProjectDescription);
+                    cmd.Parameters.AddWithValue("@Resources", r.Resources);
+                    cmd.Parameters.AddWithValue("@NoOfResources", r.NoOfResources);
+                    cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
+                    cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit);
+                    cmd.Parameters.AddWithValue("@Version", r.Version);
+                    cmd.Parameters.AddWithValue("@Remarks",
+                        string.IsNullOrWhiteSpace(r.Remarks) ? (object)DBNull.Value : r.Remarks);
+
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                return true;
+            }
+            catch (SqlException ex) when (ex.Number == 547)
+            {
+                throw new Exception("Invalid HeaderId. Project Master record not found.", ex);
+            }
+            catch (SqlException ex) when (ex.Number == 2627)
+            {
+                throw new Exception("Duplicate DetailId. Record already exists.", ex);
+            }
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to insert project details.", ex);
+            }
+        }
+
+        private static void ValidateProjectDetail(ProjectDetailRequest r)
+        {
+            try
+            {
+                if (r.HeaderId <= 0)
+                    throw new ArgumentException("HeaderId must be greater than 0");
+
+                if (r.DetailId <= 0)
+                    throw new ArgumentException("DetailId must be greater than 0");
+
+                if (IsInvalidString(r.Module))
+                    throw new ArgumentException("Module is required");
+
+                if (IsInvalidString(r.ProjectDescription))
+                    throw new ArgumentException("ProjectDescription is required");
+
+                if (IsInvalidString(r.Resources))
+                    throw new ArgumentException("Resources is required");
+
+                if (r.NoOfResources <= 0)
+                    throw new ArgumentException("NoOfResources must be greater than 0");
+
+                if (r.Slavalue <= 0)
+                    throw new ArgumentException("Slavalue must be greater than 0");
+
+                if (IsInvalidString(r.Slaunit))
+                    throw new ArgumentException("Slaunit is required");
+
+                if (IsInvalidString(r.Version))
+                    throw new ArgumentException("Version is required");
+            }
+            catch
+            {
+                throw; 
+            }
+        }
+
+        private static bool IsInvalidString(string value)
+        {
+            return string.IsNullOrWhiteSpace(value)
+                   || value.Trim().Equals("string", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public async Task<bool> UpdateProjectDetails(ProjectDetailRequest request, int tenantId, string username)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            using var conn = new SqlConnection(_config.GetConnectionString("Database"));
+            await conn.OpenAsync();
+
+            try
+            {
+                string query = @"
+                    UPDATE Tbl_Project_detail
+                    SET
+                        module = @Module,
+                        projectDescription = @ProjectDescription,
+                        Resources = @Resources,
+                        No_of_Resources = @NoOfResources,
+                        Slavalue = @Slavalue,
+                        Slaunit = @Slaunit,
+                        version = @Version,
+                    Remarks=@Remarks
+                    WHERE Detail_id = @DetailId
+                      AND header_id = @HeaderId;";
+                    
+                using var cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@DetailId", request.DetailId);
+                cmd.Parameters.AddWithValue("@HeaderId", request.HeaderId);
+                cmd.Parameters.AddWithValue("@Module", request.Module);
+                cmd.Parameters.AddWithValue("@ProjectDescription", request.ProjectDescription );
+                cmd.Parameters.AddWithValue("@Resources", request.Resources );
+                cmd.Parameters.AddWithValue("@NoOfResources", request.NoOfResources);
+                cmd.Parameters.AddWithValue("@Slavalue", request.Slavalue);
+                cmd.Parameters.AddWithValue("@Slaunit", request.Slaunit);
+                cmd.Parameters.AddWithValue("@Version", request.Version);
+                cmd.Parameters.AddWithValue("@Remarks", request.Remarks ?? (object)DBNull.Value);
+
+
+                int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                if (rowsAffected == 0)
+                {
+                    throw new Exception($"No record found for DetailId={request.DetailId}, HeaderId={request.HeaderId}");
+                }
+
+                return true;
+            }
+            catch (SqlException ex) when (ex.Number == 547)
+            {
+                throw new Exception("Invalid HeaderId. Project Master record not found.", ex);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to update project detail.", ex);
+            }
+        }
 
 
     }

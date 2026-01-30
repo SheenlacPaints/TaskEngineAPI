@@ -251,7 +251,77 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost]
+        [Route("CreateProjectDetails")]
+        public async Task<IActionResult> CreateProjectDetails([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return CreateEncryptedResponse(400, "Payload is required");
 
-       
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                List<ProjectDetailRequest> model;
+                try
+                {
+                    var decryptedJson = AesEncryption.Decrypt(request.payload);
+                    model = JsonConvert.DeserializeObject<List<ProjectDetailRequest>>(decryptedJson);
+                }
+                catch
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload");
+                }
+
+                await _ProjectService.InsertProjectDetails(model, cTenantID, username);
+
+                return CreatedSuccessResponse("Project details inserted successfully");
+            }
+            catch (ArgumentException ex)
+            {
+                return CreateEncryptedResponse(400, ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("UpdateProjectDetails")]
+        public async Task<IActionResult> UpdateProjectDetails([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return CreateEncryptedResponse(400, "Payload is required");
+
+                var (tenantId, username) = GetUserInfoFromToken();
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+
+                var model = JsonConvert.DeserializeObject<ProjectDetailRequest>(decryptedJson);
+
+                if (model == null)
+                    return CreateEncryptedResponse(400, "Invalid payload data");
+
+                var result = await _ProjectService.UpdateProjectDetails(
+                    model,
+                    tenantId,
+                    username);
+
+                if (!result)
+                    return CreateEncryptedResponse(500, "Update failed");
+
+                return CreatedSuccessResponse("Project details updated successfully");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
     }
 }
