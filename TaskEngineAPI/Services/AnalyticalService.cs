@@ -201,6 +201,94 @@ namespace TaskEngineAPI.Services
 
 
 
+        public async Task<List<GetAnalyticalbyidDTO>> GetAnalyticalhubbtid(int cTenantID, int id)
+        {
+            List<GetAnalyticalbyidDTO> tsk = new List<GetAnalyticalbyidDTO>();
+            
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_get_analytical_data", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@tenantid", cTenantID);
+                        cmd.Parameters.AddWithValue("@id", id);
+                     
+
+                        await con.OpenAsync();
+
+                        using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await sdr.ReadAsync())
+                            {
+                                GetAnalyticalbyidDTO p = new GetAnalyticalbyidDTO
+                                {
+                                    ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                    ctenant_id = sdr.IsDBNull(sdr.GetOrdinal("ctenant_id")) ? 0 : Convert.ToInt32(sdr["ctenant_id"]),
+                                    canalyticalname = sdr.IsDBNull(sdr.GetOrdinal("canalyticalname")) ? string.Empty : Convert.ToString(sdr["canalyticalname"]),
+                                    canalyticalDescription = sdr.IsDBNull(sdr.GetOrdinal("canalyticalDescription")) ? string.Empty : Convert.ToString(sdr["canalyticalDescription"]),
+                                    canalyticalprompt = sdr.IsDBNull(sdr.GetOrdinal("canalyticalprompt")) ? string.Empty : Convert.ToString(sdr["canalyticalprompt"]),
+                                    capi_method = sdr.IsDBNull(sdr.GetOrdinal("capi_method")) ? string.Empty : Convert.ToString(sdr["capi_method"]),
+                                    capi_url = sdr.IsDBNull(sdr.GetOrdinal("capi_url")) ? string.Empty : Convert.ToString(sdr["capi_url"]),
+                                    capi_params = sdr.IsDBNull(sdr.GetOrdinal("capi_params")) ? string.Empty : Convert.ToString(sdr["capi_params"]),
+                                    capi_headers = sdr.IsDBNull(sdr.GetOrdinal("capi_headers")) ? string.Empty : Convert.ToString(sdr["capi_headers"]),
+                                    cbody = sdr.IsDBNull(sdr.GetOrdinal("cbody")) ? string.Empty : Convert.ToString(sdr["cbody"]),
+                                    cstatus = sdr.IsDBNull(sdr.GetOrdinal("cstatus")) ? string.Empty : Convert.ToString(sdr["cstatus"]),
+                                    cbusiness_function = sdr.IsDBNull(sdr.GetOrdinal("cbusiness_function")) ? string.Empty : Convert.ToString(sdr["cbusiness_function"]),
+                                    csource_type = sdr.IsDBNull(sdr.GetOrdinal("csource_type")) ? string.Empty : Convert.ToString(sdr["csource_type"]),
+                                    cdataset_id = sdr.IsDBNull(sdr.GetOrdinal("cdataset_id")) ? 0 : Convert.ToInt32(sdr["cdataset_id"]),
+                                    crefresh_mode = sdr.IsDBNull(sdr.GetOrdinal("crefresh_mode")) ? string.Empty : Convert.ToString(sdr["crefresh_mode"]),
+                                    ctime_range = sdr.IsDBNull(sdr.GetOrdinal("ctime_range")) ? string.Empty : Convert.ToString(sdr["ctime_range"]),
+                                    cdescriptive_analytics = sdr.IsDBNull(sdr.GetOrdinal("cdescriptive_analytics")) ? false : Convert.ToBoolean(sdr["cdescriptive_analytics"]),
+                                    cpredictive_analytics = sdr.IsDBNull(sdr.GetOrdinal("cpredictive_analytics")) ? false : Convert.ToBoolean(sdr["cpredictive_analytics"]),
+                                    cdiagnostic_analytics = sdr.IsDBNull(sdr.GetOrdinal("cdiagnostic_analytics")) ? false : Convert.ToBoolean(sdr["cdiagnostic_analytics"]),
+                                    cprescriptive_analytics = sdr.IsDBNull(sdr.GetOrdinal("cprescriptive_analytics")) ? false : Convert.ToBoolean(sdr["cprescriptive_analytics"]),
+                                    canalysis_depth = sdr.IsDBNull(sdr.GetOrdinal("canalysis_depth")) ? string.Empty : Convert.ToString(sdr["canalysis_depth"]),
+                                    cexplanation_tone = sdr.IsDBNull(sdr.GetOrdinal("cexplanation_tone")) ? string.Empty : Convert.ToString(sdr["cexplanation_tone"]),
+                                    cauto_follow_up = sdr.IsDBNull(sdr.GetOrdinal("cauto_follow_up")) ? string.Empty : Convert.ToString(sdr["cauto_follow_up"]),
+                                    nmax_row_limit = sdr.IsDBNull(sdr.GetOrdinal("nmax_row_limit")) ? 0 : Convert.ToInt32(sdr["nmax_row_limit"]),
+                                    nquery_depth_limit = sdr.IsDBNull(sdr.GetOrdinal("nquery_depth_limit")) ? 0 : Convert.ToInt32(sdr["nquery_depth_limit"]),
+                                    callowed_join_types = sdr.IsDBNull(sdr.GetOrdinal("callowed_join_types")) ? string.Empty : Convert.ToString(sdr["callowed_join_types"]),
+                                    cread_only_mode = sdr.IsDBNull(sdr.GetOrdinal("cread_only_mode")) ? false : Convert.ToBoolean(sdr["cread_only_mode"]),
+                                    caudit_logging = sdr.IsDBNull(sdr.GetOrdinal("ctime_range")) ? string.Empty : Convert.ToString(sdr["ctime_range"]),
+                                    callowed_roles = sdr.IsDBNull(sdr.GetOrdinal("callowed_roles")) ? string.Empty : Convert.ToString(sdr["callowed_roles"]),
+                                    cmasking_rule = sdr.IsDBNull(sdr.GetOrdinal("cmasking_rule")) ? string.Empty : Convert.ToString(sdr["cmasking_rule"]),
+                                    cdefault_chart_type = sdr.IsDBNull(sdr.GetOrdinal("cdefault_chart_type")) ? string.Empty : Convert.ToString(sdr["cdefault_chart_type"]),
+                                    ccolor_scheme = sdr.IsDBNull(sdr.GetOrdinal("ccolor_scheme")) ? string.Empty : Convert.ToString(sdr["ccolor_scheme"]),
+                                    cexport_excel = sdr.IsDBNull(sdr.GetOrdinal("cexport_excel")) ? false : Convert.ToBoolean(sdr["cexport_excel"]),
+                                    cexport_pdf = sdr.IsDBNull(sdr.GetOrdinal("cexport_pdf")) ? false : Convert.ToBoolean(sdr["cexport_pdf"]),
+                                    cexport_csv = sdr.IsDBNull(sdr.GetOrdinal("cexport_csv")) ? false : Convert.ToBoolean(sdr["cexport_csv"]),
+                                    cexport_json = sdr.IsDBNull(sdr.GetOrdinal("cexport_json")) ? false : Convert.ToBoolean(sdr["cexport_json"]),
+                                    cexport_png = sdr.IsDBNull(sdr.GetOrdinal("cexport_png")) ? false : Convert.ToBoolean(sdr["cexport_png"]),
+                                    cenable_drill_down = sdr.IsDBNull(sdr.GetOrdinal("cenable_drill_down")) ? false : Convert.ToBoolean(sdr["cenable_drill_down"]),
+                                    cshow_data_labels = sdr.IsDBNull(sdr.GetOrdinal("cshow_data_labels")) ? false : Convert.ToBoolean(sdr["cshow_data_labels"]),
+                                    cenable_animations = sdr.IsDBNull(sdr.GetOrdinal("cenable_animations")) ? false : Convert.ToBoolean(sdr["cenable_animations"]),
+                                    ccolumn_mappings = sdr.IsDBNull(sdr.GetOrdinal("ccolumn_mappings")) ? string.Empty : Convert.ToString(sdr["ccolumn_mappings"]),
+                                    nis_active = sdr.IsDBNull(sdr.GetOrdinal("nis_active")) ? false : Convert.ToBoolean(sdr["nis_active"]),
+                                    ccreated_by = sdr.IsDBNull(sdr.GetOrdinal("ccreated_by")) ? string.Empty : Convert.ToString(sdr["ccreated_by"]),
+                                    lcreated_date = sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
+                                    cmodified_by = sdr.IsDBNull(sdr.GetOrdinal("cmodified_by")) ? string.Empty : Convert.ToString(sdr["cmodified_by"]),
+                                    lmodified_date = sdr.IsDBNull(sdr.GetOrdinal("lmodified_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date"))
+
+                                };
+                                tsk.Add(p);
+                            }
+                        }
+                    }
+                }
+                return tsk;
+                
+
+            }
+            catch (Exception ex)
+            {
+
+                return new List<GetAnalyticalbyidDTO>();
+            }
+        }
+
+
 
     }
 }

@@ -11,5 +11,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> InsertProjectDetails(List<ProjectDetailRequest> requests,int tenantId,string username);
         Task<bool> UpdateProjectDetails(ProjectDetailRequest request, int tenantId, string username);
 
+        
+
     }
 }
