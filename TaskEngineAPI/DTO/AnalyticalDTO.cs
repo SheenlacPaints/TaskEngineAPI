@@ -68,4 +68,12 @@
     }
 
 
+    public class AnalyticalResponse
+    {
+        //public bool Success { get; set; }
+        public int TotalCount { get; set; }
+        public List<GetAnalyticalDTO> Data { get; set; }
+    }
+
+
 }
