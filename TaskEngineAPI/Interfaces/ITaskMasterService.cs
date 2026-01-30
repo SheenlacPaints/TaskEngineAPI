@@ -48,7 +48,10 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> sendwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
 
         Task<bool> holdwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
-     
+
+        Task<bool> RejectwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
+
+
     }
 
 }

@@ -4555,7 +4555,7 @@ namespace TaskEngineAPI.Services
                     {
                         apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
                         campaignName = "hold new process",
-                        destination = "917402023513",//recipientPhone,//"916382445617",
+                        destination = recipientPhone,//"916382445617",
                         userName = "Sheenlac Paintss",
                         templateParams = new[]
                         {
@@ -4563,6 +4563,118 @@ namespace TaskEngineAPI.Services
                            ctask_name,
                            taskNo?.ToString() ?? "N/A"
                            
+                        },
+                        source = "new-landing-page form",
+                        media = new { },
+                        buttons = new string[] { },
+                        carouselCards = new string[] { },
+                        location = new { },
+                        attributes = new { },
+                        paramsFallbackValue = new { FirstName = "user", Taskname = ctask_name, itaskno = taskNo, ReassignerName = "user" }
+                    };
+                    var response = await client.PostAsJsonAsync(url, payload);
+                    string updateQuery;
+                    bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+                    transaction.Commit();
+                    return true;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public async Task<bool> RejectwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+                SqlTransaction transaction = conn.BeginTransaction();
+                int? processId = null;
+                int? taskNo = null;
+                string? ctask_name = null;
+                string? recipientName = null;
+                string? recipientPhone = null;
+                string? senderName = null;
+                string? initiator = null;
+
+                try
+                {
+                    string checkQuery = @"
+                SELECT a.itaskno, b.cprocess_id,b.ctask_name,b.ccreated_by
+                FROM tbl_taskflow_detail a
+                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
+                WHERE a.ID = @ID";
+
+                    string getRecipientQuery = @"SELECT top 1 cuser_name,cphoneno  FROM Users 
+                 WHERE cuserid = @initiator and nIs_deleted=0";
+
+                    string getsenderQuery = @"SELECT top 1 cuser_name  FROM Users 
+                 WHERE cuserid = @sender and nIs_deleted=0";
+
+                    using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
+                    {
+                        checkCmd.Parameters.AddWithValue("@ID", model.ID);
+                        using (var reader = await checkCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                taskNo = reader["itaskno"] as int? ?? model.itaskno;
+                                processId = reader["cprocess_id"] as int?;
+                                ctask_name = reader["ctask_name"]?.ToString() ?? "";
+                                initiator = reader["ccreated_by"]?.ToString() ?? "";
+                            }
+                            else
+                            {
+                                reader.Close();
+                                transaction.Rollback();
+                                return false;
+                            }
+                            reader.Close();
+                        }
+                    }
+
+                    using (SqlCommand recipientCmd = new SqlCommand(getRecipientQuery, conn, transaction))
+                    {
+                        recipientCmd.Parameters.AddWithValue("@initiator", initiator);
+                        using (var reader = await recipientCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                recipientName = reader["cuser_name"]?.ToString() ?? "";
+                                recipientPhone = reader["cphoneno"]?.ToString() ?? "";
+                            }
+                        }
+                    }
+                    using (SqlCommand sendCmd = new SqlCommand(getsenderQuery, conn, transaction))
+                    {
+                        sendCmd.Parameters.AddWithValue("@sender", username);
+                        var result = await sendCmd.ExecuteScalarAsync();
+                        senderName = result?.ToString() ?? "User";
+                    }
+
+                    var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
+                    var client = _httpClientFactory.CreateClient();
+                    var payload = new
+                    {
+                        apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
+                        campaignName = "reject template",
+                        destination = recipientPhone,//"916382445617",
+                        userName = "Sheenlac Paintss",
+                        templateParams = new[]
+                        {
+                           recipientName,
+                           ctask_name,
+                           taskNo?.ToString() ?? "N/A",
+                           senderName ?? "Admin"
                         },
                         source = "new-landing-page form",
                         media = new { },
