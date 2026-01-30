@@ -24,8 +24,6 @@
         public string? Attachments { get; set; }
         public DateTime? expecteddate { get; set; }
         public string? project_Details { get; set; }
-        public List<ProjectDetailRequest> ProjectDetailsList { get; set; } = new List<ProjectDetailRequest>();
-
 
     }
 

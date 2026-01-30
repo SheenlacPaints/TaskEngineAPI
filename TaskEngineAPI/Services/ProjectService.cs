@@ -118,9 +118,6 @@ namespace TaskEngineAPI.Services
                                     ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
                                     expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
                                     project_Details = projectDetailsJson,
-                                    ProjectDetailsList = string.IsNullOrWhiteSpace(projectDetailsJson)
-                                                 ? new List<ProjectDetailRequest>()
-                                                 : JsonConvert.DeserializeObject<List<ProjectDetailRequest>>(projectDetailsJson)
                                 };
                                 tsk.Add(p);
                             }
