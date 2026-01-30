@@ -12,6 +12,7 @@ namespace TaskEngineAPI.DTO
         public string? capi_url { get; set; }
         public string? capi_params { get; set; }
         public string? capi_headers { get; set; }
+        public string? capi_response { get; set; }
         public string? cbody { get; set; }
         public string? cbusiness_function { get; set; }
         public string? cstatus { get; set; }
@@ -91,6 +92,8 @@ namespace TaskEngineAPI.DTO
         public string? capi_url { get; set; }
         public string? capi_params { get; set; }
         public string? capi_headers { get; set; }
+        public string? capi_response { get; set; }
+        
         public string? cbody { get; set; }
         public string? cbusiness_function { get; set; }
         public string? cstatus { get; set; }
