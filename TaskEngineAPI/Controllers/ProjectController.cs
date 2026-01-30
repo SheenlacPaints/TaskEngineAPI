@@ -274,23 +274,17 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid encrypted payload");
                 }
 
-                if (model == null || !model.Any())
-                    return CreateEncryptedResponse(400, "No project details provided");
-
-                var result = await _ProjectService.InsertProjectDetails(model, cTenantID, username);
-
-                if (!result)
-                    return CreateEncryptedResponse(500, "Failed to insert project details");
+                await _ProjectService.InsertProjectDetails(model, cTenantID, username);
 
                 return CreatedSuccessResponse("Project details inserted successfully");
             }
-            catch (UnauthorizedAccessException ex)
+            catch (ArgumentException ex)
             {
-                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+                return CreateEncryptedResponse(400, ex.Message);
             }
             catch (Exception ex)
             {
-                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+                return CreateEncryptedResponse(500, "Internal server error", ex.Message);
             }
         }
 

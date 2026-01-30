@@ -181,57 +181,108 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> InsertProjectDetails(List<ProjectDetailRequest> requests, int tenantId, string username)
+        public async Task<bool> InsertProjectDetails(
+     List<ProjectDetailRequest> requests,
+     int tenantId,
+     string username)
         {
-            if (requests == null || !requests.Any())
-                throw new ArgumentException("Request list cannot be empty");
-
-            using var conn = new SqlConnection(_config.GetConnectionString("Database"));
-            await conn.OpenAsync();
-
-            using var transaction = conn.BeginTransaction();
             try
             {
+                if (requests == null || !requests.Any())
+                    throw new ArgumentException("Request list cannot be empty");
+
+                using var conn = new SqlConnection(_config.GetConnectionString("Database"));
+                await conn.OpenAsync();
+
                 string query = @"
 INSERT INTO Tbl_Project_detail
-(header_id, Detail_id, module, projectDescription, Resources, No_of_Resources, Slavalue, Slaunit, version, Remarks)
-VALUES (@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources, @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks);";
+(header_id, Detail_id, module, projectDescription, Resources,
+ No_of_Resources, Slavalue, Slaunit, version, Remarks)
+VALUES
+(@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
+ @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks);";
 
                 foreach (var r in requests)
                 {
-                    using var cmd = new SqlCommand(query, conn, transaction);
+                    ValidateProjectDetail(r);
+
+                    using var cmd = new SqlCommand(query, conn);
                     cmd.Parameters.AddWithValue("@HeaderId", r.HeaderId);
                     cmd.Parameters.AddWithValue("@DetailId", r.DetailId);
-                    cmd.Parameters.AddWithValue("@Module", r.Module ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ProjectDescription", r.ProjectDescription ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Resources", r.Resources ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Module", r.Module);
+                    cmd.Parameters.AddWithValue("@ProjectDescription", r.ProjectDescription);
+                    cmd.Parameters.AddWithValue("@Resources", r.Resources);
                     cmd.Parameters.AddWithValue("@NoOfResources", r.NoOfResources);
                     cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
-                    cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Version", r.Version ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Remarks", r.Remarks ?? (object)DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit);
+                    cmd.Parameters.AddWithValue("@Version", r.Version);
+                    cmd.Parameters.AddWithValue("@Remarks",
+                        string.IsNullOrWhiteSpace(r.Remarks) ? (object)DBNull.Value : r.Remarks);
 
                     await cmd.ExecuteNonQueryAsync();
                 }
 
-                transaction.Commit();
                 return true;
             }
-            catch (SqlException ex) when (ex.Number == 547) 
+            catch (SqlException ex) when (ex.Number == 547)
             {
-                transaction.Rollback();
-                throw new InvalidOperationException("Invalid HeaderId. Project Master record not found.", ex);
+                throw new Exception("Invalid HeaderId. Project Master record not found.", ex);
             }
-            catch (SqlException ex) when (ex.Number == 2627) 
+            catch (SqlException ex) when (ex.Number == 2627)
             {
-                transaction.Rollback();
-                throw new InvalidOperationException("Duplicate DetailId. Record already exists.", ex);
+                throw new Exception("Duplicate DetailId. Record already exists.", ex);
+            }
+            catch (ArgumentException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
                 throw new Exception("Failed to insert project details.", ex);
             }
+        }
+
+        private static void ValidateProjectDetail(ProjectDetailRequest r)
+        {
+            try
+            {
+                if (r.HeaderId <= 0)
+                    throw new ArgumentException("HeaderId must be greater than 0");
+
+                if (r.DetailId <= 0)
+                    throw new ArgumentException("DetailId must be greater than 0");
+
+                if (IsInvalidString(r.Module))
+                    throw new ArgumentException("Module is required");
+
+                if (IsInvalidString(r.ProjectDescription))
+                    throw new ArgumentException("ProjectDescription is required");
+
+                if (IsInvalidString(r.Resources))
+                    throw new ArgumentException("Resources is required");
+
+                if (r.NoOfResources <= 0)
+                    throw new ArgumentException("NoOfResources must be greater than 0");
+
+                if (r.Slavalue <= 0)
+                    throw new ArgumentException("Slavalue must be greater than 0");
+
+                if (IsInvalidString(r.Slaunit))
+                    throw new ArgumentException("Slaunit is required");
+
+                if (IsInvalidString(r.Version))
+                    throw new ArgumentException("Version is required");
+            }
+            catch
+            {
+                throw; 
+            }
+        }
+
+        private static bool IsInvalidString(string value)
+        {
+            return string.IsNullOrWhiteSpace(value)
+                   || value.Trim().Equals("string", StringComparison.OrdinalIgnoreCase);
         }
 
         public async Task<bool> UpdateProjectDetails(ProjectDetailRequest request, int tenantId, string username)
@@ -262,8 +313,8 @@ VALUES (@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources, @NoOfRes
                 cmd.Parameters.AddWithValue("@DetailId", request.DetailId);
                 cmd.Parameters.AddWithValue("@HeaderId", request.HeaderId);
                 cmd.Parameters.AddWithValue("@Module", request.Module);
-                cmd.Parameters.AddWithValue("@ProjectDescription", request.ProjectDescription ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Resources", request.Resources ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@ProjectDescription", request.ProjectDescription );
+                cmd.Parameters.AddWithValue("@Resources", request.Resources );
                 cmd.Parameters.AddWithValue("@NoOfResources", request.NoOfResources);
                 cmd.Parameters.AddWithValue("@Slavalue", request.Slavalue);
                 cmd.Parameters.AddWithValue("@Slaunit", request.Slaunit);
