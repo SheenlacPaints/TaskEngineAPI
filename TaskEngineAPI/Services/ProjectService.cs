@@ -117,10 +117,9 @@ namespace TaskEngineAPI.Services
                                     Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
                                     ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
                                     expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
-                                    //project_Details = projectDetailsJson,
-                                    ProjectDetailsList = string.IsNullOrWhiteSpace(projectDetailsJson)
-                                                 ? new List<ProjectDetailRequest>()
-                                                 : JsonConvert.DeserializeObject<List<ProjectDetailRequest>>(projectDetailsJson)
+                                    project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
+                                                 ? new List<ProjectDetailResponse>()
+                                                 : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)
                                 };
                                 tsk.Add(p);
                             }

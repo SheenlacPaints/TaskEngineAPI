@@ -23,10 +23,26 @@
         public string? Status { get; set; }
         public string? Attachments { get; set; }
         public DateTime? expecteddate { get; set; }
-        // public string? project_Details { get; set; }
-        public List<ProjectDetailRequest> ProjectDetailsList { get; set; } = new List<ProjectDetailRequest>();
+        public List<ProjectDetailResponse> project_Details { get; set; } = new List<ProjectDetailResponse>();
 
 
+    }
+
+
+    public class ProjectDetailResponse
+    {
+        public int header_id { get; set; }
+        public int Detail_id { get; set; }
+        public string module { get; set; }
+        public string projectDescription { get; set; }
+        public string Resources { get; set; }
+        public int No_of_Resources { get; set; }
+        public int Slavalue { get; set; }
+        public string Slaunit { get; set; }
+        public string version { get; set; }
+        public string Remarks { get; set; }
+        public string Resource_Names { get; set; }
+        public string status1 { get; set; }
     }
 
     public class TaskProjectResponse
