@@ -323,5 +323,33 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("GetProjectList")]
+        public async Task<IActionResult> GetProjectList()
+        {
+            try
+            {
+                var (tenantId, username) = GetUserInfoFromToken();
+
+                string json = await _ProjectService.GetProjectList(tenantId, username);
+
+                if (string.IsNullOrWhiteSpace(json))
+                    return CreateEncryptedResponse(404, "No projects found");
+
+                string encrypted = AesEncryption.Encrypt(json);
+
+                return Content($"\"{encrypted}\"", "application/json");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+               
     }
 }

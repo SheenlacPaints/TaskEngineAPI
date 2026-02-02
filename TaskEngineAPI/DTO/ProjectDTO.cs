@@ -10,6 +10,12 @@
         public DateTime? expecteddate { get; set; }
     }
 
+    public class ProjectListDTO
+    {
+        public int ProjectId { get; set; }
+        public string ProjectName { get; set; } = string.Empty;
+    }
+
     public class GetProjectList
     {
         public int ProjectId { get; set; }

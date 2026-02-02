@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Data;
 using System.Data.SqlClient;
@@ -196,10 +198,10 @@ namespace TaskEngineAPI.Services
                 string query = @"
 INSERT INTO Tbl_Project_detail
 (header_id, Detail_id, module, projectDescription, Resources,
- No_of_Resources, Slavalue, Slaunit, version, Remarks, created_date, modified_Date)
+ No_of_Resources, Slavalue, Slaunit, version, Remarks, Status1,created_date, modified_Date)
 VALUES
 (@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
- @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks, GETDATE(), GETDATE());";
+ @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks,@Status1, GETDATE(), GETDATE());";
 
                 foreach (var r in requests)
                 {
@@ -213,6 +215,7 @@ VALUES
                     cmd.Parameters.AddWithValue("@Resources", r.Resources);
                     cmd.Parameters.AddWithValue("@NoOfResources", r.No_of_Resources);
                     cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
+                    cmd.Parameters.AddWithValue("@Status1", "Pending");
                     cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit);
                     cmd.Parameters.AddWithValue("@Version", r.Version);
                     cmd.Parameters.AddWithValue("@Remarks",
@@ -348,6 +351,52 @@ VALUES
             catch (Exception ex)
             {
                 throw new Exception("Failed to update project detail.", ex);
+            }
+        }
+
+        public async Task<string> GetProjectList(int tenantId, string username)
+        {
+            var list = new List<ProjectListDTO>();
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (SqlCommand cmd = new SqlCommand(@"
+            SELECT 
+                ID AS ProjectId,
+                ProjectName
+            FROM Tbl_Project_Master
+            WHERE clienttenantid = @tenantId
+              AND raisedbyuserid = @username
+            ORDER BY ProjectName", con))
+                {
+                    cmd.Parameters.AddWithValue("@tenantId", tenantId);
+                    cmd.Parameters.AddWithValue("@username", username);
+
+                    await con.OpenAsync();
+
+                    using (SqlDataReader dr = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await dr.ReadAsync())
+                        {
+                            list.Add(new ProjectListDTO
+                            {
+                                ProjectId = dr.GetInt32(dr.GetOrdinal("ProjectId")),
+                                ProjectName = dr.GetString(dr.GetOrdinal("ProjectName"))
+                            });
+                        }
+                    }
+                }
+
+                return JsonConvert.SerializeObject(list);
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new
+                {
+                    error = "Failed to fetch project list",
+                    message = ex.Message
+                });
             }
         }
 
