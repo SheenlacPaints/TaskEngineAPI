@@ -42,6 +42,9 @@
         public string version { get; set; }
         public string Remarks { get; set; }
         public string Resource_Names { get; set; }
+        public DateTime? created_date { get; set; }
+        public DateTime? modified_date { get; set; }
+
         public string status1 { get; set; }
     }
 

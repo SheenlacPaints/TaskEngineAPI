@@ -196,10 +196,10 @@ namespace TaskEngineAPI.Services
                 string query = @"
 INSERT INTO Tbl_Project_detail
 (header_id, Detail_id, module, projectDescription, Resources,
- No_of_Resources, Slavalue, Slaunit, version, Remarks)
+ No_of_Resources, Slavalue, Slaunit, version, Remarks, created_date, modified_Date)
 VALUES
 (@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
- @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks);";
+ @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks, GETDATE(), GETDATE());";
 
                 foreach (var r in requests)
                 {
@@ -218,8 +218,19 @@ VALUES
                     cmd.Parameters.AddWithValue("@Remarks",
                         string.IsNullOrWhiteSpace(r.Remarks) ? (object)DBNull.Value : r.Remarks);
 
-                    await cmd.ExecuteNonQueryAsync();
-                }
+                    // await cmd.ExecuteNonQueryAsync();
+
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    if (await reader.ReadAsync())
+                    {
+                        var id = reader.GetInt32(0);
+                        var createdDate = reader.GetDateTime(1);
+                        var modifiedDate = reader.GetDateTime(2);
+                       
+                    }
+                    reader.Close();
+                
+            }
 
                 return true;
             }
