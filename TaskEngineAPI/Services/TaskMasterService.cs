@@ -39,7 +39,7 @@ namespace TaskEngineAPI.Services
             _config = _configuration;
             _AdminRepository = AdminRepository;
             _uploadSettings = uploadSettings.Value;
-            _httpClientFactory = httpClientFactory;        
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string userName)
@@ -635,13 +635,13 @@ namespace TaskEngineAPI.Services
                 }
             };
 
-           
+
                     return JsonConvert.SerializeObject(result, Formatting.Indented);
                 }
             }
             catch (Exception ex)
             {
-                
+
                 return JsonConvert.SerializeObject(new List<object>
         {
             new
@@ -742,7 +742,6 @@ namespace TaskEngineAPI.Services
         //        throw;
         //    }
         //}
-
         public async Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username)
         {
             try
@@ -873,8 +872,6 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-
-
         //public async Task<string> GetTaskInitiator(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         //{
         //    List<GetTaskinitiateList> tsk = new List<GetTaskinitiateList>();
@@ -1017,12 +1014,7 @@ namespace TaskEngineAPI.Services
         //    }
         //}
 
-        public async Task<string> GetTaskInitiator(
-    int cTenantID,
-    string username,
-    string? searchText = null,
-    int page = 1,
-    int pageSize = 50)
+        public async Task<string> GetTaskInitiator(int cTenantID,string username,string? searchText = null,int page = 1,int pageSize = 50)
         {
             var headerDict = new Dictionary<int, GetTaskinitiateList>();
             int totalCount = 0;
@@ -1056,7 +1048,7 @@ namespace TaskEngineAPI.Services
                         header = new GetTaskinitiateList
                         {
                             ID = reader["ID"] as int? ?? 0,
-                            cprocessID= reader["cprocess_id"] as int? ?? 0,
+                            cprocessID = reader["cprocess_id"] as int? ?? 0,
                             itaskno = taskNo,
                             ctasktype = reader["ctask_type"]?.ToString() ?? "",
                             ctaskname = reader["ctask_name"]?.ToString() ?? "",
@@ -1065,19 +1057,19 @@ namespace TaskEngineAPI.Services
                             lcompleteddate = reader["lcompleted_date"] as DateTime?,
                             ccreatedby = reader["ccreated_by"]?.ToString() ?? "",
                             ccreatedbyname = reader["ccreated_byname"]?.ToString() ?? "",
-                            createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",                           
+                            createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                             lcreateddate = reader["lcreated_date"] as DateTime?,
                             lmodifieddate = reader["lcreated_date"] as DateTime?,
                             cmodifiedby = reader["cmodified_by"]?.ToString() ?? "",
                             cmodifiedbyname = reader["cmodified_byname"]?.ToString() ?? "",
                             EmpDepartment = reader["EmpDepartment"]?.ToString() ?? "",
-                            Employeecode=reader["ccreated_by"]?.ToString() ?? "",
-                            Employeename=reader["ccreated_byname"]?.ToString() ?? "",
+                            Employeecode = reader["ccreated_by"]?.ToString() ?? "",
+                            Employeename = reader["ccreated_byname"]?.ToString() ?? "",
                             cprocess_id = reader["cprocess_id"] as int? ?? 0,
                             cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
                             cprocessname = reader["cprocessname"]?.ToString() ?? "",
                             cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
-                            cremarks = reader["cremarks"]?.ToString() ?? "",                 
+                            cremarks = reader["cremarks"]?.ToString() ?? "",
                             TaskChildItems = new List<GetTaskinitiateDetails>()
                         };
 
@@ -1145,12 +1137,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<string> GetTaskInitiatornew(
-    int cTenantID,
-    string username,
-    string? searchText = null,
-    int page = 1,
-    int pageSize = 50)
+        public async Task<string> GetTaskInitiatornew(int cTenantID,string username,string? searchText = null,int page = 1, int pageSize = 50)
         {
             var headerDict = new Dictionary<int, GetTaskinitiateList>();
             int totalCount = 0;
@@ -1192,9 +1179,9 @@ namespace TaskEngineAPI.Services
                             lcompleteddate = reader["lcompleted_date"] as DateTime?,
                             ccreatedby = reader["ccreated_by"]?.ToString() ?? "",
                             ccreatedbyname = reader["ccreated_byname"]?.ToString() ?? "",
-                            createdbyavatar = reader["createdbyavatar"]?.ToString() ?? "",                        
+                            createdbyavatar = reader["createdbyavatar"]?.ToString() ?? "",
                             lcreateddate = reader["lcreated_date"] as DateTime?,
-                            lmodifieddate = reader["lcreated_date"] as DateTime?, 
+                            lmodifieddate = reader["lcreated_date"] as DateTime?,
                             cmodifiedby = reader["cmodified_by"]?.ToString() ?? "",
                             cmodifiedbyname = reader["cmodified_byname"]?.ToString() ?? "",
                             EmpDepartment = reader["EmpDepartment"]?.ToString() ?? "",
@@ -1271,9 +1258,6 @@ namespace TaskEngineAPI.Services
                 }, Formatting.Indented);
             }
         }
-
-
-
         public async Task<string> Gettaskapprove(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -1404,7 +1388,7 @@ namespace TaskEngineAPI.Services
             }
             catch (Exception ex)
             {
-               
+
                 var errorResponse = new
                 {
                     totalCount = 0,
@@ -1544,7 +1528,7 @@ namespace TaskEngineAPI.Services
             }
             catch (Exception ex)
             {
-                
+
                 var errorResponse = new
                 {
                     totalCount = 0,
@@ -1778,7 +1762,7 @@ namespace TaskEngineAPI.Services
         }
 
         public async Task<List<GettaskinboxbyidDTO>> Gettaskinboxdatabyid(int cTenantID, int ID, string username)
-  
+
         {
             var result = new List<GettaskinboxbyidDTO>();
             var connStr = _config.GetConnectionString("Database");
@@ -1856,7 +1840,7 @@ namespace TaskEngineAPI.Services
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
-                                    createdbyavatar =reader["cprofile_image_name"]?.ToString() ?? "",
+                                    createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     cremarks = reader["cremarks"]?.ToString() ?? "",
                                     cattachment = reader["cattachment"]?.ToString() ?? "",
@@ -2105,7 +2089,6 @@ namespace TaskEngineAPI.Services
 
             return timelineList;
         }
-
         public async Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -2331,7 +2314,7 @@ namespace TaskEngineAPI.Services
                                     executionType = reader["executionType"]?.ToString() ?? "",
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
-                                    cremarks= reader["cremarks"]?.ToString() ?? "",
+                                    cremarks = reader["cremarks"]?.ToString() ?? "",
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
@@ -2362,7 +2345,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
-
         private async Task LoadProcessConditionsForApproved(SqlConnection conn, GettaskApprovedatabyidDTO mapping, int seqno)
         {
             string sql = @"SELECT * FROM tbl_process_engine_condition 
@@ -2392,7 +2374,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         private async Task LoadMetaForApproved(SqlConnection conn, GettaskApprovedatabyidDTO mapping, int itaskno, int tenantID)
         {
             string sql = @"SELECT a.cprocess_id,a.cdata,c.cinput_type,c.label,c.cplaceholder,
@@ -2424,7 +2405,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         public async Task<List<GettaskHolddatabyidDTO>> GettaskHolddatabyid(int cTenantID, int ID, string username)
         {
             var result = new List<GettaskHolddatabyidDTO>();
@@ -2536,7 +2516,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
-
         private async Task LoadProcessConditionsForHold(SqlConnection conn, GettaskHolddatabyidDTO mapping, int seqno)
         {
             string sql = @"SELECT * FROM tbl_process_engine_condition 
@@ -2568,7 +2547,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         private async Task LoadMetaForHold(SqlConnection conn, GettaskHolddatabyidDTO mapping, int itaskno, int tenantID)
         {
             string sql = @"SELECT a.cprocess_id,a.cdata,c.cinput_type,c.label,c.cplaceholder,
@@ -2600,8 +2578,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
-
         public async Task<string> GettaskHold(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -2741,7 +2717,6 @@ namespace TaskEngineAPI.Services
                 return JsonConvert.SerializeObject(errorResponse, Formatting.Indented);
             }
         }
-
         public async Task<bool> UpdatetaskHoldAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -2859,7 +2834,6 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-
         public async Task<List<GettaskRejectdatabyidDTO>> GettaskRejectdatabyid(int cTenantID, int ID)
         {
             var result = new List<GettaskRejectdatabyidDTO>();
@@ -2965,7 +2939,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
-
         private async Task LoadProcessConditionsForReject(SqlConnection conn, GettaskRejectdatabyidDTO mapping, int seqno)
         {
             string sql = @"SELECT * FROM tbl_process_engine_condition 
@@ -2997,7 +2970,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         private async Task LoadMetaForReject(SqlConnection conn, GettaskRejectdatabyidDTO mapping, int itaskno, int tenantID)
         {
             string sql = @"SELECT a.cprocess_id,a.cdata,c.cinput_type,c.label,c.cplaceholder,
@@ -3029,7 +3001,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         public async Task<string> GettaskReject(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -3168,7 +3139,6 @@ namespace TaskEngineAPI.Services
                 return JsonConvert.SerializeObject(errorResponse, Formatting.Indented);
             }
         }
-
         public async Task<bool> UpdatetaskRejectAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -3286,7 +3256,6 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-
         public async Task<List<GetopentasklistdatabyidDTO>> Getopentasklistdatabyid(int cTenantID, int ID)
         {
             var result = new List<GetopentasklistdatabyidDTO>();
@@ -3396,7 +3365,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
-
         private async Task LoadProcessConditionsForopentasklist(SqlConnection conn, GetopentasklistdatabyidDTO mapping, int seqno)
         {
             string sql = @"SELECT * FROM tbl_process_engine_condition 
@@ -3430,7 +3398,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         private async Task LoadMetaForopentasklist(SqlConnection conn, GetopentasklistdatabyidDTO mapping, int itaskno, int tenantID)
         {
             string sql = @"SELECT a.cprocess_id,a.cdata,c.cinput_type,c.label,c.cplaceholder,
@@ -3464,7 +3431,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         public async Task<string> Getopentasklist(int cTenantID, string username, string? searchText = null)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -3578,8 +3544,6 @@ namespace TaskEngineAPI.Services
             // ✅ Serialize the result to JSON
             return JsonConvert.SerializeObject(tsk, Formatting.Indented);
         }
-
-
         public async Task<List<GetmetaviewdataDTO>> Getmetaviewdatabyid(int cTenantID, int id)
         {
             try
@@ -3636,7 +3600,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving task condition list: {ex.Message}");
             }
         }
-
         public async Task<GettaskreassignCountDTO> GettaskReassign(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -3716,7 +3679,6 @@ namespace TaskEngineAPI.Services
                 data = tsk
             };
         }
-
         private async Task<List<GetTaskDetails>> GetTaskDetailsInternalAsync(string connString, string user, int tenant, int taskNo)
         {
             List<GetTaskDetails> details = new List<GetTaskDetails>();
@@ -3753,8 +3715,6 @@ namespace TaskEngineAPI.Services
             }
             return details;
         }
-
-
         public async Task<List<GettaskInitiatordatabyidDTO>> GettaskInitiatordatabyid(int cTenantID, int ID)
         {
             var result = new List<GettaskInitiatordatabyidDTO>();
@@ -3862,7 +3822,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
-
         private async Task LoadProcessConditionsForInitiator(SqlConnection conn, GettaskInitiatordatabyidDTO mapping, int seqno)
         {
             string sql = @"SELECT * FROM tbl_process_engine_condition 
@@ -3894,7 +3853,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         private async Task LoadMetaForInitiator(SqlConnection conn, GettaskInitiatordatabyidDTO mapping, int itaskno, int tenantID)
         {
             string sql = @"SELECT a.cprocess_id,a.cdata,c.cinput_type,c.label,c.cplaceholder,
@@ -3926,7 +3884,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         public async Task<List<GettaskReassigndatabyidDTO>> GettaskReassigndatabyid(int cTenantID, int ID)
         {
             var result = new List<GettaskReassigndatabyidDTO>();
@@ -4012,7 +3969,7 @@ namespace TaskEngineAPI.Services
                                     ReassignedTo = reader["ReassignedTo"]?.ToString() ?? "",
                                     ReassignedDate = reader.SafeGetDateTime("ReassignedDate"),
                                     ReassignedUsername = reader["ReassignedUsername"]?.ToString() ?? "",
-                                    TaskRemarks= reader["TaskRemarks"]?.ToString()??"",
+                                    TaskRemarks = reader["TaskRemarks"]?.ToString() ?? "",
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
@@ -4042,7 +3999,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
-
         private async Task LoadProcessConditionsForReassign(SqlConnection conn, GettaskReassigndatabyidDTO mapping, int seqno)
         {
             string sql = @"SELECT * FROM tbl_process_engine_condition 
@@ -4074,7 +4030,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         private async Task LoadMetaForReassign(SqlConnection conn, GettaskReassigndatabyidDTO mapping, int itaskno, int tenantID)
         {
             string sql = @"SELECT a.cprocess_id,a.cdata,c.cinput_type,c.label,c.cplaceholder,
@@ -4106,14 +4061,7 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
-
-        public async Task<string> Gettasktimeline(
-        int cTenantID,
-        string username,
-        string? searchText = null,
-        int pageNo = 1,
-        int pageSize = 50)
+        public async Task<string> Gettasktimeline(int cTenantID, string username, string? searchText = null, int pageNo = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
             int totalCount = 0;
@@ -4183,7 +4131,7 @@ namespace TaskEngineAPI.Services
                 return JsonConvert.SerializeObject(response);
             }
             catch (Exception ex)
-            {              
+            {
                 return JsonConvert.SerializeObject(new
                 {
                     data = new List<GetTaskList>(),
@@ -4192,7 +4140,6 @@ namespace TaskEngineAPI.Services
                 });
             }
         }
-
         public async Task<List<GetTaskDetails>> GettasktimelinedetailAsync(int itaskno, string username, int cTenantID)
         {
             var timelineList = new List<GetTaskDetails>();
@@ -4252,8 +4199,6 @@ namespace TaskEngineAPI.Services
 
             return timelineList;
         }
-
-
         public async Task<string> Getworkflowdashboard(int cTenantID, string username, string searchtext)
         {
             try
@@ -4267,7 +4212,7 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@searchtext", searchtext);
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);
-                    await Task.Run(() => adapter.Fill(ds)); 
+                    await Task.Run(() => adapter.Fill(ds));
 
                     if (ds.Tables.Count > 0)
                     {
@@ -4282,8 +4227,6 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-
-
         public async Task<string> GetProcessmetadetailsbyid(int itaskno, int cTenantID, int processid)
         {
             var metaDetails = new List<object>();
@@ -4314,7 +4257,7 @@ namespace TaskEngineAPI.Services
                                     clabel = reader["label"]?.ToString() ?? "",
                                     cdata = reader["cdata"]?.ToString() ?? "",
                                     cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0,
-                                    cdata_source=reader["cdata_source"]?.ToString() ?? "",
+                                    cdata_source = reader["cdata_source"]?.ToString() ?? "",
                                     cprofile_image_name = reader["cprofile_image_name"]?.ToString() ?? ""
                                 });
                             }
@@ -4328,8 +4271,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Database error: {ex.Message}");
             }
         }
-
-
         public async Task<bool> sendwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -4344,7 +4285,7 @@ namespace TaskEngineAPI.Services
                 string? recipientName = null;
                 string? recipientPhone = null;
                 string? senderName = null;
-                
+
                 try
                 {
                     string checkQuery = @"
@@ -4407,13 +4348,13 @@ namespace TaskEngineAPI.Services
                         apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
                         campaignName = "reassighn new process",
                         destination = recipientPhone,//"916382445617",
-                        userName = "Sheenlac Paintss",                   
+                        userName = "Sheenlac Paintss",
                         templateParams = new[]
                         {
-                           recipientName,                   
-                           ctask_name,                       
+                           recipientName,
+                           ctask_name,
                            taskNo?.ToString() ?? "N/A",
-                           senderName ?? "Admin"            
+                           senderName ?? "Admin"
                         },
                         source = "new-landing-page form",
                         media = new { },
@@ -4425,8 +4366,8 @@ namespace TaskEngineAPI.Services
                     };
                     var response = await client.PostAsJsonAsync(url, payload);
                     string updateQuery;
-                    bool isReassigning = !string.IsNullOrEmpty(model.reassignto);   
-                  transaction.Commit();
+                    bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+                    transaction.Commit();
                     return true;
                 }
                 catch (InvalidOperationException ex)
@@ -4440,8 +4381,6 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-
-
         private async Task SendWhatsAppNotificationAsync()
         {
             var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
@@ -4461,7 +4400,7 @@ namespace TaskEngineAPI.Services
                 carouselCards = new string[] { },
                 location = new { },
                 attributes = new { },
-                paramsFallbackValue = new { FirstName = "user", Taskname= "user", itaskno = "user", ReassignerName = "user" }
+                paramsFallbackValue = new { FirstName = "user", Taskname = "user", itaskno = "user", ReassignerName = "user" }
             };
 
             var response = await client.PostAsJsonAsync(url, payload);
@@ -4562,7 +4501,7 @@ namespace TaskEngineAPI.Services
                            recipientName,
                            ctask_name,
                            taskNo?.ToString() ?? "N/A"
-                           
+
                         },
                         source = "new-landing-page form",
                         media = new { },
@@ -4701,8 +4640,6 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-
-
 
     }
 }

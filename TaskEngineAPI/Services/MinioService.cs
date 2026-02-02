@@ -27,8 +27,6 @@ public class MinioService : IMinioService
             .Build();
     }
 
-
-   
     public async Task UploadFileAsync(IFormFile form)
     {
         try
@@ -106,13 +104,6 @@ public class MinioService : IMinioService
             throw new Exception($"Unexpected error during upload: {ex.Message}");
         }
     }
-
-
-
-
-
-
-
     public async Task<(MemoryStream stream, string contentType)> GetFileAsync(string fileName)
     {
         var safeFileName = Path.GetFileName(fileName);
@@ -170,10 +161,6 @@ public class MinioService : IMinioService
 
         return (memoryStream, contentType);
     }
-
-
-
-
     public async Task FileUploadFileAsync(IFormFile form,string type,int ctenantid)
     {
         try
@@ -230,8 +217,6 @@ public class MinioService : IMinioService
             throw new Exception($"Unexpected error during upload: {ex.Message}");
         }
     }
-
- 
     public async Task<(MemoryStream stream, string contentType)>
     GetuserFileAsync(string fileName, string type, int ctenantid)
     {
@@ -265,7 +250,6 @@ public class MinioService : IMinioService
 
         return (memoryStream, contentType);
     }
-
 
     public async Task TaskFileUploadFileAsync(IFormFile form, string type, int ctenantid)
     {

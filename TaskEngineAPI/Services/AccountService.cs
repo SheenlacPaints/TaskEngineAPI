@@ -101,8 +101,6 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-
-
         public async Task<bool> CheckUsernameExistsAsync(int cuserid, int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
@@ -289,9 +287,6 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-
-
-
         public async Task<bool> DeleteSuperAdminAsync(DeleteAdminDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -565,7 +560,7 @@ VALUES (
 
             string query = hasPassword ? queryWithPassword : queryWithoutPassword;
 
-            using var cmd = new SqlCommand(query, conn);                             
+            using var cmd = new SqlCommand(query, conn);
             if (hasPassword)
             {
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
@@ -577,7 +572,7 @@ VALUES (
             cmd.Parameters.AddWithValue("@cuserid", model.cuserid);
             cmd.Parameters.AddWithValue("@ctenantID", cTenantID);
             cmd.Parameters.AddWithValue("@cusername", (object?)model.cusername ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@cemail", (object?)model.cemail ?? DBNull.Value);                   
+            cmd.Parameters.AddWithValue("@cemail", (object?)model.cemail ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@nIsActive", (object?)model.nIsActive ?? true);
             cmd.Parameters.AddWithValue("@cfirstName", (object?)model.cfirstName ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@clastName", (object?)model.clastName ?? DBNull.Value);
@@ -630,7 +625,7 @@ VALUES (
             cmd.Parameters.AddWithValue("@nIsWebAccessEnabled", (object?)model.nIsWebAccessEnabled ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@nIsEventRead", (object?)model.nIsEventRead ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@lLastLoginAt", (object?)model.lLastLoginAt ?? DBNull.Value);
-            cmd.Parameters.AddWithValue("@nFailedLoginAttempts", (object?)model.nFailedLoginAttempts ?? DBNull.Value);       
+            cmd.Parameters.AddWithValue("@nFailedLoginAttempts", (object?)model.nFailedLoginAttempts ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@nIsLocked", (object?)model.nIsLocked ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@LastLoginIP", (object?)model.LastLoginIP ?? DBNull.Value);
             cmd.Parameters.AddWithValue("@LastLoginDevice", (object?)model.LastLoginDevice ?? DBNull.Value);
@@ -942,7 +937,6 @@ VALUES (
                 }
             }
         }
-
         public async Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model, int tenantId, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -952,7 +946,7 @@ VALUES (
                 await conn.OpenAsync();
                 model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
                 string query = @"
-        UPDATE AdminUsers SET
+             UPDATE AdminUsers SET
             cpassword = @Password,
             cpassword_changed_at =@cPasswordChangedAt          
         WHERE cuserid = @ID AND  ctenant_Id = @TenantID";
@@ -1053,7 +1047,6 @@ VALUES (
             }
         }
 
-
         public async Task<bool> DeleteuserAsync(DeleteuserDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -1077,8 +1070,6 @@ VALUES (
                 }
             }
         }
-
-
 
         //public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
         //{
@@ -1496,7 +1487,6 @@ VALUES (
         //    return table.Rows.Count;
         //}
 
-
         public async Task<int> InsertUsersBulkAsync(List<BulkUserDTO> users, int cTenantID, string usernameClaim)
         {
             if (users == null || !users.Any())
@@ -1585,7 +1575,7 @@ VALUES (
             {
                 var row = table.NewRow();
                 string hashedPassword = !string.IsNullOrEmpty(u.cpassword)
-           ? BCrypt.Net.BCrypt.HashPassword(u.cpassword)  
+           ? BCrypt.Net.BCrypt.HashPassword(u.cpassword)
            : null;
                 row["cuserid"] = u.cuserid;
                 row["ctenant_id"] = cTenantID;
@@ -2784,12 +2774,7 @@ VALUES (
             return existingCodes;
         }
 
-        public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(
-    int cTenantID,
-    string? searchText = null,
-    string syncType = null,
-    string apiMethod = null,
-    bool? isActive = null)
+        public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(int cTenantID,string? searchText = null,string syncType = null,string apiMethod = null, bool? isActive = null)
         {
             var connStr = _config.GetConnectionString("Database");
             var results = new List<GetusersapisyncDTO>();

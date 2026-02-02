@@ -35,7 +35,6 @@ namespace TaskEngineAPI.Services
             _uploadSettings = uploadSettings.Value;
 
         }
-
         public async Task<List<ProcessEngineTypeDTO>> GetAllProcessenginetypeAsync(int cTenantID)
 
         {
@@ -1129,7 +1128,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 data = result
             };
         }
-
         public async Task<bool> UpdateProcessEngineAsync(UpdateProcessEngineDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");        
@@ -1392,7 +1390,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 }
             }
         }
-
         public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsyncnew(
 int cTenantID, string searchText = null, int page = 1, int pageSize = 10, string created_by = null, string priority = null, int? status = null)
         {

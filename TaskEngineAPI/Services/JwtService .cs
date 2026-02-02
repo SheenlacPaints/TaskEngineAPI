@@ -17,39 +17,11 @@ namespace TaskEngineAPI.Services
         private readonly IConfiguration _config;
         public JwtService(IConfiguration config) => _config = config;
 
-       
-     
-        //public string GenerateJwtToken(string username, out DateTime expires)
-        //{
-        //    var audience = _config.GetSection("Jwt:Audience").Value;
-        //    var issuer = _config.GetSection("Jwt:Issuer").Value;
-        //    var key = Encoding.ASCII.GetBytes(_config.GetSection("Jwt:Key").Value);
-        //    expires = DateTime.Now.AddHours(1);
-        //    var tokenDescriptor = new SecurityTokenDescriptor
-        //    {
-        //        Subject = new ClaimsIdentity(new[]
-        //        {
-        //            new Claim("Id", Guid.NewGuid().ToString()),
-        //            new Claim(JwtRegisteredClaimNames.Sub, username),
-        //            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        //        }),
-        //        Expires = expires,
-        //        Issuer = issuer,
-        //        Audience = audience,
-        //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha512Signature)
-        //    };
-        //    var tokenHandler = new JwtSecurityTokenHandler();
-        //    var token = tokenHandler.CreateToken(tokenDescriptor);
-        //    return tokenHandler.WriteToken(token);
-        //}
-
-
+      
         public string GenerateRefreshToken()
         {
             return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
         }
-
-
         public async Task<User> GetUserFromRefreshToken(string refreshToken)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
@@ -79,8 +51,6 @@ namespace TaskEngineAPI.Services
             }
             return null;
         }
-
-
         public async Task<bool> SaveRefreshTokenToDatabase(string userId, string refreshToken, DateTime expiration)
         {
             try
@@ -134,8 +104,6 @@ namespace TaskEngineAPI.Services
                 return false;
             }
         }
-
-
         public string GenerateJwtToken(string username, int cTenantID, out DateTime expires)
         {
             var audience = _config.GetSection("Jwt:Audience").Value;
@@ -166,8 +134,6 @@ namespace TaskEngineAPI.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
-
 
     }
 }

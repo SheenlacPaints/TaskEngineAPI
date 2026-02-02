@@ -22,7 +22,6 @@ namespace TaskEngineAPI.Services
             _logger = logger;
             _configuration = configuration;
         }
-
         private async Task SendWhatsAppNotificationAsync()
         {
             var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
@@ -57,8 +56,5 @@ namespace TaskEngineAPI.Services
                 _logger.LogWarning("Background WhatsApp failed with Status {Status}: {Error}", response.StatusCode, error);
             }
         }
-
-
-
     }
 }

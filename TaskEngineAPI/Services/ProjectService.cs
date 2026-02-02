@@ -71,8 +71,6 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
-
-
         public async Task<string> Getprojectmaster(int cTenantID, string username,string? type, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetProjectList> tsk = new List<GetProjectList>();
@@ -153,8 +151,6 @@ namespace TaskEngineAPI.Services
                 return JsonConvert.SerializeObject(errorResponse, Formatting.Indented);
             }
         }
-
-
         public async Task<string> Getprojectdropdown(int cTenantID, string username, string? type, string? searchText = null)
         {
             try
@@ -185,10 +181,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-  public async Task<bool> InsertProjectDetails(
-     List<ProjectDetailRequest> requests,
-     int tenantId,
-     string username)
+        public async Task<bool> InsertProjectDetails( List<ProjectDetailRequest> requests,int tenantId, string username)
         {
             try
             {

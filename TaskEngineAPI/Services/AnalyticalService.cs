@@ -115,8 +115,6 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
-
-
         public async Task<string> GetAnalyticalhub(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetAnalyticalDTO> tsk = new List<GetAnalyticalDTO>();
@@ -200,9 +198,6 @@ namespace TaskEngineAPI.Services
                 return JsonConvert.SerializeObject(errorResponse, Formatting.Indented);
             }
         }
-
-
-
         public async Task<List<GetAnalyticalbyidDTO>> GetAnalyticalhubbtid(int cTenantID, int id)
         {
             List<GetAnalyticalbyidDTO> tsk = new List<GetAnalyticalbyidDTO>();
@@ -290,8 +285,5 @@ namespace TaskEngineAPI.Services
                 return new List<GetAnalyticalbyidDTO>();
             }
         }
-
-
-
     }
 }
