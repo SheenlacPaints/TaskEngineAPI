@@ -400,6 +400,59 @@ VALUES
             }
         }
 
+        public async Task<string> GetProjectById(int tenantId, string username, int projectId)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (SqlCommand cmd = new SqlCommand(@"
+            SELECT
+                pm.ProjectName,
+                pm.ProjectType,
+                u.cuser_name,
+                pm.AssignedManagerId
+            FROM Tbl_Project_Master pm
+            LEFT JOIN users u
+                ON pm.AssignedManagerId = u.cuserid
+            WHERE pm.ID = @projectId
+              AND pm.ClientTenantId = @tenantId
+              AND pm.RaisedByUserId = @username
+            ORDER BY pm.ID
+        ", con))
+                {
+                    cmd.Parameters.AddWithValue("@projectId", projectId);
+                    cmd.Parameters.AddWithValue("@tenantId", tenantId);
+                    cmd.Parameters.AddWithValue("@username", username);
+
+                    await con.OpenAsync();
+
+                    using (SqlDataReader dr = await cmd.ExecuteReaderAsync())
+                    {
+                        if (!await dr.ReadAsync())
+                            return string.Empty;
+
+                        var result = new
+                        {
+                            ProjectName = dr["ProjectName"],
+                            ProjectType = dr["ProjectType"],
+                            AssignedManagerName = dr["cuser_name"],
+                            AssignedManagerId = dr["AssignedManagerId"]
+                        };
+
+                        return JsonConvert.SerializeObject(result);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new
+                {
+                    error = "Failed to fetch project",
+                    message = ex.Message
+                });
+            }
+        }
+
 
     }
 }
