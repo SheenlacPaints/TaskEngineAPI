@@ -159,7 +159,8 @@ builder.Services.AddCors(options =>
                 "https://localhost:7257",
                 "https://devvendor.sheenlac.com",
                 "https://devportal.sheenlac.com",
-                "https://devtaskflow.sheenlac.com"
+                "https://devtaskflow.sheenlac.com",
+                "https://progovex.sheenlac.com"
 
             )
 
@@ -182,8 +183,8 @@ var app = builder.Build();
 app.UseSerilogRequestLogging();
 
 
-app.UseSwagger();
-app.UseSwaggerUI();
+//app.UseSwagger();
+//app.UseSwaggerUI();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
