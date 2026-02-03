@@ -453,7 +453,7 @@ VALUES
             }
         }
 
-        public async Task<bool> UpdateProjectVersionAsync(int projectId, decimal version, string description, DateTime? expectedDate)
+        public async Task<bool> UpdateProjectVersionAsync(int projectId, string description, DateTime? expectedDate)
         {
             try
             {
@@ -464,18 +464,18 @@ VALUES
                     await conn.OpenAsync();
 
                     string query = @"
-                        UPDATE Tbl_Project_Master
-                        SET 
-                            Description = @Description,
-                            expecteddate = @expecteddate
-                        WHERE Id = @ProjectId
-                          AND Version = @Version;
-                        ";
+                       UPDATE Tbl_Project_Master
+                       SET 
+                           Description = @Description,
+                           expecteddate = @expecteddate
+                       WHERE Id = @ProjectId
+                         AND Version = (SELECT MAX(Version) 
+                         FROM Tbl_Project_Master 
+                         WHERE Id = @ProjectId); ";
 
                     using (var cmd = new SqlCommand(query, conn))
                     {
-                        cmd.Parameters.Add("@ProjectId", SqlDbType.Int).Value = projectId;
-                        cmd.Parameters.Add("@Version", SqlDbType.Decimal).Value = version;
+                        cmd.Parameters.Add("@ProjectId", SqlDbType.Int).Value = projectId;                     
                         cmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value =
                             (object?)description ?? DBNull.Value;
                         cmd.Parameters.Add("@expecteddate", SqlDbType.DateTime).Value =

@@ -21,8 +21,7 @@
 
     public class UpdateProjectVersionDTO
     {
-        public int ProjectId { get; set; }
-        public decimal Version { get; set; }   
+        public int ProjectId { get; set; }  
         public string? Description { get; set; }
         public DateTime? ExpectedDate { get; set; }
     }

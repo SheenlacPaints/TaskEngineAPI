@@ -408,7 +408,6 @@ namespace TaskEngineAPI.Controllers
 
                 bool result = await _ProjectService.UpdateProjectVersionAsync(
                     model.ProjectId,
-                    model.Version,
                     model.Description,
                     model.ExpectedDate
                 );
@@ -419,8 +418,7 @@ namespace TaskEngineAPI.Controllers
                 return CreatedSuccessResponse(
                     new
                     {
-                        projectId = model.ProjectId,
-                        version = model.Version
+                        projectId = model.ProjectId                      
                     },
                     "Project version updated successfully"
                 );
