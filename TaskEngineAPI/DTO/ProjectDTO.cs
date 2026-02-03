@@ -10,6 +10,12 @@
         public DateTime? expecteddate { get; set; }
     }
 
+    public class ProjectListDTO
+    {
+        public int ProjectId { get; set; }
+        public string ProjectName { get; set; } = string.Empty;
+    }
+
     public class GetProjectList
     {
         public int ProjectId { get; set; }
@@ -42,6 +48,9 @@
         public string version { get; set; }
         public string Remarks { get; set; }
         public string Resource_Names { get; set; }
+        public DateTime? created_date { get; set; }
+        public DateTime? modified_date { get; set; }
+
         public string status1 { get; set; }
     }
 
