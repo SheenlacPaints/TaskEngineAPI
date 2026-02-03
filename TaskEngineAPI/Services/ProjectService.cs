@@ -453,6 +453,126 @@ VALUES
             }
         }
 
+        public async Task<bool> UpdateProjectVersionAsync(int projectId, decimal version, string description, DateTime? expectedDate)
+        {
+            try
+            {
+                var connectionString = _config.GetConnectionString("Database");
+
+                using (var conn = new SqlConnection(connectionString))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                        UPDATE Tbl_Project_Master
+                        SET 
+                            Description = @Description,
+                            expecteddate = @expecteddate
+                        WHERE Id = @ProjectId
+                          AND Version = @Version;
+                        ";
+
+                    using (var cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.Add("@ProjectId", SqlDbType.Int).Value = projectId;
+                        cmd.Parameters.Add("@Version", SqlDbType.Decimal).Value = version;
+                        cmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value =
+                            (object?)description ?? DBNull.Value;
+                        cmd.Parameters.Add("@expecteddate", SqlDbType.DateTime).Value =
+                            (object?)expectedDate ?? DBNull.Value;
+
+                        int rows = await cmd.ExecuteNonQueryAsync();
+                        return rows > 0;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<int> InsertNewProjectVersionAsync(CreateProjectVersionDTO model,int tenantId,string username)
+        {
+            var connectionString = _config.GetConnectionString("Database");
+
+            using (var conn = new SqlConnection(connectionString))
+            {
+                await conn.OpenAsync();
+
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        string query = @"
+                                DECLARE @NewVersion INT;
+                                
+                                SELECT @NewVersion = 
+                                    CASE 
+                                        WHEN MAX(Version) IS NULL THEN 1
+                                        ELSE CAST(MAX(Version) + 1 AS INT)
+                                    END
+                                FROM Tbl_Project_Master
+                                WHERE ClientTenantId = @ClientTenantId
+                                  AND ProjectName = @ProjectName;
+                                
+                                INSERT INTO Tbl_Project_Master
+                                (
+                                    ClientTenantId,
+                                    RaisedByUserId,
+                                    AssignedManagerId,
+                                    ProjectName,
+                                    ProjectType,
+                                    Description,
+                                    CreatedDate,
+                                    Status,
+                                    expecteddate,
+                                    Version
+                                )
+                                VALUES
+                                (
+                                    @ClientTenantId,
+                                    @RaisedByUserId,
+                                    @AssignedManagerId,
+                                    @ProjectName,
+                                    @ProjectType,
+                                    @Description,
+                                    GETDATE(),
+                                    'Pending',
+                                    @expecteddate,
+                                    @NewVersion
+                                );
+                            
+                                SELECT SCOPE_IDENTITY();
+                            ";
+
+                        using (var cmd = new SqlCommand(query, conn, transaction))
+                        {
+                            cmd.Parameters.Add("@ClientTenantId", SqlDbType.Int).Value = tenantId;
+                            cmd.Parameters.Add("@RaisedByUserId", SqlDbType.VarChar).Value = username;
+                            cmd.Parameters.Add("@AssignedManagerId", SqlDbType.Int).Value =
+                                (object?)model.AssignedManagerId ?? DBNull.Value;
+                            cmd.Parameters.Add("@ProjectName", SqlDbType.NVarChar).Value = model.ProjectName;
+                            cmd.Parameters.Add("@ProjectType", SqlDbType.NVarChar).Value = model.ProjectType;
+                            cmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value =
+                                (object?)model.Description ?? DBNull.Value;
+                            cmd.Parameters.Add("@expecteddate", SqlDbType.DateTime).Value =
+                                (object?)model.expecteddate ?? DBNull.Value;
+
+                            var id = await cmd.ExecuteScalarAsync();
+                            transaction.Commit();
+
+                            return Convert.ToInt32(id);
+                        }
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
 
     }
 }

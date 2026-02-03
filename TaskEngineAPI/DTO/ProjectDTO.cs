@@ -9,6 +9,24 @@
         public string Status { get; set; }
         public DateTime? expecteddate { get; set; }
     }
+    public class CreateProjectVersionDTO
+    {
+        public int AssignedManagerId { get; set; }
+        public string ProjectName { get; set; }
+        public string ProjectType { get; set; }
+        public string Description { get; set; }
+        public DateTime? expecteddate { get; set; }
+    }
+
+
+    public class UpdateProjectVersionDTO
+    {
+        public int ProjectId { get; set; }
+        public decimal Version { get; set; }   
+        public string? Description { get; set; }
+        public DateTime? ExpectedDate { get; set; }
+    }
+
 
     public class ProjectListDTO
     {

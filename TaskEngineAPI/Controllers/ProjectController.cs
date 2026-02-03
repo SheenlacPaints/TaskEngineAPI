@@ -378,5 +378,124 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
+
+        [Authorize]
+        [HttpPost]
+        [Route("UpdateProjectVersion")]
+        public async Task<IActionResult> UpdateProjectVersion([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return CreateEncryptedResponse(400, "Payload is required");
+
+                var (tenantId, username) = GetUserInfoFromToken();
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload");
+                }
+
+                var model = JsonConvert.DeserializeObject<UpdateProjectVersionDTO>(decryptedJson);
+
+                if (model == null)
+                    return CreateEncryptedResponse(400, "Invalid payload data");
+
+                bool result = await _ProjectService.UpdateProjectVersionAsync(
+                    model.ProjectId,
+                    model.Version,
+                    model.Description,
+                    model.ExpectedDate
+                );
+
+                if (!result)
+                    return CreateEncryptedResponse(404, "Project version not found");
+
+                return CreatedSuccessResponse(
+                    new
+                    {
+                        projectId = model.ProjectId,
+                        version = model.Version
+                    },
+                    "Project version updated successfully"
+                );
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("CreateProjectVersion")]
+        public async Task<IActionResult> CreateProjectVersion([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return CreateEncryptedResponse(400, "Payload is required");
+
+                var (tenantId, username) = GetUserInfoFromToken();
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload");
+                }
+
+                CreateProjectVersionDTO model;
+                try
+                {
+                    model = JsonConvert.DeserializeObject<CreateProjectVersionDTO>(decryptedJson);
+                }
+                catch
+                {
+                    return CreateEncryptedResponse(400, "Invalid JSON payload");
+                }
+
+                if (model == null)
+                    return CreateEncryptedResponse(400, "Invalid payload data");
+
+                int newProjectId = await _ProjectService.InsertNewProjectVersionAsync(
+                    model,
+                    tenantId,
+                    username
+                );
+
+                if (newProjectId <= 0)
+                    return CreateEncryptedResponse(500, "Failed to create new project version");
+
+                return CreatedSuccessResponse(
+                    new
+                    {
+                        projectId = newProjectId,
+                        version = "Auto incremented"
+                    },
+                    "New project version created successfully"
+                );
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
     }
 }
