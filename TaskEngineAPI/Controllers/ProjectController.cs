@@ -417,7 +417,7 @@ namespace TaskEngineAPI.Controllers
                     model.ProjectId,
                     model.Description,
                     model.ExpectedDate,
-                    username           
+                    username
                 );
 
                 if (newVersionId <= 0)
@@ -428,7 +428,7 @@ namespace TaskEngineAPI.Controllers
                     {
                         versionId = newVersionId,
                         projectId = model.ProjectId,
-                        createdBy = username,  
+                        createdBy = username,
                         createdAt = DateTime.UtcNow
                     },
                     "Project version created successfully"
