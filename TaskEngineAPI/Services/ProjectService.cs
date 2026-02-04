@@ -480,69 +480,10 @@ VALUES
 
                             object versionResult = await getVersionCmd.ExecuteScalarAsync();
                             int nextVersion = versionResult != null ? Convert.ToInt32(versionResult) : 1;
-
-                            string newVersionString = $"V{nextVersion}";
-                            string previousVersionString = nextVersion > 1 ? $"V{nextVersion - 1}" : "V0";
-                            string getPreviousDetailsQuery = @"
-                        SELECT TOP 1 
-                            CASE 
-                                WHEN ISNULL(module, '') = '' THEN 'Module1'
-                                WHEN ISNUMERIC(RIGHT(module, 1)) = 1 
-                                     AND ISNUMERIC(SUBSTRING(module, PATINDEX('%[0-9]%', module), LEN(module))) = 1
-                                THEN 'Module' + CAST(CAST(SUBSTRING(module, PATINDEX('%[0-9]%', module), LEN(module)) AS INT) + 1 AS VARCHAR)
-                                ELSE 'Module1'
-                            END as NewModule,
-                            ISNULL(Resources, '') as Resources,
-                            ISNULL(No_of_Resources, 0) as No_of_Resources,
-                            ISNULL(Slavalue, 0) as Slavalue,
-                            ISNULL(Slaunit, '') as Slaunit,
-                            ISNULL(Remarks, '') as Remarks
-                        FROM Tbl_Project_detail 
-                        WHERE header_id = @ProjectId 
-                          AND version = @PrevVersionString
-                        ORDER BY Detail_id DESC;";
-
-                            string newModule = "Module1";
-                            string previousResources = "";
-                            int previousNoOfResources = 0;
-                            int previousSlavalue = 0;
-                            string previousSlaunit = "";
-                            string previousRemarks = "";
-
-                            using (SqlCommand getPrevDetailsCmd = new SqlCommand(getPreviousDetailsQuery, conn, transaction))
-                            {
-                                getPrevDetailsCmd.Parameters.AddWithValue("@ProjectId", projectId);
-                                getPrevDetailsCmd.Parameters.AddWithValue("@PrevVersionString", previousVersionString);
-
-                                using (SqlDataReader prevReader = await getPrevDetailsCmd.ExecuteReaderAsync())
-                                {
-                                    if (prevReader != null && prevReader.HasRows && await prevReader.ReadAsync())
-                                    {
-                                        if (!prevReader.IsDBNull(0))
-                                            newModule = prevReader.GetString(0);
-
-                                        if (!prevReader.IsDBNull(1))
-                                            previousResources = prevReader.GetString(1);
-
-                                        if (!prevReader.IsDBNull(2))
-                                            previousNoOfResources = prevReader.GetInt32(2);
-
-                                        if (!prevReader.IsDBNull(3))
-                                            previousSlavalue = prevReader.GetInt32(3);
-
-                                        if (!prevReader.IsDBNull(4))
-                                            previousSlaunit = prevReader.GetString(4);
-
-                                        if (!prevReader.IsDBNull(5))
-                                            previousRemarks = prevReader.GetString(5);
-                                    }
-                                }
-                            }
-
                             string insertVersionQuery = @"
                         INSERT INTO tbl_Project_Version_Details
                         (HeaderId, Description, createdBy, Status, expecteddate, Version, createdDate)
-                        OUTPUT INSERTED.Id, INSERTED.Description, INSERTED.createdDate, INSERTED.Status
+                        OUTPUT INSERTED.Id
                         VALUES
                         (@ProjectId, @Description, @Username, 'Pending', @ExpectedDate, @Version, GETDATE());";
 
@@ -555,78 +496,7 @@ VALUES
                                 expectedDate.HasValue ? (object)expectedDate.Value : DBNull.Value);
                             insertVersionCmd.Parameters.AddWithValue("@Version", nextVersion);
 
-                            int versionDetailId = 0;
-                            string insertedDescription = null;
-                            DateTime insertedCreatedDate = DateTime.Now;
-                            string insertedStatus = "Pending";
-
-                            using (SqlDataReader reader = await insertVersionCmd.ExecuteReaderAsync())
-                            {
-                                if (reader != null && reader.HasRows && await reader.ReadAsync())
-                                {
-                                    if (!reader.IsDBNull(0))
-                                        versionDetailId = reader.GetInt32(0);
-
-                                    if (!reader.IsDBNull(1))
-                                        insertedDescription = reader.GetString(1);
-
-                                    if (!reader.IsDBNull(2))
-                                        insertedCreatedDate = reader.GetDateTime(2);
-
-                                    if (!reader.IsDBNull(3))
-                                        insertedStatus = reader.GetString(3);
-                                }
-                            }
-
-                            if (versionDetailId == 0)
-                                throw new Exception("Failed to create version record");
-
-                            string insertDetailQuery = @"
-                        DECLARE @NextDetailId INT = ISNULL(
-                            (SELECT MAX(Detail_id) FROM Tbl_Project_detail WHERE header_id = @ProjectId), 
-                            0
-                        ) + 1;
-                        
-                        INSERT INTO Tbl_Project_detail
-                        (header_id, Detail_id, module, projectDescription, Resources, No_of_Resources, 
-                         Slavalue, Slaunit, version, Remarks, Status1, created_date, modified_date)
-                        VALUES
-                        (
-                            @ProjectId, 
-                            @NextDetailId, 
-                            @Module,
-                            @VersionDescription, 
-                            @Resources,
-                            @NoOfResources,
-                            @Slavalue,
-                            @Slaunit,
-                            @NewVersionString, 
-                            @Remarks,
-                            @VersionStatus, 
-                            @VersionCreatedDate, 
-                            NULL
-                        );";
-
-                            SqlCommand insertDetailCmd = new SqlCommand(insertDetailQuery, conn, transaction);
-                            insertDetailCmd.Parameters.AddWithValue("@ProjectId", projectId);
-                            insertDetailCmd.Parameters.AddWithValue("@NewVersionString", newVersionString);
-                            insertDetailCmd.Parameters.AddWithValue("@VersionDescription",
-                                string.IsNullOrEmpty(insertedDescription) ? (object)DBNull.Value : insertedDescription);
-                            insertDetailCmd.Parameters.AddWithValue("@VersionStatus", insertedStatus);
-                            insertDetailCmd.Parameters.AddWithValue("@VersionCreatedDate", insertedCreatedDate);
-
-                            insertDetailCmd.Parameters.AddWithValue("@Module",
-                                string.IsNullOrEmpty(newModule) ? (object)DBNull.Value : newModule);
-                            insertDetailCmd.Parameters.AddWithValue("@Resources",
-                                string.IsNullOrEmpty(previousResources) ? (object)DBNull.Value : previousResources);
-                            insertDetailCmd.Parameters.AddWithValue("@NoOfResources", previousNoOfResources);
-                            insertDetailCmd.Parameters.AddWithValue("@Slavalue", previousSlavalue);
-                            insertDetailCmd.Parameters.AddWithValue("@Slaunit",
-                                string.IsNullOrEmpty(previousSlaunit) ? (object)DBNull.Value : previousSlaunit);
-                            insertDetailCmd.Parameters.AddWithValue("@Remarks",
-                                string.IsNullOrEmpty(previousRemarks) ? (object)DBNull.Value : previousRemarks);
-
-                            await insertDetailCmd.ExecuteNonQueryAsync();
+                            int versionDetailId = Convert.ToInt32(await insertVersionCmd.ExecuteScalarAsync());
 
                             transaction.Commit();
                             return versionDetailId;
