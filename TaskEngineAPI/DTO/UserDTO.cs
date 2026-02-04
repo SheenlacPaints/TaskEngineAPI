@@ -96,7 +96,7 @@ namespace TaskEngineAPI.DTO
         public string? clastName { get; set; }
         public string cphoneno { get; set; }
         public string? cAlternatePhone { get; set; }
-        public DateTime? ldob { get; set; }
+        public string? ldob { get; set; }
         public string? cMaritalStatus { get; set; }
         public string? cnation { get; set; }
         public string? cgender { get; set; }
@@ -112,7 +112,7 @@ namespace TaskEngineAPI.DTO
         public string? caccountNumber { get; set; }
         public string? ciFSCCode { get; set; } 
         public string? cpAN { get; set; }
-        public DateTime? ldoj { get; set; }
+        public string? ldoj { get; set; }
         public string? cemploymentStatus { get; set; }
         public string? cempcategory { get; set; }
         public int? croleID { get; set; }

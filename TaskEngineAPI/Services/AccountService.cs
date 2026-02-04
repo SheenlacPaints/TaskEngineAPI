@@ -1507,7 +1507,7 @@ VALUES (
             table.Columns.Add("clast_name", typeof(string));
             table.Columns.Add("cphoneno", typeof(string));
             table.Columns.Add("calternate_phone", typeof(string));
-            table.Columns.Add("ldob", typeof(DateTime));
+            table.Columns.Add("ldob", typeof(string));  
             table.Columns.Add("cmarital_status", typeof(string));
             table.Columns.Add("cnation", typeof(string));
             table.Columns.Add("cgender", typeof(string));
@@ -1524,11 +1524,11 @@ VALUES (
             table.Columns.Add("caccount_number", typeof(string));
             table.Columns.Add("ciFSC_code", typeof(string));
             table.Columns.Add("cpan", typeof(string));
-            table.Columns.Add("ldoj", typeof(DateTime));
+            table.Columns.Add("ldoj", typeof(string));  
             table.Columns.Add("cemployment_status", typeof(string));
             table.Columns.Add("nnotice_period_days", typeof(int));
-            table.Columns.Add("lresignation_date", typeof(DateTime));
-            table.Columns.Add("llast_working_date", typeof(DateTime));
+            table.Columns.Add("lresignation_date", typeof(string));
+            table.Columns.Add("llast_working_date", typeof(string));
             table.Columns.Add("cemp_category", typeof(string));
             table.Columns.Add("cwork_loc_code", typeof(string));
             table.Columns.Add("cwork_loc_name", typeof(string));
@@ -1553,19 +1553,19 @@ VALUES (
             table.Columns.Add("creport_manager_pos_desc", typeof(string));
             table.Columns.Add("nis_web_access_enabled", typeof(bool));
             table.Columns.Add("nis_event_read", typeof(bool));
-            table.Columns.Add("llast_login_at", typeof(DateTime));
+            table.Columns.Add("llast_login_at", typeof(string));
             table.Columns.Add("nfailed_logina_attempts", typeof(int));
-            table.Columns.Add("cpassword_changed_at", typeof(DateTime));
+            table.Columns.Add("cpassword_changed_at", typeof(string));
             table.Columns.Add("nis_locked", typeof(bool));
             table.Columns.Add("last_login_ip", typeof(string));
             table.Columns.Add("last_login_device", typeof(string));
-            table.Columns.Add("ccreated_date", typeof(DateTime));
+            table.Columns.Add("ccreated_date", typeof(string));
             table.Columns.Add("ccreated_by", typeof(string));
             table.Columns.Add("cmodified_by", typeof(string));
-            table.Columns.Add("lmodified_date", typeof(DateTime));
+            table.Columns.Add("lmodified_date", typeof(string));
             table.Columns.Add("nIs_deleted", typeof(bool));
             table.Columns.Add("cdeleted_by", typeof(string));
-            table.Columns.Add("ldeleted_date", typeof(DateTime));
+            table.Columns.Add("ldeleted_date", typeof(string));
             table.Columns.Add("cprofile_image_name", typeof(string));
             table.Columns.Add("cprofile_image_path", typeof(string));
             table.Columns.Add("cposition_code", typeof(string));
@@ -1575,26 +1575,28 @@ VALUES (
             {
                 var row = table.NewRow();
                 string hashedPassword = !string.IsNullOrEmpty(u.cpassword)
-           ? BCrypt.Net.BCrypt.HashPassword(u.cpassword)
-           : null;
+                    ? BCrypt.Net.BCrypt.HashPassword(u.cpassword)
+                    : null;
+
                 row["cuserid"] = u.cuserid;
                 row["ctenant_id"] = cTenantID;
                 row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
                 row["cemail"] = u.cemail ?? (object)DBNull.Value;
-                row["cpassword"] = hashedPassword ?? (object)DBNull.Value; //u.cpassword ?? (object)DBNull.Value;
+                row["cpassword"] = hashedPassword ?? (object)DBNull.Value;
                 row["nIs_active"] = u.nIsActive ?? true;
                 row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value;
                 row["clast_name"] = u.clastName ?? (object)DBNull.Value;
                 row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
                 row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
-                row["ldob"] = u.ldob.HasValue ? u.ldob.Value : (object)DBNull.Value;
+                row["ldob"] = ConvertExcelDateToSqlFormat(u.ldob) ?? (object)DBNull.Value;
+
                 row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
                 row["cnation"] = u.cnation ?? (object)DBNull.Value;
                 row["cgender"] = u.cgender ?? (object)DBNull.Value;
                 row["caddress"] = u.caddress ?? (object)DBNull.Value;
                 row["caddress1"] = u.caddress1 ?? (object)DBNull.Value;
                 row["caddress2"] = u.caddress2 ?? (object)DBNull.Value;
-                row["cpincode"] = u.cpincode;
+                row["cpincode"] = u.cpincode ?? (object)DBNull.Value;
                 row["ccity"] = u.ccity ?? (object)DBNull.Value;
                 row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value;
                 row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value;
@@ -1604,7 +1606,7 @@ VALUES (
                 row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value;
                 row["ciFSC_code"] = u.ciFSCCode ?? (object)DBNull.Value;
                 row["cpan"] = u.cpAN ?? (object)DBNull.Value;
-                row["ldoj"] = u.ldoj.HasValue ? u.ldoj.Value : (object)DBNull.Value;
+                row["ldoj"] = ConvertExcelDateToSqlFormat(u.ldoj) ?? (object)DBNull.Value;
                 row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
                 row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
                 row["lresignation_date"] = DBNull.Value;
@@ -1639,10 +1641,10 @@ VALUES (
                 row["nis_locked"] = false;
                 row["last_login_ip"] = DBNull.Value;
                 row["last_login_device"] = DBNull.Value;
-                row["ccreated_date"] = DateTime.Now;
+                row["ccreated_date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 row["ccreated_by"] = usernameClaim;
                 row["cmodified_by"] = usernameClaim;
-                row["lmodified_date"] = DateTime.Now;
+                row["lmodified_date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 row["nIs_deleted"] = false;
                 row["cdeleted_by"] = DBNull.Value;
                 row["ldeleted_date"] = DBNull.Value;
@@ -1678,8 +1680,34 @@ VALUES (
             }
             catch (SqlException ex)
             {
-
                 throw;
+            }
+        }
+
+        private string ConvertExcelDateToSqlFormat(string excelDate)
+        {
+            if (string.IsNullOrWhiteSpace(excelDate))
+                return null;
+
+            try
+            {
+                if (DateTime.TryParse(excelDate, out DateTime parsedDate))
+                {
+                    return parsedDate.ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                if (double.TryParse(excelDate, out double excelSerial))
+                {
+                    DateTime excelBaseDate = new DateTime(1899, 12, 30);
+                    DateTime actualDate = excelBaseDate.AddDays(excelSerial);
+                    return actualDate.ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
             }
         }
         public async Task<bool> InsertUserApiAsync(UserApiDTO user, int cTenantID, string usernameClaim)
