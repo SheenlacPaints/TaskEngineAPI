@@ -1,4 +1,6 @@
-﻿namespace TaskEngineAPI.DTO
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace TaskEngineAPI.DTO
 {
     public class CreateProjectDTO
     {
@@ -18,14 +20,12 @@
         public DateTime? expecteddate { get; set; }
     }
 
-
-    public class UpdateProjectVersionDTO
+    public class CreateProjectVersionRequest
     {
-        public int ProjectId { get; set; }  
-        public string? Description { get; set; }
+        public int ProjectId { get; set; }
+        public string Description { get; set; }
         public DateTime? ExpectedDate { get; set; }
     }
-
 
     public class ProjectListDTO
     {

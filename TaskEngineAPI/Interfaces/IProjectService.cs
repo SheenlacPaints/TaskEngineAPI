@@ -11,8 +11,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> InsertProjectDetails(List<ProjectDetailRequest> requests,int tenantId,string username);
         Task<bool> UpdateProjectDetails(ProjectDetailRequest request, int tenantId, string username);
         Task<string> GetProjectById(int tenantId, string username, int projectId);
-        Task<bool> UpdateProjectVersionAsync(int projectId, string description, DateTime? expectedDate);
-        Task<int> InsertNewProjectVersionAsync(CreateProjectVersionDTO model,int tenantId,string username);
+        Task<int> CreateProjectVersionAsync(int projectId, string description, DateTime? expectedDate, string username);
         Task<string> GetProjectList(int tenantId, string username);
 
     }

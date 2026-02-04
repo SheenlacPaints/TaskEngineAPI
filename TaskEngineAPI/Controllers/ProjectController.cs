@@ -379,59 +379,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        [Authorize]
-        [HttpPost]
-        [Route("UpdateProjectVersion")]
-        public async Task<IActionResult> UpdateProjectVersion([FromBody] pay request)
-        {
-            try
-            {
-                if (request == null || string.IsNullOrWhiteSpace(request.payload))
-                    return CreateEncryptedResponse(400, "Payload is required");
-
-                var (tenantId, username) = GetUserInfoFromToken();
-
-                string decryptedJson;
-                try
-                {
-                    decryptedJson = AesEncryption.Decrypt(request.payload);
-                }
-                catch
-                {
-                    return CreateEncryptedResponse(400, "Invalid encrypted payload");
-                }
-
-                var model = JsonConvert.DeserializeObject<UpdateProjectVersionDTO>(decryptedJson);
-
-                if (model == null)
-                    return CreateEncryptedResponse(400, "Invalid payload data");
-
-                bool result = await _ProjectService.UpdateProjectVersionAsync(
-                    model.ProjectId,
-                    model.Description,
-                    model.ExpectedDate
-                );
-
-                if (!result)
-                    return CreateEncryptedResponse(404, "Project version not found");
-
-                return CreatedSuccessResponse(
-                    new
-                    {
-                        projectId = model.ProjectId                      
-                    },
-                    "Project version updated successfully"
-                );
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
-            }
-        }
 
         [Authorize]
         [HttpPost]
@@ -443,7 +390,7 @@ namespace TaskEngineAPI.Controllers
                 if (request == null || string.IsNullOrWhiteSpace(request.payload))
                     return CreateEncryptedResponse(400, "Payload is required");
 
-                var (tenantId, username) = GetUserInfoFromToken();
+                var (cTenantID, username) = GetUserInfoFromToken();
 
                 string decryptedJson;
                 try
@@ -455,35 +402,36 @@ namespace TaskEngineAPI.Controllers
                     return CreateEncryptedResponse(400, "Invalid encrypted payload");
                 }
 
-                CreateProjectVersionDTO model;
-                try
-                {
-                    model = JsonConvert.DeserializeObject<CreateProjectVersionDTO>(decryptedJson);
-                }
-                catch
-                {
-                    return CreateEncryptedResponse(400, "Invalid JSON payload");
-                }
+                var model = JsonConvert.DeserializeObject<CreateProjectVersionRequest>(decryptedJson);
 
                 if (model == null)
                     return CreateEncryptedResponse(400, "Invalid payload data");
 
-                int newProjectId = await _ProjectService.InsertNewProjectVersionAsync(
-                    model,
-                    tenantId,
-                    username
+                if (model.ProjectId <= 0)
+                    return CreateEncryptedResponse(400, "Valid ProjectId is required");
+
+                if (string.IsNullOrEmpty(model.Description))
+                    return CreateEncryptedResponse(400, "Description is required");
+
+                int newVersionId = await _ProjectService.CreateProjectVersionAsync(
+                    model.ProjectId,
+                    model.Description,
+                    model.ExpectedDate,
+                    username           
                 );
 
-                if (newProjectId <= 0)
-                    return CreateEncryptedResponse(500, "Failed to create new project version");
+                if (newVersionId <= 0)
+                    return CreateEncryptedResponse(500, "Failed to create project version");
 
                 return CreatedSuccessResponse(
                     new
                     {
-                        projectId = newProjectId,
-                        version = "Auto incremented"
+                        versionId = newVersionId,
+                        projectId = model.ProjectId,
+                        createdBy = username,  
+                        createdAt = DateTime.UtcNow
                     },
-                    "New project version created successfully"
+                    "Project version created successfully"
                 );
             }
             catch (UnauthorizedAccessException ex)

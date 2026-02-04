@@ -16,7 +16,7 @@ using TaskEngineAPI.Models;
 using TaskEngineAPI.Models;
 namespace TaskEngineAPI.Services
 {
-    public class ProjectService: IProjectService
+    public class ProjectService : IProjectService
     {
         private readonly IAdminRepository _repository;
         private readonly IConfiguration _config;
@@ -33,7 +33,7 @@ namespace TaskEngineAPI.Services
 
         public async Task<int> InsertProjectMasterAsync(CreateProjectDTO model, int tenantId, string userName)
         {
-            int masterId = 0;  
+            int masterId = 0;
             var connectionString = _config.GetConnectionString("Database");
             using (var conn = new SqlConnection(connectionString))
             {
@@ -41,15 +41,15 @@ namespace TaskEngineAPI.Services
                 using (var transaction = conn.BeginTransaction())
                 {
                     try
-                    { 
+                    {
                         string queryMaster = @"
                     INSERT INTO Tbl_Project_Master (ClientTenantId,RaisedByUserId,AssignedManagerId,ProjectName,ProjectType,Description,
                      CreatedDate,Status,expecteddate) VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType, @Description, 
                      @CreatedDate, @Status,@expecteddate);SELECT SCOPE_IDENTITY();";
-            
+
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
-                            
+
                             cmd.Parameters.AddWithValue("@ClientTenantId", tenantId);
                             cmd.Parameters.AddWithValue("@RaisedByUserId", userName);
                             cmd.Parameters.AddWithValue("@AssignedManagerId", (object?)model.AssignedManagerId ?? DBNull.Value);
@@ -61,7 +61,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@expecteddate", (object?)model.expecteddate ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
-                        }                                         
+                        }
                         transaction.Commit();
                     }
                     catch (Exception ex)
@@ -73,7 +73,7 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
-        public async Task<string> Getprojectmaster(int cTenantID, string username,string? type, string? searchText = null, int page = 1, int pageSize = 50)
+        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetProjectList> tsk = new List<GetProjectList>();
             int totalCount = 0;
@@ -89,9 +89,9 @@ namespace TaskEngineAPI.Services
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@tenantid", cTenantID);
-                        cmd.Parameters.AddWithValue("@cuserid", username);                   
+                        cmd.Parameters.AddWithValue("@cuserid", username);
                         cmd.Parameters.AddWithValue("@searchtxt", searchText ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);                      
+                        cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@PageNo", page);
                         cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
@@ -105,7 +105,7 @@ namespace TaskEngineAPI.Services
                                                    ? null
                                                    : sdr.GetString(sdr.GetOrdinal("project_Details"));
                                 GetProjectList p = new GetProjectList
-                                {                              
+                                {
                                     ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
                                     ClientTenantId = sdr.IsDBNull(sdr.GetOrdinal("ClientTenantId")) ? 0 : Convert.ToInt32(sdr["ClientTenantId"]),
                                     RaisedByUserId = sdr.IsDBNull(sdr.GetOrdinal("RaisedByUserId")) ? 0 : Convert.ToInt32(sdr["RaisedByUserId"]),
@@ -164,7 +164,7 @@ namespace TaskEngineAPI.Services
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@tenantid", cTenantID);
-                    cmd.Parameters.AddWithValue("@cuserid", username);                  
+                    cmd.Parameters.AddWithValue("@cuserid", username);
                     cmd.Parameters.AddWithValue("@searchtext", searchText ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);
                     var ds = new DataSet();
@@ -185,7 +185,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> InsertProjectDetails( List<ProjectDetailRequest> requests,int tenantId, string username)
+        public async Task<bool> InsertProjectDetails(List<ProjectDetailRequest> requests, int tenantId, string username)
         {
             try
             {
@@ -229,11 +229,11 @@ VALUES
                         var id = reader.GetInt32(0);
                         var createdDate = reader.GetDateTime(1);
                         var modifiedDate = reader.GetDateTime(2);
-                       
+
                     }
                     reader.Close();
-                
-            }
+
+                }
 
                 return true;
             }
@@ -288,7 +288,7 @@ VALUES
             }
             catch
             {
-                throw; 
+                throw;
             }
         }
 
@@ -321,13 +321,13 @@ VALUES
                     Remarks=@Remarks
                     WHERE Detail_id = @DetailId
                       AND header_id = @HeaderId;";
-                    
+
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@DetailId", request.Detail_id);
                 cmd.Parameters.AddWithValue("@HeaderId", request.header_id);
                 cmd.Parameters.AddWithValue("@Module", request.module);
-                cmd.Parameters.AddWithValue("@ProjectDescription", request.projectDescription );
-                cmd.Parameters.AddWithValue("@Resources", request.Resources );
+                cmd.Parameters.AddWithValue("@ProjectDescription", request.projectDescription);
+                cmd.Parameters.AddWithValue("@Resources", request.Resources);
                 cmd.Parameters.AddWithValue("@NoOfResources", request.No_of_Resources);
                 cmd.Parameters.AddWithValue("@Slavalue", request.Slavalue);
                 cmd.Parameters.AddWithValue("@Slaunit", request.Slaunit);
@@ -453,124 +453,45 @@ VALUES
             }
         }
 
-        public async Task<bool> UpdateProjectVersionAsync(int projectId, string description, DateTime? expectedDate)
+        public async Task<int> CreateProjectVersionAsync(int projectId, string description, DateTime? expectedDate, string username)
         {
             try
             {
                 var connectionString = _config.GetConnectionString("Database");
 
-                using (var conn = new SqlConnection(connectionString))
+                using (SqlConnection conn = new SqlConnection(connectionString))
                 {
                     await conn.OpenAsync();
 
                     string query = @"
-                       UPDATE Tbl_Project_Master
-                       SET 
-                           Description = @Description,
-                           expecteddate = @expecteddate
-                       WHERE Id = @ProjectId
-                         AND Version = (SELECT MAX(Version) 
-                         FROM Tbl_Project_Master 
-                         WHERE Id = @ProjectId); ";
+                DECLARE @NextVersion INT = ISNULL(
+                    (SELECT MAX(Version) FROM tbl_Project_Version_Details WHERE HeaderId = @ProjectId), 
+                    1
+                ) + 1;
+                
+                INSERT INTO tbl_Project_Version_Details
+                (HeaderId, Description, createdBy, Status, expecteddate, Version)
+                OUTPUT INSERTED.Id
+                VALUES
+                (@ProjectId, @Description, @Username, 'Pending', @ExpectedDate, @NextVersion);";
 
-                    using (var cmd = new SqlCommand(query, conn))
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
-                        cmd.Parameters.Add("@ProjectId", SqlDbType.Int).Value = projectId;                     
-                        cmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value =
-                            (object?)description ?? DBNull.Value;
-                        cmd.Parameters.Add("@expecteddate", SqlDbType.DateTime).Value =
-                            (object?)expectedDate ?? DBNull.Value;
+                        cmd.Parameters.AddWithValue("@Username", username);
+                        cmd.Parameters.AddWithValue("@ProjectId", projectId);
+                        cmd.Parameters.AddWithValue("@Description",
+                            string.IsNullOrEmpty(description) ? (object)DBNull.Value : description);
+                        cmd.Parameters.AddWithValue("@ExpectedDate",
+                            expectedDate.HasValue ? (object)expectedDate.Value : DBNull.Value);
 
-                        int rows = await cmd.ExecuteNonQueryAsync();
-                        return rows > 0;
+                        var result = await cmd.ExecuteScalarAsync();
+                        return result != null ? Convert.ToInt32(result) : 0;
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw;
-            }
-        }
-
-        public async Task<int> InsertNewProjectVersionAsync(CreateProjectVersionDTO model,int tenantId,string username)
-        {
-            var connectionString = _config.GetConnectionString("Database");
-
-            using (var conn = new SqlConnection(connectionString))
-            {
-                await conn.OpenAsync();
-
-                using (var transaction = conn.BeginTransaction())
-                {
-                    try
-                    {
-                        string query = @"
-                                DECLARE @NewVersion INT;
-                                
-                                SELECT @NewVersion = 
-                                    CASE 
-                                        WHEN MAX(Version) IS NULL THEN 1
-                                        ELSE CAST(MAX(Version) + 1 AS INT)
-                                    END
-                                FROM Tbl_Project_Master
-                                WHERE ClientTenantId = @ClientTenantId
-                                  AND ProjectName = @ProjectName;
-                                
-                                INSERT INTO Tbl_Project_Master
-                                (
-                                    ClientTenantId,
-                                    RaisedByUserId,
-                                    AssignedManagerId,
-                                    ProjectName,
-                                    ProjectType,
-                                    Description,
-                                    CreatedDate,
-                                    Status,
-                                    expecteddate,
-                                    Version
-                                )
-                                VALUES
-                                (
-                                    @ClientTenantId,
-                                    @RaisedByUserId,
-                                    @AssignedManagerId,
-                                    @ProjectName,
-                                    @ProjectType,
-                                    @Description,
-                                    GETDATE(),
-                                    'Pending',
-                                    @expecteddate,
-                                    @NewVersion
-                                );
-                            
-                                SELECT SCOPE_IDENTITY();
-                            ";
-
-                        using (var cmd = new SqlCommand(query, conn, transaction))
-                        {
-                            cmd.Parameters.Add("@ClientTenantId", SqlDbType.Int).Value = tenantId;
-                            cmd.Parameters.Add("@RaisedByUserId", SqlDbType.VarChar).Value = username;
-                            cmd.Parameters.Add("@AssignedManagerId", SqlDbType.Int).Value =
-                                (object?)model.AssignedManagerId ?? DBNull.Value;
-                            cmd.Parameters.Add("@ProjectName", SqlDbType.NVarChar).Value = model.ProjectName;
-                            cmd.Parameters.Add("@ProjectType", SqlDbType.NVarChar).Value = model.ProjectType;
-                            cmd.Parameters.Add("@Description", SqlDbType.NVarChar).Value =
-                                (object?)model.Description ?? DBNull.Value;
-                            cmd.Parameters.Add("@expecteddate", SqlDbType.DateTime).Value =
-                                (object?)model.expecteddate ?? DBNull.Value;
-
-                            var id = await cmd.ExecuteScalarAsync();
-                            transaction.Commit();
-
-                            return Convert.ToInt32(id);
-                        }
-                    }
-                    catch
-                    {
-                        transaction.Rollback();
-                        throw;
-                    }
-                }
+                throw new Exception($"Error creating project version: {ex.Message}");
             }
         }
 
