@@ -1917,15 +1917,11 @@ namespace TaskEngineAPI.Controllers
                 var duplicateErrors = new List<string>();
 
                 var dupUserIds = users.GroupBy(u => u.cuserid).Where(g => g.Count() > 1 && g.Key > 0).Select(g => g.Key).ToList();
-                var dupUsernames = users.GroupBy(u => u.cusername).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
-                var dupEmails = users.GroupBy(u => u.cemail).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
                 var dupPhones = users.GroupBy(u => u.cphoneno).Where(g => g.Count() > 1 && !string.IsNullOrEmpty(g.Key)).Select(g => g.Key).ToList();
 
-                if (dupUserIds.Any() || dupUsernames.Any() || dupEmails.Any() || dupPhones.Any())
+                if (dupUserIds.Any() || dupPhones.Any())  
                 {
                     if (dupUserIds.Any()) duplicateErrors.Add($"Duplicate cuserid(s): {string.Join(", ", dupUserIds)}");
-                    if (dupUsernames.Any()) duplicateErrors.Add($"Duplicate cusername(s): {string.Join(", ", dupUsernames)}");
-                    if (dupEmails.Any()) duplicateErrors.Add($"Duplicate cemail(s): {string.Join(", ", dupEmails)}");
                     if (dupPhones.Any()) duplicateErrors.Add($"Duplicate cphoneno(s): {string.Join(", ", dupPhones)}");
 
                     var errorResponse = new
