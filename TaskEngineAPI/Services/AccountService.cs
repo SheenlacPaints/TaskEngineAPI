@@ -2531,7 +2531,6 @@ VALUES (
             table.Columns.Add("crole_code", typeof(string));
             table.Columns.Add("crole_name", typeof(string));
             table.Columns.Add("crole_description", typeof(string));
-            //table.Columns.Add("cslug", typeof(string));
             table.Columns.Add("crole_level", typeof(string));
             table.Columns.Add("cdepartment_code", typeof(string));
             table.Columns.Add("creporting_manager_code", typeof(string));
@@ -2554,7 +2553,7 @@ VALUES (
                 row["cdepartment_code"] = role.cdepartment_code ?? (object)DBNull.Value;
                 row["creporting_manager_code"] = role.creporting_manager_code ?? (object)DBNull.Value;
                 row["creporting_manager_name"] = role.creporting_manager_name ?? (object)DBNull.Value;
-                row["nis_active"] = true;
+                row["nis_active"] = true; 
                 row["ccreated_by"] = username;
                 row["lcreated_date"] = DateTime.Now;
                 row["cmodified_by"] = username;
@@ -2573,16 +2572,14 @@ VALUES (
                 BulkCopyTimeout = 300
             };
 
-            // Add column mappings
             bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id");
             bulkCopy.ColumnMappings.Add("crole_code", "crole_code");
             bulkCopy.ColumnMappings.Add("crole_name", "crole_name");
             bulkCopy.ColumnMappings.Add("crole_description", "crole_description");
-            //bulkCopy.ColumnMappings.Add("cslug", "cslug");
             bulkCopy.ColumnMappings.Add("crole_level", "crole_level");
             bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
             bulkCopy.ColumnMappings.Add("creporting_manager_code", "creporting_manager_code");
-            bulkCopy.ColumnMappings.Add("creporting_manager_name ", "creporting_manager_name");
+            bulkCopy.ColumnMappings.Add("creporting_manager_name", "creporting_manager_name"); // FIX: Removed extra space
             bulkCopy.ColumnMappings.Add("nis_active", "nis_active");
             bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
             bulkCopy.ColumnMappings.Add("lcreated_date", "lcreated_date");
@@ -2604,7 +2601,6 @@ VALUES (
                 throw new Exception("Error during bulk insert of roles", ex);
             }
         }
-
         //public async Task<int> InsertPositionsBulkAsync(List<BulkPositionDTO> positions, int cTenantID, string usernameClaim)
         //{
         //    if (positions == null || !positions.Any())
