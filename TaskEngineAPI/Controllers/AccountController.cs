@@ -147,8 +147,9 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(400, encrypted);
                 }
 
-                var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);
-                var refreshToken = _jwtService.GenerateRefreshToken();
+                var accessToken = _jwtService.GenerateJwtToken(User.userName,email, useravatar, type, tenantIdInt, out var tokenExpiry);
+
+               var refreshToken = _jwtService.GenerateRefreshToken();
                 var refreshExpiry = DateTime.Now.AddDays(1);
 
                 var saved = await _jwtService.SaveRefreshTokenToDatabase(User.userName, refreshToken, refreshExpiry);
@@ -277,7 +278,7 @@ namespace TaskEngineAPI.Controllers
                         return BadRequest(Objresponse);
                     }
 
-                    var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);
+                    var accessToken = _jwtService.GenerateJwtToken(User.userName, email, email, email, tenantIdInt, out var tokenExpiry);
                     var refreshToken = _jwtService.GenerateRefreshToken();
                     var refreshExpiry = DateTime.Now.AddDays(1);
 
@@ -1308,7 +1309,7 @@ namespace TaskEngineAPI.Controllers
                         }
 
                         // Generate JWT token using values from OTP_Validation
-                        var accessToken = _jwtService.GenerateJwtToken(userName, tenantId, out var tokenExpiry);
+                        var accessToken = _jwtService.GenerateJwtToken(userName,"","","", tenantId, out var tokenExpiry);
 
                         tx.Commit();
 

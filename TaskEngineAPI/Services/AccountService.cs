@@ -1589,7 +1589,6 @@ VALUES (
                 row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
                 row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
                 row["ldob"] = ConvertExcelDateToSqlFormat(u.ldob) ?? (object)DBNull.Value;
-
                 row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
                 row["cnation"] = u.cnation ?? (object)DBNull.Value;
                 row["cgender"] = u.cgender ?? (object)DBNull.Value;
