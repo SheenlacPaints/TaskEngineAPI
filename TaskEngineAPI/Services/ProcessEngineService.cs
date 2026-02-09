@@ -243,9 +243,9 @@ namespace TaskEngineAPI.Services
                             {
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
                             cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, cis_readonly, cis_disabled,  
-                            ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value,cdata_source) 
+                            ccreated_by, lcreated_date, cmodified_by, lmodified_date,cfield_value,cdata_source,capi_mapping) 
                             VALUES (@Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required, @cis_readonly,  
-                            @cis_disabled,@ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date, @cfield_value,@cdatasource);";
+                            @cis_disabled,@ccreated_by, @lcreated_date, @cmodified_by, @lmodified_date, @cfield_value,@cdatasource,@capi_mapping);";
 
                                 foreach (var meta in model.processEngineMeta)
                                 {
@@ -265,6 +265,7 @@ namespace TaskEngineAPI.Services
                                         cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
                                         cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                                         cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@capi_mapping", meta.capi_mapping ?? (object)DBNull.Value);
                                         await cmdMeta.ExecuteNonQueryAsync();
                                     }
                                 }
@@ -560,7 +561,7 @@ SELECT
     m.cmeta_id, meta.meta_Name, meta.meta_Description,
     metadetail.cinput_type, metadetail.label, metadetail.cplaceholder,
     metadetail.cis_required, metadetail.cis_readonly, metadetail.cis_disabled,
-    metadetail.cfield_value,metadetail.cdata_source
+    metadetail.cfield_value,metadetail.cdata_source,metadetail.capi_mapping
 FROM tbl_process_engine_master m
 LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
 LEFT JOIN tbl_process_meta_detail metadetail ON meta.id = metadetail.cheader_id
@@ -586,8 +587,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cisReadonly = metaReader.SafeGetBoolean("cis_readonly"),   // ✅ fixed
                             cisDisabled = metaReader.SafeGetBoolean("cis_disabled"),   // ✅ fixed
                             cfieldValue = metaReader.SafeGetString("cfield_value"),
-                            cdatasource = metaReader.SafeGetString("cdata_source")
-                            // ✅ fixed
+                            cdatasource = metaReader.SafeGetString("cdata_source"),
+                            capi_mapping = metaReader.SafeGetString("capi_mapping")    // ✅ fixed
+
                         });
                     }
                 }
