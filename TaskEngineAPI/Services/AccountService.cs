@@ -3410,5 +3410,51 @@ VALUES (
 
             return null;
         }
+
+        public async Task<List<GetusersapisyncDTO>> GetmetaAPISyncConfigAsync(int cTenantID,string? searchText = null)
+        {
+            var timelineList = new List<GetusersapisyncDTO>();
+            string connectionString = this._config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_get_userapiconfig", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@searchText", searchText);
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    await conn.OpenAsync();
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            timelineList.Add(new GetusersapisyncDTO
+                            {
+                                ID = reader["ID"] != DBNull.Value ? Convert.ToInt32(reader["ID"]) : 0,
+                                ctenant_id = reader["ctenant_id"] != DBNull.Value ? Convert.ToInt32(reader["ctenant_id"]) : 0,
+                                capi_method = reader["capi_method"] != DBNull.Value ? reader["capi_method"].ToString() : null,
+                                capi_type = reader["capi_type"] != DBNull.Value ? reader["capi_type"].ToString() : null,
+                                capi_url = reader["capi_url"] != DBNull.Value ? reader["capi_url"].ToString() : null,
+                                capi_params = reader["capi_params"] != DBNull.Value ? reader["capi_params"].ToString() : null,
+                                capi_headers = reader["capi_headers"] != DBNull.Value ? reader["capi_headers"].ToString() : null,
+                                capi_config = reader["capi_config"] != DBNull.Value ? reader["capi_config"].ToString() : null,
+                                capi_settings = reader["capi_settings"] != DBNull.Value ? reader["capi_settings"].ToString() : null,
+                                cbody = reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null,
+                                cname = reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
+                                nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
+                                ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
+                                lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
+                                cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
+                                lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null                              
+                            });
+                        }
+                    }
+                }
+            }
+
+            return timelineList;
+        }
+
     }
 }

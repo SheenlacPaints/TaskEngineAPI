@@ -52,6 +52,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> UpdatePasswordUserAsync(UpdateUserPasswordDTO model, int cTenantID, string usernameClaim);
 
 
+        Task<List<GetusersapisyncDTO>> GetmetaAPISyncConfigAsync(int cTenantID, string? searchText = null);
         //public async Task<int> InsertUsersBulkAsync(List<CreateUserDTO> users)
         //{
         //    // your bulk insert logic here
