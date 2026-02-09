@@ -2155,12 +2155,12 @@ VALUES (
                     ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
                     nis_active, ccreated_by, lcreated_date, 
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 ) VALUES(
                     @TenantID, @capi_method, @capi_type, @capi_url, 
                     @capi_params, @capi_headers, @capi_config, @capi_settings, @cbody,@cname,
                     @nis_active, @ccreated_by, @lcreated_date, 
-                    @cmodified_by, @lmodified_date
+                    @cmodified_by, @lmodified_date,@capi_response
                 )";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -2174,6 +2174,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_response", (object?)model.capi_response ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cname", model.cname);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
@@ -2813,7 +2814,7 @@ VALUES (
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody, cname,
                     nis_active, ccreated_by, lcreated_date,
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 FROM tbl_users_api_sync_config 
                 WHERE ctenant_id = @TenantID";
 
@@ -2883,7 +2884,8 @@ VALUES (
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
-                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null
+                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                   capi_response= reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null
                                 };
                                 results.Add(config);
                             }
@@ -2948,6 +2950,7 @@ VALUES (
                     capi_config = @capi_config,
                     capi_settings = @capi_settings,
                     cbody = @cbody,
+                    capi_response=@capi_response,
                     nis_active = @nis_active,
                     cmodified_by = @username,
                     lmodified_date = GETDATE()
@@ -2966,6 +2969,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_response", (object?)model.capi_response ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active ?? true);
                         cmd.Parameters.AddWithValue("@username", username);
 
@@ -2995,7 +2999,7 @@ VALUES (
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
                     nis_active, ccreated_by, lcreated_date,
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 FROM tbl_users_api_sync_config 
                 WHERE ID = @ID 
                 AND ctenant_id = @TenantID";
@@ -3026,7 +3030,8 @@ VALUES (
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
-                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null
+                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                    capi_response= reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null
                                 };
                             }
                         }
@@ -3446,7 +3451,8 @@ VALUES (
                                 ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                 lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                 cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
-                                lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null                              
+                                lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                capi_response = reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null
                             });
                         }
                     }
