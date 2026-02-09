@@ -2885,7 +2885,7 @@ VALUES (
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
                                     lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
-                                   capi_response= reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null
+                                   capi_response= reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                                 };
                                 results.Add(config);
                             }
@@ -3031,7 +3031,7 @@ VALUES (
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
                                     lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
-                                    capi_response= reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null
+                                    capi_response= reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                                 };
                             }
                         }
@@ -3452,7 +3452,7 @@ VALUES (
                                 lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                 cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
                                 lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
-                                capi_response = reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null
+                                capi_response = reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                             });
                         }
                     }
