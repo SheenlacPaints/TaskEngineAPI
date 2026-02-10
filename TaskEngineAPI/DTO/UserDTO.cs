@@ -380,6 +380,7 @@ namespace TaskEngineAPI.DTO
         public string? capi_headers { get; set; }
         public string? capi_config { get; set; }
         public string? capi_settings { get; set; }
+        public string? capi_response { get; set; }
         public string? sync_type { get; set; }
         public string? cbody { get; set; }
         public string? cname { get; set; }
@@ -401,8 +402,10 @@ namespace TaskEngineAPI.DTO
         public string? capi_settings { get; set; }
         public string? cbody { get; set; }
         public string? cname { get; set; }
-        
+        public string? capi_response { get; set; }
         public bool? nis_active { get; set; }
+
+
     }
 
     public class GetAPISyncConfigByIDDTO
@@ -416,6 +419,7 @@ namespace TaskEngineAPI.DTO
         public string? capi_headers { get; set; }
         public string? capi_config { get; set; }
         public string? capi_settings { get; set; }
+        public string? capi_response { get; set; }
         public string? cbody { get; set; }
         public string? cname { get; set; }
         public bool? nis_active { get; set; }
@@ -435,6 +439,7 @@ namespace TaskEngineAPI.DTO
         public string? capi_headers { get; set; }
         public string? capi_config { get; set; }
         public string? capi_settings { get; set; }
+        public string? capi_response { get; set; }
         public string? cbody { get; set; }
         public bool? nis_active { get; set; }
     }

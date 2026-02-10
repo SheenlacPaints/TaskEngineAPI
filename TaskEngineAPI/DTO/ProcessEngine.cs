@@ -32,6 +32,8 @@ namespace TaskEngineAPI.DTO
         public string? cmetaName { get; set; }
 
         public bool? nshow_table { get; set; }
+        public bool? nis_metaapi_integration { get; set; }
+        public int? cmetaapi_id { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }   
 
@@ -118,7 +120,7 @@ namespace TaskEngineAPI.DTO
 
         public string? cdatasource { get; set; }
 
-        
+        public string? capi_mapping { get; set; }
     }
 
     public class GetProcessEngineCountDTO
@@ -170,7 +172,9 @@ namespace TaskEngineAPI.DTO
         public string? slasum { get; set; }
         public int? Usedcount { get; set; }
         public int? Activecount { get; set; }
-       
+        public bool? nis_metaapi_integration { get; set; }
+        public int? cmetaapi_id { get; set; }
+        
     }
 
 
@@ -414,6 +418,9 @@ namespace TaskEngineAPI.DTO
         public bool? nshow_table { get; set; }
 
         public string? cattachment { get; set; }
+
+        public bool? nis_metaapi_integration { get; set; }
+        public int? cmetaapi_id { get; set; }
         public List<GetIDprocessEngineChildItems> processEngineChildItems { get; set; }
        
        public List<processEngineMeta> processEngineMeta { get; set; }

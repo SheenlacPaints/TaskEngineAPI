@@ -1589,7 +1589,6 @@ VALUES (
                 row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
                 row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
                 row["ldob"] = ConvertExcelDateToSqlFormat(u.ldob) ?? (object)DBNull.Value;
-
                 row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
                 row["cnation"] = u.cnation ?? (object)DBNull.Value;
                 row["cgender"] = u.cgender ?? (object)DBNull.Value;
@@ -2156,12 +2155,12 @@ VALUES (
                     ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
                     nis_active, ccreated_by, lcreated_date, 
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 ) VALUES(
                     @TenantID, @capi_method, @capi_type, @capi_url, 
                     @capi_params, @capi_headers, @capi_config, @capi_settings, @cbody,@cname,
                     @nis_active, @ccreated_by, @lcreated_date, 
-                    @cmodified_by, @lmodified_date
+                    @cmodified_by, @lmodified_date,@capi_response
                 )";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -2175,6 +2174,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_response", (object?)model.capi_response ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cname", model.cname);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
@@ -2814,7 +2814,7 @@ VALUES (
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody, cname,
                     nis_active, ccreated_by, lcreated_date,
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 FROM tbl_users_api_sync_config 
                 WHERE ctenant_id = @TenantID";
 
@@ -2884,7 +2884,8 @@ VALUES (
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
-                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null
+                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                   capi_response= reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                                 };
                                 results.Add(config);
                             }
@@ -2949,6 +2950,7 @@ VALUES (
                     capi_config = @capi_config,
                     capi_settings = @capi_settings,
                     cbody = @cbody,
+                    capi_response=@capi_response,
                     nis_active = @nis_active,
                     cmodified_by = @username,
                     lmodified_date = GETDATE()
@@ -2967,6 +2969,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_response", (object?)model.capi_response ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active ?? true);
                         cmd.Parameters.AddWithValue("@username", username);
 
@@ -2996,7 +2999,7 @@ VALUES (
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
                     nis_active, ccreated_by, lcreated_date,
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 FROM tbl_users_api_sync_config 
                 WHERE ID = @ID 
                 AND ctenant_id = @TenantID";
@@ -3027,7 +3030,8 @@ VALUES (
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
-                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null
+                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                    capi_response= reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                                 };
                             }
                         }
@@ -3411,5 +3415,52 @@ VALUES (
 
             return null;
         }
+
+        public async Task<List<GetusersapisyncDTO>> GetmetaAPISyncConfigAsync(int cTenantID,string? searchText = null)
+        {
+            var timelineList = new List<GetusersapisyncDTO>();
+            string connectionString = this._config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_get_userapiconfig", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@searchText", searchText);
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    await conn.OpenAsync();
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            timelineList.Add(new GetusersapisyncDTO
+                            {
+                                ID = reader["ID"] != DBNull.Value ? Convert.ToInt32(reader["ID"]) : 0,
+                                ctenant_id = reader["ctenant_id"] != DBNull.Value ? Convert.ToInt32(reader["ctenant_id"]) : 0,
+                                capi_method = reader["capi_method"] != DBNull.Value ? reader["capi_method"].ToString() : null,
+                                capi_type = reader["capi_type"] != DBNull.Value ? reader["capi_type"].ToString() : null,
+                                capi_url = reader["capi_url"] != DBNull.Value ? reader["capi_url"].ToString() : null,
+                                capi_params = reader["capi_params"] != DBNull.Value ? reader["capi_params"].ToString() : null,
+                                capi_headers = reader["capi_headers"] != DBNull.Value ? reader["capi_headers"].ToString() : null,
+                                capi_config = reader["capi_config"] != DBNull.Value ? reader["capi_config"].ToString() : null,
+                                capi_settings = reader["capi_settings"] != DBNull.Value ? reader["capi_settings"].ToString() : null,
+                                cbody = reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null,
+                                cname = reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
+                                nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
+                                ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
+                                lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
+                                cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
+                                lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                capi_response = reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
+                            });
+                        }
+                    }
+                }
+            }
+
+            return timelineList;
+        }
+
     }
 }
