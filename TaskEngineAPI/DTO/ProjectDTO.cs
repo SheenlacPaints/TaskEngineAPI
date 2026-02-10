@@ -46,6 +46,7 @@ namespace TaskEngineAPI.DTO
         public string? Status { get; set; }
         public string? Attachments { get; set; }
         public DateTime? expecteddate { get; set; }
+        public string? VersionCal { get; set; }
         public List<ProjectDetailResponse> project_Details { get; set; } = new List<ProjectDetailResponse>();
 
 

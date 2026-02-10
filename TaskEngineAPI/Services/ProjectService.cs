@@ -55,7 +55,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@AssignedManagerId", (object?)model.AssignedManagerId ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ProjectName", (object?)model.ProjectName ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@Description", (object?)model.Description ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Status", "Pending");
+                            cmd.Parameters.AddWithValue("@Status", "Approval");
                             cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
                             cmd.Parameters.AddWithValue("@ProjectType", (object?)model.ProjectType ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@expecteddate", (object?)model.expecteddate ?? DBNull.Value);
@@ -116,6 +116,7 @@ namespace TaskEngineAPI.Services
                                     Status = sdr.IsDBNull(sdr.GetOrdinal("Status")) ? string.Empty : Convert.ToString(sdr["Status"]),
                                     Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
                                     ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
+                                    VersionCal = sdr.IsDBNull(sdr.GetOrdinal("version_cal")) ? string.Empty : Convert.ToString(sdr["version_cal"]),
                                     expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
                                     project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
                                                  ? new List<ProjectDetailResponse>()
@@ -185,7 +186,10 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> InsertProjectDetails(List<ProjectDetailRequest> requests, int tenantId, string username)
+        public async Task<bool> InsertProjectDetails(
+     List<ProjectDetailRequest> requests,
+     int tenantId,
+     string username)
         {
             try
             {
@@ -195,44 +199,49 @@ namespace TaskEngineAPI.Services
                 using var conn = new SqlConnection(_config.GetConnectionString("Database"));
                 await conn.OpenAsync();
 
-                string query = @"
-INSERT INTO Tbl_Project_detail
-(header_id, Detail_id, module, projectDescription, Resources,
- No_of_Resources, Slavalue, Slaunit, version, Remarks, Status1,created_date, modified_Date)
-VALUES
-(@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
- @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks,@Status1, GETDATE(), GETDATE());";
+                string insertDetailQuery = @"
+                    INSERT INTO Tbl_Project_detail
+                    (header_id, Detail_id, module, projectDescription, Resources,
+                     No_of_Resources, Slavalue, Slaunit, version, Remarks, Status1,
+                     created_date, modified_Date)
+                    VALUES
+                    (@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
+                     @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks,
+                     @Status1, GETDATE(), GETDATE());";
+                    
+                string updateMasterQuery = @"
+                    UPDATE Tbl_Project_Master
+                    SET Status = 'Pending',
+                        ModifiedDate = GETDATE()
+                    WHERE ID = @HeaderId;";
 
                 foreach (var r in requests)
                 {
                     ValidateProjectDetail(r);
 
-                    using var cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@HeaderId", r.header_id);
-                    cmd.Parameters.AddWithValue("@DetailId", r.Detail_id);
-                    cmd.Parameters.AddWithValue("@Module", r.module);
-                    cmd.Parameters.AddWithValue("@ProjectDescription", r.projectDescription);
-                    cmd.Parameters.AddWithValue("@Resources", r.Resources);
-                    cmd.Parameters.AddWithValue("@NoOfResources", r.No_of_Resources);
-                    cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
-                    cmd.Parameters.AddWithValue("@Status1", "Pending");
-                    cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit);
-                    cmd.Parameters.AddWithValue("@Version", r.Version);
-                    cmd.Parameters.AddWithValue("@Remarks",
-                        string.IsNullOrWhiteSpace(r.Remarks) ? (object)DBNull.Value : r.Remarks);
-
-                    // await cmd.ExecuteNonQueryAsync();
-
-                    using var reader = await cmd.ExecuteReaderAsync();
-                    if (await reader.ReadAsync())
+                    using (var cmd = new SqlCommand(insertDetailQuery, conn))
                     {
-                        var id = reader.GetInt32(0);
-                        var createdDate = reader.GetDateTime(1);
-                        var modifiedDate = reader.GetDateTime(2);
+                        cmd.Parameters.AddWithValue("@HeaderId", r.header_id);
+                        cmd.Parameters.AddWithValue("@DetailId", r.Detail_id);
+                        cmd.Parameters.AddWithValue("@Module", r.module);
+                        cmd.Parameters.AddWithValue("@ProjectDescription", r.projectDescription);
+                        cmd.Parameters.AddWithValue("@Resources", r.Resources);
+                        cmd.Parameters.AddWithValue("@NoOfResources", r.No_of_Resources);
+                        cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
+                        cmd.Parameters.AddWithValue("@Status1", "Pending");
+                        cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit);
+                        cmd.Parameters.AddWithValue("@Version", r.Version);
+                        cmd.Parameters.AddWithValue("@Remarks",
+                            string.IsNullOrWhiteSpace(r.Remarks) ? (object)DBNull.Value : r.Remarks);
 
+                        await cmd.ExecuteNonQueryAsync();
                     }
-                    reader.Close();
 
+                    using (var cmd = new SqlCommand(updateMasterQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@HeaderId", r.header_id);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
                 }
 
                 return true;
@@ -485,7 +494,7 @@ VALUES
                         (HeaderId, Description, createdBy, Status, expecteddate, Version, createdDate)
                         OUTPUT INSERTED.Id
                         VALUES
-                        (@ProjectId, @Description, @Username, 'Pending', @ExpectedDate, @Version, GETDATE());";
+                        (@ProjectId, @Description, @Username, 'Approval', @ExpectedDate, @Version, GETDATE());";
 
                             SqlCommand insertVersionCmd = new SqlCommand(insertVersionQuery, conn, transaction);
                             insertVersionCmd.Parameters.AddWithValue("@Username", username);
