@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.Json;
 using System.Security.Claims;
 using TaskEngineAPI.Services;
+using Minio.Exceptions;
+using Azure;
 
 namespace TaskEngineAPI.WebSockets;
 
@@ -129,7 +131,29 @@ public class ProjectSocketHandler
                 var response = await ProcessMessageAsync(message, tenantId, userId);
                 await SendMessageAsync(webSocket, response);
             }
-            catch { break; }
+            //catch { break; }
+            catch (Exception ex)
+            {
+                try
+                {
+                    var errorResponse = JsonSerializer.Serialize(new
+                    {
+                        success = false,
+                        error = "Processing error",
+                        message = ex.Message,  // Include error details
+                        timestamp = DateTime.UtcNow
+                    });
+                    await SendMessageAsync(webSocket, errorResponse);
+                }
+                catch
+                {
+                    break; // Only break if send fails
+                }
+
+            }
+
+           
+
         }
     }
 
