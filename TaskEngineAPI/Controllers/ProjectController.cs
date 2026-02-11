@@ -183,7 +183,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Getprojectmaster")]
-        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, string? type = null, int page = 1, int pageSize = 50)
+        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, string? type = null, int page = 1, int pageSize = 50, int? projectid = 0 ,string? versionid = null)
         {
             try
             {
@@ -194,7 +194,7 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize);
+                var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize, projectid, versionid);
 
                 var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
                 if (response == null)

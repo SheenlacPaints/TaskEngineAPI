@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Net.Mail;
@@ -73,7 +74,7 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
-        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50)
+        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid =0 , string? versionid =null)
         {
             List<GetProjectList> tsk = new List<GetProjectList>();
             int totalCount = 0;
@@ -94,6 +95,8 @@ namespace TaskEngineAPI.Services
                         cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@PageNo", page);
                         cmd.Parameters.AddWithValue("@PageSize", pageSize);
+                        cmd.Parameters.AddWithValue("@projectid", projectid ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@versionid", versionid ?? (object)DBNull.Value);
 
                         await con.OpenAsync();
 
