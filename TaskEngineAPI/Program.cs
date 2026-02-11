@@ -160,8 +160,9 @@ builder.Services.AddCors(options =>
                 "https://localhost:7257",
                 "https://devvendor.sheenlac.com",
                 "https://devportal.sheenlac.com",
-                "https://devtaskflow.sheenlac.com"
-
+                "https://devtaskflow.sheenlac.com",
+                "https://misapi.sheenlac.com",
+                "https://devmisapi.sheenlac.com"
             )
 
             .AllowAnyHeader()
