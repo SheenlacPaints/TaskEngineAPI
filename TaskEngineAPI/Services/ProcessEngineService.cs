@@ -1195,7 +1195,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         cpriority_label=@cpriority_label, nshow_timeline=@nshow_timeline,
                         cnotification_type=@cnotification_type, cmodified_by=@cmodified_by,
                         lmodified_date=@lmodified_date, cmeta_id=@cmeta_id, nIs_deleted=@nIs_deleted,
-                        nshow_table=@nshow_table
+                        nshow_table=@nshow_table,nis_metaapi_integration=@nis_metaapi_integration,cmetaapi_id=@cmetaapi_id
                     WHERE ID=@ID;"; 
 
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
@@ -1215,6 +1215,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@cmeta_id", (object?)model.cmetaId ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@nIs_deleted", 0);
                             cmd.Parameters.AddWithValue("@nshow_table", (object?)model.nshow_table ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nis_metaapi_integration", (object?)model.nis_metaapi_integration ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cmetaapi_id", (object?)model.cmetaapi_id ?? DBNull.Value);
                             await cmd.ExecuteNonQueryAsync();
                         }
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
@@ -1343,10 +1345,10 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
                                 cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, 
                                 cis_readonly, cis_disabled, ccreated_by, lcreated_date, cmodified_by, 
-                                lmodified_date, cfield_value,cdata_source) VALUES (
+                                lmodified_date, cfield_value,cdata_source,capi_mapping) VALUES (
                                 @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required,  
                                 @cis_readonly, @cis_disabled, @ccreated_by, @lcreated_date, 
-                                @cmodified_by, @lmodified_date, @cfield_value,@cdata_source);";
+                                @cmodified_by, @lmodified_date, @cfield_value,@cdata_source,@capi_mapping);";
 
                                 foreach (var meta in model.processEngineMeta)
                                 {
@@ -1366,6 +1368,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                         cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                                         cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
                                         cmdMeta.Parameters.AddWithValue("@cdata_source", meta.cdatasource ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@capi_mapping", meta.capi_mapping ?? (object)DBNull.Value);
                                         await cmdMeta.ExecuteNonQueryAsync();
                                     }
                                 }

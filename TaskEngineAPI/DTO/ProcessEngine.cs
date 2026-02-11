@@ -57,6 +57,8 @@ namespace TaskEngineAPI.DTO
         public int? cmetaId { get; set; }
         public string? cmetaName { get; set; }
         public bool? nshow_table { get; set; }
+        public bool? nis_metaapi_integration { get; set; }
+        public int? cmetaapi_id { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }
 
