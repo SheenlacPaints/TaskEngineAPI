@@ -45,8 +45,8 @@ namespace TaskEngineAPI.Services
                     {
                         string queryMaster = @"
                     INSERT INTO Tbl_Project_Master (ClientTenantId,RaisedByUserId,AssignedManagerId,ProjectName,ProjectType,Description,
-                     CreatedDate,Status,expecteddate) VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType, @Description, 
-                     @CreatedDate, @Status,@expecteddate);SELECT SCOPE_IDENTITY();";
+                     CreatedDate,Status,expecteddate,Version) VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType, @Description, 
+                     @CreatedDate, @Status,@expecteddate,@Version);SELECT SCOPE_IDENTITY();";
 
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
@@ -58,6 +58,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@Description", (object?)model.Description ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@Status", "Approval");
                             cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@Version", 1);
                             cmd.Parameters.AddWithValue("@ProjectType", (object?)model.ProjectType ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@expecteddate", (object?)model.expecteddate ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
