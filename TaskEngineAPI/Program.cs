@@ -12,6 +12,7 @@ using TaskEngineAPI.Services;
 using Serilog;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.WebSockets;
+using static System.Net.WebRequestMethods;
 
 
 
@@ -162,11 +163,17 @@ builder.Services.AddCors(options =>
                 "https://devportal.sheenlac.com",
                 "https://devtaskflow.sheenlac.com",
                 "https://misapi.sheenlac.com",
-                "https://devmisapi.sheenlac.com"
+                "https://devmisapi.sheenlac.com",
+                "https://misapi.sheenlac.com",
+                "https://devmisapi.sheenlac.com",
+                "https://misapi.sheenlac.com/api",
+                "https://misdevapi.sheenlac.com",
+                "https://devtaskengineapi.sheenlac.com"
             )
 
             .AllowAnyHeader()
             .AllowAnyMethod();
+           
         });
 });
 //builder.Services.AddCors(options =>
