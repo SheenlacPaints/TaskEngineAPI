@@ -112,6 +112,19 @@ namespace TaskEngineAPI.Services
                                 return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
                             };
                         }
+                        else if (type == "Emp_Approve")
+                        {
+                            var ds = new DataSet();
+                            var adapter = new SqlDataAdapter(cmd);
+                            await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                            if (ds.Tables.Count > 0)
+                            {
+                                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                            }
+                            ;
+                        }
+
                         else
                         {
                             using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
@@ -134,6 +147,8 @@ namespace TaskEngineAPI.Services
                                         Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
                                         ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
                                         VersionCal = sdr.IsDBNull(sdr.GetOrdinal("version_cal")) ? string.Empty : Convert.ToString(sdr["version_cal"]),
+                                        Capproved_by = sdr.IsDBNull(sdr.GetOrdinal("Capproved_by")) ? string.Empty : Convert.ToString(sdr["Capproved_by"]),
+                                        Capproved_date = sdr.IsDBNull(sdr.GetOrdinal("Capproved_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("Capproved_date")),
                                         TotalBudgetPerVersion = sdr.IsDBNull(sdr.GetOrdinal("TotalBudgetPerVersion")) ? string.Empty : Convert.ToString(sdr["TotalBudgetPerVersion"]),
                                         expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
                                         project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
