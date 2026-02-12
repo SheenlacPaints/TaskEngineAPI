@@ -74,10 +74,10 @@ namespace TaskEngineAPI.Services
                         string queryMaster = @"
                     INSERT INTO tbl_taskflow_master (
                         itaskno, ctenant_id, ctask_type, ctask_name, ctask_description, cstatus,  
-                        lcreated_date, ccreated_by, cmodified_by, lmodified_date, cprocess_id,cremarks
+                        lcreated_date, ccreated_by, cmodified_by, lmodified_date, cprocess_id,cremarks,cmeta_response
                     ) VALUES (
                         @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
-                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cprocess_id,@cremarks
+                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cprocess_id,@cremarks,@cmeta_response
                     );
                     SELECT SCOPE_IDENTITY();";
 
@@ -95,6 +95,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cremarks", (object?)model.cremarks ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
@@ -1797,7 +1798,7 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,e.cprofile_image_name,
                     c.cmeta_id,
                     a.itaskno,
-                    a.cremarks,b.cattachment
+                    a.cremarks,b.cattachment,a.cmeta_response
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -1844,6 +1845,7 @@ namespace TaskEngineAPI.Services
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     cremarks = reader["cremarks"]?.ToString() ?? "",
                                     cattachment = reader["cattachment"]?.ToString() ?? "",
+                                    cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
