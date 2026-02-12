@@ -76,7 +76,7 @@ namespace TaskEngineAPI.Controllers
       
         [HttpPost]
         [Route("EncryptInputint")]
-        public ActionResult<string> EncryptInputint(ProcessEngineDTO UpdateAdminDTO)
+        public ActionResult<string> EncryptInputint(CreateProjectDTO UpdateAdminDTO)
         {
             string json = JsonConvert.SerializeObject(UpdateAdminDTO);
             string encrypted = Encrypt(json);
