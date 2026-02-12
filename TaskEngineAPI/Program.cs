@@ -167,8 +167,7 @@ builder.Services.AddCors(options =>
                 "https://misapi.sheenlac.com",
                 "https://devmisapi.sheenlac.com",
                 "https://misapi.sheenlac.com/api",
-                "https://misdevapi.sheenlac.com",
-                "https://devtaskengineapi.sheenlac.com"
+                "https://misdevapi.sheenlac.com"
             )
 
             .AllowAnyHeader()
