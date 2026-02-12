@@ -47,6 +47,8 @@ namespace TaskEngineAPI.DTO
         public DateTime? expecteddate { get; set; }
         public string? TotalBudgetPerVersion { get; set; }
         public string? VersionCal { get; set; }
+        public DateTime? Capproved_date { get; set; }
+        public string? Capproved_by {  get; set; }
         public List<ProjectDetailResponse> project_Details { get; set; } = new List<ProjectDetailResponse>();
     }
 
