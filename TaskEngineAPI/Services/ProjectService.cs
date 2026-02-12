@@ -99,40 +99,54 @@ namespace TaskEngineAPI.Services
                         cmd.Parameters.AddWithValue("@versionid", versionid ?? (object)DBNull.Value);
 
                         await con.OpenAsync();
-
-                        using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                        if (type == "Client_Approve")
                         {
-                            while (await sdr.ReadAsync())
-                            {
-                                string projectDetailsJson = sdr.IsDBNull(sdr.GetOrdinal("project_Details"))
-                                                   ? null
-                                                   : sdr.GetString(sdr.GetOrdinal("project_Details"));
-                                GetProjectList p = new GetProjectList
-                                {
-                                    ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
-                                    ClientTenantId = sdr.IsDBNull(sdr.GetOrdinal("ClientTenantId")) ? 0 : Convert.ToInt32(sdr["ClientTenantId"]),
-                                    RaisedByUserId = sdr.IsDBNull(sdr.GetOrdinal("RaisedByUserId")) ? 0 : Convert.ToInt32(sdr["RaisedByUserId"]),
-                                    AssignedManagerId = sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerId")) ? 0 : Convert.ToInt32(sdr["AssignedManagerId"]),
-                                    ProjectName = sdr.IsDBNull(sdr.GetOrdinal("ProjectName")) ? string.Empty : Convert.ToString(sdr["ProjectName"]),
-                                    Description = sdr.IsDBNull(sdr.GetOrdinal("Description")) ? string.Empty : Convert.ToString(sdr["Description"]),
-                                    CreatedDate = sdr.IsDBNull(sdr.GetOrdinal("CreatedDate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("CreatedDate")),
-                                    Status = sdr.IsDBNull(sdr.GetOrdinal("Status")) ? string.Empty : Convert.ToString(sdr["Status"]),
-                                    Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
-                                    ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
-                                    VersionCal = sdr.IsDBNull(sdr.GetOrdinal("version_cal")) ? string.Empty : Convert.ToString(sdr["version_cal"]),
-                                    expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
-                                    project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
-                                                 ? new List<ProjectDetailResponse>()
-                                                 : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)
-                                };
-                                tsk.Add(p);
-                            }
+                            var ds = new DataSet();
+                            var adapter = new SqlDataAdapter(cmd);
+                            await Task.Run(() => adapter.Fill(ds)); // async wrapper
 
-                            if (await sdr.NextResultAsync())
+                            if (ds.Tables.Count > 0)
                             {
-                                if (await sdr.ReadAsync())
+                                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                            };
+                        }
+                        else
+                        {
+                            using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                            {
+                                while (await sdr.ReadAsync())
                                 {
-                                    totalCount = sdr.IsDBNull(0) ? 0 : Convert.ToInt32(sdr[0]);
+                                    string projectDetailsJson = sdr.IsDBNull(sdr.GetOrdinal("project_Details"))
+                                                       ? null
+                                                       : sdr.GetString(sdr.GetOrdinal("project_Details"));
+                                    GetProjectList p = new GetProjectList
+                                    {
+                                        ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                        ClientTenantId = sdr.IsDBNull(sdr.GetOrdinal("ClientTenantId")) ? 0 : Convert.ToInt32(sdr["ClientTenantId"]),
+                                        RaisedByUserId = sdr.IsDBNull(sdr.GetOrdinal("RaisedByUserId")) ? 0 : Convert.ToInt32(sdr["RaisedByUserId"]),
+                                        AssignedManagerId = sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerId")) ? 0 : Convert.ToInt32(sdr["AssignedManagerId"]),
+                                        ProjectName = sdr.IsDBNull(sdr.GetOrdinal("ProjectName")) ? string.Empty : Convert.ToString(sdr["ProjectName"]),
+                                        Description = sdr.IsDBNull(sdr.GetOrdinal("Description")) ? string.Empty : Convert.ToString(sdr["Description"]),
+                                        CreatedDate = sdr.IsDBNull(sdr.GetOrdinal("CreatedDate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("CreatedDate")),
+                                        Status = sdr.IsDBNull(sdr.GetOrdinal("Status")) ? string.Empty : Convert.ToString(sdr["Status"]),
+                                        Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
+                                        ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
+                                        VersionCal = sdr.IsDBNull(sdr.GetOrdinal("version_cal")) ? string.Empty : Convert.ToString(sdr["version_cal"]),
+                                        TotalBudgetPerVersion = sdr.IsDBNull(sdr.GetOrdinal("TotalBudgetPerVersion")) ? string.Empty : Convert.ToString(sdr["TotalBudgetPerVersion"]),
+                                        expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
+                                        project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
+                                                     ? new List<ProjectDetailResponse>()
+                                                     : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)
+                                    };
+                                    tsk.Add(p);
+                                }
+
+                                if (await sdr.NextResultAsync())
+                                {
+                                    if (await sdr.ReadAsync())
+                                    {
+                                        totalCount = sdr.IsDBNull(0) ? 0 : Convert.ToInt32(sdr[0]);
+                                    }
                                 }
                             }
                         }
@@ -465,65 +479,76 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<int> CreateProjectVersionAsync(int projectId, string description, DateTime? expectedDate, string username)
+        public async Task<int> CreateProjectVersionAsync(
+            int projectId,
+            string description,
+            DateTime? expectedDate,
+            string username)
         {
-            try
+            var connectionString = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                var connectionString = _config.GetConnectionString("Database");
+                await conn.OpenAsync();
 
-                using (SqlConnection conn = new SqlConnection(connectionString))
+                using (SqlTransaction transaction = conn.BeginTransaction())
                 {
-                    await conn.OpenAsync();
-
-                    using (SqlTransaction transaction = conn.BeginTransaction())
+                    try
                     {
-                        try
-                        {
-                            string getVersionQuery = @"
-                        DECLARE @NextVersion INT = ISNULL(
-                            (SELECT MAX(Version) FROM tbl_Project_Version_Details WHERE HeaderId = @ProjectId), 
-                            1
-                        ) + 1;
-                        
-                        SELECT @NextVersion;";
+                        string getVersionQuery = @"
+                    DECLARE @NextVersion INT = ISNULL(
+                        (SELECT MAX(Version) 
+                         FROM tbl_Project_Version_Details 
+                         WHERE HeaderId = @ProjectId), 
+                        1
+                    ) + 1;
+                    
+                    SELECT @NextVersion;";
 
-                            SqlCommand getVersionCmd = new SqlCommand(getVersionQuery, conn, transaction);
-                            getVersionCmd.Parameters.AddWithValue("@ProjectId", projectId);
+                        SqlCommand getVersionCmd = new SqlCommand(getVersionQuery, conn, transaction);
+                        getVersionCmd.Parameters.AddWithValue("@ProjectId", projectId);
 
-                            object versionResult = await getVersionCmd.ExecuteScalarAsync();
-                            int nextVersion = versionResult != null ? Convert.ToInt32(versionResult) : 1;
-                            string insertVersionQuery = @"
-                        INSERT INTO tbl_Project_Version_Details
-                        (HeaderId, Description, createdBy, Status, expecteddate, Version, createdDate)
-                        OUTPUT INSERTED.Id
-                        VALUES
-                        (@ProjectId, @Description, @Username, 'Approval', @ExpectedDate, @Version, GETDATE());";
+                        object versionResult = await getVersionCmd.ExecuteScalarAsync();
+                        int nextVersion = versionResult != null ? Convert.ToInt32(versionResult) : 1;
 
-                            SqlCommand insertVersionCmd = new SqlCommand(insertVersionQuery, conn, transaction);
-                            insertVersionCmd.Parameters.AddWithValue("@Username", username);
-                            insertVersionCmd.Parameters.AddWithValue("@ProjectId", projectId);
-                            insertVersionCmd.Parameters.AddWithValue("@Description",
-                                string.IsNullOrEmpty(description) ? (object)DBNull.Value : description);
-                            insertVersionCmd.Parameters.AddWithValue("@ExpectedDate",
-                                expectedDate.HasValue ? (object)expectedDate.Value : DBNull.Value);
-                            insertVersionCmd.Parameters.AddWithValue("@Version", nextVersion);
+                        string insertVersionQuery = @"
+                    INSERT INTO tbl_Project_Version_Details
+                    (HeaderId, Description, createdBy, Status, expecteddate, Version, createdDate)
+                    OUTPUT INSERTED.Id
+                    VALUES
+                    (@ProjectId, @Description, @Username, 'Approval', @ExpectedDate, @Version, GETDATE());";
 
-                            int versionDetailId = Convert.ToInt32(await insertVersionCmd.ExecuteScalarAsync());
+                        SqlCommand insertVersionCmd = new SqlCommand(insertVersionQuery, conn, transaction);
+                        insertVersionCmd.Parameters.AddWithValue("@ProjectId", projectId);
+                        insertVersionCmd.Parameters.AddWithValue("@Username", username);
+                        insertVersionCmd.Parameters.AddWithValue("@Description",
+                            string.IsNullOrEmpty(description) ? (object)DBNull.Value : description);
+                        insertVersionCmd.Parameters.AddWithValue("@ExpectedDate",
+                            expectedDate.HasValue ? (object)expectedDate.Value : DBNull.Value);
+                        insertVersionCmd.Parameters.AddWithValue("@Version", nextVersion);
 
-                            transaction.Commit();
-                            return versionDetailId;
-                        }
-                        catch (Exception ex)
-                        {
-                            transaction.Rollback();
-                            throw new Exception($"Error creating project version: {ex.Message}");
-                        }
+                        int versionDetailId = Convert.ToInt32(await insertVersionCmd.ExecuteScalarAsync());
+
+                        string updateMasterQuery = @"
+                    UPDATE Tbl_Project_Master
+                    SET Status = 'Approval',
+                        modifiedDate = GETDATE()
+                    WHERE Id = @ProjectId;";
+
+                        SqlCommand updateMasterCmd = new SqlCommand(updateMasterQuery, conn, transaction);
+                        updateMasterCmd.Parameters.AddWithValue("@ProjectId", projectId);
+
+                        await updateMasterCmd.ExecuteNonQueryAsync();
+
+                        transaction.Commit();
+                        return versionDetailId;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        throw new Exception($"Error creating project version: {ex.Message}");
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error creating project version: {ex.Message}");
             }
         }
     }

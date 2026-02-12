@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Data.SqlClient;
 using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.InteropServices.JavaScript;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
@@ -195,19 +197,31 @@ namespace TaskEngineAPI.Controllers
                 var (cTenantID, username) = GetUserInfoFromToken();
 
                 var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize, projectid, versionid);
-
-                var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
-                if (response == null)
+                if (type == "Client_Approve")
                 {
-                    return CreateEncryptedResponse(500, "Invalid response format from service");
-                }
+                    var response1 = JsonConvert.DeserializeObject<List<ClientApprove>>(json);
+                    if (response1 == null)
+                    {
+                        return CreateEncryptedResponse(500, "Invalid response format from service");
+                    }
 
-                if (response.TotalCount == 0)
+                    return CreatedSuccessResponse(response1);
+                }
+                else
                 {
-                    return CreateEncryptedResponse(404, "No tasks found");
-                }
+                    var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
+                    if (response == null)
+                    {
+                        return CreateEncryptedResponse(500, "Invalid response format from service");
+                    }
 
-                return CreatedSuccessResponse(response);
+                    if (response.TotalCount == 0)
+                    {
+                        return CreateEncryptedResponse(404, "No tasks found");
+                    }
+
+                    return CreatedSuccessResponse(response);
+                }     
             }
             catch (UnauthorizedAccessException ex)
             {
