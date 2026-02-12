@@ -51,7 +51,7 @@ namespace TaskEngineAPI.Interfaces
 
         Task<bool> RejectwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
 
-
+        Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username);
     }
 
 }

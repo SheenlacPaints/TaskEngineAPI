@@ -469,6 +469,12 @@ public class TaskInboxResponse
     public List<GetTaskList> Data { get; set; }
 }
 
+public class APIFetchDTO
+{
+    public int? APIID { get; set; }
+    public string? Payload { get; set; }
+    public string? apimethod { get; set; }
+}
 
 
 

@@ -4641,7 +4641,34 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        
+        public async Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_fetch_API_intergration", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@cTenantID", cTenantID);
+                    cmd.Parameters.AddWithValue("@APIID", model.APIID);
+                    cmd.Parameters.AddWithValue("@payload", model.Payload);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); 
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
 
     }
 }
