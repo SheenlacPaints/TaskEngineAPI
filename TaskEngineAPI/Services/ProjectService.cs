@@ -99,6 +99,7 @@ namespace TaskEngineAPI.Services
                         cmd.Parameters.AddWithValue("@projectid", projectid ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@versionid", versionid ?? (object)DBNull.Value);
 
+
                         await con.OpenAsync();
                         if (type == "Client_Approve")
                         {
