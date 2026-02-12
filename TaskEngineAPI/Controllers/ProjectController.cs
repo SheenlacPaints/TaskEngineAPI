@@ -181,7 +181,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpGet]
         [Route("Getprojectmaster")]
