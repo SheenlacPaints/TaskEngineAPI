@@ -2995,6 +2995,10 @@ namespace TaskEngineAPI.Controllers
                     queryParams.Add($"type={Uri.EscapeDataString(type)}");
                 queryParams.Add($"page={page}");
                 queryParams.Add($"pageSize={pageSize}");
+                if (projectid.HasValue && projectid.Value > 0)
+                    queryParams.Add($"projectid={projectid.Value}");
+                if (!string.IsNullOrWhiteSpace(versionid))
+                    queryParams.Add($"versionid={Uri.EscapeDataString(versionid)}");
                 var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";            
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/Project/Getprojectmaster{queryString}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
