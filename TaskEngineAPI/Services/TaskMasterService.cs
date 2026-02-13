@@ -3926,7 +3926,7 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno,b.cremarks as Remarks,a.cremarks as TaskRemarks,b.creassign_to as ReassignedTo ,b.lreassign_date as ReassignedDate,
-					    ru.cfirst_name + ' ' + ru.clast_name AS ReassignedUsername
+					    ru.cfirst_name + ' ' + ru.clast_name AS ReassignedUsername,a.cmeta_response
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -3978,6 +3978,7 @@ namespace TaskEngineAPI.Services
                                     TaskRemarks = reader["TaskRemarks"]?.ToString() ?? "",
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()

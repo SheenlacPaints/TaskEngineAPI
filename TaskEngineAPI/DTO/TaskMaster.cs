@@ -287,6 +287,8 @@ namespace TaskEngineAPI.DTO
         public string? Remarks { get; set; }
         public string? ReassignedUsername { get; set; }
 
+        public string? cmeta_response { get; set; }
+
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
