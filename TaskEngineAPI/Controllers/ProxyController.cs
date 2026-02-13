@@ -2981,7 +2981,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Getprojectmaster")]
-        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? projectid = 0, [FromQuery] string? versionid = null)
+        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, [FromQuery]string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? projectid = 0, [FromQuery] string? versionid = null)
         {
             try
             {            
