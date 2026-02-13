@@ -167,7 +167,8 @@ builder.Services.AddCors(options =>
                 "https://misapi.sheenlac.com",
                 "https://devmisapi.sheenlac.com",
                 "https://misapi.sheenlac.com/api",
-                "https://misdevapi.sheenlac.com"
+                "https://misdevapi.sheenlac.com",
+                "https://progovex.sheenlac.com"
             )
 
             .AllowAnyHeader()
@@ -190,8 +191,8 @@ var app = builder.Build();
 app.UseSerilogRequestLogging();
 
 
-//app.UseSwagger();
-//app.UseSwaggerUI();
+app.UseSwagger();
+app.UseSwaggerUI();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
