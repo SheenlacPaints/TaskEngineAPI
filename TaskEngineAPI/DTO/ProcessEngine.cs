@@ -285,6 +285,7 @@ namespace TaskEngineAPI.DTO
         public string? cprocessdescription { get; set; }
 
         public string? cremarks { get; set; }
+        public string? cmeta_response { get; set; }
 
         //public string? privilege_name { get; set; }
         public List<GetTaskDetails>? TaskChildItems { get; set; }
