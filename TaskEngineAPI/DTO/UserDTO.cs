@@ -96,7 +96,7 @@ namespace TaskEngineAPI.DTO
         public string? clastName { get; set; }
         public string cphoneno { get; set; }
         public string? cAlternatePhone { get; set; }
-        public DateTime? ldob { get; set; }
+        public string? ldob { get; set; }
         public string? cMaritalStatus { get; set; }
         public string? cnation { get; set; }
         public string? cgender { get; set; }
@@ -112,7 +112,7 @@ namespace TaskEngineAPI.DTO
         public string? caccountNumber { get; set; }
         public string? ciFSCCode { get; set; } 
         public string? cpAN { get; set; }
-        public DateTime? ldoj { get; set; }
+        public string? ldoj { get; set; }
         public string? cemploymentStatus { get; set; }
         public string? cempcategory { get; set; }
         public int? croleID { get; set; }
@@ -380,6 +380,7 @@ namespace TaskEngineAPI.DTO
         public string? capi_headers { get; set; }
         public string? capi_config { get; set; }
         public string? capi_settings { get; set; }
+        public string? capi_response { get; set; }
         public string? sync_type { get; set; }
         public string? cbody { get; set; }
         public string? cname { get; set; }
@@ -401,8 +402,10 @@ namespace TaskEngineAPI.DTO
         public string? capi_settings { get; set; }
         public string? cbody { get; set; }
         public string? cname { get; set; }
-        
+        public string? capi_response { get; set; }
         public bool? nis_active { get; set; }
+
+
     }
 
     public class GetAPISyncConfigByIDDTO
@@ -416,6 +419,7 @@ namespace TaskEngineAPI.DTO
         public string? capi_headers { get; set; }
         public string? capi_config { get; set; }
         public string? capi_settings { get; set; }
+        public string? capi_response { get; set; }
         public string? cbody { get; set; }
         public string? cname { get; set; }
         public bool? nis_active { get; set; }
@@ -435,6 +439,7 @@ namespace TaskEngineAPI.DTO
         public string? capi_headers { get; set; }
         public string? capi_config { get; set; }
         public string? capi_settings { get; set; }
+        public string? capi_response { get; set; }
         public string? cbody { get; set; }
         public bool? nis_active { get; set; }
     }

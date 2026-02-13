@@ -16,6 +16,7 @@ namespace TaskEngineAPI.DTO
         public string? ctask_description { get; set; }
         public int? cprocess_id { get; set; }
         public string? cremarks { get; set; }
+        public string? cmeta_response { get; set; }
         public List<metaData> metaData { get; set; }
     }
     public class metaData
@@ -130,6 +131,8 @@ namespace TaskEngineAPI.DTO
         public string? cattachment { get; set; }
         public bool? showTimeline { get; set; }
         public string? cremarks { get; set; }
+
+        public string? cmeta_response { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
@@ -169,6 +172,8 @@ namespace TaskEngineAPI.DTO
         public string? taskinitiatedbyname { get; set; }
 
         public bool? showTimeline { get; set; }
+        public string? cmeta_response { get; set; }
+        
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
@@ -205,6 +210,7 @@ namespace TaskEngineAPI.DTO
         public string? HoldRemarks { get; set; }
         public string? Remarks { get; set; }
         public bool? showTimeline { get; set; }
+        public string? cmeta_response { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
@@ -280,6 +286,8 @@ namespace TaskEngineAPI.DTO
         public string? ReassignedTo { get; set; }
         public string? Remarks { get; set; }
         public string? ReassignedUsername { get; set; }
+
+        public string? cmeta_response { get; set; }
 
         public List<TimelineDTO>? timeline { get; set; }
 
@@ -469,6 +477,12 @@ public class TaskInboxResponse
     public List<GetTaskList> Data { get; set; }
 }
 
+public class APIFetchDTO
+{
+    public int? APIID { get; set; }
+    public string? Payload { get; set; }
+    public string? apimethod { get; set; }
+}
 
 
 

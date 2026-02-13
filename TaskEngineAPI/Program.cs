@@ -12,6 +12,7 @@ using TaskEngineAPI.Services;
 using Serilog;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.WebSockets;
+using static System.Net.WebRequestMethods;
 
 
 
@@ -38,8 +39,9 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = null; // Keeps PascalCase
+        options.JsonSerializerOptions.DefaultIgnoreCondition =
+            System.Text.Json.Serialization.JsonIgnoreCondition.Never;
     });
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -160,12 +162,17 @@ builder.Services.AddCors(options =>
                 "https://devvendor.sheenlac.com",
                 "https://devportal.sheenlac.com",
                 "https://devtaskflow.sheenlac.com",
-                "https://progovex.sheenlac.com"
-
+                "https://misapi.sheenlac.com",
+                "https://devmisapi.sheenlac.com",
+                "https://misapi.sheenlac.com",
+                "https://devmisapi.sheenlac.com",
+                "https://misapi.sheenlac.com/api",
+                "https://misdevapi.sheenlac.com"
             )
 
             .AllowAnyHeader()
             .AllowAnyMethod();
+           
         });
 });
 //builder.Services.AddCors(options =>

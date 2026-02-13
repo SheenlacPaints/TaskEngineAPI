@@ -66,7 +66,7 @@ namespace TaskEngineAPI.Controllers
 
         [HttpPost]
         [Route("EncryptInput")]
-        public ActionResult<string> EncryptInput([FromBody] AnalyticalDTO user)
+        public ActionResult<string> EncryptInput([FromBody] TaskMasterDTO user)
         {
             string json = JsonConvert.SerializeObject(user);
             string encrypted = Encrypt(json);
@@ -193,8 +193,38 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        private (int cTenantID, string username,string? email,string? avatar, string? type) GetUserInfoFromToken()
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            var emailClaim= jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "email")?.Value;
+            var AvatorClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "avatar")?.Value;
+            var typeClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "type")?.Value;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+            }
+
+            return (cTenantID, usernameClaim, emailClaim, AvatorClaim,typeClaim);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetAllProcesstypeTest")]
+        public async Task<IActionResult> GetAllProcesstypeTest()
+        {
+           
+                var (cTenantID,username,email,avator,type) = GetUserInfoFromToken();
+
+            return Ok(new { cTenantID, username, email, avator,type });
 
 
+        }
 
     }
 }

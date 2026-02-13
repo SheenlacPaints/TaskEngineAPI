@@ -147,8 +147,9 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(400, encrypted);
                 }
 
-                var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);
-                var refreshToken = _jwtService.GenerateRefreshToken();
+                var accessToken = _jwtService.GenerateJwtToken(User.userName,email, useravatar, type, tenantIdInt, out var tokenExpiry);
+
+               var refreshToken = _jwtService.GenerateRefreshToken();
                 var refreshExpiry = DateTime.Now.AddDays(1);
 
                 var saved = await _jwtService.SaveRefreshTokenToDatabase(User.userName, refreshToken, refreshExpiry);
@@ -277,7 +278,7 @@ namespace TaskEngineAPI.Controllers
                         return BadRequest(Objresponse);
                     }
 
-                    var accessToken = _jwtService.GenerateJwtToken(User.userName, tenantIdInt, out var tokenExpiry);
+                    var accessToken = _jwtService.GenerateJwtToken(User.userName, email, email, email, tenantIdInt, out var tokenExpiry);
                     var refreshToken = _jwtService.GenerateRefreshToken();
                     var refreshExpiry = DateTime.Now.AddDays(1);
 
@@ -1308,7 +1309,7 @@ namespace TaskEngineAPI.Controllers
                         }
 
                         // Generate JWT token using values from OTP_Validation
-                        var accessToken = _jwtService.GenerateJwtToken(userName, tenantId, out var tokenExpiry);
+                        var accessToken = _jwtService.GenerateJwtToken(userName,"","","", tenantId, out var tokenExpiry);
 
                         tx.Commit();
 
@@ -2026,6 +2027,7 @@ namespace TaskEngineAPI.Controllers
                     {
                         try
                         {
+                            user.cemail = user.cemail.Trim();
                             var addr = new System.Net.Mail.MailAddress(user.cemail);
                             if (addr.Address != user.cemail)
                                 errors.Add("cemail: Invalid email format");
@@ -4172,6 +4174,71 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("GetAPISyncmeta")]
+        public async Task<ActionResult> GetAPISyncmeta([FromQuery] string? searchText = null)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ") .Last();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return EncryptedError(400, "Authorization token is missing");
+                }
+
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+                var tenantIdClaim = jsonToken?.Claims
+                    .SingleOrDefault(c => c.Type == "cTenantID")?.Value;
+
+                if (string.IsNullOrWhiteSpace(tenantIdClaim)
+                    || !int.TryParse(tenantIdClaim, out int cTenantID))
+                {
+                    return EncryptedError(401, "Invalid or missing cTenantID in token.");
+                }
+                if (string.IsNullOrWhiteSpace(tenantIdClaim))
+                {
+                    return EncryptedError(400, "cTenantID claim is missing in token");
+                }
+
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    if (searchText.Length > 200)
+                    {
+                        return EncryptedError(400, "Search text cannot exceed 200 characters");
+                    }
+                }
+           
+                var data = await _AccountService.GetmetaAPISyncConfigAsync(cTenantID, searchText);
+
+                var response = new APIResponse
+                {
+                    body = data?.ToArray() ?? Array.Empty<object>(),
+                    statusText = data == null || !data.Any() ? "No Users found" : "Successful",
+                    status = data == null || !data.Any() ? 400 : 200
+                };
+                string json = JsonConvert.SerializeObject(response);
+                var encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(200, encrypted);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    body = Array.Empty<object>(),
+                    statusText = $"Error: {ex.Message}",
+                    status = 500
+                };
+
+                string json = JsonConvert.SerializeObject(errorResponse);
+                var encrypted = AesEncryption.Encrypt(json);
+
+                return StatusCode(500, encrypted);
+            }
+        }
 
         [Authorize]
         [HttpGet("GetAPISyncConfigByID")]

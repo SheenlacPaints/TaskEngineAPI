@@ -74,10 +74,10 @@ namespace TaskEngineAPI.Services
                         string queryMaster = @"
                     INSERT INTO tbl_taskflow_master (
                         itaskno, ctenant_id, ctask_type, ctask_name, ctask_description, cstatus,  
-                        lcreated_date, ccreated_by, cmodified_by, lmodified_date, cprocess_id,cremarks
+                        lcreated_date, ccreated_by, cmodified_by, lmodified_date, cprocess_id,cremarks,cmeta_response
                     ) VALUES (
                         @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
-                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cprocess_id,@cremarks
+                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cprocess_id,@cremarks,@cmeta_response
                     );
                     SELECT SCOPE_IDENTITY();";
 
@@ -95,6 +95,7 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cremarks", (object?)model.cremarks ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
@@ -1192,6 +1193,7 @@ namespace TaskEngineAPI.Services
                             cprocessname = reader["cprocessname"]?.ToString() ?? "",
                             cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
                             cremarks = reader["cremarks"]?.ToString() ?? "",
+                            cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                             TaskChildItems = new List<GetTaskinitiateDetails>()
                         };
 
@@ -1797,7 +1799,7 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,e.cprofile_image_name,
                     c.cmeta_id,
                     a.itaskno,
-                    a.cremarks,b.cattachment
+                    a.cremarks,b.cattachment,a.cmeta_response
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -1844,6 +1846,7 @@ namespace TaskEngineAPI.Services
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     cremarks = reader["cremarks"]?.ToString() ?? "",
                                     cattachment = reader["cattachment"]?.ToString() ?? "",
+                                    cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
@@ -2273,7 +2276,7 @@ namespace TaskEngineAPI.Services
                     e.cprofile_image_name,
                     d.id AS processdetailid,
                     c.cmeta_id,a.cremarks,
-                    a.itaskno
+                    a.itaskno,a.cmeta_response
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2319,6 +2322,7 @@ namespace TaskEngineAPI.Services
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
@@ -2440,7 +2444,8 @@ namespace TaskEngineAPI.Services
                     e.cprofile_image_name,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks  
+                    a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks,
+                    a.cmeta_response
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2487,6 +2492,7 @@ namespace TaskEngineAPI.Services
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
@@ -3920,7 +3926,7 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno,b.cremarks as Remarks,a.cremarks as TaskRemarks,b.creassign_to as ReassignedTo ,b.lreassign_date as ReassignedDate,
-					    ru.cfirst_name + ' ' + ru.clast_name AS ReassignedUsername
+					    ru.cfirst_name + ' ' + ru.clast_name AS ReassignedUsername,a.cmeta_response
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -3972,6 +3978,7 @@ namespace TaskEngineAPI.Services
                                     TaskRemarks = reader["TaskRemarks"]?.ToString() ?? "",
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>()
@@ -4638,6 +4645,35 @@ namespace TaskEngineAPI.Services
                     transaction.Rollback();
                     throw;
                 }
+            }
+        }
+
+        public async Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_fetch_API_intergration", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@cTenantID", cTenantID);
+                    cmd.Parameters.AddWithValue("@APIID", model.APIID);
+                    cmd.Parameters.AddWithValue("@payload", model.Payload);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); 
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
             }
         }
 

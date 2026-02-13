@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System.Data.SqlClient;
 using System.Data;
+using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.InteropServices.JavaScript;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
@@ -183,7 +185,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Getprojectmaster")]
-        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, string? type = null, int page = 1, int pageSize = 50)
+        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, string? type = null, int page = 1, int pageSize = 50, int? projectid = 0 ,string? versionid = null)
         {
             try
             {
@@ -194,20 +196,42 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize);
-
-                var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
-                if (response == null)
+                var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize, projectid, versionid);
+                if (type == "Client_Approve")
                 {
-                    return CreateEncryptedResponse(500, "Invalid response format from service");
-                }
+                    var response1 = JsonConvert.DeserializeObject<List<ClientApprove>>(json);
+                    if (response1 == null)
+                    {
+                        return CreateEncryptedResponse(500, "Invalid response format from service");
+                    }
 
-                if (response.TotalCount == 0)
+                    return CreatedSuccessResponse(response1);
+                }
+                else if(type == "Emp_Approve")
                 {
-                    return CreateEncryptedResponse(404, "No tasks found");
-                }
+                    var response1 = JsonConvert.DeserializeObject<List<ClientApprove>>(json);
+                    if (response1 == null)
+                    {
+                        return CreateEncryptedResponse(500, "Invalid response format from service");
+                    }
 
-                return CreatedSuccessResponse(response);
+                    return CreatedSuccessResponse(response1);
+                }
+                else
+                {
+                    var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
+                    if (response == null)
+                    {
+                        return CreateEncryptedResponse(500, "Invalid response format from service");
+                    }
+
+                    if (response.TotalCount == 0)
+                    {
+                        return CreateEncryptedResponse(404, "No tasks found");
+                    }
+
+                    return CreatedSuccessResponse(response);
+                }     
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -351,6 +375,9 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+
+
         [Authorize]
         [HttpGet]
         [Route("GetProjectslistbyid")]
@@ -368,6 +395,71 @@ namespace TaskEngineAPI.Controllers
                 string encrypted = AesEncryption.Encrypt(json);
 
                 return Content($"\"{encrypted}\"", "application/json");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
+        [Authorize]
+        [HttpPost]
+        [Route("CreateProjectVersion")]
+        public async Task<IActionResult> CreateProjectVersion([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                    return CreateEncryptedResponse(400, "Payload is required");
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload");
+                }
+
+                var model = JsonConvert.DeserializeObject<CreateProjectVersionRequest>(decryptedJson);
+
+                if (model == null)
+                    return CreateEncryptedResponse(400, "Invalid payload data");
+
+                if (model.ProjectId <= 0)
+                    return CreateEncryptedResponse(400, "Valid ProjectId is required");
+
+                if (string.IsNullOrEmpty(model.Description))
+                    return CreateEncryptedResponse(400, "Description is required");
+
+                int newVersionId = await _ProjectService.CreateProjectVersionAsync(
+                    model.ProjectId,
+                    model.Description,
+                    model.ExpectedDate,
+                    username
+                );
+
+                if (newVersionId <= 0)
+                    return CreateEncryptedResponse(500, "Failed to create project version");
+
+                return CreatedSuccessResponse(
+                    new
+                    {
+                        versionId = newVersionId,
+                        projectId = model.ProjectId,
+                        createdBy = username,
+                        createdAt = DateTime.UtcNow
+                    },
+                    "Project version created successfully"
+                );
             }
             catch (UnauthorizedAccessException ex)
             {

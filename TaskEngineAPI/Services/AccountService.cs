@@ -1507,7 +1507,7 @@ VALUES (
             table.Columns.Add("clast_name", typeof(string));
             table.Columns.Add("cphoneno", typeof(string));
             table.Columns.Add("calternate_phone", typeof(string));
-            table.Columns.Add("ldob", typeof(DateTime));
+            table.Columns.Add("ldob", typeof(string));  
             table.Columns.Add("cmarital_status", typeof(string));
             table.Columns.Add("cnation", typeof(string));
             table.Columns.Add("cgender", typeof(string));
@@ -1524,11 +1524,11 @@ VALUES (
             table.Columns.Add("caccount_number", typeof(string));
             table.Columns.Add("ciFSC_code", typeof(string));
             table.Columns.Add("cpan", typeof(string));
-            table.Columns.Add("ldoj", typeof(DateTime));
+            table.Columns.Add("ldoj", typeof(string));  
             table.Columns.Add("cemployment_status", typeof(string));
             table.Columns.Add("nnotice_period_days", typeof(int));
-            table.Columns.Add("lresignation_date", typeof(DateTime));
-            table.Columns.Add("llast_working_date", typeof(DateTime));
+            table.Columns.Add("lresignation_date", typeof(string));
+            table.Columns.Add("llast_working_date", typeof(string));
             table.Columns.Add("cemp_category", typeof(string));
             table.Columns.Add("cwork_loc_code", typeof(string));
             table.Columns.Add("cwork_loc_name", typeof(string));
@@ -1553,19 +1553,19 @@ VALUES (
             table.Columns.Add("creport_manager_pos_desc", typeof(string));
             table.Columns.Add("nis_web_access_enabled", typeof(bool));
             table.Columns.Add("nis_event_read", typeof(bool));
-            table.Columns.Add("llast_login_at", typeof(DateTime));
+            table.Columns.Add("llast_login_at", typeof(string));
             table.Columns.Add("nfailed_logina_attempts", typeof(int));
-            table.Columns.Add("cpassword_changed_at", typeof(DateTime));
+            table.Columns.Add("cpassword_changed_at", typeof(string));
             table.Columns.Add("nis_locked", typeof(bool));
             table.Columns.Add("last_login_ip", typeof(string));
             table.Columns.Add("last_login_device", typeof(string));
-            table.Columns.Add("ccreated_date", typeof(DateTime));
+            table.Columns.Add("ccreated_date", typeof(string));
             table.Columns.Add("ccreated_by", typeof(string));
             table.Columns.Add("cmodified_by", typeof(string));
-            table.Columns.Add("lmodified_date", typeof(DateTime));
+            table.Columns.Add("lmodified_date", typeof(string));
             table.Columns.Add("nIs_deleted", typeof(bool));
             table.Columns.Add("cdeleted_by", typeof(string));
-            table.Columns.Add("ldeleted_date", typeof(DateTime));
+            table.Columns.Add("ldeleted_date", typeof(string));
             table.Columns.Add("cprofile_image_name", typeof(string));
             table.Columns.Add("cprofile_image_path", typeof(string));
             table.Columns.Add("cposition_code", typeof(string));
@@ -1575,26 +1575,27 @@ VALUES (
             {
                 var row = table.NewRow();
                 string hashedPassword = !string.IsNullOrEmpty(u.cpassword)
-           ? BCrypt.Net.BCrypt.HashPassword(u.cpassword)
-           : null;
+                    ? BCrypt.Net.BCrypt.HashPassword(u.cpassword)
+                    : null;
+
                 row["cuserid"] = u.cuserid;
                 row["ctenant_id"] = cTenantID;
                 row["cuser_name"] = u.cusername ?? (object)DBNull.Value;
                 row["cemail"] = u.cemail ?? (object)DBNull.Value;
-                row["cpassword"] = hashedPassword ?? (object)DBNull.Value; //u.cpassword ?? (object)DBNull.Value;
+                row["cpassword"] = hashedPassword ?? (object)DBNull.Value;
                 row["nIs_active"] = u.nIsActive ?? true;
                 row["cfirst_name"] = u.cfirstName ?? (object)DBNull.Value;
                 row["clast_name"] = u.clastName ?? (object)DBNull.Value;
                 row["cphoneno"] = u.cphoneno ?? (object)DBNull.Value;
                 row["calternate_phone"] = u.cAlternatePhone ?? (object)DBNull.Value;
-                row["ldob"] = u.ldob.HasValue ? u.ldob.Value : (object)DBNull.Value;
+                row["ldob"] = ConvertExcelDateToSqlFormat(u.ldob) ?? (object)DBNull.Value;
                 row["cmarital_status"] = u.cMaritalStatus ?? (object)DBNull.Value;
                 row["cnation"] = u.cnation ?? (object)DBNull.Value;
                 row["cgender"] = u.cgender ?? (object)DBNull.Value;
                 row["caddress"] = u.caddress ?? (object)DBNull.Value;
                 row["caddress1"] = u.caddress1 ?? (object)DBNull.Value;
                 row["caddress2"] = u.caddress2 ?? (object)DBNull.Value;
-                row["cpincode"] = u.cpincode;
+                row["cpincode"] = u.cpincode ?? (object)DBNull.Value;
                 row["ccity"] = u.ccity ?? (object)DBNull.Value;
                 row["cstate_code"] = u.cstatecode ?? (object)DBNull.Value;
                 row["cstate_desc"] = u.cstatedesc ?? (object)DBNull.Value;
@@ -1604,7 +1605,7 @@ VALUES (
                 row["caccount_number"] = u.caccountNumber ?? (object)DBNull.Value;
                 row["ciFSC_code"] = u.ciFSCCode ?? (object)DBNull.Value;
                 row["cpan"] = u.cpAN ?? (object)DBNull.Value;
-                row["ldoj"] = u.ldoj.HasValue ? u.ldoj.Value : (object)DBNull.Value;
+                row["ldoj"] = ConvertExcelDateToSqlFormat(u.ldoj) ?? (object)DBNull.Value;
                 row["cemployment_status"] = u.cemploymentStatus ?? (object)DBNull.Value;
                 row["nnotice_period_days"] = u.nnoticePeriodDays ?? (object)DBNull.Value;
                 row["lresignation_date"] = DBNull.Value;
@@ -1639,10 +1640,10 @@ VALUES (
                 row["nis_locked"] = false;
                 row["last_login_ip"] = DBNull.Value;
                 row["last_login_device"] = DBNull.Value;
-                row["ccreated_date"] = DateTime.Now;
+                row["ccreated_date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 row["ccreated_by"] = usernameClaim;
                 row["cmodified_by"] = usernameClaim;
-                row["lmodified_date"] = DateTime.Now;
+                row["lmodified_date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                 row["nIs_deleted"] = false;
                 row["cdeleted_by"] = DBNull.Value;
                 row["ldeleted_date"] = DBNull.Value;
@@ -1678,8 +1679,34 @@ VALUES (
             }
             catch (SqlException ex)
             {
-
                 throw;
+            }
+        }
+
+        private string ConvertExcelDateToSqlFormat(string excelDate)
+        {
+            if (string.IsNullOrWhiteSpace(excelDate))
+                return null;
+
+            try
+            {
+                if (DateTime.TryParse(excelDate, out DateTime parsedDate))
+                {
+                    return parsedDate.ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                if (double.TryParse(excelDate, out double excelSerial))
+                {
+                    DateTime excelBaseDate = new DateTime(1899, 12, 30);
+                    DateTime actualDate = excelBaseDate.AddDays(excelSerial);
+                    return actualDate.ToString("yyyy-MM-dd HH:mm:ss");
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
             }
         }
         public async Task<bool> InsertUserApiAsync(UserApiDTO user, int cTenantID, string usernameClaim)
@@ -2128,12 +2155,12 @@ VALUES (
                     ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
                     nis_active, ccreated_by, lcreated_date, 
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 ) VALUES(
                     @TenantID, @capi_method, @capi_type, @capi_url, 
                     @capi_params, @capi_headers, @capi_config, @capi_settings, @cbody,@cname,
                     @nis_active, @ccreated_by, @lcreated_date, 
-                    @cmodified_by, @lmodified_date
+                    @cmodified_by, @lmodified_date,@capi_response
                 )";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -2147,6 +2174,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_response", (object?)model.capi_response ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cname", model.cname);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active);
                         cmd.Parameters.AddWithValue("@ccreated_by", username);
@@ -2503,7 +2531,6 @@ VALUES (
             table.Columns.Add("crole_code", typeof(string));
             table.Columns.Add("crole_name", typeof(string));
             table.Columns.Add("crole_description", typeof(string));
-            //table.Columns.Add("cslug", typeof(string));
             table.Columns.Add("crole_level", typeof(string));
             table.Columns.Add("cdepartment_code", typeof(string));
             table.Columns.Add("creporting_manager_code", typeof(string));
@@ -2526,7 +2553,7 @@ VALUES (
                 row["cdepartment_code"] = role.cdepartment_code ?? (object)DBNull.Value;
                 row["creporting_manager_code"] = role.creporting_manager_code ?? (object)DBNull.Value;
                 row["creporting_manager_name"] = role.creporting_manager_name ?? (object)DBNull.Value;
-                row["nis_active"] = true;
+                row["nis_active"] = true; 
                 row["ccreated_by"] = username;
                 row["lcreated_date"] = DateTime.Now;
                 row["cmodified_by"] = username;
@@ -2545,16 +2572,14 @@ VALUES (
                 BulkCopyTimeout = 300
             };
 
-            // Add column mappings
             bulkCopy.ColumnMappings.Add("ctenant_id", "ctenant_id");
             bulkCopy.ColumnMappings.Add("crole_code", "crole_code");
             bulkCopy.ColumnMappings.Add("crole_name", "crole_name");
             bulkCopy.ColumnMappings.Add("crole_description", "crole_description");
-            //bulkCopy.ColumnMappings.Add("cslug", "cslug");
             bulkCopy.ColumnMappings.Add("crole_level", "crole_level");
             bulkCopy.ColumnMappings.Add("cdepartment_code", "cdepartment_code");
             bulkCopy.ColumnMappings.Add("creporting_manager_code", "creporting_manager_code");
-            bulkCopy.ColumnMappings.Add("creporting_manager_name ", "creporting_manager_name");
+            bulkCopy.ColumnMappings.Add("creporting_manager_name", "creporting_manager_name"); // FIX: Removed extra space
             bulkCopy.ColumnMappings.Add("nis_active", "nis_active");
             bulkCopy.ColumnMappings.Add("ccreated_by", "ccreated_by");
             bulkCopy.ColumnMappings.Add("lcreated_date", "lcreated_date");
@@ -2576,7 +2601,6 @@ VALUES (
                 throw new Exception("Error during bulk insert of roles", ex);
             }
         }
-
         //public async Task<int> InsertPositionsBulkAsync(List<BulkPositionDTO> positions, int cTenantID, string usernameClaim)
         //{
         //    if (positions == null || !positions.Any())
@@ -2790,7 +2814,7 @@ VALUES (
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody, cname,
                     nis_active, ccreated_by, lcreated_date,
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 FROM tbl_users_api_sync_config 
                 WHERE ctenant_id = @TenantID";
 
@@ -2860,7 +2884,8 @@ VALUES (
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
-                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null
+                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                   capi_response= reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                                 };
                                 results.Add(config);
                             }
@@ -2925,6 +2950,7 @@ VALUES (
                     capi_config = @capi_config,
                     capi_settings = @capi_settings,
                     cbody = @cbody,
+                    capi_response=@capi_response,
                     nis_active = @nis_active,
                     cmodified_by = @username,
                     lmodified_date = GETDATE()
@@ -2943,6 +2969,7 @@ VALUES (
                         cmd.Parameters.AddWithValue("@capi_config", (object?)model.capi_config ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@capi_settings", (object?)model.capi_settings ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@cbody", (object?)model.cbody ?? DBNull.Value);
+                        cmd.Parameters.AddWithValue("@capi_response", (object?)model.capi_response ?? DBNull.Value);
                         cmd.Parameters.AddWithValue("@nis_active", model.nis_active ?? true);
                         cmd.Parameters.AddWithValue("@username", username);
 
@@ -2972,7 +2999,7 @@ VALUES (
                     ID, ctenant_id, capi_method, capi_type, capi_url, 
                     capi_params, capi_headers, capi_config, capi_settings, cbody,cname,
                     nis_active, ccreated_by, lcreated_date,
-                    cmodified_by, lmodified_date
+                    cmodified_by, lmodified_date,capi_response
                 FROM tbl_users_api_sync_config 
                 WHERE ID = @ID 
                 AND ctenant_id = @TenantID";
@@ -3003,7 +3030,8 @@ VALUES (
                                     ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
-                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null
+                                    lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                    capi_response= reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                                 };
                             }
                         }
@@ -3387,5 +3415,52 @@ VALUES (
 
             return null;
         }
+
+        public async Task<List<GetusersapisyncDTO>> GetmetaAPISyncConfigAsync(int cTenantID,string? searchText = null)
+        {
+            var timelineList = new List<GetusersapisyncDTO>();
+            string connectionString = this._config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("sp_get_userapiconfig", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@searchText", searchText);
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    await conn.OpenAsync();
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            timelineList.Add(new GetusersapisyncDTO
+                            {
+                                ID = reader["ID"] != DBNull.Value ? Convert.ToInt32(reader["ID"]) : 0,
+                                ctenant_id = reader["ctenant_id"] != DBNull.Value ? Convert.ToInt32(reader["ctenant_id"]) : 0,
+                                capi_method = reader["capi_method"] != DBNull.Value ? reader["capi_method"].ToString() : null,
+                                capi_type = reader["capi_type"] != DBNull.Value ? reader["capi_type"].ToString() : null,
+                                capi_url = reader["capi_url"] != DBNull.Value ? reader["capi_url"].ToString() : null,
+                                capi_params = reader["capi_params"] != DBNull.Value ? reader["capi_params"].ToString() : null,
+                                capi_headers = reader["capi_headers"] != DBNull.Value ? reader["capi_headers"].ToString() : null,
+                                capi_config = reader["capi_config"] != DBNull.Value ? reader["capi_config"].ToString() : null,
+                                capi_settings = reader["capi_settings"] != DBNull.Value ? reader["capi_settings"].ToString() : null,
+                                cbody = reader["cbody"] != DBNull.Value ? reader["cbody"].ToString() : null,
+                                cname = reader["cname"] != DBNull.Value ? reader["cname"].ToString() : null,
+                                nis_active = reader["nis_active"] != DBNull.Value ? Convert.ToBoolean(reader["nis_active"]) : null,
+                                ccreated_by = reader["ccreated_by"] != DBNull.Value ? reader["ccreated_by"].ToString() : null,
+                                lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
+                                cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
+                                lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
+                                capi_response = reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
+                            });
+                        }
+                    }
+                }
+            }
+
+            return timelineList;
+        }
+
     }
 }

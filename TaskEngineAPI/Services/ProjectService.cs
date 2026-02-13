@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Net.Mail;
@@ -16,7 +17,7 @@ using TaskEngineAPI.Models;
 using TaskEngineAPI.Models;
 namespace TaskEngineAPI.Services
 {
-    public class ProjectService: IProjectService
+    public class ProjectService : IProjectService
     {
         private readonly IAdminRepository _repository;
         private readonly IConfiguration _config;
@@ -33,7 +34,7 @@ namespace TaskEngineAPI.Services
 
         public async Task<int> InsertProjectMasterAsync(CreateProjectDTO model, int tenantId, string userName)
         {
-            int masterId = 0;  
+            int masterId = 0;
             var connectionString = _config.GetConnectionString("Database");
             using (var conn = new SqlConnection(connectionString))
             {
@@ -41,27 +42,28 @@ namespace TaskEngineAPI.Services
                 using (var transaction = conn.BeginTransaction())
                 {
                     try
-                    { 
+                    {
                         string queryMaster = @"
                     INSERT INTO Tbl_Project_Master (ClientTenantId,RaisedByUserId,AssignedManagerId,ProjectName,ProjectType,Description,
-                     CreatedDate,Status,expecteddate) VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType, @Description, 
-                     @CreatedDate, @Status,@expecteddate);SELECT SCOPE_IDENTITY();";
-            
+                     CreatedDate,Status,expecteddate,Version) VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType, @Description, 
+                     @CreatedDate, @Status,@expecteddate,@Version);SELECT SCOPE_IDENTITY();";
+
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
-                            
+
                             cmd.Parameters.AddWithValue("@ClientTenantId", tenantId);
                             cmd.Parameters.AddWithValue("@RaisedByUserId", userName);
                             cmd.Parameters.AddWithValue("@AssignedManagerId", (object?)model.AssignedManagerId ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ProjectName", (object?)model.ProjectName ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@Description", (object?)model.Description ?? DBNull.Value);
-                            cmd.Parameters.AddWithValue("@Status", "Pending");
+                            cmd.Parameters.AddWithValue("@Status", "Approval");
                             cmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@Version", 1);
                             cmd.Parameters.AddWithValue("@ProjectType", (object?)model.ProjectType ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@expecteddate", (object?)model.expecteddate ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
-                        }                                         
+                        }
                         transaction.Commit();
                     }
                     catch (Exception ex)
@@ -73,7 +75,7 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
-        public async Task<string> Getprojectmaster(int cTenantID, string username,string? type, string? searchText = null, int page = 1, int pageSize = 50)
+        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid =0 , string? versionid =null)
         {
             List<GetProjectList> tsk = new List<GetProjectList>();
             int totalCount = 0;
@@ -89,46 +91,79 @@ namespace TaskEngineAPI.Services
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@tenantid", cTenantID);
-                        cmd.Parameters.AddWithValue("@cuserid", username);                   
+                        cmd.Parameters.AddWithValue("@cuserid", username);
                         cmd.Parameters.AddWithValue("@searchtxt", searchText ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);                      
+                        cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@PageNo", page);
                         cmd.Parameters.AddWithValue("@PageSize", pageSize);
+                        cmd.Parameters.AddWithValue("@projectid", projectid ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@versionid", versionid ?? (object)DBNull.Value);
+
 
                         await con.OpenAsync();
-
-                        using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                        if (type == "Client_Approve")
                         {
-                            while (await sdr.ReadAsync())
-                            {
-                                string projectDetailsJson = sdr.IsDBNull(sdr.GetOrdinal("project_Details"))
-                                                   ? null
-                                                   : sdr.GetString(sdr.GetOrdinal("project_Details"));
-                                GetProjectList p = new GetProjectList
-                                {                              
-                                    ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
-                                    ClientTenantId = sdr.IsDBNull(sdr.GetOrdinal("ClientTenantId")) ? 0 : Convert.ToInt32(sdr["ClientTenantId"]),
-                                    RaisedByUserId = sdr.IsDBNull(sdr.GetOrdinal("RaisedByUserId")) ? 0 : Convert.ToInt32(sdr["RaisedByUserId"]),
-                                    AssignedManagerId = sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerId")) ? 0 : Convert.ToInt32(sdr["AssignedManagerId"]),
-                                    ProjectName = sdr.IsDBNull(sdr.GetOrdinal("ProjectName")) ? string.Empty : Convert.ToString(sdr["ProjectName"]),
-                                    Description = sdr.IsDBNull(sdr.GetOrdinal("Description")) ? string.Empty : Convert.ToString(sdr["Description"]),
-                                    CreatedDate = sdr.IsDBNull(sdr.GetOrdinal("CreatedDate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("CreatedDate")),
-                                    Status = sdr.IsDBNull(sdr.GetOrdinal("Status")) ? string.Empty : Convert.ToString(sdr["Status"]),
-                                    Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
-                                    ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
-                                    expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
-                                    project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
-                                                 ? new List<ProjectDetailResponse>()
-                                                 : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)
-                                };
-                                tsk.Add(p);
-                            }
+                            var ds = new DataSet();
+                            var adapter = new SqlDataAdapter(cmd);
+                            await Task.Run(() => adapter.Fill(ds)); // async wrapper
 
-                            if (await sdr.NextResultAsync())
+                            if (ds.Tables.Count > 0)
                             {
-                                if (await sdr.ReadAsync())
+                                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                            };
+                        }
+                        else if (type == "Emp_Approve")
+                        {
+                            var ds = new DataSet();
+                            var adapter = new SqlDataAdapter(cmd);
+                            await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                            if (ds.Tables.Count > 0)
+                            {
+                                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                            }
+                            ;
+                        }
+
+                        else
+                        {
+                            using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
+                            {
+                                while (await sdr.ReadAsync())
                                 {
-                                    totalCount = sdr.IsDBNull(0) ? 0 : Convert.ToInt32(sdr[0]);
+                                    string projectDetailsJson = sdr.IsDBNull(sdr.GetOrdinal("project_Details"))
+                                                       ? null
+                                                       : sdr.GetString(sdr.GetOrdinal("project_Details"));
+                                    GetProjectList p = new GetProjectList
+                                    {
+                                        ProjectId = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
+                                        ClientTenantId = sdr.IsDBNull(sdr.GetOrdinal("ClientTenantId")) ? 0 : Convert.ToInt32(sdr["ClientTenantId"]),
+                                        RaisedByUserId = sdr.IsDBNull(sdr.GetOrdinal("RaisedByUserId")) ? 0 : Convert.ToInt32(sdr["RaisedByUserId"]),
+                                        AssignedManagerId = sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerId")) ? 0 : Convert.ToInt32(sdr["AssignedManagerId"]),
+                                        ProjectName = sdr.IsDBNull(sdr.GetOrdinal("ProjectName")) ? string.Empty : Convert.ToString(sdr["ProjectName"]),
+                                        Description = sdr.IsDBNull(sdr.GetOrdinal("Description")) ? string.Empty : Convert.ToString(sdr["Description"]),
+                                        CreatedDate = sdr.IsDBNull(sdr.GetOrdinal("CreatedDate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("CreatedDate")),
+                                        Status = sdr.IsDBNull(sdr.GetOrdinal("Status")) ? string.Empty : Convert.ToString(sdr["Status"]),
+                                        Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
+                                        ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
+                                        VersionCal = sdr.IsDBNull(sdr.GetOrdinal("version_cal")) ? string.Empty : Convert.ToString(sdr["version_cal"]),
+                                        //Capproved_by = sdr.IsDBNull(sdr.GetOrdinal("Capproved_by")) ? string.Empty : Convert.ToString(sdr["Capproved_by"]),
+                                        //Capproved_date = sdr.IsDBNull(sdr.GetOrdinal("Capproved_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("Capproved_date")),
+                                        TotalBudgetPerVersion = sdr.IsDBNull(sdr.GetOrdinal("TotalBudgetPerVersion")) ? string.Empty : Convert.ToString(sdr["TotalBudgetPerVersion"]),
+                                        expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
+                                        project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
+                                                     ? new List<ProjectDetailResponse>()
+                                                     : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)
+                                    };
+                                    tsk.Add(p);
+                                }
+
+                                if (await sdr.NextResultAsync())
+                                {
+                                    if (await sdr.ReadAsync())
+                                    {
+                                        totalCount = sdr.IsDBNull(0) ? 0 : Convert.ToInt32(sdr[0]);
+                                    }
                                 }
                             }
                         }
@@ -164,7 +199,7 @@ namespace TaskEngineAPI.Services
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@tenantid", cTenantID);
-                    cmd.Parameters.AddWithValue("@cuserid", username);                  
+                    cmd.Parameters.AddWithValue("@cuserid", username);
                     cmd.Parameters.AddWithValue("@searchtext", searchText ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@type", type ?? (object)DBNull.Value);
                     var ds = new DataSet();
@@ -185,7 +220,10 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> InsertProjectDetails( List<ProjectDetailRequest> requests,int tenantId, string username)
+        public async Task<bool> InsertProjectDetails(
+     List<ProjectDetailRequest> requests,
+     int tenantId,
+     string username)
         {
             try
             {
@@ -195,45 +233,50 @@ namespace TaskEngineAPI.Services
                 using var conn = new SqlConnection(_config.GetConnectionString("Database"));
                 await conn.OpenAsync();
 
-                string query = @"
-INSERT INTO Tbl_Project_detail
-(header_id, Detail_id, module, projectDescription, Resources,
- No_of_Resources, Slavalue, Slaunit, version, Remarks, Status1,created_date, modified_Date)
-VALUES
-(@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
- @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks,@Status1, GETDATE(), GETDATE());";
+                string insertDetailQuery = @"
+                    INSERT INTO Tbl_Project_detail
+                    (header_id, Detail_id, module, projectDescription, Resources,
+                     No_of_Resources, Slavalue, Slaunit, version, Remarks, Status1,
+                     created_date, modified_Date)
+                    VALUES
+                    (@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
+                     @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks,
+                     @Status1, GETDATE(), GETDATE());";
+                    
+                string updateMasterQuery = @"
+                    UPDATE Tbl_Project_Master
+                    SET Status = 'Pending',
+                        ModifiedDate = GETDATE()
+                    WHERE ID = @HeaderId;";
 
                 foreach (var r in requests)
                 {
                     ValidateProjectDetail(r);
 
-                    using var cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@HeaderId", r.header_id);
-                    cmd.Parameters.AddWithValue("@DetailId", r.Detail_id);
-                    cmd.Parameters.AddWithValue("@Module", r.module);
-                    cmd.Parameters.AddWithValue("@ProjectDescription", r.projectDescription);
-                    cmd.Parameters.AddWithValue("@Resources", r.Resources);
-                    cmd.Parameters.AddWithValue("@NoOfResources", r.No_of_Resources);
-                    cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
-                    cmd.Parameters.AddWithValue("@Status1", "Pending");
-                    cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit);
-                    cmd.Parameters.AddWithValue("@Version", r.Version);
-                    cmd.Parameters.AddWithValue("@Remarks",
-                        string.IsNullOrWhiteSpace(r.Remarks) ? (object)DBNull.Value : r.Remarks);
-
-                    // await cmd.ExecuteNonQueryAsync();
-
-                    using var reader = await cmd.ExecuteReaderAsync();
-                    if (await reader.ReadAsync())
+                    using (var cmd = new SqlCommand(insertDetailQuery, conn))
                     {
-                        var id = reader.GetInt32(0);
-                        var createdDate = reader.GetDateTime(1);
-                        var modifiedDate = reader.GetDateTime(2);
-                       
+                        cmd.Parameters.AddWithValue("@HeaderId", r.header_id);
+                        cmd.Parameters.AddWithValue("@DetailId", r.Detail_id);
+                        cmd.Parameters.AddWithValue("@Module", r.module);
+                        cmd.Parameters.AddWithValue("@ProjectDescription", r.projectDescription);
+                        cmd.Parameters.AddWithValue("@Resources", r.Resources);
+                        cmd.Parameters.AddWithValue("@NoOfResources", r.No_of_Resources);
+                        cmd.Parameters.AddWithValue("@Slavalue", r.Slavalue);
+                        cmd.Parameters.AddWithValue("@Status1", "Pending");
+                        cmd.Parameters.AddWithValue("@Slaunit", r.Slaunit);
+                        cmd.Parameters.AddWithValue("@Version", r.Version);
+                        cmd.Parameters.AddWithValue("@Remarks",
+                            string.IsNullOrWhiteSpace(r.Remarks) ? (object)DBNull.Value : r.Remarks);
+
+                        await cmd.ExecuteNonQueryAsync();
                     }
-                    reader.Close();
-                
-            }
+
+                    using (var cmd = new SqlCommand(updateMasterQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@HeaderId", r.header_id);
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
 
                 return true;
             }
@@ -288,7 +331,7 @@ VALUES
             }
             catch
             {
-                throw; 
+                throw;
             }
         }
 
@@ -321,13 +364,13 @@ VALUES
                     Remarks=@Remarks
                     WHERE Detail_id = @DetailId
                       AND header_id = @HeaderId;";
-                    
+
                 using var cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@DetailId", request.Detail_id);
                 cmd.Parameters.AddWithValue("@HeaderId", request.header_id);
                 cmd.Parameters.AddWithValue("@Module", request.module);
-                cmd.Parameters.AddWithValue("@ProjectDescription", request.projectDescription );
-                cmd.Parameters.AddWithValue("@Resources", request.Resources );
+                cmd.Parameters.AddWithValue("@ProjectDescription", request.projectDescription);
+                cmd.Parameters.AddWithValue("@Resources", request.Resources);
                 cmd.Parameters.AddWithValue("@NoOfResources", request.No_of_Resources);
                 cmd.Parameters.AddWithValue("@Slavalue", request.Slavalue);
                 cmd.Parameters.AddWithValue("@Slaunit", request.Slaunit);
@@ -453,6 +496,77 @@ VALUES
             }
         }
 
+        public async Task<int> CreateProjectVersionAsync(
+            int projectId,
+            string description,
+            DateTime? expectedDate,
+            string username)
+        {
+            var connectionString = _config.GetConnectionString("Database");
 
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                await conn.OpenAsync();
+
+                using (SqlTransaction transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        string getVersionQuery = @"
+                    DECLARE @NextVersion INT = ISNULL(
+                        (SELECT MAX(Version) 
+                         FROM tbl_Project_Version_Details 
+                         WHERE HeaderId = @ProjectId), 
+                        1
+                    ) + 1;
+                    
+                    SELECT @NextVersion;";
+
+                        SqlCommand getVersionCmd = new SqlCommand(getVersionQuery, conn, transaction);
+                        getVersionCmd.Parameters.AddWithValue("@ProjectId", projectId);
+
+                        object versionResult = await getVersionCmd.ExecuteScalarAsync();
+                        int nextVersion = versionResult != null ? Convert.ToInt32(versionResult) : 1;
+
+                        string insertVersionQuery = @"
+                    INSERT INTO tbl_Project_Version_Details
+                    (HeaderId, Description, createdBy, Status, expecteddate, Version, createdDate)
+                    OUTPUT INSERTED.Id
+                    VALUES
+                    (@ProjectId, @Description, @Username, 'Approval', @ExpectedDate, @Version, GETDATE());";
+
+                        SqlCommand insertVersionCmd = new SqlCommand(insertVersionQuery, conn, transaction);
+                        insertVersionCmd.Parameters.AddWithValue("@ProjectId", projectId);
+                        insertVersionCmd.Parameters.AddWithValue("@Username", username);
+                        insertVersionCmd.Parameters.AddWithValue("@Description",
+                            string.IsNullOrEmpty(description) ? (object)DBNull.Value : description);
+                        insertVersionCmd.Parameters.AddWithValue("@ExpectedDate",
+                            expectedDate.HasValue ? (object)expectedDate.Value : DBNull.Value);
+                        insertVersionCmd.Parameters.AddWithValue("@Version", nextVersion);
+
+                        int versionDetailId = Convert.ToInt32(await insertVersionCmd.ExecuteScalarAsync());
+
+                        string updateMasterQuery = @"
+                    UPDATE Tbl_Project_Master
+                    SET Status = 'Approval',
+                        modifiedDate = GETDATE()
+                    WHERE Id = @ProjectId;";
+
+                        SqlCommand updateMasterCmd = new SqlCommand(updateMasterQuery, conn, transaction);
+                        updateMasterCmd.Parameters.AddWithValue("@ProjectId", projectId);
+
+                        await updateMasterCmd.ExecuteNonQueryAsync();
+
+                        transaction.Commit();
+                        return versionDetailId;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        throw new Exception($"Error creating project version: {ex.Message}");
+                    }
+                }
+            }
+        }
     }
 }

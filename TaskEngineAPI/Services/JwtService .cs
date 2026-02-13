@@ -104,7 +104,7 @@ namespace TaskEngineAPI.Services
                 return false;
             }
         }
-        public string GenerateJwtToken(string username, int cTenantID, out DateTime expires)
+        public string GenerateJwtToken(string username, string? email, string? avatar, string? type, int cTenantID,  out DateTime expires)
         {
             var audience = _config.GetSection("Jwt:Audience").Value;
             var issuer = _config.GetSection("Jwt:Issuer").Value;
@@ -118,7 +118,10 @@ namespace TaskEngineAPI.Services
         new Claim(JwtRegisteredClaimNames.Sub, username),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim("cTenantID", cTenantID.ToString()), // ✅ Use the parameter directly
-        new Claim("username",username.ToString())
+        new Claim("username",username.ToString()),
+        new Claim("email", email.ToString()?? ""),      // ✅ Custom email claim
+        new Claim("avatar", avatar.ToString() ?? ""),
+         new Claim("type", type.ToString() ?? "")
     };
 
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -134,6 +137,6 @@ namespace TaskEngineAPI.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
+       
     }
 }
