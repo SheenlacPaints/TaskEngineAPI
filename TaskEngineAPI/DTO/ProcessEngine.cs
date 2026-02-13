@@ -358,6 +358,8 @@ namespace TaskEngineAPI.DTO
 
         public string? cremarks { get; set; }
 
+        public string? cmeta_response { get; set; }
+
         //public string? privilege_name { get; set; }
         public List<GetTaskinitiateDetails>? TaskChildItems { get; set; }
 

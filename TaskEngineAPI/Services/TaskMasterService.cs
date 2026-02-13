@@ -1193,6 +1193,7 @@ namespace TaskEngineAPI.Services
                             cprocessname = reader["cprocessname"]?.ToString() ?? "",
                             cprocessdescription = reader["cprocessdescription"]?.ToString() ?? "",
                             cremarks = reader["cremarks"]?.ToString() ?? "",
+                            cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                             TaskChildItems = new List<GetTaskinitiateDetails>()
                         };
 
@@ -2443,7 +2444,8 @@ namespace TaskEngineAPI.Services
                     e.cprofile_image_name,
                     d.id AS processdetailid,
                     c.cmeta_id,
-                    a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks  
+                    a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks,
+                    a.cmeta_response
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2490,6 +2492,7 @@ namespace TaskEngineAPI.Services
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),

@@ -210,6 +210,7 @@ namespace TaskEngineAPI.DTO
         public string? HoldRemarks { get; set; }
         public string? Remarks { get; set; }
         public bool? showTimeline { get; set; }
+        public string? cmeta_response { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
