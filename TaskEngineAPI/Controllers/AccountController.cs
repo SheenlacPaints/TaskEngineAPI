@@ -75,7 +75,7 @@ namespace TaskEngineAPI.Controllers
 
             var connStr = _config.GetConnectionString("Database");
             string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "",
-                role_name = "", useravatar = "", type = "";
+                role_name = "", useravatar = "", type = "", API_DecKey="", API_EncKey="";
 
             try
             {
@@ -105,6 +105,8 @@ namespace TaskEngineAPI.Controllers
                                 role_name = reader["role_name"] == DBNull.Value ? "" : reader["role_name"]?.ToString() ?? "";
                                 useravatar = reader["useravatar"] == DBNull.Value ? "" : reader["useravatar"]?.ToString() ?? "";
                                 type = reader["Type"] == DBNull.Value ? "" : reader["Type"]?.ToString() ?? "";
+                                API_EncKey = reader["API_EncKey"] == DBNull.Value ? "" : reader["API_EncKey"]?.ToString() ?? "";
+                                API_DecKey = reader["API_DecKey"] == DBNull.Value ? "" : reader["API_DecKey"]?.ToString() ?? "";
                             }
                             else
                             {
@@ -181,8 +183,9 @@ namespace TaskEngineAPI.Controllers
                     useravatar = useravatar,
                     type = type,
                     token = accessToken,
-                    refreshToken = refreshToken
-
+                    refreshToken = refreshToken,
+                    API_EncKey= API_EncKey,
+                    API_DecKey = API_DecKey
                 };
 
                 var success = new APIResponse
