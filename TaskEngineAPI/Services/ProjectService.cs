@@ -146,10 +146,14 @@ namespace TaskEngineAPI.Services
                                         Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
                                         ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
                                         VersionCal = sdr.IsDBNull(sdr.GetOrdinal("version_cal")) ? string.Empty : Convert.ToString(sdr["version_cal"]),
-                                        //Capproved_by = sdr.IsDBNull(sdr.GetOrdinal("Capproved_by")) ? string.Empty : Convert.ToString(sdr["Capproved_by"]),
-                                        //Capproved_date = sdr.IsDBNull(sdr.GetOrdinal("Capproved_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("Capproved_date")),
+                                        Remarks1 = sdr.IsDBNull(sdr.GetOrdinal("Remarks1")) ? string.Empty : Convert.ToString(sdr["Remarks1"]),
+                                        Remarks2 = sdr.IsDBNull(sdr.GetOrdinal("Remarks2")) ? string.Empty : Convert.ToString(sdr["Remarks2"]),
+                                        Remarks3 = sdr.IsDBNull(sdr.GetOrdinal("Remarks3")) ? string.Empty : Convert.ToString(sdr["Remarks3"]),
+                                        ActualBudget = sdr.IsDBNull(sdr.GetOrdinal("ActualBudget")) ? string.Empty : Convert.ToString(sdr["ActualBudget"]),
+
                                         TotalBudgetPerVersion = sdr.IsDBNull(sdr.GetOrdinal("TotalBudgetPerVersion")) ? string.Empty : Convert.ToString(sdr["TotalBudgetPerVersion"]),
                                         expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
+                                        
                                         project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
                                                      ? new List<ProjectDetailResponse>()
                                                      : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)
