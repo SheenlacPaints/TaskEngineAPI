@@ -2981,7 +2981,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Getprojectmaster")]
-        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, [FromQuery]string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? projectid = 0, [FromQuery] string? versionid = null, [FromQuery] int? detailid = null)
+        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, [FromQuery]string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? projectid = 0, [FromQuery] string? versionid = null, [FromQuery] int? detailid = null, string? remarks1 = null, string? remarks2 = null, string? remarks3 = null)
         {
             try
             {            
@@ -3001,6 +3001,13 @@ namespace TaskEngineAPI.Controllers
                     queryParams.Add($"versionid={Uri.EscapeDataString(versionid)}");
                 if (detailid.HasValue && detailid.Value > 0)
                     queryParams.Add($"detailid={detailid.Value}");
+                if (!string.IsNullOrWhiteSpace(remarks1))
+                    queryParams.Add($"remarks1={Uri.EscapeDataString(remarks1)}");
+                if (!string.IsNullOrWhiteSpace(remarks2))
+                    queryParams.Add($"remarks2={Uri.EscapeDataString(remarks2)}");
+                if (!string.IsNullOrWhiteSpace(remarks3))
+                    queryParams.Add($"remarks3={Uri.EscapeDataString(remarks3)}");
+
                 var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";            
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/Project/Getprojectmaster{queryString}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);

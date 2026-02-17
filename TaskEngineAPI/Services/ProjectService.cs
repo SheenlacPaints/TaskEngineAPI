@@ -75,7 +75,7 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
-        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid =0 , string? versionid = null,int ? detailid = null)
+        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid =0 , string? versionid = null,int ? detailid = null,string? remarks1=null,string? remarks2 = null,string? remarks3 = null)
         {
             List<GetProjectList> tsk = new List<GetProjectList>();
             int totalCount = 0;
@@ -98,7 +98,11 @@ namespace TaskEngineAPI.Services
                         cmd.Parameters.AddWithValue("@PageSize", pageSize);
                         cmd.Parameters.AddWithValue("@projectid", projectid ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@versionid", versionid ?? (object)DBNull.Value);
-                        cmd.Parameters.AddWithValue("@detailid", detailid ?? (object)DBNull.Value);                       
+                        cmd.Parameters.AddWithValue("@detailid", detailid ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Remarks1", remarks1 ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Remarks2", remarks2 ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Remarks3", remarks3 ?? (object)DBNull.Value);
+                        
                         await con.OpenAsync();
                         if (type == "Client_Approve")
                         {
