@@ -127,6 +127,18 @@ namespace TaskEngineAPI.Services
                             }
                             ;
                         }
+                        else if (type == "CompletedRemarks")
+                        {
+                            var ds = new DataSet();
+                            var adapter = new SqlDataAdapter(cmd);
+                            await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                            if (ds.Tables.Count > 0)
+                            {
+                                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                            }
+                            ;
+                        }
 
                         else
                         {
