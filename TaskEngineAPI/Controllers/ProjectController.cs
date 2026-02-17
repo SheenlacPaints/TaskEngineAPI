@@ -217,6 +217,17 @@ namespace TaskEngineAPI.Controllers
 
                     return CreatedSuccessResponse(response1);
                 }
+                else if (type == "CompletedRemarks")
+                {
+                    var response1 = JsonConvert.DeserializeObject<List<ClientApprove>>(json);
+                    if (response1 == null)
+                    {
+                        return CreateEncryptedResponse(500, "Invalid response format from service");
+                    }
+
+                    return CreatedSuccessResponse(response1);
+                }
+
                 else
                 {
                     var response = JsonConvert.DeserializeObject<TaskProjectResponse>(json);
