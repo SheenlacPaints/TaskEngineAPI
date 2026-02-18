@@ -4659,6 +4659,8 @@ namespace TaskEngineAPI.Services
                     cmd.Parameters.AddWithValue("@cTenantID", cTenantID);
                     cmd.Parameters.AddWithValue("@APIID", model.APIID);
                     cmd.Parameters.AddWithValue("@payload", model.Payload);
+                    cmd.Parameters.AddWithValue("@ID", model.processid);
+                    
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);
                     await Task.Run(() => adapter.Fill(ds)); 

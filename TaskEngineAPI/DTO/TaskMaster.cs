@@ -482,6 +482,7 @@ public class APIFetchDTO
     public int? APIID { get; set; }
     public string? Payload { get; set; }
     public string? apimethod { get; set; }
+    public int? processid { get; set; }
 }
 
 
