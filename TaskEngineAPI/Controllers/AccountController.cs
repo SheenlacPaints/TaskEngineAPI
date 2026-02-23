@@ -75,7 +75,8 @@ namespace TaskEngineAPI.Controllers
 
             var connStr = _config.GetConnectionString("Database");
             string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "",
-                role_name = "", useravatar = "", type = "", API_DecKey="", API_EncKey="";
+                role_name = "", useravatar = "", type = "", API_DecKey="", API_EncKey="",ctheme_Containeroption = "",ctheme_Cardwidth = "",
+                ctheme_Layouttype = "",ctheme_sidebartype = "",ctheme_Direction = "",ctheme_Color = "",ctheme_mode = "";
 
             try
             {
@@ -107,6 +108,15 @@ namespace TaskEngineAPI.Controllers
                                 type = reader["Type"] == DBNull.Value ? "" : reader["Type"]?.ToString() ?? "";
                                 API_EncKey = reader["API_EncKey"] == DBNull.Value ? "" : reader["API_EncKey"]?.ToString() ?? "";
                                 API_DecKey = reader["API_DecKey"] == DBNull.Value ? "" : reader["API_DecKey"]?.ToString() ?? "";
+                                ctheme_Containeroption = reader["ctheme_Containeroption"] == DBNull.Value ? "" : reader["ctheme_Containeroption"]?.ToString() ?? "";
+                                ctheme_Cardwidth = reader["ctheme_Cardwidth"] == DBNull.Value ? "" : reader["ctheme_Cardwidth"]?.ToString() ?? "";
+                                ctheme_Layouttype = reader["ctheme_Layouttype"] == DBNull.Value ? "" : reader["ctheme_Layouttype"]?.ToString() ?? "";
+                                ctheme_sidebartype = reader["ctheme_sidebartype"] == DBNull.Value ? "" : reader["ctheme_Layouttype"]?.ToString() ?? "";
+                                ctheme_Direction = reader["ctheme_Direction"] == DBNull.Value ? "" : reader["ctheme_sidebartype"]?.ToString() ?? "";
+                                ctheme_Color = reader["ctheme_Color"] == DBNull.Value ? "" : reader["ctheme_Color"]?.ToString() ?? "";
+                                ctheme_mode = reader["ctheme_mode"] == DBNull.Value ? "" : reader["ctheme_mode"]?.ToString() ?? "";
+
+
                             }
                             else
                             {
@@ -185,7 +195,14 @@ namespace TaskEngineAPI.Controllers
                     token = accessToken,
                     refreshToken = refreshToken,
                     API_EncKey= API_EncKey,
-                    API_DecKey = API_DecKey
+                    API_DecKey = API_DecKey,
+                    ctheme_Containeroption= ctheme_Containeroption,
+                    ctheme_Cardwidth= ctheme_Cardwidth,
+                    ctheme_Layouttype= ctheme_Layouttype,
+                    ctheme_sidebartype= ctheme_sidebartype,
+                    ctheme_Direction= ctheme_Direction,
+                    ctheme_Color= ctheme_Color,
+                     ctheme_mode= ctheme_mode
                 };
 
                 var success = new APIResponse
