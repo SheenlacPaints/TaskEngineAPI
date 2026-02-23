@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Data.SqlClient;
@@ -144,7 +144,7 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IAnalyticalService, AnalyticalService>();
 builder.Services.AddScoped<ProjectSocketHandler>();
 builder.Services.AddSingleton<WebSocketConnectionManager>();
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+//var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 //builder.Services.AddCors(options =>
 //{
 //    options.AddPolicy(name: MyAllowSpecificOrigins,
@@ -179,21 +179,15 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:4200",   // Angular
-                "http://localhost:3000"    // React
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.SetIsOriginAllowed(_ => true)  // ✅ Allow ALL origins
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();            
     });
 });
 
-
 var app = builder.Build();
 app.UseSerilogRequestLogging();
-
-
 app.UseSwagger();
 app.UseSwaggerUI();
 if (app.Environment.IsDevelopment())
