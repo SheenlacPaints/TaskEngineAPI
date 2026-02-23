@@ -3462,5 +3462,53 @@ VALUES (
             return timelineList;
         }
 
+        public async Task<int> InsertCreateusersettingsAsync(CreateusersettingDTO model, int tenantId, string userName)
+        {
+            int masterId = 0;
+            var connectionString = _config.GetConnectionString("Database");
+            using (var conn = new SqlConnection(connectionString))
+            {
+                await conn.OpenAsync();
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        string queryMaster = @"
+                    INSERT INTO tbl_Users_settings (ctenant_id,User_id,ctheme_mode,ctheme_Color,ctheme_Direction,ctheme_sidebartype,
+                     ctheme_Layouttype,ctheme_Cardwidth,ctheme_Containeroption,ccreated_by,lcreated_date,cmodified_by,lmodified_date) VALUES (
+                     @ctenant_id,@User_id,@ctheme_mode,@ctheme_Color,@ctheme_Direction,@ctheme_sidebartype,
+                     @ctheme_Layouttype,@ctheme_Cardwidth,@ctheme_Containeroption,@ccreated_by,@lcreated_date,@cmodified_by,@lmodified_date);SELECT SCOPE_IDENTITY();";
+
+                        using (var cmd = new SqlCommand(queryMaster, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@ctenant_id", tenantId);
+                            cmd.Parameters.AddWithValue("@User_id", userName);
+                            cmd.Parameters.AddWithValue("@ctheme_mode", (object?)model.ctheme_mode ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctheme_Color", (object?)model.ctheme_Color ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctheme_Direction", (object?)model.ctheme_Direction ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctheme_sidebartype", (object?)model.ctheme_sidebartype ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctheme_Layouttype", (object?)model.ctheme_Layouttype ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctheme_Cardwidth", (object?)model.ctheme_Cardwidth ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctheme_Containeroption", (object?)model.ctheme_Containeroption ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@ccreated_by", userName);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@cmodified_by", userName);
+                            var newId = await cmd.ExecuteScalarAsync();
+                            masterId = newId != null ? Convert.ToInt32(newId) : 0;
+                        }
+                        transaction.Commit();
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+            return masterId;
+        }
+
+
     }
 }

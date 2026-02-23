@@ -5951,5 +5951,130 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        private IActionResult CreateEncryptedResponse(int statusCode, string message, object body = null, string error = null)
+        {
+            var response = new APIResponse
+            {
+                status = statusCode,
+                statusText = message,
+                body = body != null ? new object[] { body } : Array.Empty<object>(),
+                error = error
+            };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(statusCode, encrypted);
+        }
+
+        private IActionResult CreatedSuccessResponse(object data, string message = "Successful")
+        {
+            object[] responseBody;
+
+            if (data == null)
+            {
+                responseBody = Array.Empty<object>();
+            }
+
+            else if (data is System.Collections.IEnumerable enumerableData)
+            {
+                responseBody = enumerableData.Cast<object>().ToArray();
+            }
+            else
+            {
+                responseBody = new object[] { data };
+            }
+            var response = new APIResponse
+            {
+                status = 200,
+                statusText = message,
+                body = responseBody,
+            };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return Ok(encrypted);
+        }
+        private (int cTemantID, string username) GetUserInfoFromToken()
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+            }
+            return (cTenantID, usernameClaim);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("Createusersettings")]
+        public async Task<IActionResult> Createusersettings([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return CreateEncryptedResponse(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Payload cannot be empty");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch (Exception ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload format");
+                }
+
+                if (string.IsNullOrWhiteSpace(decryptedJson))
+                {
+                    return CreateEncryptedResponse(400, "Decrypted payload is empty");
+                }
+
+                CreateusersettingDTO model;
+                try
+                {
+                    model = JsonConvert.DeserializeObject<CreateusersettingDTO>(decryptedJson);
+                }
+                catch (JsonException ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid JSON format in payload");
+                }
+
+                if (model == null)
+                {
+                    return CreateEncryptedResponse(400, "Failed to deserialize payload");
+                }
+
+                int insertedUserId = await _AccountService.InsertCreateusersettingsAsync(model, cTenantID, username);
+
+                if (insertedUserId <= 0)
+                {
+                    return CreateEncryptedResponse(500, "Failed to update profile");
+                }
+
+                return CreatedSuccessResponse(new { projectid = insertedUserId }, "successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
     }
 }

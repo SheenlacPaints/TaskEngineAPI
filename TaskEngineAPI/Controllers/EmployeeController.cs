@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Data.SqlClient;
 using System.Net.Http;
+using System.Text;
 using TaskEngineAPI.DTO;
 using static System.Net.WebRequestMethods;
 
@@ -423,6 +424,12 @@ FROM Hrm_cempmas";
                 return StatusCode(500, new { error = "An error occurred", details = ex.Message });
             }
         }
+
+
+       
+
+     
+
 
     }
 }

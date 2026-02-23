@@ -75,6 +75,7 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
+        
         public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid =0 , string? versionid = null,int ? detailid = null,string? remarks1=null,string? remarks2 = null,string? remarks3 = null)
         {
             List<GetProjectList> tsk = new List<GetProjectList>();
