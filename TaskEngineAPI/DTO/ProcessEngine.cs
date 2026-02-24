@@ -89,6 +89,8 @@ namespace TaskEngineAPI.DTO
         public string? cactionPrivilege { get; set; }
         public string? crejectionPrivilege { get; set; }
         public string? cboard_visablity { get; set; }
+
+        public bool? nsla_overdue_action { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
    
@@ -460,6 +462,7 @@ namespace TaskEngineAPI.DTO
         public string? cactionPrivilege { get; set; }
         public string? crejectionPrivilege { get; set; }
         public string? cboard_visablity { get; set; }
+        public bool? nsla_overdue_action { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
 
