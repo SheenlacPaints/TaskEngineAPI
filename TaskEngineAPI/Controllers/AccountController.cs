@@ -111,7 +111,7 @@ namespace TaskEngineAPI.Controllers
                                 ctheme_Containeroption = reader["ctheme_Containeroption"] == DBNull.Value ? "" : reader["ctheme_Containeroption"]?.ToString() ?? "";
                                 ctheme_Cardwidth = reader["ctheme_Cardwidth"] == DBNull.Value ? "" : reader["ctheme_Cardwidth"]?.ToString() ?? "";
                                 ctheme_Layouttype = reader["ctheme_Layouttype"] == DBNull.Value ? "" : reader["ctheme_Layouttype"]?.ToString() ?? "";
-                                ctheme_sidebartype = reader["ctheme_sidebartype"] == DBNull.Value ? "" : reader["ctheme_Layouttype"]?.ToString() ?? "";
+                                ctheme_sidebartype = reader["ctheme_sidebartype"] == DBNull.Value ? "" : reader["ctheme_sidebartype"]?.ToString() ?? "";
                                 ctheme_Direction = reader["ctheme_Direction"] == DBNull.Value ? "" : reader["ctheme_sidebartype"]?.ToString() ?? "";
                                 ctheme_Color = reader["ctheme_Color"] == DBNull.Value ? "" : reader["ctheme_Color"]?.ToString() ?? "";
                                 ctheme_mode = reader["ctheme_mode"] == DBNull.Value ? "" : reader["ctheme_mode"]?.ToString() ?? "";
