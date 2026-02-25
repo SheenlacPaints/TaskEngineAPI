@@ -1518,6 +1518,42 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-       
+
+        [Authorize]
+        [HttpPost]
+        [Route("FetchAPIORGStructureAsync")]
+        public async Task<IActionResult> FetchAPIORGStructureAsync([FromBody] pay request)
+        {
+
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<EmployeeIDDTO>(request.payload);
+                var json = (await taskMasterService.FetchAPIORGStructureAsync(model,cTenantID, username)).ToString();
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+
     }
 }

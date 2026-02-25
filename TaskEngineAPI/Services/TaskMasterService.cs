@@ -15,6 +15,7 @@ using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Reflection.Emit;
 using System.Reflection.PortableExecutable;
+using System.Text;
 using System.Xml.Linq;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.DTO.LookUpDTO;
@@ -4704,6 +4705,107 @@ namespace TaskEngineAPI.Services
                 }
 
                 return "{}";
+            }
+        }
+
+
+        //public async Task<string> FetchAPIORGStructureAsync(int cTenantID, string username)
+        //{
+        //    try
+        //    {
+        //        var connStr = _config.GetConnectionString("Database");
+
+        //        string apiMethod = "";
+        //        string apiUrl = "";
+        //        string requestBodyTemplate = "";
+
+        //        using (SqlConnection conn = new SqlConnection(connStr))
+        //        {
+        //            await conn.OpenAsync();
+
+        //            string query = @"
+        //        SELECT capi_method, capi_url, cbody 
+        //        FROM tbl_users_api_sync_config 
+        //        WHERE capi_type = 'Common' 
+        //        AND cname = 'org_structure'";
+
+        //            using (SqlCommand cmd = new SqlCommand(query, conn))
+        //            {
+        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+        //                {
+        //                    if (await reader.ReadAsync())
+        //                    {
+        //                        apiMethod = reader["capi_method"]?.ToString();
+        //                        apiUrl = reader["capi_url"]?.ToString();
+        //                        requestBodyTemplate = reader["cbody"]?.ToString();
+        //                    }
+        //                }
+        //            }
+        //        }
+        //        var payloadObj = new
+        //        {
+        //            FilterValue1 = "00500006",
+        //            FilterValue2 = "IT - ADMIN",
+        //            FilterValue3 = "Org_tree_Grid_new"
+        //        };
+
+        //        string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(payloadObj);
+
+        //        string payload = "{   \r\n    \"FilterValue1\": \"00500006\",\r\n     \"FilterValue2\": \"IT-ADMIN\",\r\n    \"FilterValue3\": \"Org_tree_Grid_new\"    \r\n}";
+
+        //        using (HttpClient client = new HttpClient())
+        //        {
+        //            HttpRequestMessage request = new HttpRequestMessage(
+        //                new HttpMethod(apiMethod ?? "POST"),
+        //                apiUrl
+        //            );
+
+        //            request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+        //             HttpResponseMessage response = await client.SendAsync(request);
+
+        //            string result = await response.Content.ReadAsStringAsync();
+
+        //            return result;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return $"Error: {ex.Message}";
+        //    }
+        //}
+
+
+
+        public async Task<string> FetchAPIORGStructureAsync(EmployeeIDDTO model, int cTenantID, string username)
+        {
+            try
+            {
+                string apiUrl = "https://misapi.sheenlac.com/api/api/Get_org_Structure";
+
+              
+                string jsonPayload = $@"{{
+                      ""Employee_ID"": ""{model.Employee_ID}""
+                                  }}";
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(60);
+
+                    HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
+
+                    request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.SendAsync(request);
+
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ex.Message}";
             }
         }
 

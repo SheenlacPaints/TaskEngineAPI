@@ -485,6 +485,10 @@ public class APIFetchDTO
     public int? processid { get; set; }
 }
 
+public class EmployeeIDDTO
+{
+    public string? Employee_ID { get; set; } 
+}
 
 
 
