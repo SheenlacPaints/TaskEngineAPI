@@ -175,16 +175,25 @@ builder.Services.AddSingleton<WebSocketConnectionManager>();
 
 //        });
 //});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.SetIsOriginAllowed(_ => true)  // ✅ Allow ALL origins
+        policy.WithOrigins(
+                "https://devtaskflow.sheenlac.com",
+                "https://progovex.sheenlac.com",
+                "http://localhost:3000",   // Add your React/Vue local port
+                "http://localhost:5173",   // Add your Vite local port
+                "http://localhost:4200"    // Add your Angular local port
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();            
+              .AllowCredentials() // Required for JWT if sent via cookies/auth headers
+              .SetIsOriginAllowed(origin => true);
     });
 });
+
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
