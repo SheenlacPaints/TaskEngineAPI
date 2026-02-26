@@ -144,6 +144,9 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IAnalyticalService, AnalyticalService>();
 builder.Services.AddScoped<ProjectSocketHandler>();
 builder.Services.AddSingleton<WebSocketConnectionManager>();
+builder.Services.AddScoped<IApiProxyService, APIIntegrationService>();
+
+
 //var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 //builder.Services.AddCors(options =>
 //{
