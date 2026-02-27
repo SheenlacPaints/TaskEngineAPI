@@ -127,7 +127,7 @@ namespace TaskEngineAPI.Services
                     ctenant_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description,  
                     ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
                     cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type,cboard_visablity,nsla_overdue_action,cc_cmapping_code,bcc_cmapping_code
-                    cc_cmapping_type,bcc_cmapping_type) 
+                    ,cc_cmapping_type,bcc_cmapping_type) 
                     VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
                     @ctasktype, @cprev_step, @cactivityname, @cnext_seqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
                     @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type,@cboard_visablity,@nsla_overdue_action,cc_cmapping_code,bcc_cmapping_code,
