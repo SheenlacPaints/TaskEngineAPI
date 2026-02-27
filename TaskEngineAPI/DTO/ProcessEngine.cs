@@ -89,8 +89,11 @@ namespace TaskEngineAPI.DTO
         public string? cactionPrivilege { get; set; }
         public string? crejectionPrivilege { get; set; }
         public string? cboard_visablity { get; set; }
-
         public bool? nsla_overdue_action { get; set; }
+        public string? cc_cmapping_code { get; set; }
+        public string? bcc_cmapping_code { get; set; }
+        public string? cc_cmapping_type { get; set; }
+        public string? bcc_cmapping_type { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
    
@@ -463,6 +466,10 @@ namespace TaskEngineAPI.DTO
         public string? crejectionPrivilege { get; set; }
         public string? cboard_visablity { get; set; }
         public bool? nsla_overdue_action { get; set; }
+        public string? cc_cmapping_code { get; set; }
+        public string? bcc_cmapping_code { get; set; }
+        public string? cc_cmapping_type { get; set; }
+        public string? bcc_cmapping_type { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
 
