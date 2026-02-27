@@ -76,7 +76,7 @@ namespace TaskEngineAPI.Controllers
             var connStr = _config.GetConnectionString("Database");
             string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "",
                 role_name = "", useravatar = "", type = "", API_DecKey="", API_EncKey="",ctheme_Containeroption = "",ctheme_Cardwidth = "",
-                ctheme_Layouttype = "",ctheme_sidebartype = "",ctheme_Direction = "",ctheme_Color = "",ctheme_mode = "";
+                ctheme_Layouttype = "",ctheme_sidebartype = "",ctheme_Direction = "",ctheme_Color = "",ctheme_mode = "", Shift_startTime = "", Shift_endTime = ""; ;
 
             try
             {
@@ -115,8 +115,8 @@ namespace TaskEngineAPI.Controllers
                                 ctheme_Direction = reader["ctheme_Direction"] == DBNull.Value ? "" : reader["ctheme_sidebartype"]?.ToString() ?? "";
                                 ctheme_Color = reader["ctheme_Color"] == DBNull.Value ? "" : reader["ctheme_Color"]?.ToString() ?? "";
                                 ctheme_mode = reader["ctheme_mode"] == DBNull.Value ? "" : reader["ctheme_mode"]?.ToString() ?? "";
-
-
+                                Shift_startTime = reader["Shift_startTime"] == DBNull.Value ? "" : reader["Shift_startTime"]?.ToString() ?? "";
+                                Shift_endTime = reader["Shift_endTime"] == DBNull.Value ? "" : reader["Shift_endTime"]?.ToString() ?? "";
                             }
                             else
                             {
@@ -202,7 +202,9 @@ namespace TaskEngineAPI.Controllers
                     ctheme_sidebartype= ctheme_sidebartype,
                     ctheme_Direction= ctheme_Direction,
                     ctheme_Color= ctheme_Color,
-                     ctheme_mode= ctheme_mode
+                     ctheme_mode= ctheme_mode,
+                    Shift_startTime= Shift_startTime,
+                    Shift_endTime= Shift_endTime
                 };
 
                 var success = new APIResponse

@@ -1278,6 +1278,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@nsla_overdue_action", (object?)detail.nsla_overdue_action ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cc_cmapping_code", (object?)detail.cc_cmapping_code ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@bcc_cmapping_code", (object?)detail.bcc_cmapping_code ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cc_cmapping_type", (object?)detail.cc_cmapping_type ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", (object?)detail.bcc_cmapping_type ?? DBNull.Value);
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
