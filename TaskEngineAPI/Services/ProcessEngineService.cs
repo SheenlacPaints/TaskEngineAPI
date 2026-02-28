@@ -17,6 +17,9 @@ using System.Diagnostics;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Text;
+using Newtonsoft.Json;
+using System.Net.Http;
 
 namespace TaskEngineAPI.Services
 {
@@ -89,10 +92,10 @@ namespace TaskEngineAPI.Services
 
                         string queryMaster = @"INSERT INTO tbl_process_engine_master (
                     ctenant_id,cprocesscode, cprocessname,cprocessdescription, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
-                    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted,nshow_table,nis_metaapi_integration,cmetaapi_id) 
+                    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted,nshow_table,nis_metaapi_integration,cmetaapi_id,cmetaapi_response) 
                     VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocessdescription,@cprocess_type, @cstatus,  
                     @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
-                    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id,@nIs_deleted,@nshow_table,@nis_metaapi_integration,@cmetaapi_id);
+                    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id,@nIs_deleted,@nshow_table,@nis_metaapi_integration,@cmetaapi_id,@cmetaapi_response);
                     SELECT SCOPE_IDENTITY();";
 
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
@@ -116,16 +119,19 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@nshow_table", (object?)model.nshow_table ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@nis_metaapi_integration", (object?)model.nis_metaapi_integration ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cmetaapi_id", (object?)model.cmetaapi_id ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("cmetaapi_response", (object?)model.cmetaapi_response ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
                     ctenant_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description,  
                     ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
-                    cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type,cboard_visablity) 
+                    cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type,cboard_visablity,nsla_overdue_action,cc_cmapping_code,bcc_cmapping_code
+                    ,cc_cmapping_type,bcc_cmapping_type) 
                     VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
                     @ctasktype, @cprev_step, @cactivityname, @cnext_seqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
-                    @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type,@cboard_visablity);
+                    @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type,@cboard_visablity,@nsla_overdue_action,@cc_cmapping_code,@bcc_cmapping_code,
+                    @cc_cmapping_type,@bcc_cmapping_type);
                     SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
@@ -157,6 +163,11 @@ namespace TaskEngineAPI.Services
                                 cmdDetail.Parameters.AddWithValue("@cactionprivilege", detail.cactionPrivilege ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@crejectionprivilege", detail.crejectionPrivilege ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cboard_visablity", detail.cboard_visablity ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nsla_overdue_action", detail.nsla_overdue_action ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cc_cmapping_code", detail.cc_cmapping_code ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@bcc_cmapping_code", detail.bcc_cmapping_code ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cc_cmapping_type", detail.cc_cmapping_type ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", detail.bcc_cmapping_type ?? (object)DBNull.Value);
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
@@ -226,7 +237,6 @@ namespace TaskEngineAPI.Services
                                 var metaId = await cmd.ExecuteScalarAsync();
                                 metaMasterId = metaId != null ? Convert.ToInt32(metaId) : 0;
                             }
-
                             if (metaMasterId > 0)
                             {
                                 string updateMasterQuery = @"UPDATE tbl_process_engine_master SET cmeta_id = @cmeta_id
@@ -238,7 +248,6 @@ namespace TaskEngineAPI.Services
                                     await cmd.ExecuteNonQueryAsync();
                                 }
                             }
-
                             if (model.processEngineMeta != null && model.processEngineMeta.Any())
                             {
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
@@ -282,7 +291,6 @@ namespace TaskEngineAPI.Services
                                 await cmd.ExecuteNonQueryAsync();
                             }
                         }
-
                         transaction.Commit();
                         return masterId;
                     }
@@ -430,8 +438,8 @@ p.cprocess_privilege as privilege_name,
     m.lcreated_date,ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by, 
     m.lmodified_date, m.cmeta_id,d.cactivitycode,d.cactivity_description,  d.ctask_type, d.cprev_step, d.cactivityname,  d.cnext_seqno, d.nboard_enabled, 
     d.cmapping_code, d.cmapping_type,  d.cparticipant_type,   d.csla_day,  d.csla_Hour, d.caction_privilege,  d.crejection_privilege,
-   d.cboard_visablity,n.notification_type AS Notification_Description,
-    s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table,m.cattachment,m.nis_metaapi_integration,m.cmetaapi_id  
+   d.cboard_visablity,d.nsla_overdue_action, d.cc_cmapping_code,d.bcc_cmapping_code,cc_cmapping_type,bcc_cmapping_type, n.notification_type AS Notification_Description,
+    s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table,m.cattachment,m.nis_metaapi_integration,m.cmetaapi_id,m.cmetaapi_response  
 FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
@@ -474,6 +482,7 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             nis_metaapi_integration = reader.IsDBNull(reader.GetOrdinal("nis_metaapi_integration")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("nis_metaapi_integration")),
                             cmetaapi_id = reader["cmetaapi_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmetaapi_id"]),
                             Notification_Description = reader.SafeGetString("Notification_Description"),
+                            cmetaapi_response= reader["cmetaapi_response"]?.ToString() ?? "",                                                     
                             processEngineChildItems = new List<GetIDprocessEngineChildItems>(),
                             processEngineMeta = new List<processEngineMeta>()
                         };
@@ -503,6 +512,11 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             cactionPrivilege = reader.SafeGetString("caction_privilege"),
                             crejectionPrivilege = reader.SafeGetString("crejection_privilege"),
                             cboard_visablity = reader.SafeGetString("cboard_visablity"),
+                            nsla_overdue_action = reader.SafeGetBoolean("nsla_overdue_action"),
+                            cc_cmapping_code = reader.SafeGetString("cc_cmapping_code"),
+                            bcc_cmapping_code = reader.SafeGetString("bcc_cmapping_code"),
+                            bcc_cmapping_type=reader.SafeGetString("bcc_cmapping_type"),
+                            cc_cmapping_type = reader.SafeGetString("cc_cmapping_type"),
                             processEngineConditionDetails = new List<processEngineConditionDetails>()
                         };
                         engine.processEngineChildItems.Add(child);
@@ -1195,7 +1209,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         cpriority_label=@cpriority_label, nshow_timeline=@nshow_timeline,
                         cnotification_type=@cnotification_type, cmodified_by=@cmodified_by,
                         lmodified_date=@lmodified_date, cmeta_id=@cmeta_id, nIs_deleted=@nIs_deleted,
-                        nshow_table=@nshow_table,nis_metaapi_integration=@nis_metaapi_integration,cmetaapi_id=@cmetaapi_id
+                        nshow_table=@nshow_table,nis_metaapi_integration=@nis_metaapi_integration,cmetaapi_id=@cmetaapi_id,cmetaapi_response=@cmetaapi_response
                     WHERE ID=@ID;"; 
 
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
@@ -1217,17 +1231,18 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@nshow_table", (object?)model.nshow_table ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@nis_metaapi_integration", (object?)model.nis_metaapi_integration ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cmetaapi_id", (object?)model.cmetaapi_id ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cmetaapi_response", (object?)model.cmetaapi_response ?? DBNull.Value);
                             await cmd.ExecuteNonQueryAsync();
                         }
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
                         ctenant_id, cheader_id, ciseqno, cprocesscode, cactivitycode, cactivity_description,  
                         ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, 
                         cmodified_by, lmodified_date, cmapping_code, cparticipant_type, nboard_enabled, 
-                        csla_day, csla_Hour, caction_privilege, crejection_privilege, cmapping_type,cboard_visablity) 
+                        csla_day, csla_Hour, caction_privilege, crejection_privilege, cmapping_type,cboard_visablity,nsla_overdue_action,cc_cmapping_code,bcc_cmapping_code,cc_cmapping_type,bcc_cmapping_type) 
                         VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
                         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, 
                         @cmodified_by, @lmodified_date, @cassignee, @cparticipantType, @nboardenabled, 
-                        @csladay, @cslaHour, @cactionprivilege, @crejectionprivilege, @cmapping_type,@cboard_visablity);
+                        @csladay, @cslaHour, @cactionprivilege, @crejectionprivilege, @cmapping_type,@cboard_visablity,@nsla_overdue_action,@cc_cmapping_code,@bcc_cmapping_code,@cc_cmapping_type,@bcc_cmapping_type);
                         SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
@@ -1260,7 +1275,11 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@cactionprivilege", detail.cactionPrivilege ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@crejectionprivilege", detail.crejectionPrivilege ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cboard_visablity", detail.cboard_visablity ?? (object)DBNull.Value);
-
+                                cmdDetail.Parameters.AddWithValue("@nsla_overdue_action", (object?)detail.nsla_overdue_action ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cc_cmapping_code", (object?)detail.cc_cmapping_code ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@bcc_cmapping_code", (object?)detail.bcc_cmapping_code ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cc_cmapping_type", (object?)detail.cc_cmapping_type ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", (object?)detail.bcc_cmapping_type ?? DBNull.Value);
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
@@ -1299,7 +1318,6 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                         cmdCond.Parameters.AddWithValue("@cis_readonly", (object?)cond.cisReadonly ?? DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_disabled", (object?)cond.cis_disabled ?? DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cdata_source", (object?)cond.cdatasource ?? DBNull.Value);
-
                                         await cmdCond.ExecuteNonQueryAsync();
                                     }
                                 }
@@ -1399,8 +1417,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 }
             }
         }
-        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsyncnew(
-int cTenantID, string searchText = null, int page = 1, int pageSize = 10, string created_by = null, string priority = null, int? status = null)
+        public async Task<List<GetProcessEngineDTO>> GetAllProcessengineAsyncnew(int cTenantID, string searchText = null, int page = 1, int pageSize = 10, string created_by = null, string priority = null, int? status = null)
         {
 
             if (page < 1) page = 1;
@@ -1619,6 +1636,11 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
     }
 };
         }
+      
+    
+     
+      
+
     }
 }
 

@@ -11,6 +11,8 @@ using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Services;
 using System.Net.Http;
 using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
+using System.Text;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -21,13 +23,16 @@ namespace TaskEngineAPI.Controllers
         private readonly IConfiguration _config;
         private readonly IJwtService _jwtService;
         private readonly ITaskMasterService taskMasterService;
+
+        private readonly IApiProxyService APIIntegrationService;
         private readonly ILogger<TaskMasterController> _logger;
         private readonly IHttpClientFactory _httpClientFactory;
-        public TaskMasterController(IConfiguration config, IHttpClientFactory httpClientFactory, IJwtService jwtService, ITaskMasterService taskMasterService, ILogger<TaskMasterController> logger)
+        public TaskMasterController(IConfiguration config, IHttpClientFactory httpClientFactory, IJwtService jwtService, ITaskMasterService taskMasterService, IApiProxyService APIIntegrationService, ILogger<TaskMasterController> logger)
         {
             _config = config;
             _jwtService = jwtService;
             this.taskMasterService = taskMasterService;
+            this.APIIntegrationService = APIIntegrationService;
             _logger = logger;
             _httpClientFactory = httpClientFactory;
         }
@@ -1484,8 +1489,8 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost]
-        [Route("FetchIntegrationAPIAsync")] 
-        public async Task<IActionResult> FetchIntegrationAPIAsync([FromBody] pay request)
+        [Route("FetchIntegrationAPIAsyncusingSP")] 
+        public async Task<IActionResult> FetchIntegrationAPIAsyncusingSP([FromBody] pay request)
         {
 
             try
@@ -1516,6 +1521,117 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+
+        [Authorize]
+        [HttpPost]
+        [Route("FetchAPIORGStructureAsync")]
+        public async Task<IActionResult> FetchAPIORGStructureAsync([FromBody] pay request)
+        {
+
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<EmployeeIDDTO>(request.payload);
+                var json = (await taskMasterService.FetchAPIORGStructureAsync(model,cTenantID, username)).ToString();
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+        [HttpPost("TestExternalAPI")]
+        public async Task<IActionResult> TestExternalAPI([FromBody] ApiTestRequestDTO model)
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    var request = new HttpRequestMessage(
+                        new HttpMethod(model.Method ?? "POST"),
+                        model.Url
+                    );
+
+                    if (!string.IsNullOrEmpty(model.Body))
+                    {
+                        request.Content = new StringContent(
+                            model.Body,
+                            Encoding.UTF8,
+                            "application/json"
+                        );
+                    }
+
+                    // Headers (optional)
+                    if (model.Headers != null)
+                    {
+                        foreach (var h in model.Headers)
+                        {
+                            request.Headers.TryAddWithoutValidation(h.Key, h.Value);
+                        }
+                    }
+
+                    var response = await client.SendAsync(request);
+                    var result = await response.Content.ReadAsStringAsync();
+
+                    return Ok(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("FetchExternalAPI")]
+        public async Task<IActionResult> FetchExternalAPI([FromBody] pay request)
+        {
+
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<APIFetchDTO>(request.payload);
+                var json = (await APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username)).ToString();
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
 
     }

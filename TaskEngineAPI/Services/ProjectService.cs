@@ -75,7 +75,8 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
-        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid =0 , string? versionid =null)
+        
+        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid =0 , string? versionid = null,int ? detailid = null,string? remarks1=null,string? remarks2 = null,string? remarks3 = null)
         {
             List<GetProjectList> tsk = new List<GetProjectList>();
             int totalCount = 0;
@@ -98,8 +99,11 @@ namespace TaskEngineAPI.Services
                         cmd.Parameters.AddWithValue("@PageSize", pageSize);
                         cmd.Parameters.AddWithValue("@projectid", projectid ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@versionid", versionid ?? (object)DBNull.Value);
-
-
+                        cmd.Parameters.AddWithValue("@detailid", detailid ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Remarks1", remarks1 ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Remarks2", remarks2 ?? (object)DBNull.Value);
+                        cmd.Parameters.AddWithValue("@Remarks3", remarks3 ?? (object)DBNull.Value);
+                        
                         await con.OpenAsync();
                         if (type == "Client_Approve")
                         {
@@ -113,6 +117,18 @@ namespace TaskEngineAPI.Services
                             };
                         }
                         else if (type == "Emp_Approve")
+                        {
+                            var ds = new DataSet();
+                            var adapter = new SqlDataAdapter(cmd);
+                            await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                            if (ds.Tables.Count > 0)
+                            {
+                                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                            }
+                            ;
+                        }
+                        else if (type == "CompletedRemarks")
                         {
                             var ds = new DataSet();
                             var adapter = new SqlDataAdapter(cmd);
@@ -147,10 +163,14 @@ namespace TaskEngineAPI.Services
                                         Attachments = sdr.IsDBNull(sdr.GetOrdinal("cattachment")) ? string.Empty : Convert.ToString(sdr["cattachment"]),
                                         ProjectType = sdr.IsDBNull(sdr.GetOrdinal("ProjectType")) ? string.Empty : Convert.ToString(sdr["ProjectType"]),
                                         VersionCal = sdr.IsDBNull(sdr.GetOrdinal("version_cal")) ? string.Empty : Convert.ToString(sdr["version_cal"]),
-                                        //Capproved_by = sdr.IsDBNull(sdr.GetOrdinal("Capproved_by")) ? string.Empty : Convert.ToString(sdr["Capproved_by"]),
-                                        //Capproved_date = sdr.IsDBNull(sdr.GetOrdinal("Capproved_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("Capproved_date")),
+                                        Remarks1 = sdr.IsDBNull(sdr.GetOrdinal("Remarks1")) ? string.Empty : Convert.ToString(sdr["Remarks1"]),
+                                        Remarks2 = sdr.IsDBNull(sdr.GetOrdinal("Remarks2")) ? string.Empty : Convert.ToString(sdr["Remarks2"]),
+                                        Remarks3 = sdr.IsDBNull(sdr.GetOrdinal("Remarks3")) ? string.Empty : Convert.ToString(sdr["Remarks3"]),
+                                        ActualBudget = sdr.IsDBNull(sdr.GetOrdinal("ActualBudget")) ? string.Empty : Convert.ToString(sdr["ActualBudget"]),
+
                                         TotalBudgetPerVersion = sdr.IsDBNull(sdr.GetOrdinal("TotalBudgetPerVersion")) ? string.Empty : Convert.ToString(sdr["TotalBudgetPerVersion"]),
                                         expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
+                                        
                                         project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
                                                      ? new List<ProjectDetailResponse>()
                                                      : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)

@@ -2981,7 +2981,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Getprojectmaster")]
-        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, [FromQuery]string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? projectid = 0, [FromQuery] string? versionid = null)
+        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, [FromQuery]string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? projectid = 0, [FromQuery] string? versionid = null, [FromQuery] int? detailid = null, string? remarks1 = null, string? remarks2 = null, string? remarks3 = null)
         {
             try
             {            
@@ -2999,6 +2999,15 @@ namespace TaskEngineAPI.Controllers
                     queryParams.Add($"projectid={projectid.Value}");
                 if (!string.IsNullOrWhiteSpace(versionid))
                     queryParams.Add($"versionid={Uri.EscapeDataString(versionid)}");
+                if (detailid.HasValue && detailid.Value > 0)
+                    queryParams.Add($"detailid={detailid.Value}");
+                if (!string.IsNullOrWhiteSpace(remarks1))
+                    queryParams.Add($"remarks1={Uri.EscapeDataString(remarks1)}");
+                if (!string.IsNullOrWhiteSpace(remarks2))
+                    queryParams.Add($"remarks2={Uri.EscapeDataString(remarks2)}");
+                if (!string.IsNullOrWhiteSpace(remarks3))
+                    queryParams.Add($"remarks3={Uri.EscapeDataString(remarks3)}");
+
                 var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";            
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/Project/Getprojectmaster{queryString}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
@@ -3399,8 +3408,8 @@ namespace TaskEngineAPI.Controllers
                 {
                     return Unauthorized("Missing Authorization token.");
                 }
-
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}TaskMaster/FetchIntegrationAPIAsync");
+                
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}APIIntegration/FetchIntegrationAPIAsync");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
@@ -3421,6 +3430,79 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+
+        [Authorize]
+        [HttpPost("Createusersetting")]
+        public async Task<IActionResult> Createusersetting([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/Createusersettings");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("FetchAPIORGStructureAsync")]
+        public async Task<IActionResult> FetchAPIORGStructureAsync([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}TaskMaster/FetchAPIORGStructureAsync");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+
 
 
     }

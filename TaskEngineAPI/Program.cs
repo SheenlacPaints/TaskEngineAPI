@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Data.SqlClient;
@@ -144,53 +144,62 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IAnalyticalService, AnalyticalService>();
 builder.Services.AddScoped<ProjectSocketHandler>();
 builder.Services.AddSingleton<WebSocketConnectionManager>();
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-        policy =>
-        {
-            policy.WithOrigins(
-                "https://portal.sheenlac.com",
-                "https://AllPaintsEcomAPI.sheenlac.com",
-                "https://vendor.sheenlac.com",
-                "https://devmisportal.sheenlac.com",
-                "https://misportal.sheenlac.com",
-                "http://localhost:4200",
-                "http://localhost:5000",
-                "https://localhost:7257",
-                "https://devvendor.sheenlac.com",
-                "https://devportal.sheenlac.com",
-                "https://devtaskflow.sheenlac.com",
-                "https://misapi.sheenlac.com",
-                "https://devmisapi.sheenlac.com",
-                "https://misapi.sheenlac.com",
-                "https://devmisapi.sheenlac.com",
-                "https://misapi.sheenlac.com/api",
-                "https://misdevapi.sheenlac.com",
-                "https://progovex.sheenlac.com"
-            )
+builder.Services.AddScoped<IApiProxyService, APIIntegrationService>();
 
-            .AllowAnyHeader()
-            .AllowAnyMethod();
-           
-        });
-});
+
+//var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 //builder.Services.AddCors(options =>
 //{
-//    options.AddPolicy("AllowAll", policy =>
-//    {
-//        policy.SetIsOriginAllowed(_ => true) // Essential for Postman/Localhost
-//              .AllowAnyHeader()
-//              .AllowAnyMethod()
-//              .AllowCredentials(); // Essential for WebSockets using Auth
-//    });
+//    options.AddPolicy(name: MyAllowSpecificOrigins,
+//        policy =>
+//        {
+//            policy.WithOrigins(
+//                "https://portal.sheenlac.com",
+//                "https://AllPaintsEcomAPI.sheenlac.com",
+//                "https://vendor.sheenlac.com",
+//                "https://devmisportal.sheenlac.com",
+//                "https://misportal.sheenlac.com",
+//                "http://localhost:4200",
+//                "http://localhost:5000",
+//                "https://localhost:7257",
+//                "https://devvendor.sheenlac.com",
+//                "https://devportal.sheenlac.com",
+//                "https://devtaskflow.sheenlac.com",
+//                "https://misapi.sheenlac.com",
+//                "https://devmisapi.sheenlac.com",
+//                "https://misapi.sheenlac.com",
+//                "https://devmisapi.sheenlac.com",
+//                "https://misapi.sheenlac.com/api",
+//                "https://misdevapi.sheenlac.com"
+//            )
+
+//            .AllowAnyHeader()
+//            .AllowAnyMethod();
+
+//        });
 //});
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.WithOrigins(
+                "https://devtaskflow.sheenlac.com",
+                "https://progovex.sheenlac.com",
+                "http://localhost:3000",   // Add your React/Vue local port
+                "http://localhost:5173",   // Add your Vite local port
+                "http://localhost:4200"    // Add your Angular local port
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials() // Required for JWT if sent via cookies/auth headers
+              .SetIsOriginAllowed(origin => true);
+    });
+});
+
 
 var app = builder.Build();
 app.UseSerilogRequestLogging();
-
-
 app.UseSwagger();
 app.UseSwaggerUI();
 if (app.Environment.IsDevelopment())
@@ -200,8 +209,9 @@ if (app.Environment.IsDevelopment())
 //app.UseMiddleware<JwtValidationMiddleware>();
 
 app.UseExceptionHandler("/Error");
-app.UseCors(MyAllowSpecificOrigins);
-//app.UseCors("AllowAll");
+app.UseRouting();
+//app.UseCors(MyAllowSpecificOrigins);
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -211,8 +221,11 @@ app.UseWebSockets(new WebSocketOptions
 {
     KeepAliveInterval = TimeSpan.FromSeconds(30) // Sends a protocol-level ping
 });
+
 app.UseWebSocketEndpoints();
+
 app.MapControllers();
+
 //app.Map("/ws/project", async context =>
 //{
 //    var handler = context.RequestServices.GetRequiredService<ProjectSocketHandler>();

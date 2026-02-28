@@ -164,6 +164,17 @@ namespace TaskEngineAPI.DTO
 
     }
 
+    public class CreateusersettingDTO
+    {
+        public string ctheme_mode { get; set; }
+        public string ctheme_Color { get; set; }
+        public string ctheme_Direction { get; set; }
+        public string ctheme_sidebartype { get; set; }
+        public string ctheme_Layouttype { get; set; }
+        public string ctheme_Cardwidth { get; set; }
+        public string ctheme_Containeroption { get; set; }
+    }
+
 }
 
 

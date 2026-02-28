@@ -34,6 +34,8 @@ namespace TaskEngineAPI.DTO
         public bool? nshow_table { get; set; }
         public bool? nis_metaapi_integration { get; set; }
         public int? cmetaapi_id { get; set; }
+
+        public string? cmetaapi_response { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }   
 
@@ -59,6 +61,8 @@ namespace TaskEngineAPI.DTO
         public bool? nshow_table { get; set; }
         public bool? nis_metaapi_integration { get; set; }
         public int? cmetaapi_id { get; set; }
+
+        public string? cmetaapi_response { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }
 
@@ -85,6 +89,11 @@ namespace TaskEngineAPI.DTO
         public string? cactionPrivilege { get; set; }
         public string? crejectionPrivilege { get; set; }
         public string? cboard_visablity { get; set; }
+        public bool? nsla_overdue_action { get; set; }
+        public string? cc_cmapping_code { get; set; }
+        public string? bcc_cmapping_code { get; set; }
+        public string? cc_cmapping_type { get; set; }
+        public string? bcc_cmapping_type { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
    
@@ -426,6 +435,8 @@ namespace TaskEngineAPI.DTO
 
         public bool? nis_metaapi_integration { get; set; }
         public int? cmetaapi_id { get; set; }
+
+        public string? cmetaapi_response { get; set; }
         public List<GetIDprocessEngineChildItems> processEngineChildItems { get; set; }
        
        public List<processEngineMeta> processEngineMeta { get; set; }
@@ -454,6 +465,11 @@ namespace TaskEngineAPI.DTO
         public string? cactionPrivilege { get; set; }
         public string? crejectionPrivilege { get; set; }
         public string? cboard_visablity { get; set; }
+        public bool? nsla_overdue_action { get; set; }
+        public string? cc_cmapping_code { get; set; }
+        public string? bcc_cmapping_code { get; set; }
+        public string? cc_cmapping_type { get; set; }
+        public string? bcc_cmapping_type { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
 
@@ -510,5 +526,6 @@ namespace TaskEngineAPI.DTO
         public int MappingId { get; set; }
     }
 
+  
 }
 

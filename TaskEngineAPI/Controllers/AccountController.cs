@@ -75,7 +75,8 @@ namespace TaskEngineAPI.Controllers
 
             var connStr = _config.GetConnectionString("Database");
             string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "",
-                role_name = "", useravatar = "", type = "";
+                role_name = "", useravatar = "", type = "", API_DecKey="", API_EncKey="",ctheme_Containeroption = "",ctheme_Cardwidth = "",
+                ctheme_Layouttype = "",ctheme_sidebartype = "",ctheme_Direction = "",ctheme_Color = "",ctheme_mode = "", Shift_startTime = "", Shift_endTime = ""; ;
 
             try
             {
@@ -105,6 +106,17 @@ namespace TaskEngineAPI.Controllers
                                 role_name = reader["role_name"] == DBNull.Value ? "" : reader["role_name"]?.ToString() ?? "";
                                 useravatar = reader["useravatar"] == DBNull.Value ? "" : reader["useravatar"]?.ToString() ?? "";
                                 type = reader["Type"] == DBNull.Value ? "" : reader["Type"]?.ToString() ?? "";
+                                API_EncKey = reader["API_EncKey"] == DBNull.Value ? "" : reader["API_EncKey"]?.ToString() ?? "";
+                                API_DecKey = reader["API_DecKey"] == DBNull.Value ? "" : reader["API_DecKey"]?.ToString() ?? "";
+                                ctheme_Containeroption = reader["ctheme_Containeroption"] == DBNull.Value ? "" : reader["ctheme_Containeroption"]?.ToString() ?? "";
+                                ctheme_Cardwidth = reader["ctheme_Cardwidth"] == DBNull.Value ? "" : reader["ctheme_Cardwidth"]?.ToString() ?? "";
+                                ctheme_Layouttype = reader["ctheme_Layouttype"] == DBNull.Value ? "" : reader["ctheme_Layouttype"]?.ToString() ?? "";
+                                ctheme_sidebartype = reader["ctheme_sidebartype"] == DBNull.Value ? "" : reader["ctheme_sidebartype"]?.ToString() ?? "";
+                                ctheme_Direction = reader["ctheme_Direction"] == DBNull.Value ? "" : reader["ctheme_sidebartype"]?.ToString() ?? "";
+                                ctheme_Color = reader["ctheme_Color"] == DBNull.Value ? "" : reader["ctheme_Color"]?.ToString() ?? "";
+                                ctheme_mode = reader["ctheme_mode"] == DBNull.Value ? "" : reader["ctheme_mode"]?.ToString() ?? "";
+                                Shift_startTime = reader["Shift_startTime"] == DBNull.Value ? "" : reader["Shift_startTime"]?.ToString() ?? "";
+                                Shift_endTime = reader["Shift_endTime"] == DBNull.Value ? "" : reader["Shift_endTime"]?.ToString() ?? "";
                             }
                             else
                             {
@@ -181,8 +193,18 @@ namespace TaskEngineAPI.Controllers
                     useravatar = useravatar,
                     type = type,
                     token = accessToken,
-                    refreshToken = refreshToken
-
+                    refreshToken = refreshToken,
+                    API_EncKey= API_EncKey,
+                    API_DecKey = API_DecKey,
+                    ctheme_Containeroption= ctheme_Containeroption,
+                    ctheme_Cardwidth= ctheme_Cardwidth,
+                    ctheme_Layouttype= ctheme_Layouttype,
+                    ctheme_sidebartype= ctheme_sidebartype,
+                    ctheme_Direction= ctheme_Direction,
+                    ctheme_Color= ctheme_Color,
+                     ctheme_mode= ctheme_mode,
+                    Shift_startTime= Shift_startTime,
+                    Shift_endTime= Shift_endTime
                 };
 
                 var success = new APIResponse
@@ -5947,6 +5969,131 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+        private IActionResult CreateEncryptedResponse(int statusCode, string message, object body = null, string error = null)
+        {
+            var response = new APIResponse
+            {
+                status = statusCode,
+                statusText = message,
+                body = body != null ? new object[] { body } : Array.Empty<object>(),
+                error = error
+            };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return StatusCode(statusCode, encrypted);
+        }
+
+        private IActionResult CreatedSuccessResponse(object data, string message = "Successful")
+        {
+            object[] responseBody;
+
+            if (data == null)
+            {
+                responseBody = Array.Empty<object>();
+            }
+
+            else if (data is System.Collections.IEnumerable enumerableData)
+            {
+                responseBody = enumerableData.Cast<object>().ToArray();
+            }
+            else
+            {
+                responseBody = new object[] { data };
+            }
+            var response = new APIResponse
+            {
+                status = 200,
+                statusText = message,
+                body = responseBody,
+            };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            return Ok(encrypted);
+        }
+        private (int cTemantID, string username) GetUserInfoFromToken()
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) ||
+                string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
+            }
+            return (cTenantID, usernameClaim);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("Createusersettings")]
+        public async Task<IActionResult> Createusersettings([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return CreateEncryptedResponse(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Payload cannot be empty");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch (Exception ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload format");
+                }
+
+                if (string.IsNullOrWhiteSpace(decryptedJson))
+                {
+                    return CreateEncryptedResponse(400, "Decrypted payload is empty");
+                }
+
+                CreateusersettingDTO model;
+                try
+                {
+                    model = JsonConvert.DeserializeObject<CreateusersettingDTO>(decryptedJson);
+                }
+                catch (JsonException ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid JSON format in payload");
+                }
+
+                if (model == null)
+                {
+                    return CreateEncryptedResponse(400, "Failed to deserialize payload");
+                }
+
+                int insertedUserId = await _AccountService.InsertCreateusersettingsAsync(model, cTenantID, username);
+
+                if (insertedUserId <= 0)
+                {
+                    return CreateEncryptedResponse(500, "Failed to update profile");
+                }
+
+                return CreatedSuccessResponse(new { projectid = insertedUserId }, "successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
 
     }
 }
