@@ -1404,8 +1404,49 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmd.Parameters.AddWithValue("@cmeta_id", model.cmetaId ?? (object)DBNull.Value);
                                 await cmd.ExecuteNonQueryAsync();
                             }
-                        }
+                            string deletemetadetailQuery = @"DELETE FROM tbl_process_meta_detail 
+                             WHERE cheader_id = @MasterID AND ctenant_id = @TenantID;";
+                            using (SqlCommand cmd = new SqlCommand(deleteDetailsQuery, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MasterID", model.cmetaId ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                            
+                            if (model.processEngineMeta != null)
+                            {
+                                string metadata = @"INSERT INTO tbl_process_meta_detail (
+                                cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, 
+                                cis_readonly, cis_disabled, ccreated_by, lcreated_date, cmodified_by, 
+                                lmodified_date, cfield_value,cdata_source,capi_mapping) VALUES (
+                                @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required,  
+                                @cis_readonly, @cis_disabled, @ccreated_by, @lcreated_date, 
+                                @cmodified_by, @lmodified_date, @cfield_value,@cdata_source,@capi_mapping);";
 
+                                foreach (var meta in model.processEngineMeta)
+                                {
+                                    using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
+                                    {
+                                        cmdMeta.Parameters.AddWithValue("@TenantID", cTenantID);
+                                        cmdMeta.Parameters.AddWithValue("@Header_ID", model.cmetaId);
+                                        cmdMeta.Parameters.AddWithValue("@cinput_type", meta.cinputType ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@label", meta.label ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cplaceholder", meta.cplaceholder ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_required", (object?)meta.cisRequired ?? DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_readonly", (object?)meta.cisReadonly ?? DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_disabled", (object?)meta.cisDisabled ?? DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@ccreated_by", username);
+                                        cmdMeta.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                                        cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
+                                        cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                                        cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cdata_source", meta.cdatasource ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@capi_mapping", meta.capi_mapping ?? (object)DBNull.Value);
+                                        await cmdMeta.ExecuteNonQueryAsync();
+                                    }
+                                }
+                            }
+                        }
                         transaction.Commit();
                         return true;
                     }
