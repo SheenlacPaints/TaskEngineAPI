@@ -94,6 +94,9 @@ namespace TaskEngineAPI.DTO
         public string? bcc_cmapping_code { get; set; }
         public string? cc_cmapping_type { get; set; }
         public string? bcc_cmapping_type { get; set; }
+        public string? nis_board_metaapi_integration { get; set; }
+        public string? cboard_metaapi_id { get; set; }
+        public string? cboard_metaapi_response { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
    
@@ -112,6 +115,8 @@ namespace TaskEngineAPI.DTO
         public string? cfieldValue { get; set; }
         public string? cdatasource { get; set; }
         public string? ccondition { get; set; }
+
+        public string? capi_mapping { get; set; }
         //public string? remarks1 { get; set; }
         //public string? remarks2 { get; set; }
         //public string? remarks3 { get; set; }
@@ -470,6 +475,9 @@ namespace TaskEngineAPI.DTO
         public string? bcc_cmapping_code { get; set; }
         public string? cc_cmapping_type { get; set; }
         public string? bcc_cmapping_type { get; set; }
+        public bool? nis_board_metaapi_integration { get; set; }
+        public int? cboard_metaapi_id { get; set; }
+        public string? cboard_metaapi_response { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
 
