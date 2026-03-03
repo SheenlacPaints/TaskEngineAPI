@@ -1293,9 +1293,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@bcc_cmapping_code", (object?)detail.bcc_cmapping_code ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cc_cmapping_type", (object?)detail.cc_cmapping_type ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", (object?)detail.bcc_cmapping_type ?? DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", (object?)detail.nis_board_metaapi_integration ?? DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", (object?)detail.cboard_metaapi_id ?? DBNull.Value);
-                                cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", (object?)detail.cboard_metaapi_response ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nis_board_metaapi_integration", (object?)detail.nis_board_metaapi_integration ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cboard_metaapi_id", (object?)detail.cboard_metaapi_id ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cboard_metaapi_response", (object?)detail.cboard_metaapi_response ?? DBNull.Value);
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
