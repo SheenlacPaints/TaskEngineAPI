@@ -127,11 +127,11 @@ namespace TaskEngineAPI.Services
                     ctenant_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description,  
                     ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
                     cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type,cboard_visablity,nsla_overdue_action,cc_cmapping_code,bcc_cmapping_code
-                    ,cc_cmapping_type,bcc_cmapping_type) 
+                    ,cc_cmapping_type,bcc_cmapping_type,nis_board_metaapi_integration,cboard_metaapi_id,cboard_metaapi_response,nis_custom_meta,ccustom_meta_seqno) 
                     VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
                     @ctasktype, @cprev_step, @cactivityname, @cnext_seqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
                     @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type,@cboard_visablity,@nsla_overdue_action,@cc_cmapping_code,@bcc_cmapping_code,
-                    @cc_cmapping_type,@bcc_cmapping_type);
+                    @cc_cmapping_type,@bcc_cmapping_type,@nis_board_metaapi_integration,@cboard_metaapi_id,@cboard_metaapi_response,@nis_custom_meta,@ccustom_meta_seqno);
                     SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
@@ -168,6 +168,11 @@ namespace TaskEngineAPI.Services
                                 cmdDetail.Parameters.AddWithValue("@bcc_cmapping_code", detail.bcc_cmapping_code ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cc_cmapping_type", detail.cc_cmapping_type ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", detail.bcc_cmapping_type ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nis_board_metaapi_integration", detail.nis_board_metaapi_integration ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cboard_metaapi_id", detail.cboard_metaapi_id ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cboard_metaapi_response", detail.cboard_metaapi_response ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nis_custom_meta", detail.nis_custom_meta ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@ccustom_meta_seqno", detail.ccustom_meta_seqno ?? (object)DBNull.Value);
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
@@ -178,11 +183,11 @@ namespace TaskEngineAPI.Services
                             ctenant_id,cheader_id, cprocesscode, ciseqno,icond_seqno, ctype,  
                             clabel, cfield_value, ccondition,  
                             lcreated_date, ccreated_by, cmodified_by, lmodified_date,cplaceholder,cis_required
-                            ,cis_readonly,cis_disabled,cdata_source) 
+                            ,cis_readonly,cis_disabled,cdata_source,capi_mapping) 
                             VALUES (@TenantID,@cheader_id, @cprocesscode, @ciseqno,@icondseqno, @ctype,  
                             @clabel, @cfieldvalue, @ccondition,
                             @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date,@cplaceholder,@cis_required
-                            ,@cis_readonly,@cis_disabled,@cdatasource);";
+                            ,@cis_readonly,@cis_disabled,@cdatasource,@capi_mapping);";
 
                                 foreach (var cond in detail.processEngineConditionDetails)
                                 {
@@ -206,6 +211,7 @@ namespace TaskEngineAPI.Services
                                         cmdCond.Parameters.AddWithValue("@cis_required", cond.cisRequired ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_readonly", cond.cisReadonly ?? (object)DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_disabled", cond.cis_disabled ?? (object)DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@capi_mapping", cond.capi_mapping ?? (object)DBNull.Value);
 
                                         await cmdCond.ExecuteNonQueryAsync();
                                     }
@@ -438,7 +444,8 @@ p.cprocess_privilege as privilege_name,
     m.lcreated_date,ISNULL(u2.cfirst_name,'') + ' ' + ISNULL(u2.clast_name,'') AS modified_by, 
     m.lmodified_date, m.cmeta_id,d.cactivitycode,d.cactivity_description,  d.ctask_type, d.cprev_step, d.cactivityname,  d.cnext_seqno, d.nboard_enabled, 
     d.cmapping_code, d.cmapping_type,  d.cparticipant_type,   d.csla_day,  d.csla_Hour, d.caction_privilege,  d.crejection_privilege,
-   d.cboard_visablity,d.nsla_overdue_action, d.cc_cmapping_code,d.bcc_cmapping_code,cc_cmapping_type,bcc_cmapping_type, n.notification_type AS Notification_Description,
+    d.cboard_visablity,d.nsla_overdue_action, d.cc_cmapping_code,d.bcc_cmapping_code,d.cc_cmapping_type,d.bcc_cmapping_type, 
+   d.nis_board_metaapi_integration,d.cboard_metaapi_id,d.cboard_metaapi_response,d.nis_custom_meta,d.ccustom_meta_seqno,n.notification_type AS Notification_Description,
     s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table,m.cattachment,m.nis_metaapi_integration,m.cmetaapi_id,m.cmetaapi_response  
 FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
@@ -517,6 +524,11 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             bcc_cmapping_code = reader.SafeGetString("bcc_cmapping_code"),
                             bcc_cmapping_type=reader.SafeGetString("bcc_cmapping_type"),
                             cc_cmapping_type = reader.SafeGetString("cc_cmapping_type"),
+                            nis_board_metaapi_integration = reader.SafeGetBoolean("nis_board_metaapi_integration"),
+                            cboard_metaapi_id = reader.SafeGetInt("cboard_metaapi_id"),
+                            cboard_metaapi_response = reader.SafeGetString("cboard_metaapi_response"),
+                            nis_custom_meta = reader.SafeGetBoolean("nis_custom_meta"),
+                            ccustom_meta_seqno = reader.SafeGetInt("ccustom_meta_seqno"),
                             processEngineConditionDetails = new List<processEngineConditionDetails>()
                         };
                         engine.processEngineChildItems.Add(child);
@@ -529,7 +541,7 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
 SELECT 
     m.ID as MasterID,
     c.ciseqno, c.icond_seqno, c.ctype, c.clabel, c.cfield_value, c.ccondition,
-    c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, d.cprocesscode,c.cdata_source
+    c.cplaceholder, c.cis_required, c.cis_readonly, c.cis_disabled, d.cprocesscode,c.cdata_source,c.capi_mapping
 FROM tbl_process_engine_condition c
 INNER JOIN tbl_process_engine_details d ON c.ciseqno = d.id
 INNER JOIN tbl_process_engine_master m ON d.cheader_id = m.ID
@@ -564,6 +576,7 @@ ORDER BY c.ciseqno, c.icond_seqno;";
                                 cisRequired = condReader.SafeGetBoolean("cis_required"),
                                 cisReadonly = condReader.SafeGetBoolean("cis_readonly"),
                                 cis_disabled = condReader.SafeGetBoolean("cis_disabled"),
+                                capi_mapping= condReader.SafeGetString("capi_mapping"),
                             });
                         }
                     }
@@ -1238,11 +1251,14 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         ctenant_id, cheader_id, ciseqno, cprocesscode, cactivitycode, cactivity_description,  
                         ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, 
                         cmodified_by, lmodified_date, cmapping_code, cparticipant_type, nboard_enabled, 
-                        csla_day, csla_Hour, caction_privilege, crejection_privilege, cmapping_type,cboard_visablity,nsla_overdue_action,cc_cmapping_code,bcc_cmapping_code,cc_cmapping_type,bcc_cmapping_type) 
+                        csla_day, csla_Hour, caction_privilege, crejection_privilege, cmapping_type,cboard_visablity,nsla_overdue_action,
+                        cc_cmapping_code,bcc_cmapping_code,cc_cmapping_type,bcc_cmapping_type,nis_board_metaapi_integration,
+                        cboard_metaapi_id,cboard_metaapi_response,nis_custom_meta,ccustom_meta_seqno) 
                         VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
                         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, 
                         @cmodified_by, @lmodified_date, @cassignee, @cparticipantType, @nboardenabled, 
-                        @csladay, @cslaHour, @cactionprivilege, @crejectionprivilege, @cmapping_type,@cboard_visablity,@nsla_overdue_action,@cc_cmapping_code,@bcc_cmapping_code,@cc_cmapping_type,@bcc_cmapping_type);
+                        @csladay, @cslaHour, @cactionprivilege, @crejectionprivilege, @cmapping_type,@cboard_visablity,@nsla_overdue_action,@cc_cmapping_code,@bcc_cmapping_code,
+                        @cc_cmapping_type,@bcc_cmapping_type,@nis_board_metaapi_integration,@cboard_metaapi_id,@cboard_metaapi_response,@nis_custom_meta,@ccustom_meta_seqno);
                         SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
@@ -1280,6 +1296,11 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@bcc_cmapping_code", (object?)detail.bcc_cmapping_code ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@cc_cmapping_type", (object?)detail.cc_cmapping_type ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@bcc_cmapping_type", (object?)detail.bcc_cmapping_type ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nis_board_metaapi_integration", (object?)detail.nis_board_metaapi_integration ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cboard_metaapi_id", (object?)detail.cboard_metaapi_id ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@cboard_metaapi_response", (object?)detail.cboard_metaapi_response ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nis_custom_meta", (object?)detail.nis_custom_meta ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@ccustom_meta_seqno", (object?)detail.ccustom_meta_seqno ?? DBNull.Value);
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
@@ -1290,11 +1311,10 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 string queryCondition = @"INSERT INTO tbl_process_engine_condition (
                                 ctenant_id, cheader_id, cprocesscode, ciseqno, icond_seqno, ctype,  
                                 clabel, cfield_value, ccondition, lcreated_date, ccreated_by, 
-                                cmodified_by, lmodified_date, cplaceholder, cis_required, cis_readonly, cis_disabled,cdata_source) 
-                                VALUES (
-                                @TenantID, @cheader_id, @cprocesscode, @ciseqno, @icondseqno, @ctype,  
+                                cmodified_by, lmodified_date, cplaceholder, cis_required, cis_readonly, cis_disabled,
+                                cdata_source,capi_mapping) VALUES (@TenantID, @cheader_id, @cprocesscode, @ciseqno, @icondseqno, @ctype,  
                                 @clabel, @cfieldvalue, @ccondition, @lcreated_date, @ccreated_by, 
-                                @cmodified_by, @lmodified_date, @cplaceholder, @cis_required, @cis_readonly, @cis_disabled,@cdata_source);";
+                                @cmodified_by, @lmodified_date, @cplaceholder, @cis_required, @cis_readonly, @cis_disabled,@cdata_source,@capi_mapping);";
 
                                 foreach (var cond in detail.processEngineConditionDetails)
                                 {
@@ -1318,6 +1338,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                         cmdCond.Parameters.AddWithValue("@cis_readonly", (object?)cond.cisReadonly ?? DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cis_disabled", (object?)cond.cis_disabled ?? DBNull.Value);
                                         cmdCond.Parameters.AddWithValue("@cdata_source", (object?)cond.cdatasource ?? DBNull.Value);
+                                        cmdCond.Parameters.AddWithValue("@capi_mapping", (object?)cond.capi_mapping ?? DBNull.Value);
+
                                         await cmdCond.ExecuteNonQueryAsync();
                                     }
                                 }
@@ -1404,8 +1426,49 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmd.Parameters.AddWithValue("@cmeta_id", model.cmetaId ?? (object)DBNull.Value);
                                 await cmd.ExecuteNonQueryAsync();
                             }
-                        }
+                            string deletemetadetailQuery = @"DELETE FROM tbl_process_meta_detail 
+                             WHERE cheader_id = @MasterID AND ctenant_id = @TenantID;";
+                            using (SqlCommand cmd = new SqlCommand(deleteDetailsQuery, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@MasterID", model.cmetaId ?? (object)DBNull.Value);
+                                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                            
+                            if (model.processEngineMeta != null)
+                            {
+                                string metadata = @"INSERT INTO tbl_process_meta_detail (
+                                cheader_id, ctenant_id, cinput_type, label, cplaceholder, cis_required, 
+                                cis_readonly, cis_disabled, ccreated_by, lcreated_date, cmodified_by, 
+                                lmodified_date, cfield_value,cdata_source,capi_mapping) VALUES (
+                                @Header_ID, @TenantID, @cinput_type, @label, @cplaceholder, @cis_required,  
+                                @cis_readonly, @cis_disabled, @ccreated_by, @lcreated_date, 
+                                @cmodified_by, @lmodified_date, @cfield_value,@cdata_source,@capi_mapping);";
 
+                                foreach (var meta in model.processEngineMeta)
+                                {
+                                    using (SqlCommand cmdMeta = new SqlCommand(metadata, conn, transaction))
+                                    {
+                                        cmdMeta.Parameters.AddWithValue("@TenantID", cTenantID);
+                                        cmdMeta.Parameters.AddWithValue("@Header_ID", model.cmetaId);
+                                        cmdMeta.Parameters.AddWithValue("@cinput_type", meta.cinputType ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@label", meta.label ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cplaceholder", meta.cplaceholder ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_required", (object?)meta.cisRequired ?? DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_readonly", (object?)meta.cisReadonly ?? DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cis_disabled", (object?)meta.cisDisabled ?? DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@ccreated_by", username);
+                                        cmdMeta.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                                        cmdMeta.Parameters.AddWithValue("@cmodified_by", username);
+                                        cmdMeta.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                                        cmdMeta.Parameters.AddWithValue("@cfield_value", meta.cfieldValue ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@cdata_source", meta.cdatasource ?? (object)DBNull.Value);
+                                        cmdMeta.Parameters.AddWithValue("@capi_mapping", meta.capi_mapping ?? (object)DBNull.Value);
+                                        await cmdMeta.ExecuteNonQueryAsync();
+                                    }
+                                }
+                            }
+                        }
                         transaction.Commit();
                         return true;
                     }
