@@ -13,6 +13,8 @@ using System.Net.Http;
 using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
 using System.Text;
+using Newtonsoft.Json.Linq;
+using Azure;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -1632,6 +1634,63 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
+
+
+        [Authorize]
+        [HttpPost]
+        [Route("FetchattandanceAPIAsync")]
+        public async Task<IActionResult> FetchattandanceAPIAsync([FromBody] pay request)
+        {
+
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<AttendanceIDDTO>(request.payload);
+                var json = (await taskMasterService.FetchattandanceAsync(model, cTenantID, username)).ToString();
+                //var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                //var data = JsonConvert.DeserializeObject<dynamic>(json);
+
+                //var jObject = JObject.Parse(json);
+                //var jObject = JObject.Parse(json);
+                //var data = jObject["body"]["attendanceSummary"]
+                //            .ToObject<List<Dictionary<string, object>>>();
+                //return CreatedDataResponse(data);
+
+                //var data = JsonConvert.DeserializeObject<dynamic>(json);
+                //return CreatedDataResponse(data);
+               // return Content(json, "application/json");
+                var jObject = JObject.Parse(json);
+
+                var body = jObject["body"];
+
+                var data = new List<Dictionary<string, object>>
+        {
+            body.ToObject<Dictionary<string, object>>()
+        };
+
+                return CreatedDataResponse(data);
+
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
 
 
     }

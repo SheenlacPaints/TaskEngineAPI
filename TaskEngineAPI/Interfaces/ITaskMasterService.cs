@@ -54,6 +54,10 @@ namespace TaskEngineAPI.Interfaces
         Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username);
 
         Task<string> FetchAPIORGStructureAsync(EmployeeIDDTO model, int cTenantID, string username);
+
+        Task<string> FetchattandanceAsync(AttendanceIDDTO model, int cTenantID, string username);
+
+
     }
 
 }

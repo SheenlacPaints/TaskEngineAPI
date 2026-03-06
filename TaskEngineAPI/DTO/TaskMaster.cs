@@ -490,8 +490,11 @@ public class EmployeeIDDTO
     public string? Employee_ID { get; set; } 
 }
 
-
-
+public class AttendanceIDDTO
+{
+    public string? empcode { get; set; }
+    public string? month { get; set; }
+}
 
 
 

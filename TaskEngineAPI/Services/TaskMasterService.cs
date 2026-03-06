@@ -4810,6 +4810,42 @@ namespace TaskEngineAPI.Services
         }
 
 
+        public async Task<string> FetchattandanceAsync(AttendanceIDDTO model, int cTenantID, string username)
+        {
+            try
+            {
+                string apiUrl = "https://misapi.sheenlac.com/api/Progovex/ProgovexAttendanceSummary";
+
+                var payload = new
+                {
+                    empcode = model.empcode,
+                    type = "AttendanceSummary",
+                    month = model.month
+                };
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(60);
+
+                    var json = JsonConvert.SerializeObject(payload);
+
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    response.EnsureSuccessStatusCode();
+
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ex.Message}";
+            }
+        }
+
     }
 }
 
