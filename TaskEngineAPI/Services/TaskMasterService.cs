@@ -11,6 +11,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Reflection.Emit;
@@ -1851,7 +1852,8 @@ namespace TaskEngineAPI.Services
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
-                                    approvers = new List<PreviousapproverDTO>()
+                                    approvers = new List<PreviousapproverDTO>(),
+                                    BoardAPIdata = new List<BoardmetaDTO>()
                                 };
 
                                 // Add timeline
@@ -1880,6 +1882,7 @@ namespace TaskEngineAPI.Services
                                 await LoadMeta(conn, mapping, itaskno, cTenantID);
                                 await GetPreviousapproverAsync(conn, ID, username, cTenantID);
 
+                                await BoardAPIdata(conn, mapping, itaskno, cTenantID, ID);
                                 result.Add(mapping);
                             }
                         }
@@ -1895,8 +1898,8 @@ namespace TaskEngineAPI.Services
         }
         private async Task LoadProcessConditions(SqlConnection conn, GettaskinboxbyidDTO mapping, int seqno)
         {
-            string sql = @"SELECT * FROM tbl_process_engine_condition 
-                   WHERE cheader_id = @HeaderID AND ciseqno = @Seqno";
+            string sql = @"SELECT * FROM tbl_process_engine_condition WHERE 
+            cheader_id = @HeaderID AND ciseqno = @Seqno";
 
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
@@ -1920,7 +1923,9 @@ namespace TaskEngineAPI.Services
                     cis_disabled = dr.SafeGetBoolean("cis_disabled"),
                     cfieldValue = dr["cfield_value"]?.ToString() ?? "",
                     cdatasource = dr["cdata_source"]?.ToString() ?? "",
-                    ccondition = dr["ccondition"]?.ToString() ?? ""
+                    ccondition = dr["ccondition"]?.ToString() ?? "",
+                    capi_mapping = dr["capi_mapping"]?.ToString() ?? ""
+                   
                 });
             }
         }
@@ -2093,6 +2098,39 @@ namespace TaskEngineAPI.Services
 
             return timelineList;
         }
+
+        private async Task BoardAPIdata(SqlConnection conn, GettaskinboxbyidDTO mapping, int itaskno, int tenantID, int ID)
+        {
+            string sql = @"SELECT 
+        (SELECT id, capi_method, capi_url, cbody, capi_params, capi_headers 
+         FROM tbl_users_api_sync_config 
+         WHERE id = (
+            SELECT cboard_metaapi_id 
+            FROM tbl_taskflow_detail a
+            INNER JOIN tbl_process_engine_details b
+                ON a.iseqno = b.ciseqno
+            WHERE a.id = @ID
+            AND b.cheader_id = @HeaderID
+         )
+         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        ) AS api_response";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ID", ID);
+            cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
+
+            using var dr = await cmd.ExecuteReaderAsync();
+        
+            if (await dr.ReadAsync())
+            {
+                mapping.BoardAPIdata.Add(new BoardmetaDTO
+                {
+                    capiresponse = dr["api_response"]?.ToString() ?? ""
+                });
+            }
+
+        }
+
         public async Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");

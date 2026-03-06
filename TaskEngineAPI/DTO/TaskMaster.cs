@@ -102,6 +102,9 @@ namespace TaskEngineAPI.DTO
         public string? cfieldValue { get; set; }
         public string? cdatasource { get; set; }
         public string? ccondition { get; set; }
+        public string? capi_mapping { get; set; }
+       
+
     }
 
     public class GettaskinboxbyidDTO
@@ -134,13 +137,12 @@ namespace TaskEngineAPI.DTO
 
         public string? cmeta_response { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
-
         public List<processEnginetaskMeta> meta { get; set; }
-
         public List<GetprocessEngineConditionDTO> board { get; set; }
         public List<PreviousapproverDTO> approvers { get; set; }
+        public List<BoardmetaDTO>? BoardAPIdata { get; set; }
     }
-
+    
 
 
     public class GettaskApprovedatabyidDTO
@@ -380,6 +382,11 @@ public class processEnginetaskMeta
     public string? cdatasource { get; set; }
 
 
+}
+public class BoardmetaDTO
+{
+    public string? capiresponse { get; set; }
+   
 }
 
 public class TimelineDTO
