@@ -490,6 +490,16 @@ public class APIFetchDTO
     public string? Payload { get; set; }
     public string? apimethod { get; set; }
     public int? processid { get; set; }
+
+}
+
+public class BoardAPIFetchDTO
+{
+    public int? APIID { get; set; }
+    public string? Payload { get; set; }
+    public string? apimethod { get; set; }
+    public int? processid { get; set; }
+    public int? Detailid { get; set; }
 }
 
 public class EmployeeIDDTO

@@ -141,6 +141,44 @@ namespace TaskEngineAPI.Controllers
 
 
         public record IntegrationRequest(int ApiId, string TenantId, object Payload);
+
+
+        [Authorize]
+        [HttpPost("FetchBoardAPIIntegrationAPIAsync")]
+        public async Task<IActionResult> FetchBoardAPIIntegrationAPIAsync([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<BoardAPIFetchDTO>(request.payload);
+
+                var json = await _APIIntegrationService.BoardExecuteIntegrationApi(model, cTenantID, username);
+
+                var list = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(list);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
     }
 }
 

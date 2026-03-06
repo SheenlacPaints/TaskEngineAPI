@@ -5,6 +5,7 @@
     {
        
         Task<string> ExecuteIntegrationApi(APIFetchDTO model, int tenantId, string username);
+        Task<string> BoardExecuteIntegrationApi(BoardAPIFetchDTO model, int tenantId, string username);
     }
 
 }
