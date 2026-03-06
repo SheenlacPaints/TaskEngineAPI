@@ -4857,7 +4857,7 @@ namespace TaskEngineAPI.Services
                 var payload = new
                 {
                     empcode = model.empcode,
-                    type = "AttendanceSummary",
+                    type = model.type,
                     month = model.month
                 };
 

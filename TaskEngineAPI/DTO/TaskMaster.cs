@@ -511,6 +511,8 @@ public class AttendanceIDDTO
 {
     public string? empcode { get; set; }
     public string? month { get; set; }
+    public string? type { get; set; }
+
 }
 
 
