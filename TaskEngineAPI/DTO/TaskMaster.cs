@@ -451,7 +451,6 @@ namespace TaskEngineAPI.DTO
         public string? cdata_source { get; set; }
         public string? cdata { get; set; }
         public string? cattachment { get; set; }
-        public string? cmeta_response { get; set; }
     }
 
     public class TaskInboxResponse
