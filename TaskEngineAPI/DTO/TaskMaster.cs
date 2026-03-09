@@ -219,7 +219,8 @@ namespace TaskEngineAPI.DTO
 
         public List<GetprocessEngineConditionDTO> board { get; set; }
         public List<PreviousapproverDTO> approvers { get; set; }
-
+        public List<BoardmetaDTO>? BoardAPIdata { get; set; }
+        
     }
 
     public class GettaskInitiatordatabyidDTO

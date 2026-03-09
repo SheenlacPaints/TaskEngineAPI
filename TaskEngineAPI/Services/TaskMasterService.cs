@@ -2535,7 +2535,8 @@ namespace TaskEngineAPI.Services
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
-                                    approvers = new List<PreviousapproverDTO>()
+                                    approvers = new List<PreviousapproverDTO>(),
+                                    BoardAPIdata = new List<BoardmetaDTO>()
                                 };
 
                                 if (mapping.showTimeline == true)
@@ -2547,7 +2548,7 @@ namespace TaskEngineAPI.Services
 
                                 await LoadMetaForHold(conn, mapping, itaskno, cTenantID);
                                 await GetPreviousapproverAsync(conn, ID, username, cTenantID);
-
+                                await BoardholdAPIdata(conn, mapping, itaskno, cTenantID, ID);
                                 result.Add(mapping);
                             }
                         }
@@ -2561,6 +2562,39 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
+
+        private async Task BoardholdAPIdata(SqlConnection conn, GettaskHolddatabyidDTO mapping, int itaskno, int tenantID, int ID)
+        {
+            string sql = @"SELECT 
+        (SELECT id, capi_method, capi_url, cbody, capi_params, capi_headers 
+         FROM tbl_users_api_sync_config 
+         WHERE id = (
+            SELECT cboard_metaapi_id 
+            FROM tbl_taskflow_detail a
+            INNER JOIN tbl_process_engine_details b
+                ON a.iseqno = b.ciseqno
+            WHERE a.id = @ID
+            AND b.cheader_id = @HeaderID
+         )
+         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        ) AS api_response";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ID", ID);
+            cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
+
+            using var dr = await cmd.ExecuteReaderAsync();
+
+            if (await dr.ReadAsync())
+            {
+                mapping.BoardAPIdata.Add(new BoardmetaDTO
+                {
+                    capiresponse = dr["api_response"]?.ToString() ?? ""
+                });
+            }
+
+        }
+
         private async Task LoadProcessConditionsForHold(SqlConnection conn, GettaskHolddatabyidDTO mapping, int seqno)
         {
             string sql = @"SELECT * FROM tbl_process_engine_condition 
@@ -2588,7 +2622,8 @@ namespace TaskEngineAPI.Services
                     cis_disabled = dr.SafeGetBoolean("cis_disabled"),
                     cfieldValue = dr["cfield_value"]?.ToString() ?? "",
                     cdatasource = dr["cdata_source"]?.ToString() ?? "",
-                    ccondition = dr["ccondition"]?.ToString() ?? ""
+                    ccondition = dr["ccondition"]?.ToString() ?? "",
+                    capi_mapping= dr["capi_mapping"]?.ToString() ?? ""
                 });
             }
         }
