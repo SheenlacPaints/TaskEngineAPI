@@ -2131,6 +2131,8 @@ namespace TaskEngineAPI.Services
 
         }
 
+
+
         public async Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -3680,6 +3682,101 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving task condition list: {ex.Message}");
             }
         }
+
+        public async Task<GetmetadataviewdataDTO> Getmetadataviewdataid(int cTenantID, int id)
+        {
+            try
+            {
+                var result = new GetmetadataviewdataDTO
+                {
+                    metaData = new List<GetmetaviewdataDTO>()
+                };
+
+                var connStr = _config.GetConnectionString("Database");
+
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    // 1️⃣ Get metadata fields
+                    string query = @"select d.citaskno,b.icond_seqno,b.ctype,b.clabel,b.cplaceholder,b.cfield_value,b.ccondition,
+                             b.cdata_source,d.cdata,cdetail_id,c.cattachment
+                             from tbl_process_engine_details  a
+                             inner join  tbl_process_engine_condition b on a.cheader_id=b.cheader_id
+                             inner join tbl_taskflow_detail c on c.iseqno=a.ciseqno and a.ID=b.ciseqno
+                             inner join tbl_transaction_process_meta_layout d on d.citaskno=c.itaskno and d.cdetail_id=c.id
+                             and d.cmeta_id=b.id
+                             inner join tbl_taskflow_master e on e.itaskno=c.itaskno and e.ID=c.iheader_id
+                             where a.cheader_id=e.cprocess_id and c.itaskno=d.citaskno and c.id=@ID 
+                             order by b.icond_seqno asc";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", id);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                result.metaData.Add(new GetmetaviewdataDTO
+                                {
+                                    ID = reader["cdetail_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cdetail_id"]),
+                                    itaskno = reader["citaskno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["citaskno"]),
+                                    icond_seqno = reader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["icond_seqno"]),
+                                    ctype = reader["ctype"]?.ToString() ?? "",
+                                    clabel = reader["clabel"]?.ToString() ?? "",
+                                    cplaceholder = reader["cplaceholder"]?.ToString() ?? "",
+                                    cfield_value = reader["cfield_value"]?.ToString() ?? "",
+                                    ccondition = reader["ccondition"]?.ToString() ?? "",
+                                    cdata_source = reader["cdata_source"]?.ToString() ?? "",
+                                    cdata = reader["cdata"]?.ToString() ?? "",
+                                    cattachment = reader["cattachment"]?.ToString() ?? ""
+                                });
+                            }
+                        }
+                    }
+
+                    // 2️⃣ Get API configuration
+                    string apiSql = @"SELECT 
+                (SELECT id, capi_method, capi_url, cbody, capi_params, capi_headers 
+                 FROM tbl_users_api_sync_config 
+                 WHERE id = (
+                    SELECT cboard_metaapi_id 
+                    FROM tbl_taskflow_detail a
+                    INNER JOIN tbl_process_engine_details b
+                        ON a.iseqno = b.ciseqno
+                    WHERE a.id = @ID
+                    AND b.cheader_id = (
+                        SELECT e.cprocess_id 
+                        FROM tbl_taskflow_master e
+                        INNER JOIN tbl_taskflow_detail c ON e.ID=c.iheader_id
+                        WHERE c.id=@ID
+                    )
+                 )
+                 FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+                ) AS api_response";
+
+                    using (SqlCommand cmd2 = new SqlCommand(apiSql, conn))
+                    {
+                        cmd2.Parameters.AddWithValue("@ID", id);
+
+                        var apiResponse = await cmd2.ExecuteScalarAsync();
+
+                        result.capi_response = apiResponse?.ToString() ?? "";
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving metadata view data: {ex.Message}");
+            }
+        }
+
+
+
+
         public async Task<GettaskreassignCountDTO> GettaskReassign(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -4352,6 +4449,12 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Database error: {ex.Message}");
             }
         }
+
+
+       
+
+
+
         public async Task<bool> sendwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -4427,7 +4530,7 @@ namespace TaskEngineAPI.Services
                     var payload = new
                     {
                         apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
-                        campaignName = "reassighn new process",
+                        campaignName = "reassignprocessC", //"reassighn new process",
                         destination = recipientPhone,//"916382445617",
                         userName = "Sheenlac Paintss",
                         templateParams = new[]
@@ -4462,6 +4565,8 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
+      
+        
         private async Task SendWhatsAppNotificationAsync()
         {
             var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
@@ -4722,37 +4827,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        //public async Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username)
-        //{
-        //    try
-        //    {
-        //        using (var con = new SqlConnection(_config.GetConnectionString("Database")))
-        //        using (var cmd = new SqlCommand("sp_fetch_API_intergration", con))
-        //        {
-        //            cmd.CommandType = CommandType.StoredProcedure;
-        //            cmd.Parameters.AddWithValue("@cTenantID", cTenantID);
-        //            cmd.Parameters.AddWithValue("@APIID", model.APIID);
-        //            cmd.Parameters.AddWithValue("@payload", model.Payload);
-        //            cmd.Parameters.AddWithValue("@ID", model.processid);
-                    
-        //            var ds = new DataSet();
-        //            var adapter = new SqlDataAdapter(cmd);
-        //            await Task.Run(() => adapter.Fill(ds)); 
-
-        //            if (ds.Tables.Count > 0)
-        //            {
-        //                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
-        //            }
-
-        //            return "[]";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw;
-        //    }
-        //}
-
+     
 
         public async Task<string> PostAPIIntegrationAsync( APIFetchDTO model, int cTenantID, string username)
         {
@@ -4781,75 +4856,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
-        //public async Task<string> FetchAPIORGStructureAsync(int cTenantID, string username)
-        //{
-        //    try
-        //    {
-        //        var connStr = _config.GetConnectionString("Database");
-
-        //        string apiMethod = "";
-        //        string apiUrl = "";
-        //        string requestBodyTemplate = "";
-
-        //        using (SqlConnection conn = new SqlConnection(connStr))
-        //        {
-        //            await conn.OpenAsync();
-
-        //            string query = @"
-        //        SELECT capi_method, capi_url, cbody 
-        //        FROM tbl_users_api_sync_config 
-        //        WHERE capi_type = 'Common' 
-        //        AND cname = 'org_structure'";
-
-        //            using (SqlCommand cmd = new SqlCommand(query, conn))
-        //            {
-        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //                {
-        //                    if (await reader.ReadAsync())
-        //                    {
-        //                        apiMethod = reader["capi_method"]?.ToString();
-        //                        apiUrl = reader["capi_url"]?.ToString();
-        //                        requestBodyTemplate = reader["cbody"]?.ToString();
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        var payloadObj = new
-        //        {
-        //            FilterValue1 = "00500006",
-        //            FilterValue2 = "IT - ADMIN",
-        //            FilterValue3 = "Org_tree_Grid_new"
-        //        };
-
-        //        string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(payloadObj);
-
-        //        string payload = "{   \r\n    \"FilterValue1\": \"00500006\",\r\n     \"FilterValue2\": \"IT-ADMIN\",\r\n    \"FilterValue3\": \"Org_tree_Grid_new\"    \r\n}";
-
-        //        using (HttpClient client = new HttpClient())
-        //        {
-        //            HttpRequestMessage request = new HttpRequestMessage(
-        //                new HttpMethod(apiMethod ?? "POST"),
-        //                apiUrl
-        //            );
-
-        //            request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-        //             HttpResponseMessage response = await client.SendAsync(request);
-
-        //            string result = await response.Content.ReadAsStringAsync();
-
-        //            return result;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return $"Error: {ex.Message}";
-        //    }
-        //}
-
-
-
+       
         public async Task<string> FetchAPIORGStructureAsync(EmployeeIDDTO model, int cTenantID, string username)
         {
             try

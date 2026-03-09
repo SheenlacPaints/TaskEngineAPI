@@ -478,6 +478,8 @@ public class GetmetaviewdataDTO
     public string? cattachment { get; set; }
 
 }
+
+
 public class TaskInboxResponse
 {
     //public bool Success { get; set; }
@@ -516,6 +518,11 @@ public class AttendanceIDDTO
 
 }
 
+public class GetmetadataviewdataDTO
+{
+    public string? capi_response { get; set; }
+    public List<GetmetaviewdataDTO> metaData { get; set; }
+}
 
 
 

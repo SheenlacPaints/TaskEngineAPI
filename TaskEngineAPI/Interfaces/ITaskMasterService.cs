@@ -35,6 +35,9 @@ namespace TaskEngineAPI.Interfaces
         Task<string> Getopentasklist(int cTenantID, string username, string? searchText);
         Task <List<GetopentasklistdatabyidDTO>> Getopentasklistdatabyid(int cTenantID, int id);
         Task<List<GetmetaviewdataDTO>> Getmetaviewdatabyid(int cTenantID, int id);
+
+        Task<GetmetadataviewdataDTO> Getmetadataviewdataid(int cTenantID, int id);
+
         Task<GettaskreassignCountDTO> GettaskReassign(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50);
         Task<List<GettaskInitiatordatabyidDTO>> GettaskInitiatordatabyid(int cTenantID, int id);
         Task<List<GettaskReassigndatabyidDTO>> GettaskReassigndatabyid(int cTenantID, int id);
