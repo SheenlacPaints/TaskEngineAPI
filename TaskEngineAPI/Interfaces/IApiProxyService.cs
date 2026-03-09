@@ -1,4 +1,6 @@
-﻿namespace TaskEngineAPI.Interfaces
+﻿using TaskEngineAPI.DTO;
+
+namespace TaskEngineAPI.Interfaces
 {
    
     public interface IApiProxyService

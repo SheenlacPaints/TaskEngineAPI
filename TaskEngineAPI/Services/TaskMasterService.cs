@@ -201,8 +201,8 @@ namespace TaskEngineAPI.Services
                             }
                         }
                         string metaQuery = @"INSERT INTO tbl_transaction_process_meta_layout (
-                    [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) VALUES (
-                    @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata,@citaskno,@cdetail_id);";
+                    [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id],[cmeta_response]) VALUES (
+                    @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata,@citaskno,@cdetail_id,@cmeta_response);";
 
                         if (primaryDetailId > 0)
                         {
@@ -217,7 +217,7 @@ namespace TaskEngineAPI.Services
                                     cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@citaskno", newTaskNo);
                                     cmd.Parameters.AddWithValue("@cdetail_id", userName);
-
+                                    cmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
                                     await cmd.ExecuteNonQueryAsync();
                                 }
                             }
@@ -2238,8 +2238,8 @@ namespace TaskEngineAPI.Services
                     {
                         string metaQuery = @"
                     INSERT INTO tbl_transaction_process_meta_layout 
-                    ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) 
-                    VALUES (@cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id);";
+                    ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id],[cmeta_response]) 
+                    VALUES (@cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id,@cmeta_response);";
 
                         foreach (var metaData in model.metaData)
                         {
@@ -2252,6 +2252,7 @@ namespace TaskEngineAPI.Services
                                 metaInsertCmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
                                 metaInsertCmd.Parameters.AddWithValue("@citaskno", taskNo ?? (object)DBNull.Value);
                                 metaInsertCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
+                                metaInsertCmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
                                 await metaInsertCmd.ExecuteNonQueryAsync();
                             }
                         }
@@ -3682,32 +3683,28 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving task condition list: {ex.Message}");
             }
         }
-
-        public async Task<GetmetadataviewdataDTO> Getmetadataviewdataid(int cTenantID, int id)
+        public async Task<List<GetmetaviewdataDTO>> Getmetadataviewdataid(int cTenantID, int id)
         {
             try
             {
-                var result = new GetmetadataviewdataDTO
-                {
-                    metaData = new List<GetmetaviewdataDTO>()
-                };
-
+                var result = new List<GetmetaviewdataDTO>();
                 var connStr = _config.GetConnectionString("Database");
 
                 using (SqlConnection conn = new SqlConnection(connStr))
                 {
                     await conn.OpenAsync();
 
-                    // 1️⃣ Get metadata fields
                     string query = @"select d.citaskno,b.icond_seqno,b.ctype,b.clabel,b.cplaceholder,b.cfield_value,b.ccondition,
-                             b.cdata_source,d.cdata,cdetail_id,c.cattachment
+                             b.cdata_source,d.cdata,cdetail_id,c.cattachment,d.cmeta_response
                              from tbl_process_engine_details  a
-                             inner join  tbl_process_engine_condition b on a.cheader_id=b.cheader_id
+                             inner join tbl_process_engine_condition b on a.cheader_id=b.cheader_id
                              inner join tbl_taskflow_detail c on c.iseqno=a.ciseqno and a.ID=b.ciseqno
                              inner join tbl_transaction_process_meta_layout d on d.citaskno=c.itaskno and d.cdetail_id=c.id
                              and d.cmeta_id=b.id
                              inner join tbl_taskflow_master e on e.itaskno=c.itaskno and e.ID=c.iheader_id
-                             where a.cheader_id=e.cprocess_id and c.itaskno=d.citaskno and c.id=@ID 
+                             where a.cheader_id=e.cprocess_id 
+                             and c.itaskno=d.citaskno 
+                             and c.id=@ID
                              order by b.icond_seqno asc";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -3718,7 +3715,7 @@ namespace TaskEngineAPI.Services
                         {
                             while (await reader.ReadAsync())
                             {
-                                result.metaData.Add(new GetmetaviewdataDTO
+                                result.Add(new GetmetaviewdataDTO
                                 {
                                     ID = reader["cdetail_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cdetail_id"]),
                                     itaskno = reader["citaskno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["citaskno"]),
@@ -3730,39 +3727,11 @@ namespace TaskEngineAPI.Services
                                     ccondition = reader["ccondition"]?.ToString() ?? "",
                                     cdata_source = reader["cdata_source"]?.ToString() ?? "",
                                     cdata = reader["cdata"]?.ToString() ?? "",
-                                    cattachment = reader["cattachment"]?.ToString() ?? ""
+                                    cattachment = reader["cattachment"]?.ToString() ?? "",
+                                    cmeta_response = reader["cmeta_response"]?.ToString() ?? ""
                                 });
                             }
                         }
-                    }
-
-                    // 2️⃣ Get API configuration
-                    string apiSql = @"SELECT 
-                (SELECT id, capi_method, capi_url, cbody, capi_params, capi_headers 
-                 FROM tbl_users_api_sync_config 
-                 WHERE id = (
-                    SELECT cboard_metaapi_id 
-                    FROM tbl_taskflow_detail a
-                    INNER JOIN tbl_process_engine_details b
-                        ON a.iseqno = b.ciseqno
-                    WHERE a.id = @ID
-                    AND b.cheader_id = (
-                        SELECT e.cprocess_id 
-                        FROM tbl_taskflow_master e
-                        INNER JOIN tbl_taskflow_detail c ON e.ID=c.iheader_id
-                        WHERE c.id=@ID
-                    )
-                 )
-                 FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
-                ) AS api_response";
-
-                    using (SqlCommand cmd2 = new SqlCommand(apiSql, conn))
-                    {
-                        cmd2.Parameters.AddWithValue("@ID", id);
-
-                        var apiResponse = await cmd2.ExecuteScalarAsync();
-
-                        result.capi_response = apiResponse?.ToString() ?? "";
                     }
                 }
 
@@ -3773,10 +3742,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving metadata view data: {ex.Message}");
             }
         }
-
-
-
-
         public async Task<GettaskreassignCountDTO> GettaskReassign(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
