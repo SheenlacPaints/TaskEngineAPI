@@ -1968,8 +1968,6 @@ namespace TaskEngineAPI.Services
 
         }
 
-
-
         public async Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -1980,14 +1978,15 @@ namespace TaskEngineAPI.Services
                 SqlTransaction transaction = conn.BeginTransaction();
                 int? processId = null;
                 int? taskNo = null;
+                bool committed = false;
 
                 try
                 {
                     string checkQuery = @"
-                SELECT a.itaskno, b.cprocess_id, a.cis_reassigned 
-                FROM tbl_taskflow_detail a
-                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
-                WHERE a.ID = @ID";
+        SELECT a.itaskno, b.cprocess_id, a.cis_reassigned 
+        FROM tbl_taskflow_detail a
+        INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
+        WHERE a.ID = @ID";
 
                     using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
                     {
@@ -2003,14 +2002,12 @@ namespace TaskEngineAPI.Services
                                 if (!string.IsNullOrEmpty(model.reassignto) && alreadyReassigned == "Y")
                                 {
                                     reader.Close();
-                                    transaction.Rollback();
                                     throw new InvalidOperationException("This task has already been reassigned and cannot be reassigned again.");
                                 }
                             }
                             else
                             {
                                 reader.Close();
-                                transaction.Rollback();
                                 return false;
                             }
                             reader.Close();
@@ -2023,13 +2020,13 @@ namespace TaskEngineAPI.Services
                     if (isReassigning)
                     {
                         updateQuery = @"UPDATE tbl_taskflow_detail SET 
-                                creassign_to = @creassign_to, lreassign_Date = @lreassign_Date, 
-                                cis_reassigned = @cis_reassigned, cremarks = @remarks WHERE ID = @ID";
+                        creassign_to = @creassign_to, lreassign_Date = @lreassign_Date, 
+                        cis_reassigned = @cis_reassigned, cremarks = @remarks WHERE ID = @ID";
                     }
                     else
                     {
                         updateQuery = @"UPDATE tbl_taskflow_detail SET 
-                                ccurrent_status = @status, lcurrent_status_date = @status_date, cremarks = @remarks WHERE ID = @ID";
+                        ccurrent_status = @status, lcurrent_status_date = @status_date, cremarks = @remarks WHERE ID = @ID";
                     }
 
                     using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
@@ -2053,9 +2050,9 @@ namespace TaskEngineAPI.Services
                     }
 
                     string statusQuery = @"
-                INSERT INTO tbl_transaction_taskflow_detail_and_status
-                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date, cremarks, crejected_reason)
-                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date, @cremarks, @crejected_reason);";
+        INSERT INTO tbl_transaction_taskflow_detail_and_status
+        (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date, cremarks, crejected_reason)
+        VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date, @cremarks, @crejected_reason);";
 
                     using (SqlCommand statusCmd = new SqlCommand(statusQuery, conn, transaction))
                     {
@@ -2074,9 +2071,9 @@ namespace TaskEngineAPI.Services
                     if (model.metaData != null && model.metaData.Any())
                     {
                         string metaQuery = @"
-                    INSERT INTO tbl_transaction_process_meta_layout 
-                    ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id],[cmeta_response]) 
-                    VALUES (@cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id,@cmeta_response);";
+            INSERT INTO tbl_transaction_process_meta_layout 
+            ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id],[cmeta_response]) 
+            VALUES (@cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id,@cmeta_response);";
 
                         foreach (var metaData in model.metaData)
                         {
@@ -2108,19 +2105,22 @@ namespace TaskEngineAPI.Services
                     }
 
                     transaction.Commit();
+                    committed = true;
                     return true;
                 }
                 catch (InvalidOperationException ex)
                 {
+                    if (!committed) try { transaction.Rollback(); } catch { }
                     throw new Exception(ex.Message);
                 }
                 catch (Exception)
                 {
-                    transaction.Rollback();
+                    if (!committed) try { transaction.Rollback(); } catch { }
                     throw;
                 }
             }
         }
+
         public async Task<List<GettaskApprovedatabyidDTO>> Gettaskapprovedatabyid(int cTenantID, int ID)
         {
             var result = new List<GettaskApprovedatabyidDTO>();
@@ -4924,6 +4924,80 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<bool> newtaskarrivesinboxapprovewhatappnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_newtaskarrivesinboxapprovev1", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();   // create once
+                            var url = _whatsAppSettings.Url;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuser_name = reader["cuser_name"]?.ToString() ?? "";
+                                string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
+                                string ctask_name = reader["ctask_name"]?.ToString()?.Trim() ?? "";
+                                if (string.IsNullOrWhiteSpace(cphoneno))
+                                    continue;
+
+                                var payload = new
+                                {
+                                    apiKey = _whatsAppSettings.ApiKey,
+                                    campaignName = "newtaskinboxC",
+                                    destination = cphoneno,//"918220237725",
+                                    userName = "Sheenlac Paintss",
+                                    templateParams = new[]
+                                    {
+                                        cuser_name,
+                                        ctask_name
+                                        },
+                                    source = "new-landing-page form",
+                                    media = new { },
+                                    buttons = Array.Empty<string>(),
+                                    carouselCards = Array.Empty<string>(),
+                                    location = new { },
+                                    attributes = new { },
+                                    paramsFallbackValue = new
+                                    {
+                                        FirstName = cuser_name,
+                                        Taskname = ctask_name
+                                    }
+                                };
+
+                                var response = await client.PostAsJsonAsync(_whatsAppSettings.Url, payload);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    var error = await response.Content.ReadAsStringAsync();
+
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("WhatsApp notification failed: " + ex.Message);
+            }
+        }
 
         public async Task<string> PostAPIIntegrationAsync( APIFetchDTO model, int cTenantID, string username)
         {

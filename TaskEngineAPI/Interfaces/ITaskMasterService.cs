@@ -62,6 +62,8 @@ namespace TaskEngineAPI.Interfaces
         Task<string> FetchattandanceAsync(AttendanceIDDTO model, int cTenantID, string username);
         Task<bool> newtaskwhatappnotificationAsync(int cTenantID, string username);
         Task<bool> newtaskarrivesinboxvwhatappnotificationAsync(int ID, int cTenantID, string username);
+
+        Task<bool> newtaskarrivesinboxapprovewhatappnotificationAsync(int ID, int cTenantID, string username);
     }
 
 }

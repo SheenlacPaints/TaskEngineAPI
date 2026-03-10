@@ -1039,6 +1039,13 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
+
+               
+                if (model.status == "A" && model.ID.HasValue)
+                {
+                    await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
+                }
+
                 if (model.reassignto != null)
                 {
                     bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
