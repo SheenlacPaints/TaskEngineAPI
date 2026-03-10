@@ -37,7 +37,6 @@ namespace TaskEngineAPI.DTO
         public string? cprevtype { get; set; }
         public string? csla { get; set; }
     }
-
     public class DeptPostRoleDTO
     {
         public string? table { get; set; }
@@ -68,7 +67,6 @@ namespace TaskEngineAPI.DTO
         public string? new_rolecode { get; set; }
         public string? new_positioncode { get; set; }
     }
-
     public class privilegeMappingDTO
     {
         public int? privilege { get; set; }
@@ -78,15 +76,12 @@ namespace TaskEngineAPI.DTO
         public List<privilegeMapping> privilegeMapping { get; set; }
         public int cheader_id { get; internal set; }
     }
-
     public class privilegeMapping
     {
         public int? entity_type { get; set; }
         public string? entity_id { get; set; }
 
     }
-
-
     public class GetprocessEngineConditionDTO
     {
         public int? ID { get; set; }
@@ -102,8 +97,10 @@ namespace TaskEngineAPI.DTO
         public string? cfieldValue { get; set; }
         public string? cdatasource { get; set; }
         public string? ccondition { get; set; }
-    }
+        public string? capi_mapping { get; set; }
 
+
+    }
     public class GettaskinboxbyidDTO
     {
         public int? itaskno { get; set; }
@@ -134,15 +131,11 @@ namespace TaskEngineAPI.DTO
 
         public string? cmeta_response { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
-
         public List<processEnginetaskMeta> meta { get; set; }
-
         public List<GetprocessEngineConditionDTO> board { get; set; }
         public List<PreviousapproverDTO> approvers { get; set; }
+        public List<BoardmetaDTO>? BoardAPIdata { get; set; }
     }
-
-
-
     public class GettaskApprovedatabyidDTO
     {
         public int? itaskno { get; set; }
@@ -173,7 +166,7 @@ namespace TaskEngineAPI.DTO
 
         public bool? showTimeline { get; set; }
         public string? cmeta_response { get; set; }
-        
+
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
@@ -181,7 +174,6 @@ namespace TaskEngineAPI.DTO
         public List<GetprocessEngineConditionDTO> board { get; set; }
 
     }
-
     public class GettaskHolddatabyidDTO
     {
         public int? itaskno { get; set; }
@@ -196,7 +188,7 @@ namespace TaskEngineAPI.DTO
         public string? actionPrivilege { get; set; }
         public string? createdbyavatar { get; set; }
         public string? modifiedbyavatar { get; set; }
-        public string ? cremarks { get; set; }
+        public string? cremarks { get; set; }
         public string? crejection_privilege { get; set; }
         public string? assigneeType { get; set; }
         public string? assigneeValue { get; set; }
@@ -217,9 +209,9 @@ namespace TaskEngineAPI.DTO
 
         public List<GetprocessEngineConditionDTO> board { get; set; }
         public List<PreviousapproverDTO> approvers { get; set; }
+        public List<BoardmetaDTO>? BoardAPIdata { get; set; }
 
     }
-
     public class GettaskInitiatordatabyidDTO
     {
         public int? itaskno { get; set; }
@@ -253,8 +245,6 @@ namespace TaskEngineAPI.DTO
         public List<GetprocessEngineConditionDTO> board { get; set; }
 
     }
-
-
     public class GettaskReassigndatabyidDTO
     {
         public int? itaskno { get; set; }
@@ -296,8 +286,6 @@ namespace TaskEngineAPI.DTO
         public List<GetprocessEngineConditionDTO> board { get; set; }
 
     }
-
-
     public class GettaskRejectdatabyidDTO
     {
         public int? itaskno { get; set; }
@@ -330,7 +318,6 @@ namespace TaskEngineAPI.DTO
         public List<GetprocessEngineConditionDTO> board { get; set; }
 
     }
-
     public class GetopentasklistdatabyidDTO
     {
         public int? itaskno { get; set; }
@@ -364,135 +351,158 @@ namespace TaskEngineAPI.DTO
         public List<GetprocessEngineConditionDTO> board { get; set; }
 
     }
+    public class processEnginetaskMeta
+    {
+        public string? cdata { get; set; }
+        public string? cinputType { get; set; }
+        public string? clabel { get; set; }
+        public string? cplaceholder { get; set; }
+        public bool? cisRequired { get; set; }
+        public bool? cisReadonly { get; set; }
+        public bool? cisDisabled { get; set; }
+        public string? cfieldValue { get; set; }
+
+        public string? cdatasource { get; set; }
+
+
+    }
+    public class BoardmetaDTO
+    {
+        public string? capiresponse { get; set; }
+
+    }
+    public class TimelineDTO
+    {
+        public string? status { get; set; }
+        public string? remarks { get; set; }
+
+        public string? taskName { get; set; }
+        public string? userName { get; set; }
+        public string? userAvatar { get; set; }
+
+
+    }
+    public class GetmetalayoutDTO
+    {
+        public int? ID { get; set; }
+        public int? cprocess_id { get; set; }
+        public string? cdata { get; set; }
+        public string? cinput_type { get; set; }
+        public string? label { get; set; }
+        public string? cplaceholder { get; set; }
+        public bool? cis_required { get; set; }
+        public bool? cis_readonly { get; set; }
+        public bool? cis_disabled { get; set; }
+        public string? cfield_value { get; set; }
+        public string? cdata_source { get; set; }
+
+    }
+    public class updatetaskDTO
+    {
+
+        public int? ID { get; set; }
+        public int? itaskno { get; set; }
+        public string? status { get; set; }
+        public DateTime? status_date { get; set; }
+
+        public string? remarks { get; set; }
+        public string? rejectedreason { get; set; }
+        public string? reassignto { get; set; }
+        public string? cmeta_response { get; set; }
+        public List<metaData> metaData { get; set; }
+    }
+    public class GetDropDownFilterDTO
+    {
+        public string? filtervalue1 { get; set; }
+        public string? filtervalue2 { get; set; }
+        public string? filtervalue3 { get; set; }
+        public string? filtervalue4 { get; set; }
+        public string? filtervalue5 { get; set; }
+
+    }
+    public class PreviousapproverDTO
+    {
+        public int? ID { get; set; }
+        public string? activity { get; set; }
+        public string? description { get; set; }
+        public string? status { get; set; }
+        public DateTime? datatime { get; set; }
+        public string? cremarks { get; set; }
+        public string? pendingwith { get; set; }
+        public string? pendingwithavatar { get; set; }
+
+        public string? cboard_visablity_flag { get; set; }
+        public string? cboard_visablity { get; set; }
+
+
+
+
+    }
+    public class GetmetaviewdataDTO
+    {
+        public int? ID { get; set; }
+        public int? itaskno { get; set; }
+        public int? icond_seqno { get; set; }
+        public string? ctype { get; set; }
+        public string? clabel { get; set; }
+        public string? cplaceholder { get; set; }
+        public string? cfield_value { get; set; }
+        public string? ccondition { get; set; }
+        public string? cdata_source { get; set; }
+        public string? cdata { get; set; }
+        public string? cattachment { get; set; }
+    }
+
+    public class TaskInboxResponse
+        {
+            //public bool Success { get; set; }
+            public int TotalCount { get; set; }
+            public List<GetTaskList> Data { get; set; }
+        }
+
+    public class APIFetchDTO
+        {
+            public int? APIID { get; set; }
+            public string? Payload { get; set; }
+            public string? apimethod { get; set; }
+            public int? processid { get; set; }
+
+        }
+
+    public class BoardAPIFetchDTO
+        {
+            public int? APIID { get; set; }
+            public string? Payload { get; set; }
+            public string? apimethod { get; set; }
+            public int? processid { get; set; }
+            public int? Detailid { get; set; }
+        }
+
+    public class EmployeeIDDTO
+        {
+            public string? Employee_ID { get; set; }
+        }
+
+    public class AttendanceIDDTO
+    {
+            public string? empcode { get; set; }
+            public string? month { get; set; }
+            public string? type { get; set; }
+
+    }
+
+    public class GetmetadataviewdataDTO
+        {
+            public string? capi_response { get; set; }
+            public List<GetmetaviewdataDTO> metaData { get; set; }
+        }
+
+
+    public class NewmsgDTO
+    {
+        public int? ID { get; set; }
+        public int? itaskno { get; set; }
+    }
 }
-
-public class processEnginetaskMeta
-{
-    public string? cdata { get; set; }
-    public string? cinputType { get; set; }
-    public string? clabel { get; set; }
-    public string? cplaceholder { get; set; }
-    public bool? cisRequired { get; set; }
-    public bool? cisReadonly { get; set; }
-    public bool? cisDisabled { get; set; }
-    public string? cfieldValue { get; set; }
-
-    public string? cdatasource { get; set; }
-
-
-}
-
-public class TimelineDTO
-{
-    public string? status { get; set; }
-    public string? remarks { get; set; }
-
-    public string? taskName { get; set; }
-    public string? userName { get; set; }
-    public string? userAvatar { get; set; }
-
-
-}
-
-public class GetmetalayoutDTO
-{
-    public int? ID { get; set; }
-    public int? cprocess_id { get; set; }
-    public string? cdata { get; set; }
-    public string? cinput_type { get; set; }
-    public string? label { get; set; }
-    public string? cplaceholder { get; set; }
-    public bool? cis_required { get; set; }
-    public bool? cis_readonly { get; set; }
-    public bool? cis_disabled { get; set; }
-    public string? cfield_value { get; set; }
-    public string? cdata_source { get; set; }
-
-}
-
-public class updatetaskDTO
-{
-
-    public int? ID { get; set; }
-    public int? itaskno { get; set; }
-    public string? status { get; set; }
-    public DateTime? status_date { get; set; }
-
-    public string? remarks { get; set; }
-    public string? rejectedreason { get; set; }
-    public string? reassignto { get; set; }
-
-    public List<metaData> metaData { get; set; }
-}
-
-public class GetDropDownFilterDTO
-{
-    public string? filtervalue1 { get; set; }
-    public string? filtervalue2 { get; set; }
-    public string? filtervalue3 { get; set; }
-    public string? filtervalue4 { get; set; }
-    public string? filtervalue5 { get; set; }
-
-}
-
-public class PreviousapproverDTO
-{
-    public int? ID { get; set; }
-    public string? activity { get; set; }
-    public string? description { get; set; }
-    public string? status { get; set; }
-    public DateTime? datatime { get; set; }
-    public string? cremarks { get; set; }
-    public string? pendingwith { get; set; }
-    public string? pendingwithavatar { get; set; }
-
-    public string? cboard_visablity_flag { get; set; }
-    public string? cboard_visablity { get;set; }
-
-    
-
-
-}
-
-
-public class GetmetaviewdataDTO
-{
-    public int? ID { get; set; }
-    public int? itaskno { get; set; }
-    public int? icond_seqno { get; set; }
-    public string? ctype { get; set; }
-    public string? clabel { get; set; }
-    public string? cplaceholder { get; set; }
-    public string? cfield_value { get; set; }
-    public string? ccondition { get; set; }
-    public string? cdata_source { get; set; }
-    public string? cdata { get; set; }
-    public string? cattachment { get; set; }
-
-}
-public class TaskInboxResponse
-{
-    //public bool Success { get; set; }
-    public int TotalCount { get; set; }
-    public List<GetTaskList> Data { get; set; }
-}
-
-public class APIFetchDTO
-{
-    public int? APIID { get; set; }
-    public string? Payload { get; set; }
-    public string? apimethod { get; set; }
-    public int? processid { get; set; }
-}
-
-public class EmployeeIDDTO
-{
-    public string? Employee_ID { get; set; } 
-}
-
-
-
-
-
 
 

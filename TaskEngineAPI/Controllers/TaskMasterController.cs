@@ -13,6 +13,8 @@ using System.Net.Http;
 using System.Security.Claims;
 using Microsoft.Extensions.Configuration;
 using System.Text;
+using Newtonsoft.Json.Linq;
+using Azure;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -136,6 +138,8 @@ namespace TaskEngineAPI.Controllers
                 {
                     throw new InvalidOperationException("Task insertion failed.");
                 }
+
+                bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
 
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
 
@@ -1035,9 +1039,18 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
+
+               
+                if (model.status == "A" && model.ID.HasValue)
+                {
+                    await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
+                }
+
                 if (model.reassignto != null)
                 {
                     bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
+                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
+
                 }
                 if (model.status == "H")
                 {
@@ -1047,6 +1060,10 @@ namespace TaskEngineAPI.Controllers
                 if (model.status == "R")
                 {
                     bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
+
+                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model,cTenantID,username);
+
+
                 }
 
 
@@ -1245,8 +1262,47 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-      
 
+
+        [Authorize]
+        [HttpGet]
+        [Route("Getmetadataviewdataid")]
+        public async Task<IActionResult> Getmetadataviewdataid([FromQuery] int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return CreateEncryptedResponse(400, "id must be greater than 0");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var data = await taskMasterService.Getmetadataviewdataid(cTenantID, id);
+
+                if (data == null )
+                {
+                    return CreateEncryptedResponse(400, $"{id} not found.", new { status = 400, data = Array.Empty<object>() });
+                }
+
+                return CreatedSuccessResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
+        
 
         [Authorize]
         [HttpGet]
@@ -1630,6 +1686,111 @@ namespace TaskEngineAPI.Controllers
             catch (Exception ex)
             {
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+        [Authorize]
+        [HttpPost]
+        [Route("FetchattandanceAPIAsync")]
+        public async Task<IActionResult> FetchattandanceAPIAsync([FromBody] pay request)
+        {
+
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<AttendanceIDDTO>(request.payload);
+                var json = (await taskMasterService.FetchattandanceAsync(model, cTenantID, username)).ToString();
+                //var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                //var data = JsonConvert.DeserializeObject<dynamic>(json);
+
+                //var jObject = JObject.Parse(json);
+                //var jObject = JObject.Parse(json);
+                //var data = jObject["body"]["attendanceSummary"]
+                //            .ToObject<List<Dictionary<string, object>>>();
+                //return CreatedDataResponse(data);
+
+                //var data = JsonConvert.DeserializeObject<dynamic>(json);
+                //return CreatedDataResponse(data);
+               // return Content(json, "application/json");
+                var jObject = JObject.Parse(json);
+
+                var body = jObject["body"];
+
+                var data = new List<Dictionary<string, object>>
+        {
+            body.ToObject<Dictionary<string, object>>()
+        };
+
+                return CreatedDataResponse(data);
+
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("Testtaskapprove")]
+        public async Task<IActionResult> Testtaskapprove()
+        {
+            try
+            {               
+                var (cTenantID, username) = GetUserInfoFromToken();                          
+                bool success = await taskMasterService.newtaskwhatappnotificationAsync(cTenantID, username);             
+                if (!success)
+                {
+                    return CreateEncryptedResponse(404, "Data not found or update failed");
+                }
+                return CreatedSuccessResponse( "Updated successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("NewTesttaskapprove")]
+        public async Task<IActionResult> NewTesttaskapprove([FromQuery] int ID)
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(ID, cTenantID, username);
+                if (!success)
+                {
+                    return CreateEncryptedResponse(404, "Data not found or update failed");
+                }
+                return CreatedSuccessResponse("Updated successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
 

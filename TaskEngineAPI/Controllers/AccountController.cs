@@ -34,7 +34,7 @@ namespace TaskEngineAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AccountController : ControllerBase
+    public class AccountController : BaseController
 
     {
         private readonly IConfiguration _config;
@@ -1100,34 +1100,34 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        private ActionResult EncryptedError(int status, string message)
-        {
-            var response = new APIResponse { status = status, statusText = message };
-            string json = JsonConvert.SerializeObject(response);
-            string encrypted = AesEncryption.Encrypt(json);
-            return Ok(encrypted);
-        }
+        //private ActionResult EncryptedError(int status, string message)
+        //{
+        //    var response = new APIResponse { status = status, statusText = message };
+        //    string json = JsonConvert.SerializeObject(response);
+        //    string encrypted = AesEncryption.Encrypt(json);
+        //    return Ok(encrypted);
+        //}
 
-        private ActionResult EncryptedSuccess(string message)
-        {
-            var response = new APIResponse { status = 200, statusText = message };
-            string json = JsonConvert.SerializeObject(response);
-            string encrypted = AesEncryption.Encrypt(json);
-            return Ok(encrypted);
-        }
-        private ActionResult EncryptedResponse(string message, object body = null)
-        {
-            var response = new APIResponse
-            {
-                status = 200,
-                statusText = message,
-                body = body != null ? new object[] { body } : null
-            };
+        //private ActionResult EncryptedSuccess(string message)
+        //{
+        //    var response = new APIResponse { status = 200, statusText = message };
+        //    string json = JsonConvert.SerializeObject(response);
+        //    string encrypted = AesEncryption.Encrypt(json);
+        //    return Ok(encrypted);
+        //}
+        //private ActionResult EncryptedResponse(string message, object body = null)
+        //{
+        //    var response = new APIResponse
+        //    {
+        //        status = 200,
+        //        statusText = message,
+        //        body = body != null ? new object[] { body } : null
+        //    };
 
-            string json = JsonConvert.SerializeObject(response);
-            string encrypted = AesEncryption.Encrypt(json);
-            return Ok(encrypted);
-        }
+        //    string json = JsonConvert.SerializeObject(response);
+        //    string encrypted = AesEncryption.Encrypt(json);
+        //    return Ok(encrypted);
+        //}
 
 
         [Authorize]
@@ -1368,7 +1368,7 @@ namespace TaskEngineAPI.Controllers
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var modeld = JsonConvert.DeserializeObject<forgototp>(decryptedJson);
 
-                string query = "SELECT top 1 cuserid,cphoneno,cTenant_ID FROM AdminUsers WHERE cphoneno=@cphoneno";
+                string query = "SELECT top 1 cuserid,cphoneno,cTenant_ID FROM Users WHERE cphoneno=@cphoneno";
                 DataSet ds1 = new DataSet();
 
                 using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))

@@ -35,6 +35,10 @@ namespace TaskEngineAPI.Interfaces
         Task<string> Getopentasklist(int cTenantID, string username, string? searchText);
         Task <List<GetopentasklistdatabyidDTO>> Getopentasklistdatabyid(int cTenantID, int id);
         Task<List<GetmetaviewdataDTO>> Getmetaviewdatabyid(int cTenantID, int id);
+        //Task<List<GetmetaviewdataDTO>> Getmetadataviewdataid(int cTenantID, int id);
+        Task<GetmetadataviewdataDTO> Getmetadataviewdataid(int cTenantID, int id);
+
+
         Task<GettaskreassignCountDTO> GettaskReassign(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50);
         Task<List<GettaskInitiatordatabyidDTO>> GettaskInitiatordatabyid(int cTenantID, int id);
         Task<List<GettaskReassigndatabyidDTO>> GettaskReassigndatabyid(int cTenantID, int id);
@@ -48,12 +52,18 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> sendwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
 
         Task<bool> holdwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
-
+        Task<bool> reassigntoinitiatorwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
         Task<bool> RejectwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
 
         Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username);
 
         Task<string> FetchAPIORGStructureAsync(EmployeeIDDTO model, int cTenantID, string username);
+
+        Task<string> FetchattandanceAsync(AttendanceIDDTO model, int cTenantID, string username);
+        Task<bool> newtaskwhatappnotificationAsync(int cTenantID, string username);
+        Task<bool> newtaskarrivesinboxvwhatappnotificationAsync(int ID, int cTenantID, string username);
+
+        Task<bool> newtaskarrivesinboxapprovewhatappnotificationAsync(int ID, int cTenantID, string username);
     }
 
 }

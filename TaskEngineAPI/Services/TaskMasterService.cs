@@ -11,6 +11,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Reflection.Emit;
@@ -34,13 +35,17 @@ namespace TaskEngineAPI.Services
         private readonly IAdminRepository _AdminRepository;
         private readonly UploadSettings _uploadSettings;
         private readonly IHttpClientFactory _httpClientFactory;
-        public TaskMasterService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository, IOptions<UploadSettings> uploadSettings, IHttpClientFactory httpClientFactory)
+        private readonly WhatsAppSettings _whatsAppSettings;
+
+
+        public TaskMasterService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository, IOptions<UploadSettings> uploadSettings, IHttpClientFactory httpClientFactory, IOptions<WhatsAppSettings> whatsAppSettings)
         {
             _repository = repository;
             _config = _configuration;
             _AdminRepository = AdminRepository;
             _uploadSettings = uploadSettings.Value;
             _httpClientFactory = httpClientFactory;
+            _whatsAppSettings = whatsAppSettings.Value;
         }
 
         public async Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string userName)
@@ -200,8 +205,8 @@ namespace TaskEngineAPI.Services
                             }
                         }
                         string metaQuery = @"INSERT INTO tbl_transaction_process_meta_layout (
-                    [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) VALUES (
-                    @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata,@citaskno,@cdetail_id);";
+                    [cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id],[cmeta_response]) VALUES (
+                    @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata,@citaskno,@cdetail_id,@cmeta_response);";
 
                         if (primaryDetailId > 0)
                         {
@@ -216,7 +221,7 @@ namespace TaskEngineAPI.Services
                                     cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@citaskno", newTaskNo);
                                     cmd.Parameters.AddWithValue("@cdetail_id", userName);
-
+                                    cmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
                                     await cmd.ExecuteNonQueryAsync();
                                 }
                             }
@@ -717,33 +722,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        //public async Task<string> Gettaskapprove(int cTenantID, string username)
-        //{
-        //    try
-        //    {
-        //        using (var con = new SqlConnection(_config.GetConnectionString("Database")))
-        //        using (var cmd = new SqlCommand("sp_get_worflow_approved", con))
-        //        {
-        //            cmd.CommandType = CommandType.StoredProcedure;
-        //            cmd.Parameters.AddWithValue("@tenentid", cTenantID);
-        //            cmd.Parameters.AddWithValue("@userid", username);
-        //            var ds = new DataSet();
-        //            var adapter = new SqlDataAdapter(cmd);
-        //            await Task.Run(() => adapter.Fill(ds)); // async wrapper
-
-        //            if (ds.Tables.Count > 0)
-        //            {
-        //                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
-        //            }
-
-        //            return "[]";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw;
-        //    }
-        //}
+       
         public async Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username)
         {
             try
@@ -874,148 +853,7 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-        //public async Task<string> GetTaskInitiator(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
-        //{
-        //    List<GetTaskinitiateList> tsk = new List<GetTaskinitiateList>();
-        //    int totalCount = 0;
-
-        //    if (page < 1) page = 1;
-        //    if (pageSize < 1) pageSize = 50;
-
-        //    try
-        //    {
-        //        string query = "sp_get_workflow_initiator";
-        //        using (SqlConnection con = new SqlConnection(this._config.GetConnectionString("Database")))
-        //        {
-        //            using (SqlCommand cmd = new SqlCommand(query, con))
-        //            {
-        //                cmd.CommandType = CommandType.StoredProcedure;
-        //                cmd.Parameters.AddWithValue("@userid", username);
-        //                cmd.Parameters.AddWithValue("@tenentid", cTenantID);
-        //                cmd.Parameters.AddWithValue("@searchtext", searchText ?? (object)DBNull.Value);
-        //                cmd.Parameters.AddWithValue("@PageNo", page);
-        //                cmd.Parameters.AddWithValue("@PageSize", pageSize);
-
-        //                await con.OpenAsync();
-
-        //                using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
-        //                {
-        //                    while (await sdr.ReadAsync())
-        //                    {
-        //                        List<GetTaskinitiateDetails> tskdtl = new List<GetTaskinitiateDetails>();
-        //                        GetTaskinitiateList p = new GetTaskinitiateList
-        //                        {
-        //                            ID = sdr.IsDBNull(sdr.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr["ID"]),
-        //                            cprocessID = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
-        //                            itaskno = sdr.IsDBNull(sdr.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr["itaskno"]),
-        //                            ctasktype = sdr.IsDBNull(sdr.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr["ctask_type"]),
-        //                            ctaskname = sdr.IsDBNull(sdr.GetOrdinal("ctask_name")) ? string.Empty : Convert.ToString(sdr["ctask_name"]),
-        //                            ctaskdescription = sdr.IsDBNull(sdr.GetOrdinal("ctask_description")) ? string.Empty : Convert.ToString(sdr["ctask_description"]),
-        //                            cstatus = sdr.IsDBNull(sdr.GetOrdinal("cstatus")) ? string.Empty : Convert.ToString(sdr["cstatus"]),
-        //                            lcompleteddate = sdr.IsDBNull(sdr.GetOrdinal("lcompleted_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcompleted_date")),
-        //                            ccreatedby = sdr.IsDBNull(sdr.GetOrdinal("ccreated_by")) ? string.Empty : Convert.ToString(sdr["ccreated_by"]),
-        //                            ccreatedbyname = sdr.IsDBNull(sdr.GetOrdinal("ccreated_byname")) ? string.Empty : Convert.ToString(sdr["ccreated_byname"]),
-        //                            lcreateddate = sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
-        //                            cmodifiedby = sdr.IsDBNull(sdr.GetOrdinal("cmodified_by")) ? string.Empty : Convert.ToString(sdr["cmodified_by"]),
-        //                            cmodifiedbyname = sdr.IsDBNull(sdr.GetOrdinal("cmodified_byname")) ? string.Empty : Convert.ToString(sdr["cmodified_byname"]),
-        //                            lmodifieddate = sdr.IsDBNull(sdr.GetOrdinal("lmodified_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date")),
-        //                            Employeecode = sdr.IsDBNull(sdr.GetOrdinal("Employeecode")) ? string.Empty : Convert.ToString(sdr["Employeecode"]),
-        //                            Employeename = sdr.IsDBNull(sdr.GetOrdinal("Employeename")) ? string.Empty : Convert.ToString(sdr["Employeename"]),
-        //                            EmpDepartment = sdr.IsDBNull(sdr.GetOrdinal("EmpDepartment")) ? string.Empty : Convert.ToString(sdr["EmpDepartment"]),
-        //                            cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
-        //                            cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
-        //                            cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-        //                            cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
-        //                        };
-
-        //                        using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
-        //                        {
-        //                            string query1 = "sp_get_workflow_initiatordeatils";
-        //                            using (SqlCommand cmd1 = new SqlCommand(query1, con1))
-        //                            {
-        //                                cmd1.CommandType = CommandType.StoredProcedure;
-        //                                cmd1.Parameters.AddWithValue("@userid", username);
-        //                                cmd1.Parameters.AddWithValue("@tenentid", cTenantID);
-        //                                cmd1.Parameters.AddWithValue("@itaskno", p.itaskno);
-
-        //                                await con1.OpenAsync();
-        //                                using (SqlDataReader sdr1 = await cmd1.ExecuteReaderAsync())
-        //                                {
-        //                                    while (await sdr1.ReadAsync())
-        //                                    {
-        //                                        GetTaskinitiateDetails pd = new GetTaskinitiateDetails
-        //                                        {
-        //                                            ID = sdr1.IsDBNull(sdr1.GetOrdinal("ID")) ? 0 : Convert.ToInt32(sdr1["ID"]),
-        //                                            iheader_id = sdr1.IsDBNull(sdr1.GetOrdinal("iheader_id")) ? 0 : Convert.ToInt32(sdr1["iheader_id"]),
-        //                                            itaskno = sdr1.IsDBNull(sdr1.GetOrdinal("itaskno")) ? 0 : Convert.ToInt32(sdr1["itaskno"]),
-        //                                            iseqno = sdr1.IsDBNull(sdr1.GetOrdinal("iseqno")) ? 0 : Convert.ToInt32(sdr1["iseqno"]),
-        //                                            ctasktype = sdr1.IsDBNull(sdr1.GetOrdinal("ctask_type")) ? string.Empty : Convert.ToString(sdr1["ctask_type"]),
-        //                                            cmappingcode = sdr1.IsDBNull(sdr1.GetOrdinal("cmapping_code")) ? string.Empty : Convert.ToString(sdr1["cmapping_code"]),
-        //                                            cmappingcodename = sdr1.IsDBNull(sdr1.GetOrdinal("cmappingcodename")) ? string.Empty : Convert.ToString(sdr1["cmappingcodename"]),
-        //                                            ccurrentstatus = sdr1.IsDBNull(sdr1.GetOrdinal("ccurrent_status")) ? string.Empty : Convert.ToString(sdr1["ccurrent_status"]),
-        //                                            lcurrentstatusdate = sdr1.IsDBNull(sdr1.GetOrdinal("lcurrent_status_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lcurrent_status_date")),
-        //                                            cremarks = sdr1.IsDBNull(sdr1.GetOrdinal("cremarks")) ? string.Empty : Convert.ToString(sdr1["cremarks"]),
-        //                                            inextseqno = sdr1.IsDBNull(sdr1.GetOrdinal("inext_seqno")) ? 0 : Convert.ToInt32(sdr1["inext_seqno"]),
-        //                                            cnextseqtype = sdr1.IsDBNull(sdr1.GetOrdinal("cnext_seqtype")) ? string.Empty : Convert.ToString(sdr1["cnext_seqtype"]),
-        //                                            cprevtype = sdr1.IsDBNull(sdr1.GetOrdinal("cprevtype")) ? string.Empty : Convert.ToString(sdr1["cprevtype"]),
-        //                                            csla_day = sdr1.IsDBNull(sdr1.GetOrdinal("csla_day")) ? 0 : Convert.ToInt32(sdr1["csla_day"]),
-        //                                            csla_Hour = sdr1.IsDBNull(sdr1.GetOrdinal("csla_Hour")) ? 0 : Convert.ToInt32(sdr1["csla_Hour"]),
-        //                                            cprocess_type = sdr1.IsDBNull(sdr1.GetOrdinal("cprocess_type")) ? string.Empty : Convert.ToString(sdr1["cprocess_type"]),
-        //                                            nboard_enabled = sdr1.IsDBNull(sdr1.GetOrdinal("nboard_enabled")) ? false : Convert.ToBoolean(sdr1["nboard_enabled"]),
-        //                                            caction_privilege = sdr1.IsDBNull(sdr1.GetOrdinal("caction_privilege")) ? string.Empty : Convert.ToString(sdr1["caction_privilege"]),
-        //                                            crejection_privilege = sdr1.IsDBNull(sdr1.GetOrdinal("crejection_privilege")) ? string.Empty : Convert.ToString(sdr1["crejection_privilege"]),
-        //                                            cisforwarded = sdr1.IsDBNull(sdr1.GetOrdinal("cis_forwarded")) ? string.Empty : Convert.ToString(sdr1["cis_forwarded"]),
-        //                                            lfwd_date = sdr1.IsDBNull(sdr1.GetOrdinal("lfwd_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lfwd_date")),
-        //                                            cfwd_to = sdr1.IsDBNull(sdr1.GetOrdinal("cfwd_to")) ? string.Empty : Convert.ToString(sdr1["cfwd_to"]),
-        //                                            cis_reassigned = sdr1.IsDBNull(sdr1.GetOrdinal("cis_reassigned")) ? string.Empty : Convert.ToString(sdr1["cis_reassigned"]),
-        //                                            creassign_name = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_name")) ? string.Empty : Convert.ToString(sdr1["creassign_name"]),
-        //                                            lreassign_date = sdr1.IsDBNull(sdr1.GetOrdinal("lreassign_date")) ? (DateTime?)null : sdr1.GetDateTime(sdr1.GetOrdinal("lreassign_date")),
-        //                                            creassign_to = sdr1.IsDBNull(sdr1.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(sdr1["creassign_to"]),
-        //                                            cactivityname = sdr1.IsDBNull(sdr1.GetOrdinal("cactivityname")) ? string.Empty : Convert.ToString(sdr1["cactivityname"]),
-        //                                            cactivity_description = sdr1.IsDBNull(sdr1.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(sdr1["cactivity_description"]),
-        //                                            cmappingcode_name = sdr1.IsDBNull(sdr1.GetOrdinal("cmappingcodename")) ? string.Empty : Convert.ToString(sdr1["cmappingcodename"]),
-        //                                        };
-        //                                        tskdtl.Add(pd);
-        //                                    }
-        //                                }
-        //                            }
-        //                        }
-
-        //                        p.TaskChildItems = tskdtl;
-        //                        tsk.Add(p);
-        //                    }
-
-        //                    if (await sdr.NextResultAsync())
-        //                    {
-        //                        if (await sdr.ReadAsync())
-        //                        {
-        //                            totalCount = sdr.IsDBNull(0) ? 0 : Convert.ToInt32(sdr[0]);
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-
-        //        var response = new
-        //        {
-        //            totalCount = totalCount,
-        //            data = tsk
-        //        };
-
-        //        return JsonConvert.SerializeObject(response, Formatting.Indented);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        var errorResponse = new
-        //        {
-        //            totalCount = 0,
-        //            data = new List<GetTaskinitiateList>(),
-        //            error = ex.Message
-        //        };
-        //        return JsonConvert.SerializeObject(errorResponse, Formatting.Indented);
-        //    }
-        //}
-
+        
         public async Task<string> GetTaskInitiator(int cTenantID,string username,string? searchText = null,int page = 1,int pageSize = 50)
         {
             var headerDict = new Dictionary<int, GetTaskinitiateList>();
@@ -1851,7 +1689,8 @@ namespace TaskEngineAPI.Services
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
-                                    approvers = new List<PreviousapproverDTO>()
+                                    approvers = new List<PreviousapproverDTO>(),
+                                    BoardAPIdata = new List<BoardmetaDTO>()
                                 };
 
                                 // Add timeline
@@ -1880,6 +1719,7 @@ namespace TaskEngineAPI.Services
                                 await LoadMeta(conn, mapping, itaskno, cTenantID);
                                 await GetPreviousapproverAsync(conn, ID, username, cTenantID);
 
+                                await BoardAPIdata(conn, mapping, itaskno, cTenantID, ID);
                                 result.Add(mapping);
                             }
                         }
@@ -1895,8 +1735,8 @@ namespace TaskEngineAPI.Services
         }
         private async Task LoadProcessConditions(SqlConnection conn, GettaskinboxbyidDTO mapping, int seqno)
         {
-            string sql = @"SELECT * FROM tbl_process_engine_condition 
-                   WHERE cheader_id = @HeaderID AND ciseqno = @Seqno";
+            string sql = @"SELECT * FROM tbl_process_engine_condition WHERE 
+            cheader_id = @HeaderID AND ciseqno = @Seqno";
 
             using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
@@ -1920,7 +1760,9 @@ namespace TaskEngineAPI.Services
                     cis_disabled = dr.SafeGetBoolean("cis_disabled"),
                     cfieldValue = dr["cfield_value"]?.ToString() ?? "",
                     cdatasource = dr["cdata_source"]?.ToString() ?? "",
-                    ccondition = dr["ccondition"]?.ToString() ?? ""
+                    ccondition = dr["ccondition"]?.ToString() ?? "",
+                    capi_mapping = dr["capi_mapping"]?.ToString() ?? ""
+                   
                 });
             }
         }
@@ -2093,6 +1935,39 @@ namespace TaskEngineAPI.Services
 
             return timelineList;
         }
+
+        private async Task BoardAPIdata(SqlConnection conn, GettaskinboxbyidDTO mapping, int itaskno, int tenantID, int ID)
+        {
+            string sql = @"SELECT 
+        (SELECT id, capi_method, capi_url, cbody, capi_params, capi_headers 
+         FROM tbl_users_api_sync_config 
+         WHERE id = (
+            SELECT cboard_metaapi_id 
+            FROM tbl_taskflow_detail a
+            INNER JOIN tbl_process_engine_details b
+                ON a.iseqno = b.ciseqno
+            WHERE a.id = @ID
+            AND b.cheader_id = @HeaderID
+         )
+         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        ) AS api_response";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ID", ID);
+            cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
+
+            using var dr = await cmd.ExecuteReaderAsync();
+        
+            if (await dr.ReadAsync())
+            {
+                mapping.BoardAPIdata.Add(new BoardmetaDTO
+                {
+                    capiresponse = dr["api_response"]?.ToString() ?? ""
+                });
+            }
+
+        }
+
         public async Task<bool> UpdatetaskapproveAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -2103,14 +1978,15 @@ namespace TaskEngineAPI.Services
                 SqlTransaction transaction = conn.BeginTransaction();
                 int? processId = null;
                 int? taskNo = null;
+                bool committed = false;
 
                 try
                 {
                     string checkQuery = @"
-                SELECT a.itaskno, b.cprocess_id, a.cis_reassigned 
-                FROM tbl_taskflow_detail a
-                INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
-                WHERE a.ID = @ID";
+        SELECT a.itaskno, b.cprocess_id, a.cis_reassigned 
+        FROM tbl_taskflow_detail a
+        INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
+        WHERE a.ID = @ID";
 
                     using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
                     {
@@ -2126,14 +2002,12 @@ namespace TaskEngineAPI.Services
                                 if (!string.IsNullOrEmpty(model.reassignto) && alreadyReassigned == "Y")
                                 {
                                     reader.Close();
-                                    transaction.Rollback();
                                     throw new InvalidOperationException("This task has already been reassigned and cannot be reassigned again.");
                                 }
                             }
                             else
                             {
                                 reader.Close();
-                                transaction.Rollback();
                                 return false;
                             }
                             reader.Close();
@@ -2146,13 +2020,13 @@ namespace TaskEngineAPI.Services
                     if (isReassigning)
                     {
                         updateQuery = @"UPDATE tbl_taskflow_detail SET 
-                                creassign_to = @creassign_to, lreassign_Date = @lreassign_Date, 
-                                cis_reassigned = @cis_reassigned, cremarks = @remarks WHERE ID = @ID";
+                        creassign_to = @creassign_to, lreassign_Date = @lreassign_Date, 
+                        cis_reassigned = @cis_reassigned, cremarks = @remarks WHERE ID = @ID";
                     }
                     else
                     {
                         updateQuery = @"UPDATE tbl_taskflow_detail SET 
-                                ccurrent_status = @status, lcurrent_status_date = @status_date, cremarks = @remarks WHERE ID = @ID";
+                        ccurrent_status = @status, lcurrent_status_date = @status_date, cremarks = @remarks WHERE ID = @ID";
                     }
 
                     using (SqlCommand updateCmd = new SqlCommand(updateQuery, conn, transaction))
@@ -2176,9 +2050,9 @@ namespace TaskEngineAPI.Services
                     }
 
                     string statusQuery = @"
-                INSERT INTO tbl_transaction_taskflow_detail_and_status
-                (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date, cremarks, crejected_reason)
-                VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date, @cremarks, @crejected_reason);";
+        INSERT INTO tbl_transaction_taskflow_detail_and_status
+        (itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date, cremarks, crejected_reason)
+        VALUES(@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date, @cremarks, @crejected_reason);";
 
                     using (SqlCommand statusCmd = new SqlCommand(statusQuery, conn, transaction))
                     {
@@ -2197,9 +2071,9 @@ namespace TaskEngineAPI.Services
                     if (model.metaData != null && model.metaData.Any())
                     {
                         string metaQuery = @"
-                    INSERT INTO tbl_transaction_process_meta_layout 
-                    ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id]) 
-                    VALUES (@cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id);";
+            INSERT INTO tbl_transaction_process_meta_layout 
+            ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id],[cmeta_response]) 
+            VALUES (@cmeta_id, @cprocess_id, @cprocess_code, @TenantID, @cdata, @citaskno, @cdetail_id,@cmeta_response);";
 
                         foreach (var metaData in model.metaData)
                         {
@@ -2212,6 +2086,7 @@ namespace TaskEngineAPI.Services
                                 metaInsertCmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
                                 metaInsertCmd.Parameters.AddWithValue("@citaskno", taskNo ?? (object)DBNull.Value);
                                 metaInsertCmd.Parameters.AddWithValue("@cdetail_id", model.ID);
+                                metaInsertCmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
                                 await metaInsertCmd.ExecuteNonQueryAsync();
                             }
                         }
@@ -2230,19 +2105,22 @@ namespace TaskEngineAPI.Services
                     }
 
                     transaction.Commit();
+                    committed = true;
                     return true;
                 }
                 catch (InvalidOperationException ex)
                 {
+                    if (!committed) try { transaction.Rollback(); } catch { }
                     throw new Exception(ex.Message);
                 }
                 catch (Exception)
                 {
-                    transaction.Rollback();
+                    if (!committed) try { transaction.Rollback(); } catch { }
                     throw;
                 }
             }
         }
+
         public async Task<List<GettaskApprovedatabyidDTO>> Gettaskapprovedatabyid(int cTenantID, int ID)
         {
             var result = new List<GettaskApprovedatabyidDTO>();
@@ -2497,7 +2375,8 @@ namespace TaskEngineAPI.Services
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
-                                    approvers = new List<PreviousapproverDTO>()
+                                    approvers = new List<PreviousapproverDTO>(),
+                                    BoardAPIdata = new List<BoardmetaDTO>()
                                 };
 
                                 if (mapping.showTimeline == true)
@@ -2509,7 +2388,7 @@ namespace TaskEngineAPI.Services
 
                                 await LoadMetaForHold(conn, mapping, itaskno, cTenantID);
                                 await GetPreviousapproverAsync(conn, ID, username, cTenantID);
-
+                                await BoardholdAPIdata(conn, mapping, itaskno, cTenantID, ID);
                                 result.Add(mapping);
                             }
                         }
@@ -2523,6 +2402,39 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and ID {ID}: {ex.Message}", ex);
             }
         }
+
+        private async Task BoardholdAPIdata(SqlConnection conn, GettaskHolddatabyidDTO mapping, int itaskno, int tenantID, int ID)
+        {
+            string sql = @"SELECT 
+        (SELECT id, capi_method, capi_url, cbody, capi_params, capi_headers 
+         FROM tbl_users_api_sync_config 
+         WHERE id = (
+            SELECT cboard_metaapi_id 
+            FROM tbl_taskflow_detail a
+            INNER JOIN tbl_process_engine_details b
+                ON a.iseqno = b.ciseqno
+            WHERE a.id = @ID
+            AND b.cheader_id = @HeaderID
+         )
+         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        ) AS api_response";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ID", ID);
+            cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
+
+            using var dr = await cmd.ExecuteReaderAsync();
+
+            if (await dr.ReadAsync())
+            {
+                mapping.BoardAPIdata.Add(new BoardmetaDTO
+                {
+                    capiresponse = dr["api_response"]?.ToString() ?? ""
+                });
+            }
+
+        }
+
         private async Task LoadProcessConditionsForHold(SqlConnection conn, GettaskHolddatabyidDTO mapping, int seqno)
         {
             string sql = @"SELECT * FROM tbl_process_engine_condition 
@@ -2550,7 +2462,8 @@ namespace TaskEngineAPI.Services
                     cis_disabled = dr.SafeGetBoolean("cis_disabled"),
                     cfieldValue = dr["cfield_value"]?.ToString() ?? "",
                     cdatasource = dr["cdata_source"]?.ToString() ?? "",
-                    ccondition = dr["ccondition"]?.ToString() ?? ""
+                    ccondition = dr["ccondition"]?.ToString() ?? "",
+                    capi_mapping= dr["capi_mapping"]?.ToString() ?? ""
                 });
             }
         }
@@ -3607,6 +3520,77 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving task condition list: {ex.Message}");
             }
         }
+       
+        public async Task<GetmetadataviewdataDTO> Getmetadataviewdataid(int cTenantID, int id)
+        {
+            try
+            {
+                var result = new GetmetadataviewdataDTO
+                {
+                    capi_response = "",
+                    metaData = new List<GetmetaviewdataDTO>()
+                };
+
+                var connStr = _config.GetConnectionString("Database");
+
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"select d.citaskno,b.icond_seqno,b.ctype,b.clabel,b.cplaceholder,b.cfield_value,b.ccondition,
+                             b.cdata_source,d.cdata,cdetail_id,c.cattachment,d.cmeta_response
+                             from tbl_process_engine_details  a
+                             inner join tbl_process_engine_condition b on a.cheader_id=b.cheader_id
+                             inner join tbl_taskflow_detail c on c.iseqno=a.ciseqno and a.ID=b.ciseqno
+                             inner join tbl_transaction_process_meta_layout d on d.citaskno=c.itaskno and d.cdetail_id=c.id
+                             and d.cmeta_id=b.id
+                             inner join tbl_taskflow_master e on e.itaskno=c.itaskno and e.ID=c.iheader_id
+                             where a.cheader_id=e.cprocess_id 
+                             and c.itaskno=d.citaskno 
+                             and c.id=@ID
+                             order by b.icond_seqno asc";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", id);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                // assign API response once
+                                if (string.IsNullOrEmpty(result.capi_response))
+                                {
+                                    result.capi_response = reader["cmeta_response"]?.ToString() ?? "";
+                                }
+
+                                result.metaData.Add(new GetmetaviewdataDTO
+                                {
+                                    ID = reader["cdetail_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cdetail_id"]),
+                                    itaskno = reader["citaskno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["citaskno"]),
+                                    icond_seqno = reader["icond_seqno"] == DBNull.Value ? 0 : Convert.ToInt32(reader["icond_seqno"]),
+                                    ctype = reader["ctype"]?.ToString() ?? "",
+                                    clabel = reader["clabel"]?.ToString() ?? "",
+                                    cplaceholder = reader["cplaceholder"]?.ToString() ?? "",
+                                    cfield_value = reader["cfield_value"]?.ToString() ?? "",
+                                    ccondition = reader["ccondition"]?.ToString() ?? "",
+                                    cdata_source = reader["cdata_source"]?.ToString() ?? "",
+                                    cdata = reader["cdata"]?.ToString() ?? "",
+                                    cattachment = reader["cattachment"]?.ToString() ?? ""
+                                });
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving metadata view data: {ex.Message}");
+            }
+        }
+
         public async Task<GettaskreassignCountDTO> GettaskReassign(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             List<GetTaskList> tsk = new List<GetTaskList>();
@@ -4279,6 +4263,12 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Database error: {ex.Message}");
             }
         }
+
+
+       
+
+
+
         public async Task<bool> sendwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -4354,7 +4344,7 @@ namespace TaskEngineAPI.Services
                     var payload = new
                     {
                         apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
-                        campaignName = "reassighn new process",
+                        campaignName = "reassighn new process", //"reassighn new process",
                         destination = recipientPhone,//"916382445617",
                         userName = "Sheenlac Paintss",
                         templateParams = new[]
@@ -4389,6 +4379,8 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
+      
+        
         private async Task SendWhatsAppNotificationAsync()
         {
             var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
@@ -4502,7 +4494,7 @@ namespace TaskEngineAPI.Services
                     {
                         apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
                         campaignName = "hold new process",
-                        destination = recipientPhone,//"916382445617",
+                        destination = recipientPhone,//"9390249164",
                         userName = "Sheenlac Paintss",
                         templateParams = new[]
                         {
@@ -4649,37 +4641,363 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        //public async Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username)
-        //{
-        //    try
-        //    {
-        //        using (var con = new SqlConnection(_config.GetConnectionString("Database")))
-        //        using (var cmd = new SqlCommand("sp_fetch_API_intergration", con))
-        //        {
-        //            cmd.CommandType = CommandType.StoredProcedure;
-        //            cmd.Parameters.AddWithValue("@cTenantID", cTenantID);
-        //            cmd.Parameters.AddWithValue("@APIID", model.APIID);
-        //            cmd.Parameters.AddWithValue("@payload", model.Payload);
-        //            cmd.Parameters.AddWithValue("@ID", model.processid);
-                    
-        //            var ds = new DataSet();
-        //            var adapter = new SqlDataAdapter(cmd);
-        //            await Task.Run(() => adapter.Fill(ds)); 
+        public async Task<bool> reassigntoinitiatorwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
 
-        //            if (ds.Tables.Count > 0)
-        //            {
-        //                return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
-        //            }
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+                SqlTransaction transaction = conn.BeginTransaction();
+                int? processId = null;
+                int? taskNo = null;
+                string? ctask_name = null;
+                string? recipientName = null;
+                string? recipientPhone = null;
+                string? senderName = null;
+                string? InitiatorName = null;
+                string? person2Name = null;
+                string? IntitiatorID = null;
+                try
+                {
+                    string checkQuery = @"
+         SELECT a.itaskno, b.cprocess_id, a.cis_reassigned,b.ctask_name,b.ccreated_by
+         FROM tbl_taskflow_detail a
+         INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
+         WHERE a.ID = @ID";
 
-        //            return "[]";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw;
-        //    }
-        //}
+                    string getRecipientQuery = @"SELECT top 1 cuser_name,cphoneno  FROM Users 
+          WHERE cuserid = @reassignto and nIs_deleted=0";
 
+                    string getsenderQuery = @"SELECT top 1 cuser_name  FROM Users 
+          WHERE cuserid = @sender and nIs_deleted=0";
+                    string getInitiatorQuery = @"SELECT top 1 cuser_name  FROM Users 
+          WHERE cuserid = @Initiator and nIs_deleted=0";
+
+                    using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
+                    {
+                        checkCmd.Parameters.AddWithValue("@ID", model.ID);
+                        using (var reader = await checkCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                taskNo = reader["itaskno"] as int? ?? model.itaskno;
+                                processId = reader["cprocess_id"] as int?;
+                                ctask_name = reader["ctask_name"]?.ToString() ?? "";
+                                string alreadyReassigned = reader["cis_reassigned"]?.ToString() ?? "";
+                                 IntitiatorID = reader["ccreated_by"]?.ToString() ?? "";
+                            }
+                            else
+                            {
+                                reader.Close();
+                                transaction.Rollback();
+                                return false;
+                            }
+                            reader.Close();
+                        }
+                    }
+
+                    using (SqlCommand recipientCmd = new SqlCommand(getRecipientQuery, conn, transaction))
+                    {
+                        recipientCmd.Parameters.AddWithValue("@reassignto", model.reassignto);
+                        using (var reader = await recipientCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                recipientName = reader["cuser_name"]?.ToString() ?? "";
+                                recipientPhone = reader["cphoneno"]?.ToString() ?? "";
+                            }
+                        }
+                    }
+                    using (SqlCommand sendCmd = new SqlCommand(getsenderQuery, conn, transaction))
+                    {
+                        sendCmd.Parameters.AddWithValue("@sender", username);
+                        var result = await sendCmd.ExecuteScalarAsync();
+                        senderName = result?.ToString() ?? "User";
+                    }
+                    using (SqlCommand sendCmd = new SqlCommand(getInitiatorQuery, conn, transaction))
+                    {
+                        sendCmd.Parameters.AddWithValue("@Initiator", IntitiatorID);
+                        var result = await sendCmd.ExecuteScalarAsync();
+                        InitiatorName = result?.ToString() ?? "User";
+                    }
+
+                    var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
+                    var client = _httpClientFactory.CreateClient();
+                    var payload = new
+                    {
+                        apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
+                        campaignName = "reassigniniteC", //"reassighn new process",
+                        destination = "918220237725",//recipientPhone,//"916382445617",
+                        userName = "Sheenlac Paintss",
+                        templateParams = new[]
+                        {
+                    InitiatorName,
+                    ctask_name,
+                    senderName,
+                    recipientName
+                 },
+                        source = "new-landing-page form",
+                        media = new { },
+                        buttons = new string[] { },
+                        carouselCards = new string[] { },
+                        location = new { },
+                        attributes = new { },
+                        paramsFallbackValue = new { FirstName = "user", Taskname = ctask_name, itaskno = taskNo, ReassignerName = "user" }
+                    };
+                    var response = await client.PostAsJsonAsync(url, payload);
+                    string updateQuery;
+                    bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+                    transaction.Commit();
+                    return true;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
+
+ //       public async Task<bool> newtaskwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+ //       {
+ //           var connStr = _config.GetConnectionString("Database");
+
+ //           try
+ //           {
+                
+ //               var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
+ //           var client = _httpClientFactory.CreateClient();
+ //           var payload = new
+ //           {
+ //               apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
+ //               campaignName = "ProjectC",
+ //               destination = "916382445617", //InitiatorPhone,
+ //               userName = "Sheenlac Paintss",
+ //               templateParams = new[]
+ //               {
+ //                  "Sheenlac",//InitiatorName,
+ //                  "Test"//ctask_name
+ //                },
+ //               source = "new-landing-page form",
+ //               media = new { },
+ //               buttons = new string[] { },
+ //               carouselCards = new string[] { },
+ //               location = new { },
+ //               attributes = new { },
+ //               paramsFallbackValue = new { FirstName = "user", Taskname = "ctask_name" }
+ //           };
+ //           var response = await client.PostAsJsonAsync(url, payload);
+ //           string updateQuery;
+ //           bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+ //           transaction.Commit();
+ //           return true;
+ //       }
+ //        catch (InvalidOperationException ex)
+ //        {
+ //            throw new Exception(ex.Message);
+ //   }
+ //        catch (Exception)
+ //        {
+ //            transaction.Rollback();
+ //            throw;
+ //        }
+ //}
+
+        public async Task<bool> newtaskwhatappnotificationAsync(int cTenantID, string username)
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+
+                var payload = new
+                {
+                    apiKey = _whatsAppSettings.ApiKey,
+                    campaignName = "ProjectC",
+                    destination = "918220237725",
+                    userName = "Sheenlac Paintss",
+                    templateParams = new[]
+                    {
+                "Sheenlac",
+                "Test"
+            },
+                    source = "new-landing-page form",
+                    media = new { },
+                    buttons = Array.Empty<string>(),
+                    carouselCards = Array.Empty<string>(),
+                    location = new { },
+                    attributes = new { },
+                    paramsFallbackValue = new
+                    {
+                        FirstName = "user",
+                        Taskname = "ctask_name"
+                    }
+                };
+
+                var response = await client.PostAsJsonAsync(_whatsAppSettings.Url, payload);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> newtaskarrivesinboxvwhatappnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_newtaskarrivesinboxv1", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();   // create once
+                            var url = _whatsAppSettings.Url;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuser_name = reader["cuser_name"]?.ToString() ?? "";
+                                string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
+                                string ctask_name = reader["ctask_name"]?.ToString()?.Trim() ?? "";
+                                if (string.IsNullOrWhiteSpace(cphoneno))
+                                    continue;
+
+                                var payload = new
+                                {
+                                    apiKey = _whatsAppSettings.ApiKey,
+                                    campaignName = "newtaskinboxC",
+                                    destination = cphoneno,//"918220237725",
+                                    userName = "Sheenlac Paintss",
+                                    templateParams = new[]
+                                    {
+                                        cuser_name,
+                                        ctask_name
+                                        },
+                                    source = "new-landing-page form",
+                                    media = new { },
+                                    buttons = Array.Empty<string>(),
+                                    carouselCards = Array.Empty<string>(),
+                                    location = new { },
+                                    attributes = new { },
+                                    paramsFallbackValue = new
+                                    {
+                                        FirstName = cuser_name,
+                                        Taskname = ctask_name
+                                    }
+                                };
+
+                                var response = await client.PostAsJsonAsync(_whatsAppSettings.Url, payload);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    var error = await response.Content.ReadAsStringAsync();
+
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("WhatsApp notification failed: " + ex.Message);
+            }
+        }
+
+        public async Task<bool> newtaskarrivesinboxapprovewhatappnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_newtaskarrivesinboxapprovev1", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();   // create once
+                            var url = _whatsAppSettings.Url;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuser_name = reader["cuser_name"]?.ToString() ?? "";
+                                string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
+                                string ctask_name = reader["ctask_name"]?.ToString()?.Trim() ?? "";
+                                if (string.IsNullOrWhiteSpace(cphoneno))
+                                    continue;
+
+                                var payload = new
+                                {
+                                    apiKey = _whatsAppSettings.ApiKey,
+                                    campaignName = "newtaskinboxC",
+                                    destination = cphoneno,//"918220237725",
+                                    userName = "Sheenlac Paintss",
+                                    templateParams = new[]
+                                    {
+                                        cuser_name,
+                                        ctask_name
+                                        },
+                                    source = "new-landing-page form",
+                                    media = new { },
+                                    buttons = Array.Empty<string>(),
+                                    carouselCards = Array.Empty<string>(),
+                                    location = new { },
+                                    attributes = new { },
+                                    paramsFallbackValue = new
+                                    {
+                                        FirstName = cuser_name,
+                                        Taskname = ctask_name
+                                    }
+                                };
+
+                                var response = await client.PostAsJsonAsync(_whatsAppSettings.Url, payload);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    var error = await response.Content.ReadAsStringAsync();
+
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("WhatsApp notification failed: " + ex.Message);
+            }
+        }
 
         public async Task<string> PostAPIIntegrationAsync( APIFetchDTO model, int cTenantID, string username)
         {
@@ -4708,75 +5026,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
-        //public async Task<string> FetchAPIORGStructureAsync(int cTenantID, string username)
-        //{
-        //    try
-        //    {
-        //        var connStr = _config.GetConnectionString("Database");
-
-        //        string apiMethod = "";
-        //        string apiUrl = "";
-        //        string requestBodyTemplate = "";
-
-        //        using (SqlConnection conn = new SqlConnection(connStr))
-        //        {
-        //            await conn.OpenAsync();
-
-        //            string query = @"
-        //        SELECT capi_method, capi_url, cbody 
-        //        FROM tbl_users_api_sync_config 
-        //        WHERE capi_type = 'Common' 
-        //        AND cname = 'org_structure'";
-
-        //            using (SqlCommand cmd = new SqlCommand(query, conn))
-        //            {
-        //                using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
-        //                {
-        //                    if (await reader.ReadAsync())
-        //                    {
-        //                        apiMethod = reader["capi_method"]?.ToString();
-        //                        apiUrl = reader["capi_url"]?.ToString();
-        //                        requestBodyTemplate = reader["cbody"]?.ToString();
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        var payloadObj = new
-        //        {
-        //            FilterValue1 = "00500006",
-        //            FilterValue2 = "IT - ADMIN",
-        //            FilterValue3 = "Org_tree_Grid_new"
-        //        };
-
-        //        string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(payloadObj);
-
-        //        string payload = "{   \r\n    \"FilterValue1\": \"00500006\",\r\n     \"FilterValue2\": \"IT-ADMIN\",\r\n    \"FilterValue3\": \"Org_tree_Grid_new\"    \r\n}";
-
-        //        using (HttpClient client = new HttpClient())
-        //        {
-        //            HttpRequestMessage request = new HttpRequestMessage(
-        //                new HttpMethod(apiMethod ?? "POST"),
-        //                apiUrl
-        //            );
-
-        //            request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-        //             HttpResponseMessage response = await client.SendAsync(request);
-
-        //            string result = await response.Content.ReadAsStringAsync();
-
-        //            return result;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return $"Error: {ex.Message}";
-        //    }
-        //}
-
-
-
+       
         public async Task<string> FetchAPIORGStructureAsync(EmployeeIDDTO model, int cTenantID, string username)
         {
             try
@@ -4809,6 +5059,42 @@ namespace TaskEngineAPI.Services
             }
         }
 
+
+        public async Task<string> FetchattandanceAsync(AttendanceIDDTO model, int cTenantID, string username)
+        {
+            try
+            {
+                string apiUrl = "https://misapi.sheenlac.com/api/Progovex/ProgovexAttendanceSummary";
+
+                var payload = new
+                {
+                    empcode = model.empcode,
+                    type = model.type,
+                    month = model.month
+                };
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(60);
+
+                    var json = JsonConvert.SerializeObject(payload);
+
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    response.EnsureSuccessStatusCode();
+
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ex.Message}";
+            }
+        }
 
     }
 }
