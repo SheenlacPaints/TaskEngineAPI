@@ -52,7 +52,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> sendwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
 
         Task<bool> holdwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
-
+        Task<bool> reassigntoinitiatorwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
         Task<bool> RejectwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username);
 
         Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username);
@@ -60,8 +60,8 @@ namespace TaskEngineAPI.Interfaces
         Task<string> FetchAPIORGStructureAsync(EmployeeIDDTO model, int cTenantID, string username);
 
         Task<string> FetchattandanceAsync(AttendanceIDDTO model, int cTenantID, string username);
-
-
+        Task<bool> newtaskwhatappnotificationAsync(int cTenantID, string username);
+        Task<bool> newtaskarrivesinboxvwhatappnotificationAsync(int ID, int cTenantID, string username);
     }
 
 }

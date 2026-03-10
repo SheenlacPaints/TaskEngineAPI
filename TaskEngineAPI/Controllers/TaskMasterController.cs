@@ -139,6 +139,8 @@ namespace TaskEngineAPI.Controllers
                     throw new InvalidOperationException("Task insertion failed.");
                 }
 
+                bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
+
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
 
 
@@ -1040,6 +1042,8 @@ namespace TaskEngineAPI.Controllers
                 if (model.reassignto != null)
                 {
                     bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
+                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
+
                 }
                 if (model.status == "H")
                 {
@@ -1049,6 +1053,10 @@ namespace TaskEngineAPI.Controllers
                 if (model.status == "R")
                 {
                     bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
+
+                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model,cTenantID,username);
+
+
                 }
 
 
@@ -1729,7 +1737,55 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost]
+        [Route("Testtaskapprove")]
+        public async Task<IActionResult> Testtaskapprove()
+        {
+            try
+            {               
+                var (cTenantID, username) = GetUserInfoFromToken();                          
+                bool success = await taskMasterService.newtaskwhatappnotificationAsync(cTenantID, username);             
+                if (!success)
+                {
+                    return CreateEncryptedResponse(404, "Data not found or update failed");
+                }
+                return CreatedSuccessResponse( "Updated successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
 
+        [Authorize]
+        [HttpPost]
+        [Route("NewTesttaskapprove")]
+        public async Task<IActionResult> NewTesttaskapprove([FromQuery] int ID)
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(ID, cTenantID, username);
+                if (!success)
+                {
+                    return CreateEncryptedResponse(404, "Data not found or update failed");
+                }
+                return CreatedSuccessResponse("Updated successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
 
 
     }

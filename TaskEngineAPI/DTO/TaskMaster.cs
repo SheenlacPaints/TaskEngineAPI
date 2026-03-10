@@ -497,6 +497,12 @@ namespace TaskEngineAPI.DTO
             public List<GetmetaviewdataDTO> metaData { get; set; }
         }
 
+
+    public class NewmsgDTO
+    {
+        public int? ID { get; set; }
+        public int? itaskno { get; set; }
+    }
 }
 
 

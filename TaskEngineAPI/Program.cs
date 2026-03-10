@@ -13,6 +13,7 @@ using Serilog;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.WebSockets;
 using static System.Net.WebRequestMethods;
+using TaskEngineAPI.Models;
 
 
 
@@ -145,7 +146,8 @@ builder.Services.AddScoped<IAnalyticalService, AnalyticalService>();
 builder.Services.AddScoped<ProjectSocketHandler>();
 builder.Services.AddSingleton<WebSocketConnectionManager>();
 builder.Services.AddScoped<IApiProxyService, APIIntegrationService>();
-
+builder.Services.Configure<WhatsAppSettings>(
+    builder.Configuration.GetSection("WhatsAppSettings"));
 
 //var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 //builder.Services.AddCors(options =>

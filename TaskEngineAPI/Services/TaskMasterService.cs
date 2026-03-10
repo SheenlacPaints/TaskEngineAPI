@@ -35,13 +35,17 @@ namespace TaskEngineAPI.Services
         private readonly IAdminRepository _AdminRepository;
         private readonly UploadSettings _uploadSettings;
         private readonly IHttpClientFactory _httpClientFactory;
-        public TaskMasterService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository, IOptions<UploadSettings> uploadSettings, IHttpClientFactory httpClientFactory)
+        private readonly WhatsAppSettings _whatsAppSettings;
+
+
+        public TaskMasterService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository, IOptions<UploadSettings> uploadSettings, IHttpClientFactory httpClientFactory, IOptions<WhatsAppSettings> whatsAppSettings)
         {
             _repository = repository;
             _config = _configuration;
             _AdminRepository = AdminRepository;
             _uploadSettings = uploadSettings.Value;
             _httpClientFactory = httpClientFactory;
+            _whatsAppSettings = whatsAppSettings.Value;
         }
 
         public async Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string userName)
@@ -4340,7 +4344,7 @@ namespace TaskEngineAPI.Services
                     var payload = new
                     {
                         apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
-                        campaignName = "reassignprocessC", //"reassighn new process",
+                        campaignName = "reassighn new process", //"reassighn new process",
                         destination = recipientPhone,//"916382445617",
                         userName = "Sheenlac Paintss",
                         templateParams = new[]
@@ -4490,7 +4494,7 @@ namespace TaskEngineAPI.Services
                     {
                         apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
                         campaignName = "hold new process",
-                        destination = recipientPhone,//"916382445617",
+                        destination = recipientPhone,//"9390249164",
                         userName = "Sheenlac Paintss",
                         templateParams = new[]
                         {
@@ -4637,7 +4641,289 @@ namespace TaskEngineAPI.Services
             }
         }
 
-     
+        public async Task<bool> reassigntoinitiatorwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+                SqlTransaction transaction = conn.BeginTransaction();
+                int? processId = null;
+                int? taskNo = null;
+                string? ctask_name = null;
+                string? recipientName = null;
+                string? recipientPhone = null;
+                string? senderName = null;
+                string? InitiatorName = null;
+                string? person2Name = null;
+                string? IntitiatorID = null;
+                try
+                {
+                    string checkQuery = @"
+         SELECT a.itaskno, b.cprocess_id, a.cis_reassigned,b.ctask_name,b.ccreated_by
+         FROM tbl_taskflow_detail a
+         INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
+         WHERE a.ID = @ID";
+
+                    string getRecipientQuery = @"SELECT top 1 cuser_name,cphoneno  FROM Users 
+          WHERE cuserid = @reassignto and nIs_deleted=0";
+
+                    string getsenderQuery = @"SELECT top 1 cuser_name  FROM Users 
+          WHERE cuserid = @sender and nIs_deleted=0";
+                    string getInitiatorQuery = @"SELECT top 1 cuser_name  FROM Users 
+          WHERE cuserid = @Initiator and nIs_deleted=0";
+
+                    using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
+                    {
+                        checkCmd.Parameters.AddWithValue("@ID", model.ID);
+                        using (var reader = await checkCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                taskNo = reader["itaskno"] as int? ?? model.itaskno;
+                                processId = reader["cprocess_id"] as int?;
+                                ctask_name = reader["ctask_name"]?.ToString() ?? "";
+                                string alreadyReassigned = reader["cis_reassigned"]?.ToString() ?? "";
+                                 IntitiatorID = reader["ccreated_by"]?.ToString() ?? "";
+                            }
+                            else
+                            {
+                                reader.Close();
+                                transaction.Rollback();
+                                return false;
+                            }
+                            reader.Close();
+                        }
+                    }
+
+                    using (SqlCommand recipientCmd = new SqlCommand(getRecipientQuery, conn, transaction))
+                    {
+                        recipientCmd.Parameters.AddWithValue("@reassignto", model.reassignto);
+                        using (var reader = await recipientCmd.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                recipientName = reader["cuser_name"]?.ToString() ?? "";
+                                recipientPhone = reader["cphoneno"]?.ToString() ?? "";
+                            }
+                        }
+                    }
+                    using (SqlCommand sendCmd = new SqlCommand(getsenderQuery, conn, transaction))
+                    {
+                        sendCmd.Parameters.AddWithValue("@sender", username);
+                        var result = await sendCmd.ExecuteScalarAsync();
+                        senderName = result?.ToString() ?? "User";
+                    }
+                    using (SqlCommand sendCmd = new SqlCommand(getInitiatorQuery, conn, transaction))
+                    {
+                        sendCmd.Parameters.AddWithValue("@Initiator", IntitiatorID);
+                        var result = await sendCmd.ExecuteScalarAsync();
+                        InitiatorName = result?.ToString() ?? "User";
+                    }
+
+                    var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
+                    var client = _httpClientFactory.CreateClient();
+                    var payload = new
+                    {
+                        apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
+                        campaignName = "reassigniniteC", //"reassighn new process",
+                        destination = "918220237725",//recipientPhone,//"916382445617",
+                        userName = "Sheenlac Paintss",
+                        templateParams = new[]
+                        {
+                    InitiatorName,
+                    ctask_name,
+                    senderName,
+                    recipientName
+                 },
+                        source = "new-landing-page form",
+                        media = new { },
+                        buttons = new string[] { },
+                        carouselCards = new string[] { },
+                        location = new { },
+                        attributes = new { },
+                        paramsFallbackValue = new { FirstName = "user", Taskname = ctask_name, itaskno = taskNo, ReassignerName = "user" }
+                    };
+                    var response = await client.PostAsJsonAsync(url, payload);
+                    string updateQuery;
+                    bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+                    transaction.Commit();
+                    return true;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
+
+ //       public async Task<bool> newtaskwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+ //       {
+ //           var connStr = _config.GetConnectionString("Database");
+
+ //           try
+ //           {
+                
+ //               var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
+ //           var client = _httpClientFactory.CreateClient();
+ //           var payload = new
+ //           {
+ //               apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
+ //               campaignName = "ProjectC",
+ //               destination = "916382445617", //InitiatorPhone,
+ //               userName = "Sheenlac Paintss",
+ //               templateParams = new[]
+ //               {
+ //                  "Sheenlac",//InitiatorName,
+ //                  "Test"//ctask_name
+ //                },
+ //               source = "new-landing-page form",
+ //               media = new { },
+ //               buttons = new string[] { },
+ //               carouselCards = new string[] { },
+ //               location = new { },
+ //               attributes = new { },
+ //               paramsFallbackValue = new { FirstName = "user", Taskname = "ctask_name" }
+ //           };
+ //           var response = await client.PostAsJsonAsync(url, payload);
+ //           string updateQuery;
+ //           bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+ //           transaction.Commit();
+ //           return true;
+ //       }
+ //        catch (InvalidOperationException ex)
+ //        {
+ //            throw new Exception(ex.Message);
+ //   }
+ //        catch (Exception)
+ //        {
+ //            transaction.Rollback();
+ //            throw;
+ //        }
+ //}
+
+        public async Task<bool> newtaskwhatappnotificationAsync(int cTenantID, string username)
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+
+                var payload = new
+                {
+                    apiKey = _whatsAppSettings.ApiKey,
+                    campaignName = "ProjectC",
+                    destination = "918220237725",
+                    userName = "Sheenlac Paintss",
+                    templateParams = new[]
+                    {
+                "Sheenlac",
+                "Test"
+            },
+                    source = "new-landing-page form",
+                    media = new { },
+                    buttons = Array.Empty<string>(),
+                    carouselCards = Array.Empty<string>(),
+                    location = new { },
+                    attributes = new { },
+                    paramsFallbackValue = new
+                    {
+                        FirstName = "user",
+                        Taskname = "ctask_name"
+                    }
+                };
+
+                var response = await client.PostAsJsonAsync(_whatsAppSettings.Url, payload);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> newtaskarrivesinboxvwhatappnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_newtaskarrivesinboxv1", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();   // create once
+                            var url = _whatsAppSettings.Url;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuser_name = reader["cuser_name"]?.ToString() ?? "";
+                                string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
+                                string ctask_name = reader["ctask_name"]?.ToString()?.Trim() ?? "";
+                                if (string.IsNullOrWhiteSpace(cphoneno))
+                                    continue;
+
+                                var payload = new
+                                {
+                                    apiKey = _whatsAppSettings.ApiKey,
+                                    campaignName = "newtaskinboxC",
+                                    destination = cphoneno,//"918220237725",
+                                    userName = "Sheenlac Paintss",
+                                    templateParams = new[]
+                                    {
+                                        cuser_name,
+                                        ctask_name
+                                        },
+                                    source = "new-landing-page form",
+                                    media = new { },
+                                    buttons = Array.Empty<string>(),
+                                    carouselCards = Array.Empty<string>(),
+                                    location = new { },
+                                    attributes = new { },
+                                    paramsFallbackValue = new
+                                    {
+                                        FirstName = cuser_name,
+                                        Taskname = ctask_name
+                                    }
+                                };
+
+                                var response = await client.PostAsJsonAsync(_whatsAppSettings.Url, payload);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    var error = await response.Content.ReadAsStringAsync();
+
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("WhatsApp notification failed: " + ex.Message);
+            }
+        }
+
 
         public async Task<string> PostAPIIntegrationAsync( APIFetchDTO model, int cTenantID, string username)
         {
