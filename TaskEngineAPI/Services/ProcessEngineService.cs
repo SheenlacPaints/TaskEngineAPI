@@ -92,10 +92,10 @@ namespace TaskEngineAPI.Services
 
                         string queryMaster = @"INSERT INTO tbl_process_engine_master (
                     ctenant_id,cprocesscode, cprocessname,cprocessdescription, cprivilege_type, cstatus,cvalue,cpriority_label, nshow_timeline,
-                    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted,nshow_table,nis_metaapi_integration,cmetaapi_id,cmetaapi_response) 
+                    cnotification_type,lcreated_date,ccreated_by, cmodified_by,lmodified_date, cmeta_id,nIs_deleted,nshow_table,nis_metaapi_integration,cmetaapi_id,cmetaapi_response,nis_auto_initiate) 
                     VALUES (@TenantID, @cprocesscode, @cprocessname,@cprocessdescription,@cprocess_type, @cstatus,  
                     @cvalue,@cpriority_label,@nshow_timeline,@cnotification_type,
-                    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id,@nIs_deleted,@nshow_table,@nis_metaapi_integration,@cmetaapi_id,@cmetaapi_response);
+                    @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cmeta_id,@nIs_deleted,@nshow_table,@nis_metaapi_integration,@cmetaapi_id,@cmetaapi_response,@nis_auto_initiate);
                     SELECT SCOPE_IDENTITY();";
 
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
@@ -120,6 +120,8 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@nis_metaapi_integration", (object?)model.nis_metaapi_integration ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cmetaapi_id", (object?)model.cmetaapi_id ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("cmetaapi_response", (object?)model.cmetaapi_response ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nis_auto_initiate", (object?)model.nis_auto_initiate ?? DBNull.Value);
+
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
@@ -446,7 +448,8 @@ p.cprocess_privilege as privilege_name,
     d.cmapping_code, d.cmapping_type,  d.cparticipant_type,   d.csla_day,  d.csla_Hour, d.caction_privilege,  d.crejection_privilege,
     d.cboard_visablity,d.nsla_overdue_action, d.cc_cmapping_code,d.bcc_cmapping_code,d.cc_cmapping_type,d.bcc_cmapping_type, 
    d.nis_board_metaapi_integration,d.cboard_metaapi_id,d.cboard_metaapi_response,d.nis_custom_meta,d.ccustom_meta_seqno,n.notification_type AS Notification_Description,
-    s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table,m.cattachment,m.nis_metaapi_integration,m.cmetaapi_id,m.cmetaapi_response  
+    s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table,m.cattachment,m.nis_metaapi_integration,m.cmetaapi_id,
+m.cmetaapi_response,m.nis_auto_initiate  
 FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
@@ -489,7 +492,8 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             nis_metaapi_integration = reader.IsDBNull(reader.GetOrdinal("nis_metaapi_integration")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("nis_metaapi_integration")),
                             cmetaapi_id = reader["cmetaapi_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmetaapi_id"]),
                             Notification_Description = reader.SafeGetString("Notification_Description"),
-                            cmetaapi_response= reader["cmetaapi_response"]?.ToString() ?? "",                                                     
+                            nis_auto_initiate = reader.IsDBNull(reader.GetOrdinal("nis_auto_initiate")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("nis_auto_initiate")),
+                            cmetaapi_response = reader["cmetaapi_response"]?.ToString() ?? "",                                                     
                             processEngineChildItems = new List<GetIDprocessEngineChildItems>(),
                             processEngineMeta = new List<processEngineMeta>()
                         };
@@ -1222,7 +1226,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         cpriority_label=@cpriority_label, nshow_timeline=@nshow_timeline,
                         cnotification_type=@cnotification_type, cmodified_by=@cmodified_by,
                         lmodified_date=@lmodified_date, cmeta_id=@cmeta_id, nIs_deleted=@nIs_deleted,
-                        nshow_table=@nshow_table,nis_metaapi_integration=@nis_metaapi_integration,cmetaapi_id=@cmetaapi_id,cmetaapi_response=@cmetaapi_response
+                        nshow_table=@nshow_table,nis_metaapi_integration=@nis_metaapi_integration,cmetaapi_id=@cmetaapi_id,
+                        cmetaapi_response=@cmetaapi_response,nis_auto_initiate=@nis_auto_initiate
                     WHERE ID=@ID;"; 
 
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
@@ -1245,6 +1250,8 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@nis_metaapi_integration", (object?)model.nis_metaapi_integration ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cmetaapi_id", (object?)model.cmetaapi_id ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@cmetaapi_response", (object?)model.cmetaapi_response ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nis_auto_initiate", (object?)model.nis_auto_initiate ?? DBNull.Value);
+
                             await cmd.ExecuteNonQueryAsync();
                         }
                         string queryDetail = @"INSERT INTO tbl_process_engine_details (
@@ -1684,7 +1691,8 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                                 Activecount = reader["Activecount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Activecount"]),
                                 Usedcount = reader["Usedcount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Usedcount"]),
                                 nis_metaapi_integration= reader["nis_metaapi_integration"] != DBNull.Value && Convert.ToBoolean(reader["nis_metaapi_integration"]),
-                                cmetaapi_id= reader["cmetaapi_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmetaapi_id"])
+                                cmetaapi_id= reader["cmetaapi_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmetaapi_id"]),
+                                nis_auto_initiate= reader["nis_metaapi_integration"] != DBNull.Value && Convert.ToBoolean(reader["nis_metaapi_integration"])
                             });
                         }
                     }
