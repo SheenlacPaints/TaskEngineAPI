@@ -722,7 +722,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-       
+
         public async Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username)
         {
             try
@@ -853,8 +853,8 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-        
-        public async Task<string> GetTaskInitiator(int cTenantID,string username,string? searchText = null,int page = 1,int pageSize = 50)
+
+        public async Task<string> GetTaskInitiator(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             var headerDict = new Dictionary<int, GetTaskinitiateList>();
             int totalCount = 0;
@@ -977,7 +977,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<string> GetTaskInitiatornew(int cTenantID,string username,string? searchText = null,int page = 1, int pageSize = 50)
+        public async Task<string> GetTaskInitiatornew(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
             var headerDict = new Dictionary<int, GetTaskinitiateList>();
             int totalCount = 0;
@@ -1762,7 +1762,7 @@ namespace TaskEngineAPI.Services
                     cdatasource = dr["cdata_source"]?.ToString() ?? "",
                     ccondition = dr["ccondition"]?.ToString() ?? "",
                     capi_mapping = dr["capi_mapping"]?.ToString() ?? ""
-                   
+
                 });
             }
         }
@@ -1957,7 +1957,7 @@ namespace TaskEngineAPI.Services
             cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
 
             using var dr = await cmd.ExecuteReaderAsync();
-        
+
             if (await dr.ReadAsync())
             {
                 mapping.BoardAPIdata.Add(new BoardmetaDTO
@@ -2463,7 +2463,7 @@ namespace TaskEngineAPI.Services
                     cfieldValue = dr["cfield_value"]?.ToString() ?? "",
                     cdatasource = dr["cdata_source"]?.ToString() ?? "",
                     ccondition = dr["ccondition"]?.ToString() ?? "",
-                    capi_mapping= dr["capi_mapping"]?.ToString() ?? ""
+                    capi_mapping = dr["capi_mapping"]?.ToString() ?? ""
                 });
             }
         }
@@ -3520,7 +3520,7 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error retrieving task condition list: {ex.Message}");
             }
         }
-       
+
         public async Task<GetmetadataviewdataDTO> Getmetadataviewdataid(int cTenantID, int id)
         {
             try
@@ -4263,12 +4263,6 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Database error: {ex.Message}");
             }
         }
-
-
-       
-
-
-
         public async Task<bool> sendwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -4379,8 +4373,6 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-      
-        
         private async Task SendWhatsAppNotificationAsync()
         {
             var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
@@ -4685,7 +4677,7 @@ namespace TaskEngineAPI.Services
                                 processId = reader["cprocess_id"] as int?;
                                 ctask_name = reader["ctask_name"]?.ToString() ?? "";
                                 string alreadyReassigned = reader["cis_reassigned"]?.ToString() ?? "";
-                                 IntitiatorID = reader["ccreated_by"]?.ToString() ?? "";
+                                IntitiatorID = reader["ccreated_by"]?.ToString() ?? "";
                             }
                             else
                             {
@@ -4763,51 +4755,50 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        //       public async Task<bool> newtaskwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+        //       {
+        //           var connStr = _config.GetConnectionString("Database");
 
- //       public async Task<bool> newtaskwhatappnotificationAsync(updatetaskDTO model, int cTenantID, string username)
- //       {
- //           var connStr = _config.GetConnectionString("Database");
+        //           try
+        //           {
 
- //           try
- //           {
-                
- //               var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
- //           var client = _httpClientFactory.CreateClient();
- //           var payload = new
- //           {
- //               apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
- //               campaignName = "ProjectC",
- //               destination = "916382445617", //InitiatorPhone,
- //               userName = "Sheenlac Paintss",
- //               templateParams = new[]
- //               {
- //                  "Sheenlac",//InitiatorName,
- //                  "Test"//ctask_name
- //                },
- //               source = "new-landing-page form",
- //               media = new { },
- //               buttons = new string[] { },
- //               carouselCards = new string[] { },
- //               location = new { },
- //               attributes = new { },
- //               paramsFallbackValue = new { FirstName = "user", Taskname = "ctask_name" }
- //           };
- //           var response = await client.PostAsJsonAsync(url, payload);
- //           string updateQuery;
- //           bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
- //           transaction.Commit();
- //           return true;
- //       }
- //        catch (InvalidOperationException ex)
- //        {
- //            throw new Exception(ex.Message);
- //   }
- //        catch (Exception)
- //        {
- //            transaction.Rollback();
- //            throw;
- //        }
- //}
+        //               var url = "https://backend.api-wa.co/campaign/smartping/api/v2";
+        //           var client = _httpClientFactory.CreateClient();
+        //           var payload = new
+        //           {
+        //               apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MTViZmQ3NjFiNDMzMGQ1Y2IzMGM0ZSIsIm5hbWUiOiJTaGVlbmxhYyBQYWludHMiLCJhcHBOYW1lIjoiQWlTZW5zeSIsImNsaWVudElkIjoiNjkxNWJmZDc2MWI0MzMwZDVjYjMwYzQ3IiwiYWN0aXZlUGxhbiI6Ik5PTkUiLCJpYXQiOjE3NjMwMzMwNDd9.Qpd0HmsXQxTGx_v0EkOHKTUN-gEAzoRDahaiMtT4lQU",
+        //               campaignName = "ProjectC",
+        //               destination = "916382445617", //InitiatorPhone,
+        //               userName = "Sheenlac Paintss",
+        //               templateParams = new[]
+        //               {
+        //                  "Sheenlac",//InitiatorName,
+        //                  "Test"//ctask_name
+        //                },
+        //               source = "new-landing-page form",
+        //               media = new { },
+        //               buttons = new string[] { },
+        //               carouselCards = new string[] { },
+        //               location = new { },
+        //               attributes = new { },
+        //               paramsFallbackValue = new { FirstName = "user", Taskname = "ctask_name" }
+        //           };
+        //           var response = await client.PostAsJsonAsync(url, payload);
+        //           string updateQuery;
+        //           bool isReassigning = !string.IsNullOrEmpty(model.reassignto);
+        //           transaction.Commit();
+        //           return true;
+        //       }
+        //        catch (InvalidOperationException ex)
+        //        {
+        //            throw new Exception(ex.Message);
+        //   }
+        //        catch (Exception)
+        //        {
+        //            transaction.Rollback();
+        //            throw;
+        //        }
+        //}
 
         public async Task<bool> newtaskwhatappnotificationAsync(int cTenantID, string username)
         {
@@ -4999,7 +4990,84 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<string> PostAPIIntegrationAsync( APIFetchDTO model, int cTenantID, string username)
+
+        public async Task<bool> newprojectraisewhatappnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_newprojectraisetomanagersendmsg", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();   // create once
+                            var url = _whatsAppSettings.Url;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuser_name = reader["cuser_name"]?.ToString() ?? "";
+                                string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
+                                string ctask_name = reader["ctask_name"]?.ToString()?.Trim() ?? "";
+                                if (string.IsNullOrWhiteSpace(cphoneno))
+                                    continue;
+
+                                var payload = new
+                                {
+                                    apiKey = _whatsAppSettings.ApiKey,
+                                    campaignName = "ProjectC",
+                                    destination = cphoneno,//"918220237725",
+                                    userName = "Sheenlac Paintss",
+                                    templateParams = new[]
+                                    {
+                                        cuser_name,
+                                        ctask_name
+                                        },
+                                    source = "new-landing-page form",
+                                    media = new { },
+                                    buttons = Array.Empty<string>(),
+                                    carouselCards = Array.Empty<string>(),
+                                    location = new { },
+                                    attributes = new { },
+                                    paramsFallbackValue = new
+                                    {
+                                        FirstName = cuser_name,
+                                        Taskname = ctask_name
+                                    }
+                                };
+
+                                var response = await client.PostAsJsonAsync(_whatsAppSettings.Url, payload);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    var error = await response.Content.ReadAsStringAsync();
+
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("WhatsApp notification failed: " + ex.Message);
+            }
+        }
+
+
+        public async Task<string> PostAPIIntegrationAsync(APIFetchDTO model, int cTenantID, string username)
         {
             using (var con = new SqlConnection(_config.GetConnectionString("Database")))
             using (var cmd = new SqlCommand("sp_fetch_API_intergration", con))
@@ -5026,14 +5094,13 @@ namespace TaskEngineAPI.Services
             }
         }
 
-       
         public async Task<string> FetchAPIORGStructureAsync(EmployeeIDDTO model, int cTenantID, string username)
         {
             try
             {
                 string apiUrl = "https://misapi.sheenlac.com/api/api/Get_org_Structure";
 
-              
+
                 string jsonPayload = $@"{{
                       ""Employee_ID"": ""{model.Employee_ID}""
                                   }}";
@@ -5058,7 +5125,6 @@ namespace TaskEngineAPI.Services
                 return $"Error: {ex.Message}";
             }
         }
-
 
         public async Task<string> FetchattandanceAsync(AttendanceIDDTO model, int cTenantID, string username)
         {

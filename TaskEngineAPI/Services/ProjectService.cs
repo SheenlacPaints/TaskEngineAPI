@@ -75,8 +75,8 @@ namespace TaskEngineAPI.Services
             }
             return masterId;
         }
-        
-        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid =0 , string? versionid = null,int ? detailid = null,string? remarks1=null,string? remarks2 = null,string? remarks3 = null)
+
+        public async Task<string> Getprojectmaster(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50, int? projectid = 0, string? versionid = null, int? detailid = null, string? remarks1 = null, string? remarks2 = null, string? remarks3 = null)
         {
             List<GetProjectList> tsk = new List<GetProjectList>();
             int totalCount = 0;
@@ -103,7 +103,7 @@ namespace TaskEngineAPI.Services
                         cmd.Parameters.AddWithValue("@Remarks1", remarks1 ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Remarks2", remarks2 ?? (object)DBNull.Value);
                         cmd.Parameters.AddWithValue("@Remarks3", remarks3 ?? (object)DBNull.Value);
-                        
+
                         await con.OpenAsync();
                         if (type == "Client_Approve")
                         {
@@ -114,7 +114,8 @@ namespace TaskEngineAPI.Services
                             if (ds.Tables.Count > 0)
                             {
                                 return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
-                            };
+                            }
+                            ;
                         }
                         else if (type == "Emp_Approve")
                         {
@@ -170,7 +171,7 @@ namespace TaskEngineAPI.Services
 
                                         TotalBudgetPerVersion = sdr.IsDBNull(sdr.GetOrdinal("TotalBudgetPerVersion")) ? string.Empty : Convert.ToString(sdr["TotalBudgetPerVersion"]),
                                         expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
-                                        
+
                                         project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
                                                      ? new List<ProjectDetailResponse>()
                                                      : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)
@@ -240,10 +241,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<bool> InsertProjectDetails(
-     List<ProjectDetailRequest> requests,
-     int tenantId,
-     string username)
+        public async Task<bool> InsertProjectDetails( List<ProjectDetailRequest> requests,int tenantId,string username)
         {
             try
             {
@@ -262,7 +260,7 @@ namespace TaskEngineAPI.Services
                     (@HeaderId, @DetailId, @Module, @ProjectDescription, @Resources,
                      @NoOfResources, @Slavalue, @Slaunit, @Version, @Remarks,
                      @Status1, GETDATE(), GETDATE());";
-                    
+
                 string updateMasterQuery = @"
                     UPDATE Tbl_Project_Master
                     SET Status = 'Pending',

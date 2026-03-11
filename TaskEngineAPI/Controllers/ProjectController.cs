@@ -26,15 +26,15 @@ namespace TaskEngineAPI.Controllers
         private readonly IJwtService _jwtService;
         private readonly IProjectService _ProjectService;
         private readonly IMinioService _minioService;
-       
-        public ProjectController(IConfiguration configuration, IJwtService jwtService, IProjectService ProjectService, IMinioService MinioService)
+        private readonly ITaskMasterService _TaskMasterService;
+        public ProjectController(IConfiguration configuration, IJwtService jwtService, IProjectService ProjectService, IMinioService MinioService, ITaskMasterService TaskMasterService)
         {
 
             _config = configuration;
             _jwtService = jwtService;
             _ProjectService = ProjectService;
             _minioService = MinioService;
-
+            _TaskMasterService = TaskMasterService;
         }
 
 
@@ -168,6 +168,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     return CreateEncryptedResponse(500, "Failed to create Process");
                 }
+                bool success = await _TaskMasterService.newprojectraisewhatappnotificationAsync(insertedUserId, cTenantID, username);
 
                 return CreatedSuccessResponse(new { projectid = insertedUserId }, "Project created successfully");
             }
