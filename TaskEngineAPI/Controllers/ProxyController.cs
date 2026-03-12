@@ -1102,7 +1102,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-        
+
         [Authorize]
         [HttpGet("Gettaskinbox")]
         public async Task<IActionResult> Gettaskinbox([FromQuery] string? searchText = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50)
@@ -1117,7 +1117,7 @@ namespace TaskEngineAPI.Controllers
                 if (!string.IsNullOrWhiteSpace(searchText))
                     queryParams.Add($"searchText={Uri.EscapeDataString(searchText)}");
 
-                queryParams.Add($"page={page}"); 
+                queryParams.Add($"page={page}");
                 queryParams.Add($"pageSize={pageSize}");
 
                 var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
@@ -2154,7 +2154,7 @@ namespace TaskEngineAPI.Controllers
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-               
+
                 return StatusCode((int)response.StatusCode, body);
             }
             catch (Exception ex)
@@ -2262,16 +2262,16 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-                
+
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
-                           
+
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/Gettaskinboxdatabyid?id={id}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());           
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 var response = await _httpClient.SendAsync(requestMessage);
-                var body = await response.Content.ReadAsStringAsync();            
+                var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
 
@@ -2696,7 +2696,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(401, encryptedError);
             }
 
-            var (stream, contentType) = await _minioService.GetuserFileAsync(fileName,type, cTenantID);
+            var (stream, contentType) = await _minioService.GetuserFileAsync(fileName, type, cTenantID);
 
             Response.Headers.Add("Content-Disposition", "inline");
 
@@ -2709,11 +2709,11 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return Ok(encrypted);
         }
-    
+
         [HttpGet("Getfileview")]
-        public async Task<IActionResult> Getfileview(string fileName, string type,int tenant)
+        public async Task<IActionResult> Getfileview(string fileName, string type, int tenant)
         {
-            
+
             var (stream, contentType) = await _minioService.GetuserFileAsync(fileName, type, tenant);
 
             Response.Headers.Add("Content-Disposition", "inline");
@@ -2873,7 +2873,7 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("GettaskTimelineDetails")]
-        public async Task<IActionResult> GettaskTimelineDetails([FromQuery]  int itaskno)
+        public async Task<IActionResult> GettaskTimelineDetails([FromQuery] int itaskno)
         {
             try
             {
@@ -2952,7 +2952,7 @@ namespace TaskEngineAPI.Controllers
             {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(jwtToken))
-                    return Unauthorized("Missing Authorization token.");           
+                    return Unauthorized("Missing Authorization token.");
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/TaskMaster/GetProcessmetadetailsbyid?processid={processid}&itaskno={itaskno}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
@@ -3015,10 +3015,10 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet("Getprojectmaster")]
-        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, [FromQuery]string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? projectid = 0, [FromQuery] string? versionid = null, [FromQuery] int? detailid = null, string? remarks1 = null, string? remarks2 = null, string? remarks3 = null)
+        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, [FromQuery] string? type = null, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, [FromQuery] int? projectid = 0, [FromQuery] string? versionid = null, [FromQuery] int? detailid = null, string? remarks1 = null, string? remarks2 = null, string? remarks3 = null)
         {
             try
-            {            
+            {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(jwtToken))
                     return Unauthorized("Missing Authorization token.");
@@ -3042,10 +3042,10 @@ namespace TaskEngineAPI.Controllers
                 if (!string.IsNullOrWhiteSpace(remarks3))
                     queryParams.Add($"remarks3={Uri.EscapeDataString(remarks3)}");
 
-                var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";            
+                var queryString = queryParams.Any() ? "?" + string.Join("&", queryParams) : "";
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/Project/Getprojectmaster{queryString}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());              
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = $"\"{body}\"";
@@ -3071,10 +3071,10 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-                
+
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
                 if (string.IsNullOrWhiteSpace(jwtToken))
-                    return Unauthorized("Missing Authorization token.");           
+                    return Unauthorized("Missing Authorization token.");
                 string targetUrl = $"{_baseUrl.TrimEnd('/')}/Project/Getprojectdropdown?searchText={searchText}&type={type}";
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, targetUrl);
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
@@ -3170,7 +3170,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-                
+
         [Authorize]
         [HttpPost("CreateProjectDetails")]
         public async Task<IActionResult> CreateProjectDetails([FromBody] pay request)
@@ -3318,7 +3318,7 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-        
+
 
         [Authorize]
         [HttpGet("GetProjectslistbyid")]
@@ -3435,14 +3435,14 @@ namespace TaskEngineAPI.Controllers
         public async Task<IActionResult> FetchIntegrationAPIAsync([FromBody] pay request)
         {
             try
-            {            
+            {
                 var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
 
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
                     return Unauthorized("Missing Authorization token.");
                 }
-                
+
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}APIIntegration/FetchIntegrationAPIAsync");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");

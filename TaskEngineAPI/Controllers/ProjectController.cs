@@ -17,24 +17,24 @@ namespace TaskEngineAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
- 
+
     public class ProjectController : BaseController
     {
-        
+
         private readonly IConfiguration _config;
         private readonly IConfiguration _configuration;
         private readonly IJwtService _jwtService;
         private readonly IProjectService _ProjectService;
         private readonly IMinioService _minioService;
-       
-        public ProjectController(IConfiguration configuration, IJwtService jwtService, IProjectService ProjectService, IMinioService MinioService)
+        private readonly ITaskMasterService _TaskMasterService;
+        public ProjectController(IConfiguration configuration, IJwtService jwtService, IProjectService ProjectService, IMinioService MinioService, ITaskMasterService TaskMasterService)
         {
 
             _config = configuration;
             _jwtService = jwtService;
             _ProjectService = ProjectService;
             _minioService = MinioService;
-
+            _TaskMasterService = TaskMasterService;
         }
 
 
@@ -168,6 +168,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     return CreateEncryptedResponse(500, "Failed to create Process");
                 }
+                bool success = await _TaskMasterService.newprojectraisewhatappnotificationAsync(insertedUserId, cTenantID, username);
 
                 return CreatedSuccessResponse(new { projectid = insertedUserId }, "Project created successfully");
             }
@@ -185,7 +186,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpGet]
         [Route("Getprojectmaster")]
-        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, string? type = null, int page = 1, int pageSize = 50, int? projectid = 0 ,string? versionid = null, int? detailid = null, string? remarks1 = null, string? remarks2 = null, string? remarks3 = null)
+        public async Task<IActionResult> Getprojectmaster([FromQuery] string? searchText = null, string? type = null, int page = 1, int pageSize = 50, int? projectid = 0, string? versionid = null, int? detailid = null, string? remarks1 = null, string? remarks2 = null, string? remarks3 = null)
         {
             try
             {
@@ -196,7 +197,7 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize, projectid, versionid,detailid, remarks1);
+                var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize, projectid, versionid, detailid, remarks1);
                 if (type == "Client_Approve")
                 {
                     var response1 = JsonConvert.DeserializeObject<List<ClientApprove>>(json);
@@ -207,7 +208,7 @@ namespace TaskEngineAPI.Controllers
 
                     return CreatedSuccessResponse(response1);
                 }
-                else if(type == "Emp_Approve")
+                else if (type == "Emp_Approve")
                 {
                     var response1 = JsonConvert.DeserializeObject<List<ClientApprove>>(json);
                     if (response1 == null)
@@ -242,7 +243,7 @@ namespace TaskEngineAPI.Controllers
                     }
 
                     return CreatedSuccessResponse(response);
-                }     
+                }
             }
             catch (UnauthorizedAccessException ex)
             {

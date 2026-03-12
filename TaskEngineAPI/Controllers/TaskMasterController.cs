@@ -1747,12 +1747,12 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("Testtaskapprove")]
-        public async Task<IActionResult> Testtaskapprove()
+        public async Task<IActionResult> Testtaskapprove([FromQuery] int ID)
         {
             try
             {               
                 var (cTenantID, username) = GetUserInfoFromToken();                          
-                bool success = await taskMasterService.newtaskwhatappnotificationAsync(cTenantID, username);             
+                bool success = await taskMasterService.newprojectraisewhatappnotificationAsync(ID,cTenantID, username);             
                 if (!success)
                 {
                     return CreateEncryptedResponse(404, "Data not found or update failed");

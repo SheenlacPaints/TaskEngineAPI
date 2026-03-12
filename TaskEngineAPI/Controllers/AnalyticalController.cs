@@ -24,7 +24,7 @@ namespace TaskEngineAPI.Controllers
         private readonly IJwtService _jwtService;
         private readonly IProjectService _ProjectService;
         private readonly IMinioService _minioService;
-       
+
         public AnalyticalController(IConfiguration configuration, IJwtService jwtService, IAnalyticalService AnalyticalService, IMinioService MinioService)
         {
 
@@ -144,7 +144,7 @@ namespace TaskEngineAPI.Controllers
                 AnalyticalDTO model;
                 try
                 {
-                  
+
                     model = JsonConvert.DeserializeObject<AnalyticalDTO>(decryptedJson);
                 }
                 catch (JsonException ex)
@@ -237,7 +237,7 @@ namespace TaskEngineAPI.Controllers
 
                 var data = await _AnalyticalService.GetAnalyticalhubbtid(cTenantID, id);
 
-               
+
 
                 if (data == null)
                 {
@@ -250,7 +250,7 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
             }
             catch (Exception ex)
-            {              
+            {
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
