@@ -4994,13 +4994,20 @@ namespace TaskEngineAPI.Services
         public async Task<bool> newprojectraisewhatappnotificationAsync(int ID, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
-
+            string? senderName = null;
             try
             {
                 using (SqlConnection con = new SqlConnection(connStr))
                 {
                     await con.OpenAsync();
-
+                    string getsenderQuery = @"SELECT top 1 cuser_name  FROM Users 
+          WHERE cuserid = @sender and nIs_deleted=0";
+                    using (SqlCommand sendCmd = new SqlCommand(getsenderQuery, con))
+                    {
+                        sendCmd.Parameters.AddWithValue("@sender", username);
+                        var result = await sendCmd.ExecuteScalarAsync();
+                        senderName = result?.ToString() ?? "User";
+                    }
                     using (SqlCommand cmd = new SqlCommand("sp_newprojectraisetomanagersendmsg", con))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -5019,6 +5026,11 @@ namespace TaskEngineAPI.Services
                                 string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
                                 string clientname = reader["client_name"]?.ToString()?.Trim() ?? "";
                                 string projectname = reader["ProjectName"]?.ToString()?.Trim() ?? "";
+
+                                //string companyclientname = senderName + " - " + clientname;
+
+                                string companyclientname = $"{senderName} - {clientname}";
+
                                 if (string.IsNullOrWhiteSpace(cphoneno))
                                     continue;
 
@@ -5026,12 +5038,12 @@ namespace TaskEngineAPI.Services
                                 {
                                     apiKey = _whatsAppSettings.ApiKey,
                                     campaignName = "ProjectCnew",
-                                    destination = cphoneno,//"918220237725",
+                                    destination ="8220237725",//cphoneno,//"918220237725",
                                     userName = "Sheenlac Paintss",
                                     templateParams = new[]
                                     {
                                         cuser_name,
-                                        clientname,
+                                       companyclientname,
                                         projectname
                                         },
                                     source = "new-landing-page form",
