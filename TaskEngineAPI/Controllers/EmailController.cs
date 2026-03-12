@@ -14,12 +14,12 @@ namespace TaskEngineAPI.Controllers
     public class EmailController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private readonly IConfiguration _config;      
+        private readonly IConfiguration _config;
         private readonly ApplicationDbContext _context;
 
         public EmailController(IConfiguration configuration)
         {
-            _config = configuration;   
+            _config = configuration;
         }
 
 
@@ -41,7 +41,7 @@ namespace TaskEngineAPI.Controllers
             return NoContent();
         }
 
-       
+
 
     }
 }

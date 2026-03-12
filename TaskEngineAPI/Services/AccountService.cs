@@ -1507,7 +1507,7 @@ VALUES (
             table.Columns.Add("clast_name", typeof(string));
             table.Columns.Add("cphoneno", typeof(string));
             table.Columns.Add("calternate_phone", typeof(string));
-            table.Columns.Add("ldob", typeof(string));  
+            table.Columns.Add("ldob", typeof(string));
             table.Columns.Add("cmarital_status", typeof(string));
             table.Columns.Add("cnation", typeof(string));
             table.Columns.Add("cgender", typeof(string));
@@ -1524,7 +1524,7 @@ VALUES (
             table.Columns.Add("caccount_number", typeof(string));
             table.Columns.Add("ciFSC_code", typeof(string));
             table.Columns.Add("cpan", typeof(string));
-            table.Columns.Add("ldoj", typeof(string));  
+            table.Columns.Add("ldoj", typeof(string));
             table.Columns.Add("cemployment_status", typeof(string));
             table.Columns.Add("nnotice_period_days", typeof(int));
             table.Columns.Add("lresignation_date", typeof(string));
@@ -2553,7 +2553,7 @@ VALUES (
                 row["cdepartment_code"] = role.cdepartment_code ?? (object)DBNull.Value;
                 row["creporting_manager_code"] = role.creporting_manager_code ?? (object)DBNull.Value;
                 row["creporting_manager_name"] = role.creporting_manager_name ?? (object)DBNull.Value;
-                row["nis_active"] = true; 
+                row["nis_active"] = true;
                 row["ccreated_by"] = username;
                 row["lcreated_date"] = DateTime.Now;
                 row["cmodified_by"] = username;
@@ -2798,7 +2798,7 @@ VALUES (
             return existingCodes;
         }
 
-        public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(int cTenantID,string? searchText = null,string syncType = null,string apiMethod = null, bool? isActive = null)
+        public async Task<List<GetusersapisyncDTO>> GetAllAPISyncConfigAsync(int cTenantID, string? searchText = null, string syncType = null, string apiMethod = null, bool? isActive = null)
         {
             var connStr = _config.GetConnectionString("Database");
             var results = new List<GetusersapisyncDTO>();
@@ -2885,7 +2885,7 @@ VALUES (
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
                                     lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
-                                   capi_response= reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
+                                    capi_response = reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                                 };
                                 results.Add(config);
                             }
@@ -3031,7 +3031,7 @@ VALUES (
                                     lcreated_date = reader["lcreated_date"] != DBNull.Value ? Convert.ToDateTime(reader["lcreated_date"]) : null,
                                     cmodified_by = reader["cmodified_by"] != DBNull.Value ? reader["cmodified_by"].ToString() : null,
                                     lmodified_date = reader["lmodified_date"] != DBNull.Value ? Convert.ToDateTime(reader["lmodified_date"]) : null,
-                                    capi_response= reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
+                                    capi_response = reader["capi_response"] != DBNull.Value ? reader["capi_response"].ToString() : null
                                 };
                             }
                         }
@@ -3416,7 +3416,7 @@ VALUES (
             return null;
         }
 
-        public async Task<List<GetusersapisyncDTO>> GetmetaAPISyncConfigAsync(int cTenantID,string? searchText = null)
+        public async Task<List<GetusersapisyncDTO>> GetmetaAPISyncConfigAsync(int cTenantID, string? searchText = null)
         {
             var timelineList = new List<GetusersapisyncDTO>();
             string connectionString = this._config.GetConnectionString("Database");

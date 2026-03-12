@@ -58,11 +58,11 @@ namespace TaskEngineAPI.Controllers
         [HttpPost]
         [Route("hashingpasswordcheck")]
         public ActionResult<string> hashingpasswordcheck([FromQuery] string password, string hashedpassword)
-        {           
-            bool ok = BCrypt.Net.BCrypt.Verify(password.Trim(), hashedpassword.Trim());          
+        {
+            bool ok = BCrypt.Net.BCrypt.Verify(password.Trim(), hashedpassword.Trim());
             return Ok(ok ? "Match" : "No match");
         }
-        
+
 
         [HttpPost]
         [Route("EncryptInput")]
@@ -72,8 +72,8 @@ namespace TaskEngineAPI.Controllers
             string encrypted = Encrypt(json);
             return Ok(encrypted);
 
-        }       
-      
+        }
+
         [HttpPost]
         [Route("EncryptInputint")]
         public ActionResult<string> EncryptInputint(CreateusersettingDTO UpdateAdminDTO)
@@ -102,7 +102,7 @@ namespace TaskEngineAPI.Controllers
             return Ok(Decrypted);
         }
 
-      
+
         public static string DecryptAPI(string cipherText)
         {
             byte[] buffer = Convert.FromBase64String(cipherText);
@@ -193,14 +193,14 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        private (int cTenantID, string username,string? email,string? avatar, string? type) GetUserInfoFromToken()
+        private (int cTenantID, string username, string? email, string? avatar, string? type) GetUserInfoFromToken()
         {
             var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             var handler = new JwtSecurityTokenHandler();
             var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
             var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
             var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
-            var emailClaim= jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "email")?.Value;
+            var emailClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "email")?.Value;
             var AvatorClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "avatar")?.Value;
             var typeClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "type")?.Value;
 
@@ -210,7 +210,7 @@ namespace TaskEngineAPI.Controllers
                 throw new UnauthorizedAccessException("Invalid or missing cTenantID in token.");
             }
 
-            return (cTenantID, usernameClaim, emailClaim, AvatorClaim,typeClaim);
+            return (cTenantID, usernameClaim, emailClaim, AvatorClaim, typeClaim);
         }
 
         [Authorize]
@@ -218,10 +218,10 @@ namespace TaskEngineAPI.Controllers
         [Route("GetAllProcesstypeTest")]
         public async Task<IActionResult> GetAllProcesstypeTest()
         {
-           
-                var (cTenantID,username,email,avator,type) = GetUserInfoFromToken();
 
-            return Ok(new { cTenantID, username, email, avator,type });
+            var (cTenantID, username, email, avator, type) = GetUserInfoFromToken();
+
+            return Ok(new { cTenantID, username, email, avator, type });
 
 
         }

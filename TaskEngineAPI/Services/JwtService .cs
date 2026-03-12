@@ -17,7 +17,7 @@ namespace TaskEngineAPI.Services
         private readonly IConfiguration _config;
         public JwtService(IConfiguration config) => _config = config;
 
-      
+
         public string GenerateRefreshToken()
         {
             return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
@@ -63,7 +63,7 @@ namespace TaskEngineAPI.Services
                     using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
                     {
                         checkCmd.Parameters.AddWithValue("@UserId", userId);
-                        int count = (int) await checkCmd.ExecuteScalarAsync();
+                        int count = (int)await checkCmd.ExecuteScalarAsync();
 
                         if (count > 0)
                         {
@@ -104,7 +104,7 @@ namespace TaskEngineAPI.Services
                 return false;
             }
         }
-        public string GenerateJwtToken(string username, string? email, string? avatar, string? type, int cTenantID,  out DateTime expires)
+        public string GenerateJwtToken(string username, string? email, string? avatar, string? type, int cTenantID, out DateTime expires)
         {
             var audience = _config.GetSection("Jwt:Audience").Value;
             var issuer = _config.GetSection("Jwt:Issuer").Value;
@@ -137,6 +137,6 @@ namespace TaskEngineAPI.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-       
+
     }
 }

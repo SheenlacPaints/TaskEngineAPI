@@ -5017,20 +5017,22 @@ namespace TaskEngineAPI.Services
                             {
                                 string cuser_name = reader["cuser_name"]?.ToString() ?? "";
                                 string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
-                                string ctask_name = reader["ctask_name"]?.ToString()?.Trim() ?? "";
+                                string clientname = reader["client_name"]?.ToString()?.Trim() ?? "";
+                                string projectname = reader["ProjectName"]?.ToString()?.Trim() ?? "";
                                 if (string.IsNullOrWhiteSpace(cphoneno))
                                     continue;
 
                                 var payload = new
                                 {
                                     apiKey = _whatsAppSettings.ApiKey,
-                                    campaignName = "ProjectC",
+                                    campaignName = "ProjectCnew",
                                     destination = cphoneno,//"918220237725",
                                     userName = "Sheenlac Paintss",
                                     templateParams = new[]
                                     {
                                         cuser_name,
-                                        ctask_name
+                                        clientname,
+                                        projectname
                                         },
                                     source = "new-landing-page form",
                                     media = new { },
@@ -5041,7 +5043,8 @@ namespace TaskEngineAPI.Services
                                     paramsFallbackValue = new
                                     {
                                         FirstName = cuser_name,
-                                        Taskname = ctask_name
+                                        Taskname = clientname,
+                                        projectname = projectname
                                     }
                                 };
 

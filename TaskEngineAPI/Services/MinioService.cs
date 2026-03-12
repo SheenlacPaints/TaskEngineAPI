@@ -161,10 +161,10 @@ public class MinioService : IMinioService
 
         return (memoryStream, contentType);
     }
-    public async Task FileUploadFileAsync(IFormFile form,string type,int ctenantid)
+    public async Task FileUploadFileAsync(IFormFile form, string type, int ctenantid)
     {
         try
-        {       
+        {
             if (form == null)
                 throw new ArgumentException("File not found");
             if (form.Length == 0)
@@ -213,7 +213,7 @@ public class MinioService : IMinioService
             throw new Exception(ex.Message);
         }
         catch (Exception ex)
-        {         
+        {
             throw new Exception($"Unexpected error during upload: {ex.Message}");
         }
     }
@@ -228,8 +228,8 @@ public class MinioService : IMinioService
 
         await _minio.GetObjectAsync(
             new GetObjectArgs()
-                .WithBucket(_bucketName)     
-                .WithObject(objectName)           
+                .WithBucket(_bucketName)
+                .WithObject(objectName)
                 .WithCallbackStream(stream =>
                 {
                     stream.CopyTo(memoryStream);
@@ -276,7 +276,7 @@ public class MinioService : IMinioService
             }
 
             var fileName = Path.GetFileName(form.FileName);
-            
+
             string objectName;
             //if (string.IsNullOrWhiteSpace(type))            
             //var folderName = "Task";

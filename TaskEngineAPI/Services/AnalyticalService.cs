@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using TaskEngineAPI.Controllers;
 namespace TaskEngineAPI.Services
 {
-    public class AnalyticalService: IAnalyticalService
+    public class AnalyticalService : IAnalyticalService
     {
         private readonly IAdminRepository _repository;
         private readonly IConfiguration _config;
@@ -98,9 +98,9 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@ccolumn_mappings", (object?)model.ccolumn_mappings ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@nis_active", (object?)model.nis_active ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@ccreated_by", userName);
-                            cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);                     
+                            cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@cmodified_by", userName);
-                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);  
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
@@ -162,7 +162,7 @@ namespace TaskEngineAPI.Services
                                     lcreated_date = sdr.IsDBNull(sdr.GetOrdinal("lcreated_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lcreated_date")),
                                     cmodified_by = sdr.IsDBNull(sdr.GetOrdinal("cmodified_by")) ? string.Empty : Convert.ToString(sdr["cmodified_by"]),
                                     lmodified_date = sdr.IsDBNull(sdr.GetOrdinal("lmodified_date")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("lmodified_date"))
-                                
+
                                 };
                                 tsk.Add(p);
                             }
@@ -201,7 +201,7 @@ namespace TaskEngineAPI.Services
         public async Task<List<GetAnalyticalbyidDTO>> GetAnalyticalhubbtid(int cTenantID, int id)
         {
             List<GetAnalyticalbyidDTO> tsk = new List<GetAnalyticalbyidDTO>();
-            
+
             try
             {
                 using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
@@ -211,7 +211,7 @@ namespace TaskEngineAPI.Services
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@tenantid", cTenantID);
                         cmd.Parameters.AddWithValue("@id", id);
-                     
+
 
                         await con.OpenAsync();
 
@@ -276,7 +276,7 @@ namespace TaskEngineAPI.Services
                     }
                 }
                 return tsk;
-                
+
 
             }
             catch (Exception ex)

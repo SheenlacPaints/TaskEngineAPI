@@ -71,7 +71,7 @@ namespace TaskEngineAPI.Services
                 }
                 return result;
             }
-        }       
+        }
         public async Task<int> InsertProcessEngineAsync(ProcessEngineDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -375,7 +375,7 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0 ORDER BY m.ID DESC;";
                             privilege_name = reader.SafeGetString("privilege_name"),
                             cprivilege_type = reader.SafeGetInt("cprivilege_type"),
                             cprocessType = reader.SafeGetString("cprocesscode"),
-                            cprocessdescription= reader.SafeGetString("cprocessdescription"),
+                            cprocessdescription = reader.SafeGetString("cprocessdescription"),
                             cstatus = reader.SafeGetString("cstatus"),
                             cprocessvalueid = reader.SafeGetString("cvalue"),
                             cpriority_label = reader.SafeGetString("cpriority_label"),
@@ -478,7 +478,7 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             cprocessname = reader.SafeGetString("cprocessname"),
                             cprocessdescription = reader.SafeGetString("cprocessdescription"),
                             cprivilege_type = reader.SafeGetInt("cprivilege_type"),
-                            privilege_name = reader.SafeGetString("privilege_name"),                                                     
+                            privilege_name = reader.SafeGetString("privilege_name"),
                             cstatus = reader.SafeGetString("cstatus"),
                             cstatus_description = reader.SafeGetString("cstatus_description"),
                             cprocessvalue = reader.SafeGetString("cvalue"),
@@ -488,12 +488,12 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             cmeta_id = reader.SafeGetInt("cmeta_id"),
                             cmetaname = reader.SafeGetString("meta_Name"),
                             nshow_table = reader.SafeGetBoolean("nshow_table"),
-                            cattachment= reader.SafeGetString("cattachment"),
+                            cattachment = reader.SafeGetString("cattachment"),
                             nis_metaapi_integration = reader.IsDBNull(reader.GetOrdinal("nis_metaapi_integration")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("nis_metaapi_integration")),
                             cmetaapi_id = reader["cmetaapi_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmetaapi_id"]),
                             Notification_Description = reader.SafeGetString("Notification_Description"),
                             nis_auto_initiate = reader.IsDBNull(reader.GetOrdinal("nis_auto_initiate")) ? (bool?)null : reader.GetBoolean(reader.GetOrdinal("nis_auto_initiate")),
-                            cmetaapi_response = reader["cmetaapi_response"]?.ToString() ?? "",                                                     
+                            cmetaapi_response = reader["cmetaapi_response"]?.ToString() ?? "",
                             processEngineChildItems = new List<GetIDprocessEngineChildItems>(),
                             processEngineMeta = new List<processEngineMeta>()
                         };
@@ -526,7 +526,7 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             nsla_overdue_action = reader.SafeGetBoolean("nsla_overdue_action"),
                             cc_cmapping_code = reader.SafeGetString("cc_cmapping_code"),
                             bcc_cmapping_code = reader.SafeGetString("bcc_cmapping_code"),
-                            bcc_cmapping_type=reader.SafeGetString("bcc_cmapping_type"),
+                            bcc_cmapping_type = reader.SafeGetString("bcc_cmapping_type"),
                             cc_cmapping_type = reader.SafeGetString("cc_cmapping_type"),
                             nis_board_metaapi_integration = reader.SafeGetBoolean("nis_board_metaapi_integration"),
                             cboard_metaapi_id = reader.SafeGetInt("cboard_metaapi_id"),
@@ -580,7 +580,7 @@ ORDER BY c.ciseqno, c.icond_seqno;";
                                 cisRequired = condReader.SafeGetBoolean("cis_required"),
                                 cisReadonly = condReader.SafeGetBoolean("cis_readonly"),
                                 cis_disabled = condReader.SafeGetBoolean("cis_disabled"),
-                                capi_mapping= condReader.SafeGetString("capi_mapping"),
+                                capi_mapping = condReader.SafeGetString("capi_mapping"),
                             });
                         }
                     }
@@ -599,15 +599,15 @@ LEFT JOIN tbl_process_meta_detail metadetail ON meta.id = metadetail.cheader_id
 WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 using var metaCmd = new SqlCommand(metaQuery, conn);
                 metaCmd.Parameters.AddWithValue("@TenantID", cTenantID);
-                metaCmd.Parameters.AddWithValue("@id", id);          
+                metaCmd.Parameters.AddWithValue("@id", id);
                 using var metaReader = await metaCmd.ExecuteReaderAsync();
                 while (await metaReader.ReadAsync())
                 {
                     int masterId = metaReader.SafeGetInt("MasterID");
                     var inputType = metaReader.SafeGetString("cinput_type");
                     if (string.IsNullOrWhiteSpace(inputType))
-                        continue;                   
-                        if (result.TryGetValue(masterId, out var engine))
+                        continue;
+                    if (result.TryGetValue(masterId, out var engine))
                     {
                         engine.processEngineMeta.Add(new processEngineMeta
                         {
@@ -776,7 +776,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@ccreated_by", username);
                                 cmdDetail.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
                                 cmdDetail.Parameters.AddWithValue("@cmodified_by", username);
-                                cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);                               
+                                cmdDetail.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                                 await cmdDetail.ExecuteNonQueryAsync();
                             }
                         }
@@ -873,7 +873,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                             cmd.Parameters.AddWithValue("@cmodified_by", username);
                             cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
                             cmd.Parameters.AddWithValue("@cprocess_privilege", model.cprivilegeType);
-                            cmd.Parameters.AddWithValue("@tenantid", cTenantID);                           
+                            cmd.Parameters.AddWithValue("@tenantid", cTenantID);
                             cmd.Parameters.AddWithValue("@cisactive", model.cis_active ?? (object)DBNull.Value);
 
                             int rowsAffected = await cmd.ExecuteNonQueryAsync();
@@ -966,7 +966,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         WHERE h.ctenant_id =@TenantID  
                         AND (d.ctenant_id = @TenantID OR d.ctenant_id IS NULL)
                         AND (d.cis_active = 1) and (h.cis_active=1) ORDER BY h.ID desc";
-                        
+
                     var mappingDict = new Dictionary<int, MappingListDTO>();
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
@@ -1027,9 +1027,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 throw new Exception($"Error retrieving mapping list: {ex.Message}");
             }
         }
-        public async Task<GetProcessEngineCountDTO> newGetAllProcessengineAsync(int cTenantID,string searchText = null,int page = 1,int pageSize = 10,int? created_by = null,string priority = null,int? status = null)
+        public async Task<GetProcessEngineCountDTO> newGetAllProcessengineAsync(int cTenantID, string searchText = null, int page = 1, int pageSize = 10, int? created_by = null, string priority = null, int? status = null)
         {
-            
+
             var result = new List<GetProcessEngineDTO>();
             var connStr = _config.GetConnectionString("Database");
             int totalCount = 0;
@@ -1105,7 +1105,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                 {
                     cmd.Parameters.AddWithValue("@CreatedBy", created_by.Value.ToString());
                 }
-            
+
                 if (!string.IsNullOrWhiteSpace(priority))
                 {
                     cmd.Parameters.AddWithValue("@Priority", priority);
@@ -1138,7 +1138,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         cnotification_type = reader["cnotification_type"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cnotification_type"]),
                         cmeta_id = reader["cmeta_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmeta_id"]),
                         cmetaName = reader["meta_Name"]?.ToString() ?? "",
-                        created_by =reader["ccreated_by"]?.ToString() ?? "",
+                        created_by = reader["ccreated_by"]?.ToString() ?? "",
                         ccreated_date = reader["lcreated_date"] == DBNull.Value ? null : (DateTime?)reader["lcreated_date"],
                         modified_by = reader["modified_by"]?.ToString() ?? "",
                         lmodified_date = reader["lmodified_date"] == DBNull.Value ? null : (DateTime?)reader["lmodified_date"],
@@ -1150,7 +1150,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         Usedcount = reader["Usedcount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Usedcount"]),
 
 
-                        
+
                     });
                 }
             }
@@ -1167,7 +1167,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
         }
         public async Task<bool> UpdateProcessEngineAsync(UpdateProcessEngineDTO model, int cTenantID, string username)
         {
-            var connStr = _config.GetConnectionString("Database");        
+            var connStr = _config.GetConnectionString("Database");
             if (model.ID == null)
             {
                 throw new ArgumentException("Master ID is required for updating the process engine.");
@@ -1175,13 +1175,13 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
-                await conn.OpenAsync();              
+                await conn.OpenAsync();
                 //string checkDuplicateQuery = @"SELECT COUNT(1) FROM tbl_taskflow_master a LEFT JOIN tbl_taskflow_detail b ON a.itaskno = b.itaskno
                 //                              WHERE ccurrent_status IN ('P', 'H') AND cprocess_id = @cprocess_id AND a.ctenant_id = @ctenant_id;"; 
 
                 //using (SqlCommand checkCmd = new SqlCommand(checkDuplicateQuery, conn))
                 //{
-                   
+
                 //    checkCmd.Parameters.AddWithValue("@cprocess_id", model.ID);
                 //    checkCmd.Parameters.AddWithValue("@ctenant_id", cTenantID);
 
@@ -1189,7 +1189,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
 
                 //    if (duplicateCount > 0)
                 //    {
-                        
+
                 //        return false;
                 //    }
                 //}
@@ -1228,7 +1228,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         lmodified_date=@lmodified_date, cmeta_id=@cmeta_id, nIs_deleted=@nIs_deleted,
                         nshow_table=@nshow_table,nis_metaapi_integration=@nis_metaapi_integration,cmetaapi_id=@cmetaapi_id,
                         cmetaapi_response=@cmetaapi_response,nis_auto_initiate=@nis_auto_initiate
-                    WHERE ID=@ID;"; 
+                    WHERE ID=@ID;";
 
                         using (SqlCommand cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
@@ -1269,9 +1269,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
-                        
+
                         foreach (var detail in model.processEngineChildItems)
-                        {                       
+                        {
                             int detailId;
                             using (SqlCommand cmdDetail = new SqlCommand(queryDetail, conn, transaction))
                             {
@@ -1351,9 +1351,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                     }
                                 }
                             }
-                        }                     
+                        }
                         if (model.cmetaType == "NEW" && model.cmetaName != null && model.cmetaName.Any())
-                        {                          
+                        {
                             int metaMasterId = 0;
                             string metadatamaster = @"INSERT INTO tbl_process_meta_Master (
                             ctenant_id, meta_Name, meta_Description, label, nis_active, ccreated_by, lcreated_date, cmodified_by, lmodified_date)
@@ -1423,7 +1423,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         }
                         else if (model.cmetaType == "old")
                         {
-                           
+
                             string updateMasterQuery = @"
                         UPDATE tbl_process_engine_master
                         SET cmeta_id = @cmeta_id WHERE id = @masterId";
@@ -1441,7 +1441,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
                                 await cmd.ExecuteNonQueryAsync();
                             }
-                            
+
                             if (model.processEngineMeta != null)
                             {
                                 string metadata = @"INSERT INTO tbl_process_meta_detail (
@@ -1611,7 +1611,7 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                         cprocessdescription = reader.SafeGetString("cprocessdescription"),
                         cstatus = reader.SafeGetString("cstatus"),
                         cprocessvalueid = reader.SafeGetString("cprocessvalueid"),
-                       // cvalue = reader.SafeGetString("cvalue_description"),
+                        // cvalue = reader.SafeGetString("cvalue_description"),
                         cpriority_label = reader.SafeGetString("cpriority_label"),
                         nshow_timeline = reader.SafeGetBoolean("nshow_timeline"),
                         cnotification_type = reader.SafeGetInt("cnotification_type"),
@@ -1690,9 +1690,9 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                                 nshow_table = reader["nshow_table"] != DBNull.Value && Convert.ToBoolean(reader["nshow_table"]),
                                 Activecount = reader["Activecount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Activecount"]),
                                 Usedcount = reader["Usedcount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Usedcount"]),
-                                nis_metaapi_integration= reader["nis_metaapi_integration"] != DBNull.Value && Convert.ToBoolean(reader["nis_metaapi_integration"]),
-                                cmetaapi_id= reader["cmetaapi_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmetaapi_id"]),
-                                nis_auto_initiate= reader["nis_metaapi_integration"] != DBNull.Value && Convert.ToBoolean(reader["nis_metaapi_integration"])
+                                nis_metaapi_integration = reader["nis_metaapi_integration"] != DBNull.Value && Convert.ToBoolean(reader["nis_metaapi_integration"]),
+                                cmetaapi_id = reader["cmetaapi_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmetaapi_id"]),
+                                nis_auto_initiate = reader["nis_metaapi_integration"] != DBNull.Value && Convert.ToBoolean(reader["nis_metaapi_integration"])
                             });
                         }
                     }
@@ -1707,10 +1707,10 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
     }
 };
         }
-      
-    
-     
-      
+
+
+
+
 
     }
 }

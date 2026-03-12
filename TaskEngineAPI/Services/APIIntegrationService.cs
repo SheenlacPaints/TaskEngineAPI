@@ -19,7 +19,7 @@ namespace TaskEngineAPI.Services
 
     public class APIIntegrationService : IApiProxyService
     {
-      
+
         private readonly IAdminRepository _repository;
         private readonly IConfiguration _config;
         private readonly IAdminRepository _AdminRepository;
@@ -36,7 +36,7 @@ namespace TaskEngineAPI.Services
 
 
 
-        public async Task<string> ExecuteIntegrationApi(APIFetchDTO  model, int tenantId, string username)
+        public async Task<string> ExecuteIntegrationApi(APIFetchDTO model, int tenantId, string username)
         {
             string url = null;
             string method = "POST"; // Default
@@ -76,7 +76,7 @@ namespace TaskEngineAPI.Services
             }
             try
             {
-                var response = await client.SendAsync(request);             
+                var response = await client.SendAsync(request);
                 var apiResponse = await response.Content.ReadAsStringAsync();
 
                 string mappingJson = "";

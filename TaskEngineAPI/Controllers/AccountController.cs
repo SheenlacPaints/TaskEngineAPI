@@ -75,8 +75,8 @@ namespace TaskEngineAPI.Controllers
 
             var connStr = _config.GetConnectionString("Database");
             string email = "", tenantID = "", roleid = "", username = "", hashedPassword = "", firstname = "", lastname = "", tenantname = "", cposition_name = "", cposition_code = "", role = "",
-                role_name = "", useravatar = "", type = "", API_DecKey="", API_EncKey="",ctheme_Containeroption = "",ctheme_Cardwidth = "",
-                ctheme_Layouttype = "",ctheme_sidebartype = "",ctheme_Direction = "",ctheme_Color = "",ctheme_mode = "", Shift_startTime = "", Shift_endTime = ""; ;
+                role_name = "", useravatar = "", type = "", API_DecKey = "", API_EncKey = "", ctheme_Containeroption = "", ctheme_Cardwidth = "",
+                ctheme_Layouttype = "", ctheme_sidebartype = "", ctheme_Direction = "", ctheme_Color = "", ctheme_mode = "", Shift_startTime = "", Shift_endTime = ""; ;
 
             try
             {
@@ -159,9 +159,9 @@ namespace TaskEngineAPI.Controllers
                     return StatusCode(400, encrypted);
                 }
 
-                var accessToken = _jwtService.GenerateJwtToken(User.userName,email, useravatar, type, tenantIdInt, out var tokenExpiry);
+                var accessToken = _jwtService.GenerateJwtToken(User.userName, email, useravatar, type, tenantIdInt, out var tokenExpiry);
 
-               var refreshToken = _jwtService.GenerateRefreshToken();
+                var refreshToken = _jwtService.GenerateRefreshToken();
                 var refreshExpiry = DateTime.Now.AddDays(1);
 
                 var saved = await _jwtService.SaveRefreshTokenToDatabase(User.userName, refreshToken, refreshExpiry);
@@ -194,17 +194,17 @@ namespace TaskEngineAPI.Controllers
                     type = type,
                     token = accessToken,
                     refreshToken = refreshToken,
-                    API_EncKey= API_EncKey,
+                    API_EncKey = API_EncKey,
                     API_DecKey = API_DecKey,
-                    ctheme_Containeroption= ctheme_Containeroption,
-                    ctheme_Cardwidth= ctheme_Cardwidth,
-                    ctheme_Layouttype= ctheme_Layouttype,
-                    ctheme_sidebartype= ctheme_sidebartype,
-                    ctheme_Direction= ctheme_Direction,
-                    ctheme_Color= ctheme_Color,
-                     ctheme_mode= ctheme_mode,
-                    Shift_startTime= Shift_startTime,
-                    Shift_endTime= Shift_endTime
+                    ctheme_Containeroption = ctheme_Containeroption,
+                    ctheme_Cardwidth = ctheme_Cardwidth,
+                    ctheme_Layouttype = ctheme_Layouttype,
+                    ctheme_sidebartype = ctheme_sidebartype,
+                    ctheme_Direction = ctheme_Direction,
+                    ctheme_Color = ctheme_Color,
+                    ctheme_mode = ctheme_mode,
+                    Shift_startTime = Shift_startTime,
+                    Shift_endTime = Shift_endTime
                 };
 
                 var success = new APIResponse
@@ -1331,7 +1331,7 @@ namespace TaskEngineAPI.Controllers
                         }
 
                         // Generate JWT token using values from OTP_Validation
-                        var accessToken = _jwtService.GenerateJwtToken(userName,"","","", tenantId, out var tokenExpiry);
+                        var accessToken = _jwtService.GenerateJwtToken(userName, "", "", "", tenantId, out var tokenExpiry);
 
                         tx.Commit();
 
@@ -4203,7 +4203,7 @@ namespace TaskEngineAPI.Controllers
         {
             try
             {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ") .Last();
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
 
                 if (string.IsNullOrWhiteSpace(jwtToken))
                 {
@@ -4233,7 +4233,7 @@ namespace TaskEngineAPI.Controllers
                         return EncryptedError(400, "Search text cannot exceed 200 characters");
                     }
                 }
-           
+
                 var data = await _AccountService.GetmetaAPISyncConfigAsync(cTenantID, searchText);
 
                 var response = new APIResponse

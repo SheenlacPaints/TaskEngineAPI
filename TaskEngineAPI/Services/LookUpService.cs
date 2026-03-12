@@ -529,7 +529,7 @@ ELSE CAST(ppt.ID as varchar(10))
                 AND ppt.nis_active = 1
                 AND (@PrivilegeType  = '0' OR ppt.ID = @PrivilegeType )
                 ORDER BY view_value;";
-                        
+
                     using (SqlCommand cmd = new SqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@TenantID", tenantID);
@@ -548,7 +548,7 @@ ELSE CAST(ppt.ID as varchar(10))
                         }
                     }
                 }
-          
+
                 return result;
             }
             catch (Exception ex)
