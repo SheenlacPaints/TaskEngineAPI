@@ -1692,7 +1692,7 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                                 Usedcount = reader["Usedcount"] == DBNull.Value ? 0 : Convert.ToInt32(reader["Usedcount"]),
                                 nis_metaapi_integration = reader["nis_metaapi_integration"] != DBNull.Value && Convert.ToBoolean(reader["nis_metaapi_integration"]),
                                 cmetaapi_id = reader["cmetaapi_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["cmetaapi_id"]),
-                                nis_auto_initiate = reader["nis_metaapi_integration"] != DBNull.Value && Convert.ToBoolean(reader["nis_metaapi_integration"])
+                                nis_auto_initiate = reader["nis_auto_initiate"] != DBNull.Value && Convert.ToBoolean(reader["nis_auto_initiate"])
                             });
                         }
                     }
