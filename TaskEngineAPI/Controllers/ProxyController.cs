@@ -3629,8 +3629,7 @@ namespace TaskEngineAPI.Controllers
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-
-                string json = $"{body}";
+                string json = $"\"{body}\"";
                 return StatusCode((int)response.StatusCode, json);
             }
             catch (Exception ex)
@@ -3641,8 +3640,8 @@ namespace TaskEngineAPI.Controllers
                     statusText = $"Error calling external API: {ex.Message}"
                 };
                 string jsonn = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(jsonn);
-                string encc = $"{enc}";
+                string enc = AesEncryption.Encrypt(jsonn);            
+                string encc = $"\"{enc}\"";
                 return StatusCode(500, encc);
             }
         }
