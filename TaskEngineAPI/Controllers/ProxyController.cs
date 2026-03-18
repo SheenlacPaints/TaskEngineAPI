@@ -3646,15 +3646,20 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-       
 
+        [Authorize(AuthenticationSchemes = "TenantScheme")]
         [HttpPost("autoinitiatetask")]
         public async Task<IActionResult> autoinitiatetask([FromBody] TaskAutoMasterDTO request)
         {
             try
-            {              
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}TaskMaster/autoinitiatetask");
-                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 return StatusCode((int)response.StatusCode, body);

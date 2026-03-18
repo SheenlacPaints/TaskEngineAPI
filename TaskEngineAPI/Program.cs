@@ -45,35 +45,38 @@ builder.Services.AddControllers()
     });
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    // 👤 Default → USER TOKEN
+    options.DefaultAuthenticateScheme = "UserScheme";
+    options.DefaultChallengeScheme = "UserScheme";
 })
-.AddJwtBearer(o =>
+// ================= USER JWT =================
+.AddJwtBearer("UserScheme", o =>
 {
     o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey
-            (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+        ),
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = false, // Great for testing!
+        ValidateLifetime = false, // change to true in production
         ValidateIssuerSigningKey = true,
         ClockSkew = TimeSpan.Zero
     };
 
-    // --- CRITICAL FOR WEBSOCKETS ---
+    // 🔌 WebSocket support
     o.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
-            // Extract token from query string (e.g., ?access_token=eyJ...)
+
             var accessToken = context.Request.Query["access_token"];
 
-            // If the request is for our WebSocket path, assign the token
+
             var path = context.HttpContext.Request.Path;
+
             if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/ws"))
             {
                 context.Token = accessToken;
@@ -82,13 +85,39 @@ builder.Services.AddAuthentication(options =>
         },
         OnAuthenticationFailed = context =>
         {
-            // Logs the reason for 401 in your console
-            Console.WriteLine("Auth Failed: " + context.Exception.Message);
+
+            Console.WriteLine("USER Auth Failed: " + context.Exception.Message);
+            return Task.CompletedTask;
+        }
+    };
+})
+
+// ================= TENANT JWT =================
+.AddJwtBearer("TenantScheme", o =>
+{
+    o.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = builder.Configuration["JwtTenant:Issuer"],
+        ValidAudience = builder.Configuration["JwtTenant:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["JwtTenant:Key"])
+        ),
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = false, // change to true in production
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero
+    };
+
+    o.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("TENANT Auth Failed: " + context.Exception.Message);
             return Task.CompletedTask;
         }
     };
 });
-
 builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();

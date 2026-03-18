@@ -1803,22 +1803,19 @@ namespace TaskEngineAPI.Controllers
             var tenantIdClaim = User.FindFirst("tenantId")?.Value;
             var usernameClaim = User.FindFirst("username")?.Value;
             var typeClaim = User.FindFirst("type")?.Value;
-
             // ✅ Ensure this is tenant token
             if (typeClaim != "tenant")
                 throw new UnauthorizedAccessException("Invalid token type");
-
             if (string.IsNullOrWhiteSpace(tenantIdClaim) ||
                 !int.TryParse(tenantIdClaim, out int tenantId) ||
                 string.IsNullOrWhiteSpace(usernameClaim))
             {
                 throw new UnauthorizedAccessException("Invalid tenant token claims");
             }
-
             return (tenantId, usernameClaim);
         }
 
-        [Authorize]
+        [Authorize(AuthenticationSchemes = "TenantScheme")]
         [HttpPost]
         [Route("autoinitiatetask")]
         public async Task<IActionResult> autoinitiatetask([FromBody] TaskAutoMasterDTO model)
@@ -1827,7 +1824,6 @@ namespace TaskEngineAPI.Controllers
             {
                // int ccTenantID = 1500;
                var (ccTenantID, username) = GetTenantInfo();
-
                 int insertedUserId = await taskMasterService.autoInsertTaskMasterAsync(model, ccTenantID);
                 if (insertedUserId <= 0)
                 {
