@@ -1708,7 +1708,6 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
 };
         }
 
-
         public async Task<List<GetIDProcessclipEngineDTO>> GetProcessengineclipboardAsync(int cTenantID, int id)
         {
             var result = new Dictionary<int, GetIDProcessclipEngineDTO>();
@@ -1718,10 +1717,15 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
             {
                 using var conn = new SqlConnection(connStr);
                 await conn.OpenAsync();
-                string mainQuery = @" SELECT m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname, m.cprivilege_type,
-                p.cprocess_privilege as privilege_name FROM tbl_process_engine_master m
-                LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID and m.ctenant_id=p.ctenant_id              
-                WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID DESC;";
+
+                string mainQuery = @"
+        SELECT m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname, m.cprivilege_type,
+               p.cprocess_privilege as privilege_name
+        FROM tbl_process_engine_master m
+        LEFT JOIN tbl_process_privilege_type p 
+            ON m.cprivilege_type = p.ID AND m.ctenant_id = p.ctenant_id              
+        WHERE m.ctenant_id = @TenantID AND m.nIs_deleted = 0 AND m.ID = @id
+        ORDER BY m.ID DESC;";
 
                 using var cmd = new SqlCommand(mainQuery, conn);
                 cmd.Parameters.AddWithValue("@TenantID", cTenantID);
@@ -1740,55 +1744,98 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                             processname = reader.SafeGetString("cprocessname"),
                             processdescription = reader.SafeGetString("cprocessdescription"),
                             privilege_type = reader.SafeGetInt("cprivilege_type"),
-                            privilege_name = reader.SafeGetString("privilege_name"),    
-                            Meta = new List<processEngineclipMeta>()
+                            privilege_name = reader.SafeGetString("privilege_name"),
+                            Meta = new List<processEngineclipMeta>(),
+                            TenantAPIdata = new List<TenantAPIdata>() 
                         };
+
                         result[masterId] = engine;
                     }
                 }
                 reader.Close();
 
-                string metaQuery = @"SELECT m.ID as MasterID,
-                m.cmeta_id, meta.meta_Name, meta.meta_Description,
-                metadetail.cinput_type, metadetail.label, metadetail.cplaceholder,
-                metadetail.cis_required, metadetail.cis_readonly, metadetail.cis_disabled,
-                metadetail.cfield_value,metadetail.cdata_source,metadetail.capi_mapping
-                FROM tbl_process_engine_master m
-                LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
-                LEFT JOIN tbl_process_meta_detail metadetail ON meta.id = metadetail.cheader_id
-                WHERE m.ctenant_id = @TenantID AND m.id = @id;";
+                string metaQuery = @"
+        SELECT m.ID as MasterID,
+               m.cmeta_id, meta.meta_Name, meta.meta_Description,
+               metadetail.cinput_type, metadetail.label, metadetail.cplaceholder,
+               metadetail.cis_required, metadetail.cis_readonly, metadetail.cis_disabled,
+               metadetail.cfield_value, metadetail.cdata_source, metadetail.capi_mapping
+        FROM tbl_process_engine_master m
+        LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
+        LEFT JOIN tbl_process_meta_detail metadetail ON meta.id = metadetail.cheader_id
+        WHERE m.ctenant_id = @TenantID AND m.id = @id;";
+
                 using var metaCmd = new SqlCommand(metaQuery, conn);
                 metaCmd.Parameters.AddWithValue("@TenantID", cTenantID);
                 metaCmd.Parameters.AddWithValue("@id", id);
+
                 using var metaReader = await metaCmd.ExecuteReaderAsync();
                 while (await metaReader.ReadAsync())
                 {
                     int masterId = metaReader.SafeGetInt("MasterID");
                     var inputType = metaReader.SafeGetString("cinput_type");
+
                     if (string.IsNullOrWhiteSpace(inputType))
                         continue;
+
                     if (result.TryGetValue(masterId, out var engine))
                     {
                         engine.Meta.Add(new processEngineclipMeta
                         {
-                            inputType = metaReader.SafeGetString("cinput_type"),
+                            inputType = inputType,
                             label = metaReader.SafeGetString("label"),
                             placeholder = metaReader.SafeGetString("cplaceholder"),
                             isRequired = metaReader.SafeGetBoolean("cis_required"),
-                            isReadonly = metaReader.SafeGetBoolean("cis_readonly"),   
-                            isDisabled = metaReader.SafeGetBoolean("cis_disabled"),   
+                            isReadonly = metaReader.SafeGetBoolean("cis_readonly"),
+                            isDisabled = metaReader.SafeGetBoolean("cis_disabled"),
                             fieldValue = metaReader.SafeGetString("cfield_value"),
                             datasource = metaReader.SafeGetString("cdata_source")
                         });
                     }
                 }
+                metaReader.Close();
+
+                string tenantQuery = @"
+        SELECT capi_username, capi_password, cautoinitiate_api_url,
+               cautoinitiate_api_payload, ctoken_api_url, ctoken_api_payload
+        FROM Tenants 
+        WHERE cTenantID = @TenantID;";
+
+                using var tenCmd = new SqlCommand(tenantQuery, conn);
+                tenCmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                TenantAPIdata tenantData = null;
+
+                using var tenReader = await tenCmd.ExecuteReaderAsync();
+                if (await tenReader.ReadAsync())
+                {
+                    tenantData = new TenantAPIdata
+                    {
+                        capi_username = tenReader.SafeGetString("capi_username"),
+                        capi_password = tenReader.SafeGetString("capi_password"),
+                        cautoinitiate_api_url = tenReader.SafeGetString("cautoinitiate_api_url"),
+                        cautoinitiate_api_payload = tenReader.SafeGetString("cautoinitiate_api_payload"),
+                        ctoken_api_url = tenReader.SafeGetString("ctoken_api_url"),
+                        ctoken_api_payload = tenReader.SafeGetString("ctoken_api_payload"),
+                    };
+                }
+
+                if (tenantData != null)
+                {
+                    foreach (var engine in result.Values)
+                    {
+                        engine.TenantAPIdata.Add(tenantData);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                throw; 
+                throw;
             }
+
             return result.Values.ToList();
         }
+
     }
 }
 

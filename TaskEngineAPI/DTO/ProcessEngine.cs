@@ -553,6 +553,17 @@ namespace TaskEngineAPI.DTO
         public string? fieldValue { get; set; }
         public string? datasource { get; set; }
     }
+
+    public class TenantAPIdata
+    {
+        public string? capi_username { get; set; }
+        public string? capi_password { get; set; }
+        public string? cautoinitiate_api_url { get; set; }
+        public string? cautoinitiate_api_payload { get; set; }
+        public string? ctoken_api_url { get; set; }
+        public string? ctoken_api_payload { get; set; }    
+    }
+
     public class GetIDProcessclipEngineDTO
     {
         public string? processcode { get; set; }
@@ -561,6 +572,7 @@ namespace TaskEngineAPI.DTO
         public int?    privilege_type { get; set; }
         public string? privilege_name { get; set; }       
         public List<processEngineclipMeta> Meta { get; set; }
+        public List<TenantAPIdata> TenantAPIdata { get; set; }
 
     }
 
