@@ -6095,5 +6095,97 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+   
+        [HttpPost]
+        [Route("GetToken")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetToken([FromBody] User user)
+        {
+            try
+            {
+           
+                if (user == null || string.IsNullOrEmpty(user.userName) || string.IsNullOrEmpty(user.password))
+                {
+                    return BadRequest(JsonConvert.SerializeObject(new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Username and password must be provided."
+                    }));
+                }
+
+                var connStr = _config.GetConnectionString("Database");
+
+                string tenantID = "";
+                string tenantName = "";
+                string tenantCode = "";
+
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                SELECT cTenantID, cTenantName, cTenantCode, capi_password
+                FROM Tenants
+                WHERE capi_username = @username";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@username", user.userName);
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            if (!await reader.ReadAsync())
+                            {
+                                return NotFound(JsonConvert.SerializeObject(new APIResponse
+                                {
+                                    status = 404,
+                                    statusText = "User does not exist."
+                                }));
+                            }
+
+                            // Read DB values
+                            tenantID = reader["cTenantID"]?.ToString();
+                            tenantName = reader["cTenantName"]?.ToString();
+                            tenantCode = reader["cTenantCode"]?.ToString();
+                            string dbPassword = reader["capi_password"]?.ToString();
+
+                            // 🔐 Password check (IMPORTANT)
+                            if (user.password != dbPassword)
+                            {
+                                return Unauthorized(JsonConvert.SerializeObject(new APIResponse
+                                {
+                                    status = 401,
+                                    statusText = "Invalid password."
+                                }));
+                            }
+                        }
+                    }
+                }
+                var token = _jwtService.GenerateTenantToken(user.userName,Convert.ToInt32(tenantID));
+
+                var loginDetails = new
+                {
+                    token = token
+                };
+
+                var success = new APIResponse
+                {
+                    status = 200,
+                    statusText = "Logged in Successfully",
+                    body = new[] { loginDetails }
+                };
+
+                return Ok(JsonConvert.SerializeObject(success));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonConvert.SerializeObject(new APIResponse
+                {
+                    status = 500,
+                    statusText = "Error: " + ex.Message
+                }));
+            }
+        }
+
     }
 }

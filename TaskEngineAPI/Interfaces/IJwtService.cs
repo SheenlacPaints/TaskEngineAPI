@@ -9,6 +9,9 @@ namespace TaskEngineAPI.Interfaces
             string GenerateRefreshToken();
             Task<User> GetUserFromRefreshToken(string refreshToken);
             Task<bool> SaveRefreshTokenToDatabase(string userId, string refreshToken, DateTime expiration);
-        }
+           string GenerateTenantToken(string username, int tenantId);
+
+
+    }
     }
 
