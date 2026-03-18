@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
+using TaskEngineAPI.Services;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -3605,6 +3606,68 @@ namespace TaskEngineAPI.Controllers
                 string enc = AesEncryption.Encrypt(jsonn);
                 string encc = $"\"{enc}\"";
                 return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("GetProcessEngineclipbyid")]
+        public async Task<IActionResult> GetProcessEngineclipbyid([FromQuery] int id)
+        {
+            try
+            {
+                // Extract token from incoming request
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                // Attach token to outbound request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}ProcessEngine/GetProcessEngineclipbyid?id={id}");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+
+                string json = $"{body}";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"{enc}";
+                return StatusCode(500, encc);
+            }
+        }
+
+       
+
+        [HttpPost("autoinitiatetask")]
+        public async Task<IActionResult> autoinitiatetask([FromBody] TaskAutoMasterDTO request)
+        {
+            try
+            {              
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}TaskMaster/autoinitiatetask");
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                return StatusCode((int)response.StatusCode, body);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                return StatusCode(500, err);
             }
         }
 
