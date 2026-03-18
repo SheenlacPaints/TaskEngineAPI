@@ -34,6 +34,10 @@ namespace TaskEngineAPI.Interfaces
         Task<GetProcessEngineCountDTO> newGetAllProcessengineAsync(int cTenantID, string searchText = null, int page = 1, int pageSize = 10, int? created_by = null, string priority = null, int? status = null);
 
         Task<List<GetProcessEngineCountDTO>> GetAllProcessengineAsync(int cTenantID, string username, string searchText = null, int page = 1, int pageSize = 10, int? created_by = null, string priority = null, int? status = null);
+
+        Task<List<GetIDProcessclipEngineDTO>> GetProcessengineclipboardAsync(int cTenantID, int id);
+
+
     }
 
 }

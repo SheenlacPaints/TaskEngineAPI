@@ -1794,6 +1794,30 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+       
+        [HttpPost]
+        [Route("autoinitiatetask")]
+        public async Task<IActionResult> autoinitiatetask([FromBody] TaskAutoMasterDTO model)
+        {
+            try
+            {
+                int cTenantID = 1500;
+
+                int insertedUserId = await taskMasterService.autoInsertTaskMasterAsync(model, cTenantID);
+                if (insertedUserId <= 0)
+                {
+                    throw new InvalidOperationException("Task insertion failed.");
+                }
+                return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
+            }
+          
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
 
     }
 }

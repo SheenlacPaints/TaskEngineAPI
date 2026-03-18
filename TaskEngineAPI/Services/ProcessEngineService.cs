@@ -1699,8 +1699,8 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                 }
             }
             return new List<GetProcessEngineCountDTO>
-{
-    new GetProcessEngineCountDTO
+            {
+        new GetProcessEngineCountDTO
     {
         totalCount = totalCount,
         data = result
@@ -1709,9 +1709,86 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
         }
 
 
+        public async Task<List<GetIDProcessclipEngineDTO>> GetProcessengineclipboardAsync(int cTenantID, int id)
+        {
+            var result = new Dictionary<int, GetIDProcessclipEngineDTO>();
+            var connStr = _config.GetConnectionString("Database");
 
+            try
+            {
+                using var conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+                string mainQuery = @" SELECT m.ID, m.ctenant_id, m.cprocessdescription, m.cprocesscode, m.cprocessname, m.cprivilege_type,
+                p.cprocess_privilege as privilege_name FROM tbl_process_engine_master m
+                LEFT JOIN tbl_process_privilege_type p ON m.cprivilege_type = p.ID and m.ctenant_id=p.ctenant_id              
+                WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID DESC;";
 
+                using var cmd = new SqlCommand(mainQuery, conn);
+                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                cmd.Parameters.AddWithValue("@id", id);
 
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    int masterId = reader.GetInt32(reader.GetOrdinal("ID"));
+
+                    if (!result.TryGetValue(masterId, out var engine))
+                    {
+                        engine = new GetIDProcessclipEngineDTO
+                        {
+                            processcode = reader.SafeGetString("cprocesscode"),
+                            processname = reader.SafeGetString("cprocessname"),
+                            processdescription = reader.SafeGetString("cprocessdescription"),
+                            privilege_type = reader.SafeGetInt("cprivilege_type"),
+                            privilege_name = reader.SafeGetString("privilege_name"),    
+                            Meta = new List<processEngineclipMeta>()
+                        };
+                        result[masterId] = engine;
+                    }
+                }
+                reader.Close();
+
+                string metaQuery = @"SELECT m.ID as MasterID,
+                m.cmeta_id, meta.meta_Name, meta.meta_Description,
+                metadetail.cinput_type, metadetail.label, metadetail.cplaceholder,
+                metadetail.cis_required, metadetail.cis_readonly, metadetail.cis_disabled,
+                metadetail.cfield_value,metadetail.cdata_source,metadetail.capi_mapping
+                FROM tbl_process_engine_master m
+                LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
+                LEFT JOIN tbl_process_meta_detail metadetail ON meta.id = metadetail.cheader_id
+                WHERE m.ctenant_id = @TenantID AND m.id = @id;";
+                using var metaCmd = new SqlCommand(metaQuery, conn);
+                metaCmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                metaCmd.Parameters.AddWithValue("@id", id);
+                using var metaReader = await metaCmd.ExecuteReaderAsync();
+                while (await metaReader.ReadAsync())
+                {
+                    int masterId = metaReader.SafeGetInt("MasterID");
+                    var inputType = metaReader.SafeGetString("cinput_type");
+                    if (string.IsNullOrWhiteSpace(inputType))
+                        continue;
+                    if (result.TryGetValue(masterId, out var engine))
+                    {
+                        engine.Meta.Add(new processEngineclipMeta
+                        {
+                            inputType = metaReader.SafeGetString("cinput_type"),
+                            label = metaReader.SafeGetString("label"),
+                            placeholder = metaReader.SafeGetString("cplaceholder"),
+                            isRequired = metaReader.SafeGetBoolean("cis_required"),
+                            isReadonly = metaReader.SafeGetBoolean("cis_readonly"),   
+                            isDisabled = metaReader.SafeGetBoolean("cis_disabled"),   
+                            fieldValue = metaReader.SafeGetString("cfield_value"),
+                            datasource = metaReader.SafeGetString("cdata_source")
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw; 
+            }
+            return result.Values.ToList();
+        }
     }
 }
 

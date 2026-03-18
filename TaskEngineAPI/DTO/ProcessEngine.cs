@@ -536,13 +536,35 @@ namespace TaskEngineAPI.DTO
         public bool? cis_active { get; set; }
         public List<privilegeList>? privilegeList { get; set; }
     }
-
-
     public class DeleteProcessMappingDTO
     {
         public int MappingId { get; set; }
     }
 
-  
+
+    public class processEngineclipMeta
+    {
+        public string? inputType { get; set; }
+        public string? label { get; set; }
+        public string? placeholder { get; set; }
+        public bool? isRequired { get; set; }
+        public bool? isReadonly { get; set; }
+        public bool? isDisabled { get; set; }
+        public string? fieldValue { get; set; }
+        public string? datasource { get; set; }
+    }
+    public class GetIDProcessclipEngineDTO
+    {
+        public string? processcode { get; set; }
+        public string? processname { get; set; }
+        public string? processdescription { get; set; }
+        public int?    privilege_type { get; set; }
+        public string? privilege_name { get; set; }       
+        public List<processEngineclipMeta> Meta { get; set; }
+
+    }
+
+
+
 }
 

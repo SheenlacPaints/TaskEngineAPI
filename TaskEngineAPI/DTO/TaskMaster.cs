@@ -503,6 +503,22 @@ namespace TaskEngineAPI.DTO
         public int? ID { get; set; }
         public int? itaskno { get; set; }
     }
+
+    public class autometaData
+    {
+        public string? data { get; set; }
+
+    }
+ 
+    public class TaskAutoMasterDTO
+    {
+       
+        public string? processcode { get; set; }
+        public string? remarks { get; set; }
+        public string? Initiator { get; set; }
+        public List<autometaData> metaData { get; set; }
+    }
+   
 }
 
 
