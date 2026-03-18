@@ -5038,7 +5038,7 @@ namespace TaskEngineAPI.Services
                                 {
                                     apiKey = _whatsAppSettings.ApiKey,
                                     campaignName = "ProjectCnew",
-                                    destination ="8220237725",//cphoneno,//"918220237725",
+                                    destination = cphoneno,//"8220237725",//cphoneno,//"918220237725",
                                     userName = "Sheenlac Paintss",
                                     templateParams = new[]
                                     {
