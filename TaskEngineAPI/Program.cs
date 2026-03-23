@@ -16,21 +16,11 @@ using TaskEngineAPI.WebSockets;
 using static System.Net.WebRequestMethods;
 using TaskEngineAPI.Models;
 
-
 var builder = WebApplication.CreateBuilder(args);
-//Log.Logger = new LoggerConfiguration()
-//    .MinimumLevel.Information()
-//    .WriteTo.Console()
-//    .WriteTo.File(
-//        "Logs/api-log-.txt",
-//        rollingInterval: RollingInterval.Day,
-//        retainedFileCountLimit: 30,     // keep 30 days logs
-//        fileSizeLimitBytes: 10_000_000, // 10 MB per file
-//        rollOnFileSizeLimit: true
-//    )
-//    .CreateLogger();
-Log.Logger = new LoggerConfiguration()
+     Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
     .Enrich.FromLogContext()
     .Enrich.WithMachineName()
     .Enrich.WithThreadId()
@@ -41,11 +31,10 @@ Log.Logger = new LoggerConfiguration()
         retainedFileCountLimit: 30,
         fileSizeLimitBytes: 10_000_000,
         rollOnFileSizeLimit: true,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{MachineName}] {Message:lj} {Properties:j}{NewLine}{Exception}"
+        outputTemplate:
+        "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{MachineName}] [ReqId:{RequestId}] [User:{User}] {Message:lj}{NewLine}{Exception}"
     )
     .CreateLogger();
-
-
 builder.Host.UseSerilog();
 
 //builder.Services.AddScoped<IRoleService, RoleService>();
@@ -249,10 +238,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 //app.UseSerilogRequestLogging();
-app.UseSerilogRequestLogging(options =>
-{
-    options.MessageTemplate = "Handled {RequestPath}";
-});
+//app.UseSerilogRequestLogging(options =>
+//{
+ //   options.MessageTemplate = "Handled {RequestPath}";
+//});
 app.UseSwagger();
 app.UseSwaggerUI();
 if (app.Environment.IsDevelopment())
