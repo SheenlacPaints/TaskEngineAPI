@@ -12,7 +12,6 @@ namespace TaskEngineAPI.Middlewares
             _next = next;
             _logger = logger;
         }
-
         public async Task InvokeAsync(HttpContext httpContext)
         {
             try
@@ -20,39 +19,50 @@ namespace TaskEngineAPI.Middlewares
                 await _next(httpContext);
             }
             catch (Exception ex)
-            {               
-                _logger.LogError(ex, "Unhandled exception occurred");
+            {
+                var requestId = Guid.NewGuid();
+
+                _logger.LogError(ex,
+                    "Error | Path: {Path} | Method: {Method} | User: {User} | RequestId: {RequestId}",
+                    httpContext.Request.Path,
+                    httpContext.Request.Method,
+                    httpContext.User?.Identity?.Name ?? "Anonymous",
+                    requestId
+                );
 
                 var tenantId = httpContext.Items.ContainsKey("TenantID") ? httpContext.Items["TenantID"] as int? : null;
                 var userId = httpContext.Items.ContainsKey("UserID") ? httpContext.Items["UserID"] as int? : null;
-                var requestId = Guid.NewGuid(); // Or read from X-Correlation-ID header if present
-               
-                Exceptionlog.LogException(
-                    message: ex.Message,
 
+                try
+                {
+                    Exceptionlog.LogException(
+                        message: ex.Message,
+                        docType: "GlobalMiddleware",
+                        ex: ex,
+                        tenantId: tenantId,
+                        userId: userId,
+                        requestId: requestId
+                    );
+                }
+                catch (Exception logEx)
+                {
+                    _logger.LogError(logEx, "Error while saving exception log");
+                }
 
-                    docType: "GlobalMiddleware",
-                    ex: ex,
-                    tenantId: tenantId,
-                    userId: userId,
-                    requestId: requestId
-                );
-                await HandleExceptionAsync(httpContext, ex);
+                await HandleExceptionAsync(httpContext, ex, requestId);
             }
         }
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception, Guid requestId)
         {
             context.Response.ContentType = "application/json";
-            var statusCode = (int)HttpStatusCode.InternalServerError;
 
-            if (exception is UnauthorizedAccessException)
+            var statusCode = exception switch
             {
-                statusCode = (int)HttpStatusCode.Unauthorized;
-            }
-            else if (exception is ArgumentException)
-            {
-                statusCode = (int)HttpStatusCode.BadRequest;
-            }
+                UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+                ArgumentException => (int)HttpStatusCode.BadRequest,
+                _ => (int)HttpStatusCode.InternalServerError
+            };
 
             context.Response.StatusCode = statusCode;
 
@@ -60,12 +70,12 @@ namespace TaskEngineAPI.Middlewares
             {
                 success = false,
                 statusCode = statusCode,
-                message = exception.Message,
-                requestId = Guid.NewGuid()
-                //  details = exception.StackTrace 
+                message = "Something went wrong. Please contact support.",
+                requestId = requestId
             };
+
             return context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
         }
-
+     
     }
 }
