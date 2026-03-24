@@ -61,6 +61,17 @@ namespace TaskEngineAPI.DTO
     {
         public IFormFile File { get; set; }
     }
+    public class ProjectfileUploadDTO
+    {
+        [Required]
+        public string id { get; set; }
+        [Required]
+        public string type { get; set; }
+        [Required]
+        public string raiseby { get; set; }
 
+        [Required]
+        public List<IFormFile> files { get; set; }
+    }
 
 }

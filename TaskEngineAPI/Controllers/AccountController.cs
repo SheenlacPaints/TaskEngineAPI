@@ -6094,8 +6094,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-   
         [HttpPost]
         [Route("GetToken")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -6184,6 +6182,130 @@ namespace TaskEngineAPI.Controllers
                     status = 500,
                     statusText = "Error: " + ex.Message
                 }));
+            }
+        }
+
+
+        [Authorize]
+        [HttpPost("ProjectfileUpload")]
+        public async Task<IActionResult> ProjectfileUpload([FromForm] ProjectfileUploadDTO model)
+        {
+            if (model == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(401, $"\"{encryptedError}\"");
+            }
+
+            try
+            {
+                if (model.files == null || model.files.Count == 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "No files selected."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest($"\"{encryptedError}\"");
+                }
+
+                var uploadedFileNames = new List<string>();
+
+                foreach (var file in model.files)
+                {
+                    if (file != null && file.Length > 0)
+                    {
+                        await _minioService.ProjectFileUploadFileAsync(file, model.type, cTenantID,model.id,model.raiseby);
+                        uploadedFileNames.Add(file.FileName);
+                    }
+                }
+
+                if (uploadedFileNames.Count > 0)
+                {
+                    try
+                    {
+                        string connStr = _config.GetConnectionString("Database");
+                        using (var conn = new SqlConnection(connStr))
+                        {
+                            await conn.OpenAsync();
+
+                            string targetTable = model.type.ToLower() switch
+                            {
+                                "project" => "Tbl_Project_Master",
+                                _ => throw new Exception("Invalid type. Must be 'Task' or 'Taskdetail' or 'Process'or 'Project'.")
+                            };
+                            string columnName = model.raiseby.ToLower() switch
+                            {
+                                "client" => "RaisedByAttachment",
+                                "manager" => "AssignedManagerAttachment",
+                                _ => throw new Exception("Invalid raiseby. Use 'client' or 'manager'")
+                            };
+                            var fileNamesJson = JsonConvert.SerializeObject(uploadedFileNames);
+
+                            string query = $@"
+                        UPDATE {targetTable}
+                        SET {columnName} = @ProfilePath
+                        WHERE id = @UserId";
+                            using (var cmd = new SqlCommand(query, conn))
+                            {
+                                cmd.Parameters.AddWithValue("@ProfilePath", fileNamesJson);
+                                cmd.Parameters.AddWithValue("@UserId", model.id);
+
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
+                    catch (Exception dbEx)
+                    {
+
+                    }
+                }
+
+                var response = new APIResponse
+                {
+                    status = 200,
+                    statusText = $"{uploadedFileNames.Count} file(s) uploaded successfully."
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                string encc = $"\"{encrypted}\"";
+                return StatusCode(200, encc);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error occurred: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                string encc = $"\"{encryptedError}\"";
+                return StatusCode(500, encc);
             }
         }
 

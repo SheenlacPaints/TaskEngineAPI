@@ -1031,6 +1031,74 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+        [Authorize]
+        [HttpPost("ProjectfileUpload")]
+        public async Task<IActionResult> ProjectfileUpload([FromForm] ProjectfileUploadDTO request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var formContent = new MultipartFormDataContent();
+
+                if (request.files != null && request.files.Count > 0)
+                {
+                    foreach (var file in request.files)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var fileContent = new StreamContent(file.OpenReadStream());
+                            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                            formContent.Add(fileContent, "files", file.FileName);
+                        }
+                    }
+                }
+                else
+                {
+                    return BadRequest("No files selected.");
+                }
+
+                if (!string.IsNullOrEmpty(request.type))
+                {
+                    formContent.Add(new StringContent(request.type), "type");
+                }
+
+                if (!string.IsNullOrEmpty(request.id))
+                {
+                    formContent.Add(new StringContent(request.id), "id");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/ProjectfileUpload");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = formContent;
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"{body}";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"{enc}";
+                return StatusCode(500, encc);
+            }
+        }
+
+
+
         [Authorize]
         [HttpGet("Getdropdown")]
         public async Task<IActionResult> Getdropdown([FromQuery] string? column)
