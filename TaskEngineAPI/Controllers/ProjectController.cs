@@ -168,7 +168,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     return CreateEncryptedResponse(500, "Failed to create Process");
                 }
-                bool success = await _TaskMasterService.newprojectraisewhatappnotificationAsync(insertedUserId, cTenantID, username);
+               // bool success = await _TaskMasterService.newprojectraisewhatappnotificationAsync(insertedUserId, cTenantID, username);
 
                 return CreatedSuccessResponse(new { projectid = insertedUserId }, "Project created successfully");
             }

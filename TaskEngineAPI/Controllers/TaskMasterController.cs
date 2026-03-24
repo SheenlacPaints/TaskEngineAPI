@@ -139,7 +139,7 @@ namespace TaskEngineAPI.Controllers
                     throw new InvalidOperationException("Task insertion failed.");
                 }
 
-                bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
+                //bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
 
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
 
@@ -1041,30 +1041,28 @@ namespace TaskEngineAPI.Controllers
                 bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
 
                
-                if (model.status == "A" && model.ID.HasValue)
-                {
-                    await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
-                }
+               // if (model.status == "A" && model.ID.HasValue)
+               // {
+                   // await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
+               // }
 
-                if (model.reassignto != null)
-                {
-                    bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
-                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
+               // if (model.reassignto != null)
+                //{
+                 //   bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
+                  //  bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
 
-                }
-                if (model.status == "H")
-                {
-                    bool holdsuccessss = await taskMasterService.holdwhatappnotificationAsync(model, cTenantID, username);
-                }
+                //}
+               // if (model.status == "H")
+               // {
+               //     bool holdsuccessss = await taskMasterService.holdwhatappnotificationAsync(model, cTenantID, username);
+               // }
 
-                if (model.status == "R")
-                {
-                    bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
+                //if (model.status == "R")
+               // {
+                 //   bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
 
-                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model,cTenantID,username);
-
-
-                }
+                   // bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model,cTenantID,username);
+               // }
 
 
                 if (!success)
