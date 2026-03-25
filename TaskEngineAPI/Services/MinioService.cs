@@ -315,7 +315,7 @@ public class MinioService : IMinioService
         }
     }
 
-    public async Task ProjectFileUploadFileAsync(IFormFile form, string type, int ctenantid, string raiseby,string id)    
+    public async Task ProjectFileUploadFileAsync(IFormFile form, string type, int ctenantid, string id,string raiseby)    
     {
         try
         {
@@ -346,6 +346,9 @@ public class MinioService : IMinioService
             var folderName = type;
             var ProjectID = id;
             var raisedby = raiseby;
+
+            objectName = $"{ctenantid}/{folderName}/{ProjectID}/{raisedby}/{fileName}";
+           
             objectName = $"{ctenantid}/{folderName}/{ProjectID}/{raisedby}/{fileName}";
             using var stream = form.OpenReadStream();
 

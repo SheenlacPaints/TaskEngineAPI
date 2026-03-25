@@ -9,6 +9,6 @@
         Task FileUploadFileAsync(IFormFile form, string type, int ctenantid);
 
         Task TaskFileUploadFileAsync(IFormFile form, string type, int ctenantid);
-        Task ProjectFileUploadFileAsync(IFormFile form, string type, int ctenantid, string raiseby, string id);
+        Task ProjectFileUploadFileAsync(IFormFile form, string type, int ctenantid,  string id,string raiseby);
     }
 }

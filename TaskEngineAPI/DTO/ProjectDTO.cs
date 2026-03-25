@@ -51,6 +51,10 @@ namespace TaskEngineAPI.DTO
         public string? Remarks2{ get; set; }
         public string? Remarks3 { get; set; }
         public string? ActualBudget { get; set; }
+        public string? ManagerAttachment { get; set; }
+        public string? ClientAttachment { get; set; }
+        
+          
 
         //public DateTime? Capproved_date { get; set; }
         // public string? Capproved_by {  get; set; }
