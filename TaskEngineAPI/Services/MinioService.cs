@@ -383,5 +383,38 @@ public class MinioService : IMinioService
         }
     }
 
+    public async Task<(MemoryStream stream, string contentType)>GetprojectFileAsync(string fileName, string type, int ctenantid,int projectid,string raisedby)
+    {
+        var safeFileName = Path.GetFileName(fileName);
+        var safeType = Path.GetFileName(type);
+        var safeRaisedBy = raisedby.ToLower();
+        string objectName = $"{ctenantid}/{safeType}/{projectid}/{safeRaisedBy}/{safeFileName}";
+        var memoryStream = new MemoryStream();
+
+        await _minio.GetObjectAsync(
+            new GetObjectArgs()
+                .WithBucket(_bucketName)
+                .WithObject(objectName)
+                .WithCallbackStream(stream =>
+                {
+                    stream.CopyTo(memoryStream);
+                })
+        );
+
+        memoryStream.Position = 0;
+
+        var contentType = Path.GetExtension(safeFileName).ToLowerInvariant() switch
+        {
+            ".png" => "image/png",
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".pdf" => "application/pdf",
+            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            _ => "application/octet-stream"
+        };
+
+        return (memoryStream, contentType);
+    }
+
 
 }

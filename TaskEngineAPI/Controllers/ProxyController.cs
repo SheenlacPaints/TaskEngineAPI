@@ -2791,6 +2791,19 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [HttpGet("GetProjectfileview")]
+        public async Task<IActionResult> GetProjectfileview(string fileName, string type, int tenant, int projectid, string raisedby)
+        {
+
+            var (stream, contentType) = await _minioService.GetprojectFileAsync(fileName, type, tenant, projectid, raisedby);
+
+            Response.Headers.Add("Content-Disposition", "inline");
+
+            return File(stream, contentType);
+        }
+
+
+
         [Authorize]
         [HttpGet("Getmetaviewdatabyid")]
         public async Task<IActionResult> Getmetaviewdatabyid([FromQuery] int id)

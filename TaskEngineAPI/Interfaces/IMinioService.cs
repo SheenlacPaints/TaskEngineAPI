@@ -10,5 +10,8 @@
 
         Task TaskFileUploadFileAsync(IFormFile form, string type, int ctenantid);
         Task ProjectFileUploadFileAsync(IFormFile form, string type, int ctenantid,  string id,string raiseby);
+        Task<(MemoryStream stream, string contentType)> GetprojectFileAsync(string fileName, string type, int ctenantid, int projectid, string raisedby);
+
+
     }
 }
