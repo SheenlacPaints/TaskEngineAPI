@@ -1269,7 +1269,7 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, 
                         @cmodified_by, @lmodified_date, @cassignee, @cparticipantType, @nboardenabled, 
                         @csladay, @cslaHour, @cactionprivilege, @crejectionprivilege, @cmapping_type,@cboard_visablity,@nsla_overdue_action,@cc_cmapping_code,@bcc_cmapping_code,
-                        @cc_cmapping_type,@bcc_cmapping_type,@nis_board_metaapi_integration,@cboard_metaapi_id,@cboard_metaapi_response,@nis_custom_meta,@ccustom_meta_seqno
+                        @cc_cmapping_type,@bcc_cmapping_type,@nis_board_metaapi_integration,@cboard_metaapi_id,@cboard_metaapi_response,@nis_custom_meta,@ccustom_meta_seqno,
                         @nis_external_api_enabled,@nexternal_api_id);
                         SELECT SCOPE_IDENTITY();";
 
