@@ -129,11 +129,11 @@ namespace TaskEngineAPI.Services
                     ctenant_id, cheader_id, ciseqno, cprocesscode,cactivitycode, cactivity_description,  
                     ctask_type, cprev_step, cactivityname, cnext_seqno, lcreated_date, ccreated_by, cmodified_by, lmodified_date, cmapping_code,
                     cparticipant_type,nboard_enabled,csla_day,csla_Hour,caction_privilege,crejection_privilege,cmapping_type,cboard_visablity,nsla_overdue_action,cc_cmapping_code,bcc_cmapping_code
-                    ,cc_cmapping_type,bcc_cmapping_type,nis_board_metaapi_integration,cboard_metaapi_id,cboard_metaapi_response,nis_custom_meta,ccustom_meta_seqno) 
+                    ,cc_cmapping_type,bcc_cmapping_type,nis_board_metaapi_integration,cboard_metaapi_id,cboard_metaapi_response,nis_custom_meta,ccustom_meta_seqno,nis_external_api_enabled,nexternal_api_id) 
                     VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
                     @ctasktype, @cprev_step, @cactivityname, @cnext_seqno, @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cassignee, @cparticipantType,
                     @nboardenabled,@csladay,@cslaHour,@cactionprivilege,@crejectionprivilege,@cmapping_type,@cboard_visablity,@nsla_overdue_action,@cc_cmapping_code,@bcc_cmapping_code,
-                    @cc_cmapping_type,@bcc_cmapping_type,@nis_board_metaapi_integration,@cboard_metaapi_id,@cboard_metaapi_response,@nis_custom_meta,@ccustom_meta_seqno);
+                    @cc_cmapping_type,@bcc_cmapping_type,@nis_board_metaapi_integration,@cboard_metaapi_id,@cboard_metaapi_response,@nis_custom_meta,@ccustom_meta_seqno,nis_external_api_enabled,nexternal_api_id);
                     SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
@@ -175,6 +175,8 @@ namespace TaskEngineAPI.Services
                                 cmdDetail.Parameters.AddWithValue("@cboard_metaapi_response", detail.cboard_metaapi_response ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@nis_custom_meta", detail.nis_custom_meta ?? (object)DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@ccustom_meta_seqno", detail.ccustom_meta_seqno ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nis_external_api_enabled", detail.nis_external_api_enabled ?? (object)DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nexternal_api_id", detail.nexternal_api_id ?? (object)DBNull.Value);
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }
@@ -449,7 +451,7 @@ p.cprocess_privilege as privilege_name,
     d.cboard_visablity,d.nsla_overdue_action, d.cc_cmapping_code,d.bcc_cmapping_code,d.cc_cmapping_type,d.bcc_cmapping_type, 
    d.nis_board_metaapi_integration,d.cboard_metaapi_id,d.cboard_metaapi_response,d.nis_custom_meta,d.ccustom_meta_seqno,n.notification_type AS Notification_Description,
     s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table,m.cattachment,m.nis_metaapi_integration,m.cmetaapi_id,
-m.cmetaapi_response,m.nis_auto_initiate  
+m.cmetaapi_response,m.nis_auto_initiate,d.nis_external_api_enabled,d.nexternal_api_id
 FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
@@ -533,6 +535,8 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             cboard_metaapi_response = reader.SafeGetString("cboard_metaapi_response"),
                             nis_custom_meta = reader.SafeGetBoolean("nis_custom_meta"),
                             ccustom_meta_seqno = reader.SafeGetInt("ccustom_meta_seqno"),
+                            nis_external_api_enabled = reader.SafeGetBoolean("nis_external_api_enabled"),
+                            nexternal_api_id = reader.SafeGetInt("nexternal_api_id"),
                             processEngineConditionDetails = new List<processEngineConditionDetails>()
                         };
                         engine.processEngineChildItems.Add(child);
@@ -1260,12 +1264,13 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                         cmodified_by, lmodified_date, cmapping_code, cparticipant_type, nboard_enabled, 
                         csla_day, csla_Hour, caction_privilege, crejection_privilege, cmapping_type,cboard_visablity,nsla_overdue_action,
                         cc_cmapping_code,bcc_cmapping_code,cc_cmapping_type,bcc_cmapping_type,nis_board_metaapi_integration,
-                        cboard_metaapi_id,cboard_metaapi_response,nis_custom_meta,ccustom_meta_seqno) 
+                        cboard_metaapi_id,cboard_metaapi_response,nis_custom_meta,ccustom_meta_seqno,nis_external_api_enabled,nexternal_api_id) 
                         VALUES (@TenantID, @cheader_id, @ciseqno, @cprocesscode, @cactivitycode, @cactivitydescription,  
                         @ctasktype, @cprevstep, @cactivityname, @cnextseqno, @ccreated_date, @ccreated_by, 
                         @cmodified_by, @lmodified_date, @cassignee, @cparticipantType, @nboardenabled, 
                         @csladay, @cslaHour, @cactionprivilege, @crejectionprivilege, @cmapping_type,@cboard_visablity,@nsla_overdue_action,@cc_cmapping_code,@bcc_cmapping_code,
-                        @cc_cmapping_type,@bcc_cmapping_type,@nis_board_metaapi_integration,@cboard_metaapi_id,@cboard_metaapi_response,@nis_custom_meta,@ccustom_meta_seqno);
+                        @cc_cmapping_type,@bcc_cmapping_type,@nis_board_metaapi_integration,@cboard_metaapi_id,@cboard_metaapi_response,@nis_custom_meta,@ccustom_meta_seqno
+                        @nis_external_api_enabled,@nexternal_api_id);
                         SELECT SCOPE_IDENTITY();";
 
                         int seqNo = 1;
@@ -1308,6 +1313,9 @@ WHERE m.ctenant_id = @TenantID AND m.id = @id;";
                                 cmdDetail.Parameters.AddWithValue("@cboard_metaapi_response", (object?)detail.cboard_metaapi_response ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@nis_custom_meta", (object?)detail.nis_custom_meta ?? DBNull.Value);
                                 cmdDetail.Parameters.AddWithValue("@ccustom_meta_seqno", (object?)detail.ccustom_meta_seqno ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nis_external_api_enabled", (object?)detail.nis_external_api_enabled ?? DBNull.Value);
+                                cmdDetail.Parameters.AddWithValue("@nexternal_api_id", (object?)detail.nexternal_api_id ?? DBNull.Value);
+
                                 var newId = await cmdDetail.ExecuteScalarAsync();
                                 detailId = newId != null ? Convert.ToInt32(newId) : 0;
                             }

@@ -102,6 +102,9 @@ namespace TaskEngineAPI.DTO
         public string? cboard_metaapi_response { get; set; }
         public bool? nis_custom_meta { get; set; }
         public int? ccustom_meta_seqno { get; set; }
+        public bool? nis_external_api_enabled { get; set; }
+        public int? nexternal_api_id { get; set; }
+     
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
    
@@ -486,7 +489,11 @@ namespace TaskEngineAPI.DTO
         public string? cboard_metaapi_response { get; set; }
         public bool? nis_custom_meta { get; set; }
         public int? ccustom_meta_seqno { get; set; }
+
+        public bool? nis_external_api_enabled { get; set; }
+        public int? nexternal_api_id { get; set; }
         
+
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
 
