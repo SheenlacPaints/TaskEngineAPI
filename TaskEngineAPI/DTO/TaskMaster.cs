@@ -130,6 +130,8 @@ namespace TaskEngineAPI.DTO
         public string? cremarks { get; set; }
 
         public string? cmeta_response { get; set; }
+        public bool? nis_external_api_enabled { get; set; }
+        public int? nexternal_api_id { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
         public List<processEnginetaskMeta> meta { get; set; }
         public List<GetprocessEngineConditionDTO> board { get; set; }
@@ -203,6 +205,10 @@ namespace TaskEngineAPI.DTO
         public string? Remarks { get; set; }
         public bool? showTimeline { get; set; }
         public string? cmeta_response { get; set; }
+
+        public bool? nis_external_api_enabled { get; set; }
+        public int? nexternal_api_id { get; set; }
+        
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }

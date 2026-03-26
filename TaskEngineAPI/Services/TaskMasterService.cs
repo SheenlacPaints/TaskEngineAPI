@@ -1639,7 +1639,8 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,e.cprofile_image_name,
                     c.cmeta_id,
                     a.itaskno,
-                    a.cremarks,b.cattachment,a.cmeta_response
+                    a.cremarks,b.cattachment,a.cmeta_response,
+                    d.nis_external_api_enabled,d.nexternal_api_id
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -1687,6 +1688,8 @@ namespace TaskEngineAPI.Services
                                     cremarks = reader["cremarks"]?.ToString() ?? "",
                                     cattachment = reader["cattachment"]?.ToString() ?? "",
                                     cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
+                                    nis_external_api_enabled = reader.SafeGetBoolean("showTimeline"),
+                                    nexternal_api_id = Convert.ToInt32(reader["nexternal_api_id"]),
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
@@ -2325,7 +2328,9 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks,
-                    a.cmeta_response
+                    a.cmeta_response,
+                    d.nis_external_api_enabled,
+                    d.nexternal_api_id
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2373,6 +2378,8 @@ namespace TaskEngineAPI.Services
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
+                                    nis_external_api_enabled= reader.SafeGetBoolean("showTimeline"),
+                                    nexternal_api_id = Convert.ToInt32(reader["nexternal_api_id"]),
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
