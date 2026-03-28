@@ -1306,8 +1306,6 @@ namespace TaskEngineAPI.Controllers
         }
 
 
-        
-
         [Authorize]
         [HttpGet]
         [Route("GettaskReassign")]
@@ -1385,8 +1383,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
         [Authorize]
         [HttpGet]
         [Route("GettaskTimelineDetails")]
@@ -1424,9 +1420,6 @@ namespace TaskEngineAPI.Controllers
 
         }
 
-
-
-
         [Authorize]
         [HttpGet]
         [Route("Getworkflowdashboard")]
@@ -1450,7 +1443,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
-
 
         [Authorize]
         [HttpGet]
@@ -1509,7 +1501,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
-
 
         private async Task SendWhatsAppNotificationAsync()
         {
@@ -1581,7 +1572,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpPost]
         [Route("FetchAPIORGStructureAsync")]
@@ -1615,7 +1605,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
-
 
         [HttpPost("TestExternalAPI")]
         public async Task<IActionResult> TestExternalAPI([FromBody] ApiTestRequestDTO model)
@@ -1692,7 +1681,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
-
 
         [Authorize]
         [HttpPost]

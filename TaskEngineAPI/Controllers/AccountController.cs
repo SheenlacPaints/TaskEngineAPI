@@ -1472,8 +1472,7 @@ namespace TaskEngineAPI.Controllers
         //    return StatusCode(response.status, encrypted);
         //}
 
-
-        [Authorize]
+    
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
         {
@@ -1489,30 +1488,6 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "Payload cannot be empty");
                 }
 
-                var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-                {
-                    return EncryptedError(401, "Authorization header is missing or invalid");
-                }
-
-                var token = authHeader.Substring("Bearer ".Length).Trim();
-
-                var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(token);
-
-                var tenantIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "cTenantID")?.Value;
-                var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
-
-                if (string.IsNullOrEmpty(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
-                {
-                    return EncryptedError(401, "Invalid or missing cTenantID in token");
-                }
-
-                if (string.IsNullOrEmpty(usernameClaim))
-                {
-                    return EncryptedError(401, "Invalid or missing username in token");
-                }
-
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
 
@@ -1521,7 +1496,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "Invalid payload or password");
                 }
 
-                bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, usernameClaim);
+                bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model);
 
                 var response = new APIResponse
                 {

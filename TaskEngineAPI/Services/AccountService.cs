@@ -937,25 +937,52 @@ VALUES (
                 }
             }
         }
-        public async Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model, int tenantId, string username)
+       
+        public async Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model)
         {
             var connStr = _config.GetConnectionString("Database");
 
             using (SqlConnection conn = new SqlConnection(connStr))
             {
                 await conn.OpenAsync();
+
+                // Hash password
                 model.cpassword = BCrypt.Net.BCrypt.HashPassword(model.cpassword);
+
+                int userId = 0;
+                int tenantId = 0;
+
+                string passwordquery = @"
+            SELECT TOP 1 cuserid, ctenant_id 
+            FROM Users 
+            WHERE cphoneno = @cphoneno AND nIs_deleted = 0";
+
+                using (SqlCommand cmd = new SqlCommand(passwordquery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@cphoneno", model.cphoneno);
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            userId = Convert.ToInt32(reader["cuserid"]);
+                            tenantId = Convert.ToInt32(reader["ctenant_id"]);
+                        }
+                    }
+                }
+
+                // ✅ UPDATE PASSWORD
                 string query = @"
-             UPDATE AdminUsers SET
-            cpassword = @Password,
-            cpassword_changed_at =@cPasswordChangedAt          
-        WHERE cuserid = @ID AND  ctenant_Id = @TenantID";
+            UPDATE Users SET
+                cpassword = @Password,
+                cpassword_changed_at = @cPasswordChangedAt          
+            WHERE cuserid = @ID AND ctenant_Id = @TenantID";
 
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@Password", (object?)model.cpassword ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Password", model.cpassword);
                     cmd.Parameters.AddWithValue("@cPasswordChangedAt", DateTime.Now);
-                    cmd.Parameters.AddWithValue("@ID", username);
+                    cmd.Parameters.AddWithValue("@ID", userId);
                     cmd.Parameters.AddWithValue("@TenantID", tenantId);
 
                     int rowsAffected = await cmd.ExecuteNonQueryAsync();
@@ -963,6 +990,7 @@ VALUES (
                 }
             }
         }
+
 
         public async Task<bool> UpdatePasswordUserAsync(UpdateUserPasswordDTO model, int tenantId, string username)
         {
