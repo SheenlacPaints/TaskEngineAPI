@@ -1831,6 +1831,31 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [Authorize]
+        [HttpPost]
+        [Route("FetchAPIReportingAsync")]
+        public async Task<IActionResult> FetchAPIReportingAsync()
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();             
+                var json = (await taskMasterService.FetchAPIMISReportingAsync(cTenantID, username)).ToString();
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+
 
     }
 }

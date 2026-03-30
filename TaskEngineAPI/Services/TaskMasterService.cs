@@ -5465,6 +5465,35 @@ namespace TaskEngineAPI.Services
             return masterId;
         }
 
+        public async Task<string> FetchAPIMISReportingAsync(int cTenantID, string username)
+        {
+            try
+            {
+            
+                string monthYear = DateTime.Now.ToString("MM-yyyy");
+                string apiUrl = $"https://misapi.sheenlac.com/api/Task/GetDashboarddata/{username}/{monthYear}";
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(60);
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return $"Error: {response.StatusCode} - {result}";
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ex.Message}";
+            }
+        }
+
+
 
     }
 }

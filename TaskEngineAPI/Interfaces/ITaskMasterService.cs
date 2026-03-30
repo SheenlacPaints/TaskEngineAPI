@@ -66,6 +66,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> newtaskarrivesinboxapprovewhatappnotificationAsync(int ID, int cTenantID, string username);
         Task<bool> newprojectraisewhatappnotificationAsync(int ID, int cTenantID, string username);
         Task<int> autoInsertTaskMasterAsync(TaskAutoMasterDTO model, int tenantId);
+        Task<string> FetchAPIMISReportingAsync(int cTenantID, string username);
 
 
     }
