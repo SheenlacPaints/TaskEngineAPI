@@ -1832,7 +1832,7 @@ namespace TaskEngineAPI.Controllers
 
 
         [Authorize]
-        [HttpPost]
+        [HttpGet]
         [Route("FetchAPIReportingAsync")]
         public async Task<IActionResult> FetchAPIReportingAsync()
         {
