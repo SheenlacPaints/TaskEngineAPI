@@ -6283,6 +6283,61 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+      
+        
+        [Authorize]
+        [HttpPut("changepassword")]
+        public async Task<IActionResult> changepassword([FromBody] pay request)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
+            var (cTenantID, username) = GetUserInfoFromToken();
+
+            try
+            {
+                if (request == null)
+                {
+                    return EncryptedError(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Payload cannot be empty");
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<UpdateUserPasswordDTO>(decryptedJson);
+
+                if (model == null || string.IsNullOrWhiteSpace(model.cpassword))
+                {
+                    return EncryptedError(400, "Invalid payload or password");
+                }
+
+                bool success = await _AccountService.UpdatePasswordUserAsync(model, cTenantID, username);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ? "Password updated successfully" : "User not found"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (SecurityTokenException ex)
+            {
+                return EncryptedError(401, $"Invalid token: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
 
     }
 }
