@@ -2107,6 +2107,18 @@ namespace TaskEngineAPI.Services
                             await cmd.ExecuteNonQueryAsync();
                         }
                     }
+                    if (model.status == "A")
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_update_conditionalflow", conn, transaction))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@itaskno", model.itaskno);
+                            cmd.Parameters.AddWithValue("@ID", model.ID);
+                            cmd.Parameters.AddWithValue("@ctenantid", cTenantID);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
 
                     transaction.Commit();
                     committed = true;
