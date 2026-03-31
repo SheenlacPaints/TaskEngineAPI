@@ -5544,18 +5544,24 @@ namespace TaskEngineAPI.Services
         }
 
 
+      
         public async Task<bool> IsWhatsAppNotificationEnabled(int tenantId)
         {
-            using (SqlConnection con = new SqlConnection(_config.GetConnectionString("Database")))
-            using (SqlCommand cmd = new SqlCommand("SELECT ISNULL(nwhatsapp_notification, 0) FROM Tenants WHERE ctenant_id = @TenantID", con))
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
             {
-                cmd.Parameters.AddWithValue("@TenantID", tenantId);
-                await con.OpenAsync();
+                await conn.OpenAsync();
+                string query = "SELECT top 1 ISNULL(nwhatsapp_notification, 0) FROM Tenants WHERE cTenantID = @TenantID";
 
-                var result = await cmd.ExecuteScalarAsync();
-                return Convert.ToInt32(result) == 1;
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TenantID", tenantId);
+                    var result = await cmd.ExecuteScalarAsync();
+                    return Convert.ToInt32(result) == 1;
+
+                }
             }
         }
+
 
 
     }
