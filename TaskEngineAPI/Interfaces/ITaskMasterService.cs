@@ -68,6 +68,7 @@ namespace TaskEngineAPI.Interfaces
         Task<int> autoInsertTaskMasterAsync(TaskAutoMasterDTO model, int tenantId);
         Task<string> FetchAPIMISReportingAsync(int cTenantID, string username);
         Task<string> FetchAPIEmployeeTimesheetAsync(int cTenantID, string username, string project);
+        Task<bool> IsWhatsAppNotificationEnabled(int tenantId);
     }
 
 }

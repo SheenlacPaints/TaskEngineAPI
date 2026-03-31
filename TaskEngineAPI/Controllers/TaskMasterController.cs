@@ -145,6 +145,12 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
+                bool isWhatsAppEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+
+                if (isWhatsAppEnabled)
+                {
+                    await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
+                }
 
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
 
@@ -1045,24 +1051,27 @@ namespace TaskEngineAPI.Controllers
 
                 bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
 
-               
-                if (model.status == "A" && model.ID.HasValue)
+                bool isWhatsAppEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+
+                
+                
+                if (model.status == "A" && model.ID.HasValue && isWhatsAppEnabled)
                 {
                     await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
                 }
 
-                if (model.reassignto != null)
+                if (model.reassignto != null && isWhatsAppEnabled)
                 {
                     bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
                     bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
 
                 }
-                if (model.status == "H")
+                if (model.status == "H" && isWhatsAppEnabled)
                 {
                     bool holdsuccessss = await taskMasterService.holdwhatappnotificationAsync(model, cTenantID, username);
                 }
 
-                if (model.status == "R")
+                if (model.status == "R" && isWhatsAppEnabled)
                 {
                     bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
 
@@ -1267,8 +1276,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
         [Authorize]
         [HttpGet]
         [Route("Getmetadataviewdataid")]
@@ -1305,7 +1312,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
-
 
         [Authorize]
         [HttpGet]
