@@ -5505,8 +5505,43 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<string> FetchAPIEmployeeTimesheetAsync(int cTenantID, string username,string project)
+        {
+            try
+            {
+                string apiUrl = "https://misapi.sheenlac.com/api/Progovex/EmployeeTimeSheetDtls";
 
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(60);
 
+                    var requestData = new
+                    {
+                        empNumber = username.PadLeft(8, '0'),   
+                        type = "GetEmployee_TimeSheet",
+                        ProjectId = project
+                    };
+
+                    var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                    var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return $"Error: {response.StatusCode} - {result}";
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ex.Message}";
+            }
+        }
     }
 }
 

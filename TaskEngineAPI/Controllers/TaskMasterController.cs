@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using Azure;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -1853,6 +1854,52 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
+
+       
+        [Authorize]
+        [HttpPost]
+        [Route("FetchAPIEmployeeTimesheetAsync")]
+        public async Task<IActionResult> FetchAPIEmployeeTimesheetAsync([FromBody] pay request)
+        {
+
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<EmpTimesheetDTO>(request.payload);
+                var json = await taskMasterService.FetchAPIEmployeeTimesheetAsync(cTenantID, username, model.Project);
+                var jObject = Newtonsoft.Json.Linq.JObject.Parse(json);
+                var bodyString = jObject["body"]?.ToString();
+
+                if (string.IsNullOrEmpty(bodyString))
+                {
+                    return CreateEncryptedResponse(500, "Invalid API response");
+                }
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(bodyString);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+     
+
+
 
 
 

@@ -524,7 +524,13 @@ namespace TaskEngineAPI.DTO
         public string? Initiator { get; set; }
         public List<autometaData> metaData { get; set; }
     }
-   
+
+    public class EmpTimesheetDTO
+    {
+        public string? Project { get; set; }
+        
+    }
+
 }
 
 
