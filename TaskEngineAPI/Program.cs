@@ -10,26 +10,31 @@ using TaskEngineAPI.Middlewares;
 using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
 using Serilog;
+using Serilog.Enrichers;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.WebSockets;
 using static System.Net.WebRequestMethods;
 using TaskEngineAPI.Models;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
-Log.Logger = new LoggerConfiguration()
+     Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("System", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
     .WriteTo.Console()
     .WriteTo.File(
         "Logs/api-log-.txt",
         rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 30,     // keep 30 days logs
-        fileSizeLimitBytes: 10_000_000, // 10 MB per file
-        rollOnFileSizeLimit: true
+        retainedFileCountLimit: 30,
+        fileSizeLimitBytes: 10_000_000,
+        rollOnFileSizeLimit: true,
+        outputTemplate:
+        "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] [{MachineName}] [ReqId:{RequestId}] [User:{User}] {Message:lj}{NewLine}{Exception}"
     )
     .CreateLogger();
-
 builder.Host.UseSerilog();
 
 //builder.Services.AddScoped<IRoleService, RoleService>();
@@ -45,50 +50,81 @@ builder.Services.AddControllers()
     });
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    // 👤 Default → USER TOKEN
+    options.DefaultAuthenticateScheme = "UserScheme";
+    options.DefaultChallengeScheme = "UserScheme";
 })
-.AddJwtBearer(o =>
+// ================= USER JWT =================
+.AddJwtBearer("UserScheme", o =>
 {
     o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey
-            (Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])
+        ),
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = false, // Great for testing!
+        ValidateLifetime = false, // change to true in production
         ValidateIssuerSigningKey = true,
         ClockSkew = TimeSpan.Zero
     };
 
-    // --- CRITICAL FOR WEBSOCKETS ---
+    // 🔌 WebSocket support
     o.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
-            // Extract token from query string (e.g., ?access_token=eyJ...)
+
             var accessToken = context.Request.Query["access_token"];
 
-            // If the request is for our WebSocket path, assign the token
+
             var path = context.HttpContext.Request.Path;
+
             if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/ws"))
             {
                 context.Token = accessToken;
             }
             return Task.CompletedTask;
-        },
+        },      
+         OnAuthenticationFailed = context =>
+         {
+             var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+             logger.LogError(context.Exception, "USER Auth Failed");
+             return Task.CompletedTask;
+         }
+
+    };
+})
+
+// ================= TENANT JWT =================
+.AddJwtBearer("TenantScheme", o =>
+{
+    o.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = builder.Configuration["JwtTenant:Issuer"],
+        ValidAudience = builder.Configuration["JwtTenant:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["JwtTenant:Key"])
+        ),
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = false, // change to true in production
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero
+    };
+
+    o.Events = new JwtBearerEvents
+    {
         OnAuthenticationFailed = context =>
         {
-            // Logs the reason for 401 in your console
-            Console.WriteLine("Auth Failed: " + context.Exception.Message);
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(context.Exception, "TENANT Auth Failed");
             return Task.CompletedTask;
         }
     };
 });
-
 builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
@@ -201,7 +237,11 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
-app.UseSerilogRequestLogging();
+//app.UseSerilogRequestLogging();
+//app.UseSerilogRequestLogging(options =>
+//{
+ //   options.MessageTemplate = "Handled {RequestPath}";
+//});
 app.UseSwagger();
 app.UseSwaggerUI();
 if (app.Environment.IsDevelopment())
@@ -210,9 +250,34 @@ if (app.Environment.IsDevelopment())
 }
 //app.UseMiddleware<JwtValidationMiddleware>();
 
-app.UseExceptionHandler("/Error");
+//app.UseExceptionHandler("/Error");
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exceptionHandler = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+
+        logger.LogError(exceptionHandler?.Error, "Global Exception Occurred");
+
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+
+        await context.Response.WriteAsync(
+            System.Text.Json.JsonSerializer.Serialize(new
+            {
+                StatusCode = 500,
+                Message = "Internal Server Error"
+            })
+        );
+    });
+});
+
+
+
 app.UseRouting();
 //app.UseCors(MyAllowSpecificOrigins);
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors("AllowAll");
 
 app.UseAuthentication();

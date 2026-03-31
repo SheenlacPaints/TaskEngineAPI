@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
+using TaskEngineAPI.Services;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -491,21 +492,13 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
-
-        [Authorize]
+     
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
         {
             try
             {
-                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(jwtToken))
-                {
-                    return Unauthorized("Missing Authorization token.");
-                }
                 var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}Account/UpdateSuperAdminpassword");
-                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
@@ -1030,6 +1023,74 @@ namespace TaskEngineAPI.Controllers
                 return StatusCode(500, encc);
             }
         }
+
+        [Authorize]
+        [HttpPost("ProjectfileUpload")]
+        public async Task<IActionResult> ProjectfileUpload([FromForm] ProjectfileUploadDTO request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var formContent = new MultipartFormDataContent();
+
+                if (request.files != null && request.files.Count > 0)
+                {
+                    foreach (var file in request.files)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var fileContent = new StreamContent(file.OpenReadStream());
+                            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(file.ContentType);
+                            formContent.Add(fileContent, "files", file.FileName);
+                        }
+                    }
+                }
+                else
+                {
+                    return BadRequest("No files selected.");
+                }
+
+                if (!string.IsNullOrEmpty(request.type))
+                {
+                    formContent.Add(new StringContent(request.type), "type");
+                }
+
+                if (!string.IsNullOrEmpty(request.id))
+                {
+                    formContent.Add(new StringContent(request.id), "id");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}Account/ProjectfileUpload");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = formContent;
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"{body}";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"{enc}";
+                return StatusCode(500, encc);
+            }
+        }
+
+
+
         [Authorize]
         [HttpGet("Getdropdown")]
         public async Task<IActionResult> Getdropdown([FromQuery] string? column)
@@ -2722,6 +2783,19 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [HttpGet("GetProjectfileview")]
+        public async Task<IActionResult> GetProjectfileview(string fileName, string type, int tenant, int projectid, string raisedby)
+        {
+
+            var (stream, contentType) = await _minioService.GetprojectFileAsync(fileName, type, tenant, projectid, raisedby);
+
+            Response.Headers.Add("Content-Disposition", "inline");
+
+            return File(stream, contentType);
+        }
+
+
+
         [Authorize]
         [HttpGet("Getmetaviewdatabyid")]
         public async Task<IActionResult> Getmetaviewdatabyid([FromQuery] int id)
@@ -3587,6 +3661,179 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}APIIntegration/FetchBoardAPIIntegrationAPIAsync");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("GetProcessEngineclipbyid")]
+        public async Task<IActionResult> GetProcessEngineclipbyid([FromQuery] int id)
+        {
+            try
+            {
+                // Extract token from incoming request
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                // Attach token to outbound request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}ProcessEngine/GetProcessEngineclipbyid?id={id}");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);            
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+
+        [Authorize(AuthenticationSchemes = "TenantScheme")]
+        [HttpPost("autoinitiatetask")]
+        public async Task<IActionResult> autoinitiatetask([FromBody] TaskAutoMasterDTO request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}TaskMaster/autoinitiatetask");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                return StatusCode((int)response.StatusCode, body);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                return StatusCode(500, err);
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet("FetchAPIReportingAsync")]
+        public async Task<IActionResult> FetchAPIReportingAsync()
+        {
+            try
+            {
+                // Extract token from incoming request
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                // Attach token to outbound request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}TaskMaster/FetchAPIReportingAsync");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpPut("changepassword")]
+        public async Task<IActionResult> changepassword([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+                var requestMessage = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}Account/changepassword");
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+                var response = await _httpClient.SendAsync(requestMessage);
+                var body = await response.Content.ReadAsStringAsync();
+                string json = $"\"{body}\"";
+                return StatusCode((int)response.StatusCode, json);
+            }
+            catch (Exception ex)
+            {
+                var err = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error calling external API: {ex.Message}"
+                };
+                string jsonn = JsonConvert.SerializeObject(err);
+                string enc = AesEncryption.Encrypt(jsonn);
+                string encc = $"\"{enc}\"";
+                return StatusCode(500, encc);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("FetchAPIEmployeeTimesheetAsync")]
+        public async Task<IActionResult> FetchAPIEmployeeTimesheetAsync([FromBody] pay request)
+        {
+            try
+            {
+                var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(jwtToken))
+                {
+                    return Unauthorized("Missing Authorization token.");
+                }
+
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}TaskMaster/FetchAPIEmployeeTimesheetAsync");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);

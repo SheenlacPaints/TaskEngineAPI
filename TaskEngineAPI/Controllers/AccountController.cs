@@ -1472,8 +1472,7 @@ namespace TaskEngineAPI.Controllers
         //    return StatusCode(response.status, encrypted);
         //}
 
-
-        [Authorize]
+    
         [HttpPut("UpdateSuperAdminpassword")]
         public async Task<IActionResult> UpdateSuperAdminpassword([FromBody] pay request)
         {
@@ -1489,30 +1488,6 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "Payload cannot be empty");
                 }
 
-                var authHeader = HttpContext.Request.Headers["Authorization"].FirstOrDefault();
-                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-                {
-                    return EncryptedError(401, "Authorization header is missing or invalid");
-                }
-
-                var token = authHeader.Substring("Bearer ".Length).Trim();
-
-                var handler = new JwtSecurityTokenHandler();
-                var jwtToken = handler.ReadJwtToken(token);
-
-                var tenantIdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "cTenantID")?.Value;
-                var usernameClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
-
-                if (string.IsNullOrEmpty(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID))
-                {
-                    return EncryptedError(401, "Invalid or missing cTenantID in token");
-                }
-
-                if (string.IsNullOrEmpty(usernameClaim))
-                {
-                    return EncryptedError(401, "Invalid or missing username in token");
-                }
-
                 string decryptedJson = AesEncryption.Decrypt(request.payload);
                 var model = JsonConvert.DeserializeObject<UpdateadminPassword>(decryptedJson);
 
@@ -1521,7 +1496,7 @@ namespace TaskEngineAPI.Controllers
                     return EncryptedError(400, "Invalid payload or password");
                 }
 
-                bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model, cTenantID, usernameClaim);
+                bool success = await _AccountService.UpdatePasswordSuperAdminAsync(model);
 
                 var response = new APIResponse
                 {
@@ -6091,6 +6066,275 @@ namespace TaskEngineAPI.Controllers
             catch (Exception ex)
             {
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("GetToken")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetToken([FromBody] User user)
+        {
+            try
+            {
+           
+                if (user == null || string.IsNullOrEmpty(user.userName) || string.IsNullOrEmpty(user.password))
+                {
+                    return BadRequest(JsonConvert.SerializeObject(new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Username and password must be provided."
+                    }));
+                }
+
+                var connStr = _config.GetConnectionString("Database");
+
+                string tenantID = "";
+                string tenantName = "";
+                string tenantCode = "";
+
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                SELECT cTenantID, cTenantName, cTenantCode, capi_password
+                FROM Tenants
+                WHERE capi_username = @username";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@username", user.userName);
+
+                        using (var reader = await cmd.ExecuteReaderAsync())
+                        {
+                            if (!await reader.ReadAsync())
+                            {
+                                return NotFound(JsonConvert.SerializeObject(new APIResponse
+                                {
+                                    status = 404,
+                                    statusText = "User does not exist."
+                                }));
+                            }
+
+                            // Read DB values
+                            tenantID = reader["cTenantID"]?.ToString();
+                            tenantName = reader["cTenantName"]?.ToString();
+                            tenantCode = reader["cTenantCode"]?.ToString();
+                            string dbPassword = reader["capi_password"]?.ToString();
+
+                            // 🔐 Password check (IMPORTANT)
+                            if (user.password != dbPassword)
+                            {
+                                return Unauthorized(JsonConvert.SerializeObject(new APIResponse
+                                {
+                                    status = 401,
+                                    statusText = "Invalid password."
+                                }));
+                            }
+                        }
+                    }
+                }
+                var token = _jwtService.GenerateTenantToken(user.userName,Convert.ToInt32(tenantID));
+
+                var loginDetails = new
+                {
+                    token = token
+                };
+
+                var success = new APIResponse
+                {
+                    status = 200,
+                    statusText = "Logged in Successfully",
+                    body = new[] { loginDetails }
+                };
+
+                return Ok(JsonConvert.SerializeObject(success));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, JsonConvert.SerializeObject(new APIResponse
+                {
+                    status = 500,
+                    statusText = "Error: " + ex.Message
+                }));
+            }
+        }
+
+
+        [Authorize]
+        [HttpPost("ProjectfileUpload")]
+        public async Task<IActionResult> ProjectfileUpload([FromForm] ProjectfileUploadDTO model)
+        {
+            if (model == null)
+            {
+                return EncryptedError(400, "Request body cannot be null");
+            }
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadToken(jwtToken) as JwtSecurityToken;
+
+            var tenantIdClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "cTenantID")?.Value;
+            var usernameClaim = jsonToken?.Claims.SingleOrDefault(claim => claim.Type == "username")?.Value;
+            string username = usernameClaim;
+
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) || !int.TryParse(tenantIdClaim, out int cTenantID) || string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                var error = new APIResponse
+                {
+                    status = 401,
+                    statusText = "Invalid or missing cTenantID in token."
+                };
+                string errorJson = JsonConvert.SerializeObject(error);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                return StatusCode(401, $"\"{encryptedError}\"");
+            }
+
+            try
+            {
+                if (model.files == null || model.files.Count == 0)
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "No files selected."
+                    };
+                    string errorJson = JsonConvert.SerializeObject(error);
+                    string encryptedError = AesEncryption.Encrypt(errorJson);
+                    return BadRequest($"\"{encryptedError}\"");
+                }
+
+                var uploadedFileNames = new List<string>();
+
+                foreach (var file in model.files)
+                {
+                    if (file != null && file.Length > 0)
+                    {
+                        await _minioService.ProjectFileUploadFileAsync(file, model.type, cTenantID,model.id,model.raiseby);
+                        uploadedFileNames.Add(file.FileName);
+                    }
+                }
+
+                if (uploadedFileNames.Count > 0)
+                {
+                    try
+                    {
+                        string connStr = _config.GetConnectionString("Database");
+                        using (var conn = new SqlConnection(connStr))
+                        {
+                            await conn.OpenAsync();
+
+                            string targetTable = model.type.ToLower() switch
+                            {
+                                "project" => "Tbl_Project_Master",
+                                _ => throw new Exception("Invalid type. Must be 'Task' or 'Taskdetail' or 'Process'or 'Project'.")
+                            };
+                            string columnName = model.raiseby.ToLower() switch
+                            {
+                                "client" => "RaisedByAttachment",
+                                "manager" => "AssignedManagerAttachment",
+                                _ => throw new Exception("Invalid raiseby. Use 'client' or 'manager'")
+                            };
+                            var fileNamesJson = JsonConvert.SerializeObject(uploadedFileNames);
+
+                            string query = $@"
+                        UPDATE {targetTable}
+                        SET {columnName} = @ProfilePath
+                        WHERE id = @UserId";
+                            using (var cmd = new SqlCommand(query, conn))
+                            {
+                                cmd.Parameters.AddWithValue("@ProfilePath", fileNamesJson);
+                                cmd.Parameters.AddWithValue("@UserId", model.id);
+
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
+                    catch (Exception dbEx)
+                    {
+
+                    }
+                }
+
+                var response = new APIResponse
+                {
+                    status = 200,
+                    statusText = $"{uploadedFileNames.Count} file(s) uploaded successfully."
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                string encc = $"\"{encrypted}\"";
+                return StatusCode(200, encc);
+            }
+            catch (Exception ex)
+            {
+                var errorResponse = new APIResponse
+                {
+                    status = 500,
+                    statusText = $"Error occurred: {ex.Message}"
+                };
+                string errorJson = JsonConvert.SerializeObject(errorResponse);
+                string encryptedError = AesEncryption.Encrypt(errorJson);
+                string encc = $"\"{encryptedError}\"";
+                return StatusCode(500, encc);
+            }
+        }
+      
+        
+        [Authorize]
+        [HttpPut("changepassword")]
+        public async Task<IActionResult> changepassword([FromBody] pay request)
+        {
+            var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (string.IsNullOrWhiteSpace(jwtToken))
+            {
+                return EncryptedError(400, "Authorization token is missing");
+            }
+            var (cTenantID, username) = GetUserInfoFromToken();
+
+            try
+            {
+                if (request == null)
+                {
+                    return EncryptedError(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return EncryptedError(400, "Payload cannot be empty");
+                }
+
+                string decryptedJson = AesEncryption.Decrypt(request.payload);
+                var model = JsonConvert.DeserializeObject<UpdateUserPasswordDTO>(decryptedJson);
+
+                if (model == null || string.IsNullOrWhiteSpace(model.cpassword))
+                {
+                    return EncryptedError(400, "Invalid payload or password");
+                }
+
+                bool success = await _AccountService.UpdatePasswordUserAsync(model, cTenantID, username);
+
+                var response = new APIResponse
+                {
+                    status = success ? 200 : 404,
+                    statusText = success ? "Password updated successfully" : "User not found"
+                };
+
+                string json = JsonConvert.SerializeObject(response);
+                string encrypted = AesEncryption.Encrypt(json);
+                return StatusCode(response.status, encrypted);
+            }
+            catch (SecurityTokenException ex)
+            {
+                return EncryptedError(401, $"Invalid token: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return EncryptedError(500, $"Internal server error: {ex.Message}");
             }
         }
 

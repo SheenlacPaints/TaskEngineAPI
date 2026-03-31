@@ -130,6 +130,8 @@ namespace TaskEngineAPI.DTO
         public string? cremarks { get; set; }
 
         public string? cmeta_response { get; set; }
+        public bool? nis_external_api_enabled { get; set; }
+        public int? nexternal_api_id { get; set; }
         public List<TimelineDTO>? timeline { get; set; }
         public List<processEnginetaskMeta> meta { get; set; }
         public List<GetprocessEngineConditionDTO> board { get; set; }
@@ -203,6 +205,10 @@ namespace TaskEngineAPI.DTO
         public string? Remarks { get; set; }
         public bool? showTimeline { get; set; }
         public string? cmeta_response { get; set; }
+
+        public bool? nis_external_api_enabled { get; set; }
+        public int? nexternal_api_id { get; set; }
+        
         public List<TimelineDTO>? timeline { get; set; }
 
         public List<processEnginetaskMeta> meta { get; set; }
@@ -503,6 +509,28 @@ namespace TaskEngineAPI.DTO
         public int? ID { get; set; }
         public int? itaskno { get; set; }
     }
+
+    public class autometaData
+    {
+        public string? data { get; set; }
+
+    }
+ 
+    public class TaskAutoMasterDTO
+    {
+       
+        public string? processcode { get; set; }
+        public string? remarks { get; set; }
+        public string? Initiator { get; set; }
+        public List<autometaData> metaData { get; set; }
+    }
+
+    public class EmpTimesheetDTO
+    {
+        public string? Project { get; set; }
+        
+    }
+
 }
 
 

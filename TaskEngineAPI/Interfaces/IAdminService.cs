@@ -22,7 +22,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> CheckuserUsernameExistsAsync(int cuserid, int tenantId);
         Task<bool> CheckuserEmailExistsAsync(string email, int tenantId);
         Task<bool> CheckuserPhonenoExistsAsync(string phoneno, int tenantId);
-        Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model, int tenantId, string username);
+        Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model);
         Task<bool> CheckuserUsernameExistsputAsync(string username, int tenantId,int cuserid);
         Task<bool> CheckuserEmailExistsputAsync(string email, int tenantId,int cuserid);
         Task<bool> CheckuserPhonenoExistsputAsync(string phoneno, int tenantId, int cuserid);

@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using System.Text;
 using Newtonsoft.Json.Linq;
 using Azure;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace TaskEngineAPI.Controllers
 {
@@ -52,6 +53,10 @@ namespace TaskEngineAPI.Controllers
             }
             return (cTenantID, usernameClaim);
         }
+
+        
+
+
         private T DeserializePayload<T>(string encryptedPayload) where T : class
         {
             try
@@ -139,7 +144,13 @@ namespace TaskEngineAPI.Controllers
                     throw new InvalidOperationException("Task insertion failed.");
                 }
 
-                //bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
+                bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
+                bool isWhatsAppEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+
+                if (isWhatsAppEnabled)
+                {
+                    await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
+                }
 
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
 
@@ -1040,22 +1051,31 @@ namespace TaskEngineAPI.Controllers
 
                 bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
 
-               
-               // if (model.status == "A" && model.ID.HasValue)
-               // {
-                   // await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
-               // }
+                bool isWhatsAppEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
 
-               // if (model.reassignto != null)
-                //{
-                 //   bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
-                  //  bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
+                
+                
+                if (model.status == "A" && model.ID.HasValue && isWhatsAppEnabled)
+                {
+                    await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
+                }
 
-                //}
-               // if (model.status == "H")
-               // {
-               //     bool holdsuccessss = await taskMasterService.holdwhatappnotificationAsync(model, cTenantID, username);
-               // }
+                if (model.reassignto != null && isWhatsAppEnabled)
+                {
+                    bool successss = await taskMasterService.sendwhatappnotificationAsync(model, cTenantID, username);
+                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
+
+                }
+                if (model.status == "H" && isWhatsAppEnabled)
+                {
+                    bool holdsuccessss = await taskMasterService.holdwhatappnotificationAsync(model, cTenantID, username);
+                }
+
+                if (model.status == "R" && isWhatsAppEnabled)
+                {
+                    bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
+
+                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model,cTenantID,username);
 
                 //if (model.status == "R")
                // {
@@ -1260,8 +1280,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
         [Authorize]
         [HttpGet]
         [Route("Getmetadataviewdataid")]
@@ -1298,9 +1316,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
-
-
-        
 
         [Authorize]
         [HttpGet]
@@ -1379,8 +1394,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
-
         [Authorize]
         [HttpGet]
         [Route("GettaskTimelineDetails")]
@@ -1418,9 +1431,6 @@ namespace TaskEngineAPI.Controllers
 
         }
 
-
-
-
         [Authorize]
         [HttpGet]
         [Route("Getworkflowdashboard")]
@@ -1444,7 +1454,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
-
 
         [Authorize]
         [HttpGet]
@@ -1503,7 +1512,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
-
 
         private async Task SendWhatsAppNotificationAsync()
         {
@@ -1575,7 +1583,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpPost]
         [Route("FetchAPIORGStructureAsync")]
@@ -1609,7 +1616,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
-
 
         [HttpPost("TestExternalAPI")]
         public async Task<IActionResult> TestExternalAPI([FromBody] ApiTestRequestDTO model)
@@ -1686,7 +1692,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
-
 
         [Authorize]
         [HttpPost]
@@ -1791,6 +1796,122 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
+
+        private (int tenantId, string username) GetTenantInfo()
+        {
+            var tenantIdClaim = User.FindFirst("tenantId")?.Value;
+            var usernameClaim = User.FindFirst("username")?.Value;
+            var typeClaim = User.FindFirst("type")?.Value;
+            // ✅ Ensure this is tenant token
+            if (typeClaim != "tenant")
+                throw new UnauthorizedAccessException("Invalid token type");
+            if (string.IsNullOrWhiteSpace(tenantIdClaim) ||
+                !int.TryParse(tenantIdClaim, out int tenantId) ||
+                string.IsNullOrWhiteSpace(usernameClaim))
+            {
+                throw new UnauthorizedAccessException("Invalid tenant token claims");
+            }
+            return (tenantId, usernameClaim);
+        }
+
+        [Authorize(AuthenticationSchemes = "TenantScheme")]
+        [HttpPost]
+        [Route("autoinitiatetask")]
+        public async Task<IActionResult> autoinitiatetask([FromBody] TaskAutoMasterDTO model)
+        {
+            try
+            {
+               // int ccTenantID = 1500;
+               var (ccTenantID, username) = GetTenantInfo();
+                int insertedUserId = await taskMasterService.autoInsertTaskMasterAsync(model, ccTenantID);
+                if (insertedUserId <= 0)
+                {
+                    throw new InvalidOperationException("Task insertion failed.");
+                }
+                return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("FetchAPIReportingAsync")]
+        public async Task<IActionResult> FetchAPIReportingAsync()
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();             
+                var json = (await taskMasterService.FetchAPIMISReportingAsync(cTenantID, username)).ToString();
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+       
+        [Authorize]
+        [HttpPost]
+        [Route("FetchAPIEmployeeTimesheetAsync")]
+        public async Task<IActionResult> FetchAPIEmployeeTimesheetAsync([FromBody] pay request)
+        {
+
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<EmpTimesheetDTO>(request.payload);
+                var json = await taskMasterService.FetchAPIEmployeeTimesheetAsync(cTenantID, username, model.Project);
+                var jObject = Newtonsoft.Json.Linq.JObject.Parse(json);
+                var bodyString = jObject["body"]?.ToString();
+
+                if (string.IsNullOrEmpty(bodyString))
+                {
+                    return CreateEncryptedResponse(500, "Invalid API response");
+                }
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(bodyString);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+     
+
+
+
+
 
 
     }

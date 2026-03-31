@@ -141,7 +141,7 @@ namespace TaskEngineAPI.Services
                             }
                             ;
                         }
-
+                       
                         else
                         {
                             using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
@@ -171,7 +171,8 @@ namespace TaskEngineAPI.Services
 
                                         TotalBudgetPerVersion = sdr.IsDBNull(sdr.GetOrdinal("TotalBudgetPerVersion")) ? string.Empty : Convert.ToString(sdr["TotalBudgetPerVersion"]),
                                         expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
-
+                                        ManagerAttachment= sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerAttachment")) ? string.Empty : Convert.ToString(sdr["AssignedManagerAttachment"]),
+                                        ClientAttachment= sdr.IsDBNull(sdr.GetOrdinal("RaisedByAttachment")) ? string.Empty : Convert.ToString(sdr["RaisedByAttachment"]),
                                         project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
                                                      ? new List<ProjectDetailResponse>()
                                                      : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)

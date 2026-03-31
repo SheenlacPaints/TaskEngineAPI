@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -1638,7 +1639,8 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,e.cprofile_image_name,
                     c.cmeta_id,
                     a.itaskno,
-                    a.cremarks,b.cattachment,a.cmeta_response
+                    a.cremarks,b.cattachment,a.cmeta_response,
+                    d.nis_external_api_enabled,d.nexternal_api_id
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -1686,6 +1688,8 @@ namespace TaskEngineAPI.Services
                                     cremarks = reader["cremarks"]?.ToString() ?? "",
                                     cattachment = reader["cattachment"]?.ToString() ?? "",
                                     cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
+                                    nis_external_api_enabled = reader.SafeGetBoolean("showTimeline"),
+                                    nexternal_api_id = reader.SafeGetInt("nexternal_api_id"),
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
@@ -2103,6 +2107,18 @@ namespace TaskEngineAPI.Services
                             await cmd.ExecuteNonQueryAsync();
                         }
                     }
+                    if (model.status == "A")
+                    {
+                        using (SqlCommand cmd = new SqlCommand("sp_update_conditionalflow", conn, transaction))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@itaskno", model.itaskno);
+                            cmd.Parameters.AddWithValue("@ID", model.ID);
+                            cmd.Parameters.AddWithValue("@ctenantid", cTenantID);
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                    }
+
 
                     transaction.Commit();
                     committed = true;
@@ -2324,7 +2340,9 @@ namespace TaskEngineAPI.Services
                     d.id AS processdetailid,
                     c.cmeta_id,
                     a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks,
-                    a.cmeta_response
+                    a.cmeta_response,
+                    d.nis_external_api_enabled,
+                    d.nexternal_api_id
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2372,6 +2390,8 @@ namespace TaskEngineAPI.Services
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
+                                    nis_external_api_enabled= reader.SafeGetBoolean("showTimeline"),
+                                    nexternal_api_id = Convert.ToInt32(reader["nexternal_api_id"]),
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
@@ -5176,6 +5196,373 @@ namespace TaskEngineAPI.Services
                 return $"Error: {ex.Message}";
             }
         }
+
+
+        public async Task<int> autoInsertTaskMasterAsync(TaskAutoMasterDTO model, int tenantId)
+        {
+            int masterId = 0;
+            int primaryDetailId = 0;
+
+            var connectionString = _config.GetConnectionString("Database");
+
+            using (var conn = new SqlConnection(connectionString))
+            {
+                await conn.OpenAsync();
+
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // ✅ 1. GET PROCESS MASTER
+                        string processName = null;
+                        string processDesc = null;
+                        string privilegeType = null;
+                        int processId = 0;
+                        int cmeta_id = 0;
+
+                        string processQuery = @"
+                    SELECT cprivilege_type, ID, cprocessname, cprocessdescription, cmeta_id
+                    FROM tbl_process_engine_master 
+                    WHERE cprocesscode = @cprocesscode";
+
+                        using (var processCmd = new SqlCommand(processQuery, conn, transaction))
+                        {
+                            processCmd.Parameters.Add("@cprocesscode", SqlDbType.VarChar).Value = model.processcode;
+
+                            using (var reader = await processCmd.ExecuteReaderAsync())
+                            {
+                                if (await reader.ReadAsync())
+                                {
+                                    privilegeType = reader["cprivilege_type"]?.ToString();
+                                    processId = Convert.ToInt32(reader["ID"]);
+                                    processName = reader["cprocessname"]?.ToString();
+                                    processDesc = reader["cprocessdescription"]?.ToString();
+                                    cmeta_id = Convert.ToInt32(reader["cmeta_id"]); // ✅ FIXED
+                                }
+                            }
+                        }
+
+                        // ✅ 2. GENERATE TASK NUMBER
+                        string taskNoQuery = @"
+                    SELECT ISNULL(MAX(TRY_CAST(itaskno AS INT)), 0) + 1 
+                    FROM tbl_taskflow_master 
+                    WHERE ctenant_id = @TenantID";
+
+                        int newTaskNo;
+                        using (var taskNoCmd = new SqlCommand(taskNoQuery, conn, transaction))
+                        {
+                            taskNoCmd.Parameters.Add("@TenantID", SqlDbType.Int).Value = tenantId;
+                            var result = await taskNoCmd.ExecuteScalarAsync();
+                            newTaskNo = result != null ? Convert.ToInt32(result) : 1;
+                        }
+
+                        // ✅ 3. INSERT MASTER
+                        string queryMaster = @"
+                    INSERT INTO tbl_taskflow_master (
+                        itaskno, ctenant_id, ctask_type, ctask_name, ctask_description, cstatus,  
+                        lcreated_date, ccreated_by, cmodified_by, lmodified_date, cprocess_id, cremarks, cmeta_response
+                    ) VALUES (
+                        @itaskno, @TenantID, @ctask_type, @ctask_name, @ctask_description, @cstatus,
+                        @ccreated_date, @ccreated_by, @cmodified_by, @lmodified_date, @cprocess_id, @cremarks, @cmeta_response
+                    );
+                    SELECT SCOPE_IDENTITY();";
+
+                        using (var cmd = new SqlCommand(queryMaster, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
+                            cmd.Parameters.AddWithValue("@TenantID", tenantId);
+                            cmd.Parameters.AddWithValue("@ctask_type", privilegeType);
+                            cmd.Parameters.AddWithValue("@ctask_name", processName);
+                            cmd.Parameters.AddWithValue("@ctask_description", processDesc);
+                            cmd.Parameters.AddWithValue("@cstatus", "Initiated");
+                            cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@ccreated_by", model.Initiator);
+                            cmd.Parameters.AddWithValue("@cmodified_by", model.Initiator);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@cprocess_id", processId);
+                            cmd.Parameters.AddWithValue("@cremarks", model.remarks ?? (object)DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cmeta_response", "");
+
+                            var newId = await cmd.ExecuteScalarAsync();
+                            masterId = newId != null ? Convert.ToInt32(newId) : 0;
+                        }
+
+                        // ✅ 4. GET PROCESS DETAILS
+                        string selectQuery = @"
+                    SELECT ciseqno, ctask_type, cprev_step, cnext_seqno, cmapping_code,
+                           nboard_enabled, cparticipant_type, csla_day, csla_Hour,
+                           caction_privilege, crejection_privilege
+                    FROM tbl_process_engine_details 
+                    WHERE cheader_id = @cprocess_id AND ctenant_id = @tenant_id";
+
+                        var detailRows = new List<Dictionary<string, object>>();
+
+                        using (var cmdSelect = new SqlCommand(selectQuery, conn, transaction))
+                        {
+                            cmdSelect.Parameters.Add("@cprocess_id", SqlDbType.Int).Value = processId;
+                            cmdSelect.Parameters.Add("@tenant_id", SqlDbType.Int).Value = tenantId;
+
+                            using (var reader = await cmdSelect.ExecuteReaderAsync())
+                            {
+                                while (await reader.ReadAsync())
+                                {
+                                    var row = new Dictionary<string, object>
+                                    {
+                                        ["ciseqno"] = reader["ciseqno"],
+                                        ["ctasktype"] = reader["ctask_type"],
+                                        ["cnextseqno"] = reader["cnext_seqno"],
+                                        ["cprevstep"] = reader["cprev_step"],
+                                        ["cmapping_code"] = reader["cmapping_code"],
+                                        ["nboard_enabled"] = reader["nboard_enabled"],
+                                        ["cparticipant_type"] = reader["cparticipant_type"],
+                                        ["csla_day"] = reader["csla_day"],
+                                        ["csla_Hour"] = reader["csla_Hour"],
+                                        ["caction_privilege"] = reader["caction_privilege"],
+                                        ["crejection_privilege"] = reader["crejection_privilege"]
+                                    };
+                                    detailRows.Add(row);
+                                }
+                            }
+                        }
+
+                        // ✅ 5. INSERT DETAILS + STATUS
+                        string queryDetail = @"
+                    INSERT INTO tbl_taskflow_detail (
+                        itaskno, iseqno, iheader_id, ctenant_id, ctask_type, cmapping_code, 
+                        ccurrent_status, lcurrent_status_date, cremarks, inext_seqno, 
+                        cnext_seqtype, cprevtype, nboard_enabled, cprocess_type, 
+                        csla_day, csla_Hour, caction_privilege, crejection_privilege
+                    ) VALUES (
+                        @itaskno, @iseqno, @iheader_id, @ctenant_id, @ctask_type, @cmapping_code, 
+                        @ccurrent_status, @lcurrent_status_date, @cremarks, @inext_seqno, 
+                        @cnext_seqtype, @cprevtype, @nboard_enabled, @cparticipant_type, 
+                        @csla_day, @csla_Hour, @caction_privilege, @crejection_privilege
+                    );
+                    SELECT SCOPE_IDENTITY();";
+
+                        string queryStatus = @"
+                    INSERT INTO tbl_transaction_taskflow_detail_and_status (
+                        itaskno, ctenant_id, cheader_id, cdetail_id, cstatus, cstatus_with, lstatus_date
+                    ) VALUES 
+                        (@itaskno, @ctenant_id, @cheader_id, @cdetail_id, @cstatus, @cstatus_with, @lstatus_date);";
+
+                        bool isFirstRow = true;
+
+                        foreach (var row in detailRows)
+                        {
+                            string currentStatus = isFirstRow ? "P" : "N";
+
+                            
+                            int detailId;
+
+                            using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
+                            {
+                                cmdInsert.Parameters.AddWithValue("@itaskno", newTaskNo);
+                                cmdInsert.Parameters.AddWithValue("@iseqno", row["ciseqno"]);
+                                cmdInsert.Parameters.AddWithValue("@iheader_id", masterId);
+                                cmdInsert.Parameters.AddWithValue("@ctenant_id", tenantId);
+                                cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
+                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cmapping_code"]);
+                                cmdInsert.Parameters.AddWithValue("@ccurrent_status", currentStatus);
+                                cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
+                                cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
+                                cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
+                                cmdInsert.Parameters.AddWithValue("@cnext_seqtype", DBNull.Value);
+                                cmdInsert.Parameters.AddWithValue("@cprevtype", row["cprevstep"]);
+                                cmdInsert.Parameters.AddWithValue("@nboard_enabled", row["nboard_enabled"]);
+                                cmdInsert.Parameters.AddWithValue("@cparticipant_type", row["cparticipant_type"]);
+                                cmdInsert.Parameters.AddWithValue("@csla_day", row["csla_day"]);
+                                cmdInsert.Parameters.AddWithValue("@csla_Hour", row["csla_Hour"]);
+                                cmdInsert.Parameters.AddWithValue("@caction_privilege", row["caction_privilege"]);
+                                cmdInsert.Parameters.AddWithValue("@crejection_privilege", row["crejection_privilege"]);
+
+                                var newId = await cmdInsert.ExecuteScalarAsync();
+                                detailId = newId != null ? Convert.ToInt32(newId) : 0;
+                            }
+
+                            if (isFirstRow)
+                            {
+                                primaryDetailId = detailId;
+                                isFirstRow = false;
+                            }
+
+                            using (var cmdStatus = new SqlCommand(queryStatus, conn, transaction))
+                            {
+                                cmdStatus.Parameters.AddWithValue("@itaskno", newTaskNo);
+                                cmdStatus.Parameters.AddWithValue("@ctenant_id", tenantId);
+                                cmdStatus.Parameters.AddWithValue("@cheader_id", 1);
+                                cmdStatus.Parameters.AddWithValue("@cdetail_id", detailId);
+                                cmdStatus.Parameters.AddWithValue("@cstatus", currentStatus);
+                                cmdStatus.Parameters.AddWithValue("@cstatus_with", row["cmapping_code"]);
+                                cmdStatus.Parameters.AddWithValue("@lstatus_date", DateTime.Now);
+
+                                await cmdStatus.ExecuteNonQueryAsync();
+                            }
+                        }
+
+                        // ✅ 6. META FETCH + INSERT (FINAL FIX)
+                        var dbMetaList = new List<int>();
+
+                        string getMetaQuery = @"
+                    SELECT ID 
+                    FROM tbl_process_meta_detail 
+                    WHERE cheader_id = @cheader_id
+                    ORDER BY ID";
+
+                        using (var cmdMeta = new SqlCommand(getMetaQuery, conn, transaction))
+                        {
+                            cmdMeta.Parameters.Add("@cheader_id", SqlDbType.Int).Value = cmeta_id;
+
+                            using (var reader = await cmdMeta.ExecuteReaderAsync())
+                            {
+                                while (await reader.ReadAsync())
+                                {
+                                    dbMetaList.Add(Convert.ToInt32(reader["ID"]));
+                                }
+                            }
+                        }
+
+                        if (primaryDetailId > 0 && model.metaData != null && dbMetaList.Count > 0)
+                        {
+                            string metaInsertQuery = @"
+                        INSERT INTO tbl_transaction_process_meta_layout (
+                            cmeta_id, cprocess_id, cprocess_code, ctenant_id, 
+                            cdata, citaskno, cdetail_id, cmeta_response
+                        ) VALUES (
+                            @cmeta_id, @cprocess_id, @cprocess_code, @TenantID, 
+                            @cdata, @citaskno, @cdetail_id, @cmeta_response
+                        );";
+
+                            for (int i = 0; i < dbMetaList.Count; i++)
+                            {
+                                var metaValue = (i < model.metaData.Count) ? model.metaData[i].data : null;
+
+                                using (SqlCommand cmd = new SqlCommand(metaInsertQuery, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@TenantID", tenantId);
+                                    cmd.Parameters.AddWithValue("@cmeta_id", dbMetaList[i]);
+                                    cmd.Parameters.AddWithValue("@cprocess_id", processId);
+                                    cmd.Parameters.AddWithValue("@cprocess_code", processName);
+                                    cmd.Parameters.AddWithValue("@cdata", (object?)metaValue ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@citaskno", newTaskNo);
+                                    cmd.Parameters.AddWithValue("@cdetail_id", primaryDetailId);
+                                    cmd.Parameters.AddWithValue("@cmeta_response", DBNull.Value);
+
+                                    await cmd.ExecuteNonQueryAsync();
+                                }
+                            }
+                        }
+
+                        // ✅ 7. CALL SP
+                        using (SqlCommand cmd = new SqlCommand("sp_task_updatereportingflow", conn, transaction))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@ID", masterId);
+                            cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
+                            cmd.Parameters.AddWithValue("@ctenantID", tenantId);
+
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+
+            return masterId;
+        }
+
+        public async Task<string> FetchAPIMISReportingAsync(int cTenantID, string username)
+        {
+            try
+            {
+            
+                string monthYear = DateTime.Now.ToString("MM-yyyy");
+                string apiUrl = $"https://misapi.sheenlac.com/api/Task/GetDashboarddata/{username}/{monthYear}";
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(60);
+                    HttpResponseMessage response = await client.GetAsync(apiUrl);
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return $"Error: {response.StatusCode} - {result}";
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ex.Message}";
+            }
+        }
+
+        public async Task<string> FetchAPIEmployeeTimesheetAsync(int cTenantID, string username,string project)
+        {
+            try
+            {
+                string apiUrl = "https://misapi.sheenlac.com/api/Progovex/EmployeeTimeSheetDtls";
+
+                using (HttpClient client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromSeconds(60);
+
+                    var requestData = new
+                    {
+                        empNumber = username.PadLeft(8, '0'),   
+                        type = "GetEmployee_TimeSheet",
+                        ProjectId = project
+                    };
+
+                    var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                    var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                    string result = await response.Content.ReadAsStringAsync();
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return $"Error: {response.StatusCode} - {result}";
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error: {ex.Message}";
+            }
+        }
+
+
+      
+        public async Task<bool> IsWhatsAppNotificationEnabled(int tenantId)
+        {
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+            {
+                await conn.OpenAsync();
+                string query = "SELECT top 1 ISNULL(nwhatsapp_notification, 0) FROM Tenants WHERE cTenantID = @TenantID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TenantID", tenantId);
+                    var result = await cmd.ExecuteScalarAsync();
+                    return Convert.ToInt32(result) == 1;
+
+                }
+            }
+        }
+
+
 
     }
 }

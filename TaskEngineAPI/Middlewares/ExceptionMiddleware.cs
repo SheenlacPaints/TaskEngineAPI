@@ -1,12 +1,14 @@
 ﻿using System.Net;
 using TaskEngineAPI.Services;
+using Serilog.Context;
+
 namespace TaskEngineAPI.Middlewares
 {
     public class ExceptionMiddleware
     {
-
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionMiddleware> _logger;
+
         public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
         {
             _next = next;
@@ -15,44 +17,78 @@ namespace TaskEngineAPI.Middlewares
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
-            try
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var requestGuid = Guid.NewGuid();
+            var requestId = requestGuid.ToString("N").Substring(0, 8);
+
+            var user = httpContext.User?.Identity?.Name ?? "Anonymous";
+            var path = $"{httpContext.Request.Path}{httpContext.Request.QueryString}";
+
+            using (LogContext.PushProperty("RequestId", requestId))
+            using (LogContext.PushProperty("User", user))
             {
-                await _next(httpContext);
-            }
-            catch (Exception ex)
-            {               
-                _logger.LogError(ex, "Unhandled exception occurred");
+                try
+                {
+                    await _next(httpContext);
 
-                var tenantId = httpContext.Items.ContainsKey("TenantID") ? httpContext.Items["TenantID"] as int? : null;
-                var userId = httpContext.Items.ContainsKey("UserID") ? httpContext.Items["UserID"] as int? : null;
-                var requestId = Guid.NewGuid(); // Or read from X-Correlation-ID header if present
-               
-                Exceptionlog.LogException(
-                    message: ex.Message,
+                    stopwatch.Stop();
 
+                    _logger.LogInformation(
+                        "{Method} {Path} → {StatusCode} ({Elapsed} ms)",
+                        httpContext.Request.Method,
+                        path,
+                        httpContext.Response.StatusCode,
+                        stopwatch.ElapsedMilliseconds
+                    );
+                }
+                catch (Exception ex)
+                {
+                    stopwatch.Stop();
 
-                    docType: "GlobalMiddleware",
-                    ex: ex,
-                    tenantId: tenantId,
-                    userId: userId,
-                    requestId: requestId
-                );
-                await HandleExceptionAsync(httpContext, ex);
+                    var tenantId = httpContext.Items.ContainsKey("TenantID") ? httpContext.Items["TenantID"] as int? : null;
+                    var userId = httpContext.Items.ContainsKey("UserID") ? httpContext.Items["UserID"] as int? : null;
+
+                    _logger.LogError(ex,
+                        "{Method} {Path} → {StatusCode} ({Elapsed} ms) | Tenant: {TenantId} | UserId: {UserId}",
+                        httpContext.Request.Method,
+                        path,
+                        (int)HttpStatusCode.InternalServerError,
+                        stopwatch.ElapsedMilliseconds,
+                        tenantId,
+                        userId
+                    );
+
+                    try
+                    {
+                        Exceptionlog.LogException(
+                            message: ex.Message,
+                            docType: "GlobalMiddleware",
+                            ex: ex,
+                            tenantId: tenantId,
+                            userId: userId,
+                            requestId: requestGuid
+                        );
+                    }
+                    catch (Exception logEx)
+                    {
+                        _logger.LogError(logEx, "Error while saving exception log");
+                    }
+
+                    await HandleExceptionAsync(httpContext, ex, requestGuid);
+                }
             }
         }
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+
+        private static Task HandleExceptionAsync(HttpContext context, Exception exception, Guid requestId)
         {
             context.Response.ContentType = "application/json";
-            var statusCode = (int)HttpStatusCode.InternalServerError;
 
-            if (exception is UnauthorizedAccessException)
+            var statusCode = exception switch
             {
-                statusCode = (int)HttpStatusCode.Unauthorized;
-            }
-            else if (exception is ArgumentException)
-            {
-                statusCode = (int)HttpStatusCode.BadRequest;
-            }
+                UnauthorizedAccessException => (int)HttpStatusCode.Unauthorized,
+                ArgumentException => (int)HttpStatusCode.BadRequest,
+                _ => (int)HttpStatusCode.InternalServerError
+            };
 
             context.Response.StatusCode = statusCode;
 
@@ -60,12 +96,11 @@ namespace TaskEngineAPI.Middlewares
             {
                 success = false,
                 statusCode = statusCode,
-                message = exception.Message,
-                requestId = Guid.NewGuid()
-                //  details = exception.StackTrace 
+                message = "Something went wrong. Please contact support.",
+                requestId = requestId
             };
+
             return context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
         }
-
     }
 }

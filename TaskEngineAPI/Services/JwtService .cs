@@ -138,5 +138,31 @@ namespace TaskEngineAPI.Services
             return tokenHandler.WriteToken(token);
         }
 
+        public string GenerateTenantToken(string username, int tenantId)
+        {
+            var claims = new[]
+            {
+        new Claim("username", username),
+        new Claim("tenantId", tenantId.ToString()),
+        new Claim("type", "tenant") // 🔥 VERY IMPORTANT
+    };
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_config["JwtTenant:Key"])
+            );
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _config["JwtTenant:Issuer"],
+                audience: _config["JwtTenant:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(1),
+                signingCredentials: creds
+            );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+
     }
 }

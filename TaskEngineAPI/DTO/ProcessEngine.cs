@@ -102,6 +102,9 @@ namespace TaskEngineAPI.DTO
         public string? cboard_metaapi_response { get; set; }
         public bool? nis_custom_meta { get; set; }
         public int? ccustom_meta_seqno { get; set; }
+        public bool? nis_external_api_enabled { get; set; }
+        public int? nexternal_api_id { get; set; }
+     
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
    
@@ -486,7 +489,11 @@ namespace TaskEngineAPI.DTO
         public string? cboard_metaapi_response { get; set; }
         public bool? nis_custom_meta { get; set; }
         public int? ccustom_meta_seqno { get; set; }
+
+        public bool? nis_external_api_enabled { get; set; }
+        public int? nexternal_api_id { get; set; }
         
+
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
 
@@ -536,13 +543,47 @@ namespace TaskEngineAPI.DTO
         public bool? cis_active { get; set; }
         public List<privilegeList>? privilegeList { get; set; }
     }
-
-
     public class DeleteProcessMappingDTO
     {
         public int MappingId { get; set; }
     }
 
-  
+
+    public class processEngineclipMeta
+    {
+        public string? inputType { get; set; }
+        public string? label { get; set; }
+        public string? placeholder { get; set; }
+        public bool? isRequired { get; set; }
+        public bool? isReadonly { get; set; }
+        public bool? isDisabled { get; set; }
+        public string? fieldValue { get; set; }
+        public string? datasource { get; set; }
+    }
+
+    public class TenantAPIdata
+    {
+        public string? capi_username { get; set; }
+        public string? capi_password { get; set; }
+        public string? cautoinitiate_api_url { get; set; }
+        public string? cautoinitiate_api_payload { get; set; }
+        public string? ctoken_api_url { get; set; }
+        public string? ctoken_api_payload { get; set; }    
+    }
+
+    public class GetIDProcessclipEngineDTO
+    {
+        public string? processcode { get; set; }
+        public string? processname { get; set; }
+        public string? processdescription { get; set; }
+        public int?    privilege_type { get; set; }
+        public string? privilege_name { get; set; }       
+        public List<processEngineclipMeta> Meta { get; set; }
+        public List<TenantAPIdata> TenantAPIdata { get; set; }
+
+    }
+
+
+
 }
 
