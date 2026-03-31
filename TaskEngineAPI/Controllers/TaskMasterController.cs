@@ -1075,8 +1075,8 @@ namespace TaskEngineAPI.Controllers
                 {
                     bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
 
-                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model,cTenantID,username);
-
+                    bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
+                }
                 //if (model.status == "R")
                // {
                  //   bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
