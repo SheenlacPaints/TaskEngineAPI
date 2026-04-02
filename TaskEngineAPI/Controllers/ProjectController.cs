@@ -197,7 +197,7 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
 
-                var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize, projectid, versionid, detailid, remarks1);
+                var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize, projectid, versionid, detailid, remarks1, remarks2, remarks3);
                 if (type == "Client_Approve")
                 {
                     var response1 = JsonConvert.DeserializeObject<List<ClientApprove>>(json);
