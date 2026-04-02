@@ -132,6 +132,18 @@ namespace TaskEngineAPI.Controllers
                         }
                     }
                 }
+                if (string.IsNullOrWhiteSpace(hashedPassword))
+                {
+                    var error = new APIResponse
+                    {
+                        status = 400,
+                        statusText = "Password not set. Please reset your password."
+                    };
+                    string json = JsonConvert.SerializeObject(error);
+                    string encrypted = AesEncryption.Encrypt(json);
+                    return StatusCode(400, encrypted);
+                }
+
                 bool isValid = BCrypt.Net.BCrypt.Verify(User.password, hashedPassword.Trim());
 
 
@@ -146,6 +158,8 @@ namespace TaskEngineAPI.Controllers
                     string encrypted = AesEncryption.Encrypt(json);
                     return StatusCode(400, encrypted);
                 }
+                
+
 
                 if (!int.TryParse(tenantID, out int tenantIdInt))
                 {
