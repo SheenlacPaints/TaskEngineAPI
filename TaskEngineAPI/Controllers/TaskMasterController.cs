@@ -144,7 +144,7 @@ namespace TaskEngineAPI.Controllers
                     throw new InvalidOperationException("Task insertion failed.");
                 }
 
-                bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
+               // bool success = await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
                 bool isWhatsAppEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
 
                 if (isWhatsAppEnabled)
@@ -1885,7 +1885,7 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<EmpTimesheetDTO>(request.payload);
-                var json = await taskMasterService.FetchAPIEmployeeTimesheetAsync(cTenantID, username, model.Project);
+                var json = await taskMasterService.FetchAPIEmployeeTimesheetAsync(cTenantID, model.userid, model.Project);
                 var jObject = Newtonsoft.Json.Linq.JObject.Parse(json);
                 var bodyString = jObject["body"]?.ToString();
 

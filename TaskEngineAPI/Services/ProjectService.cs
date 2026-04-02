@@ -515,8 +515,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        public async Task<int> CreateProjectVersionAsync(
-            int projectId,
+        public async Task<int> CreateProjectVersionAsync(int projectId,
             string description,
             DateTime? expectedDate,
             string username)

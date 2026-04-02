@@ -528,6 +528,8 @@ namespace TaskEngineAPI.DTO
     public class EmpTimesheetDTO
     {
         public string? Project { get; set; }
+
+        public string? userid { get; set; }
         
     }
 
