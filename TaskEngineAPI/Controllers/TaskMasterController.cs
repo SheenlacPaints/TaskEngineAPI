@@ -1868,7 +1868,7 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("FetchAPIEmployeeTimesheetAsync")]
-        public async Task<IActionResult> GetProjectTimesheet([FromBody] pay request)
+        public async Task<IActionResult> FetchAPIEmployeeTimesheetAsync([FromBody] pay request)
         {
             try
             {
@@ -1903,7 +1903,42 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [Authorize]
+        [HttpPost]
+        [Route("GetProjectTimesheet")]
+        public async Task<IActionResult> GetProjectTimesheet([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
 
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<EmpTimesheetDTO>(request.payload);
+
+                var json = await taskMasterService.FetchAPIProjectEmployeeTimesheetAsync(model.userid, model.Project);
+
+                // ✅ Service now returns plain JSON array string — parse directly
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
     }
 }

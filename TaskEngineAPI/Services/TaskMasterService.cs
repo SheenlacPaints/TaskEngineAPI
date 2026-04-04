@@ -5491,7 +5491,6 @@ namespace TaskEngineAPI.Services
             }
         }
 
-       
         public async Task<string> FetchAPIProjectEmployeeTimesheetAsync(string empid, string project)
         {
             try
@@ -5511,10 +5510,8 @@ namespace TaskEngineAPI.Services
 
                     var resultList = new List<Dictionary<string, object>>();
 
-                    // ✅ Use SqlDataReader instead of DataSet — reads rows directly, no nesting issues
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        // Skip empty result sets (row-count messages), find the one with columns
                         while (reader.FieldCount == 0)
                         {
                             if (!await reader.NextResultAsync()) break;
@@ -5532,7 +5529,6 @@ namespace TaskEngineAPI.Services
                                 foreach (var col in columns)
                                 {
                                     var val = reader[col];
-                                    // ✅ Convert DBNull to null cleanly
                                     row[col] = val == DBNull.Value ? null : val;
                                 }
                                 resultList.Add(row);
@@ -5540,6 +5536,7 @@ namespace TaskEngineAPI.Services
                         }
                     }
 
+                    // ✅ Return plain array — no { data: [...] } wrapper
                     return JsonConvert.SerializeObject(resultList, Formatting.Indented);
                 }
             }
@@ -5548,6 +5545,10 @@ namespace TaskEngineAPI.Services
                 throw new Exception($"Error: project='{project}', emp='{empid}': {ex.Message}");
             }
         }
+
+
+
+
 
     }
 }
