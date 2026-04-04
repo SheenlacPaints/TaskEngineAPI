@@ -1865,19 +1865,18 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-       
         [Authorize]
         [HttpPost]
         [Route("FetchAPIEmployeeTimesheetAsync")]
-        public async Task<IActionResult> FetchAPIEmployeeTimesheetAsync([FromBody] pay request)
+        public async Task<IActionResult> GetProjectTimesheet([FromBody] pay request)
         {
-
             try
             {
                 if (request == null || string.IsNullOrWhiteSpace(request.payload))
                 {
                     return CreateEncryptedResponse(400, "Request payload is required");
                 }
+
                 if (!ModelState.IsValid)
                 {
                     return CreateEncryptedResponse(400, "Invalid request payload");
@@ -1885,15 +1884,11 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<EmpTimesheetDTO>(request.payload);
-                var json = await taskMasterService.FetchAPIEmployeeTimesheetAsync(cTenantID, model.userid, model.Project);
-                var jObject = Newtonsoft.Json.Linq.JObject.Parse(json);
-                var bodyString = jObject["body"]?.ToString();
 
-                if (string.IsNullOrEmpty(bodyString))
-                {
-                    return CreateEncryptedResponse(500, "Invalid API response");
-                }
-                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(bodyString);
+                var json = await taskMasterService.FetchAPIProjectEmployeeTimesheetAsync(model.userid, model.Project);
+
+                
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
                 return CreatedDataResponse(data);
             }
@@ -1906,10 +1901,6 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
-
-     
-
-
 
 
 

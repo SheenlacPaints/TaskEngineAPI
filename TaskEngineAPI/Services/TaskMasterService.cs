@@ -5491,7 +5491,63 @@ namespace TaskEngineAPI.Services
             }
         }
 
-      
+       
+        public async Task<string> FetchAPIProjectEmployeeTimesheetAsync(string empid, string project)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_timesheet_project_details", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.Add("@project_id", SqlDbType.NVarChar, 300).Value =
+                        string.IsNullOrWhiteSpace(project) ? (object)DBNull.Value : project.Trim();
+
+                    cmd.Parameters.Add("@emp_no", SqlDbType.NVarChar, 20).Value =
+                        string.IsNullOrWhiteSpace(empid) ? (object)DBNull.Value : empid.Trim();
+
+                    await con.OpenAsync();
+
+                    var resultList = new List<Dictionary<string, object>>();
+
+                    // ✅ Use SqlDataReader instead of DataSet — reads rows directly, no nesting issues
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        // Skip empty result sets (row-count messages), find the one with columns
+                        while (reader.FieldCount == 0)
+                        {
+                            if (!await reader.NextResultAsync()) break;
+                        }
+
+                        if (reader.FieldCount > 0)
+                        {
+                            var columns = Enumerable.Range(0, reader.FieldCount)
+                                                    .Select(reader.GetName)
+                                                    .ToList();
+
+                            while (await reader.ReadAsync())
+                            {
+                                var row = new Dictionary<string, object>();
+                                foreach (var col in columns)
+                                {
+                                    var val = reader[col];
+                                    // ✅ Convert DBNull to null cleanly
+                                    row[col] = val == DBNull.Value ? null : val;
+                                }
+                                resultList.Add(row);
+                            }
+                        }
+                    }
+
+                    return JsonConvert.SerializeObject(resultList, Formatting.Indented);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error: project='{project}', emp='{empid}': {ex.Message}");
+            }
+        }
 
     }
 }
