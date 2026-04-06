@@ -70,6 +70,10 @@ namespace TaskEngineAPI.Interfaces
         Task<string> FetchAPIEmployeeTimesheetAsync(int cTenantID, string username, string project);
         Task<bool> IsWhatsAppNotificationEnabled(int tenantId);
         Task<string> FetchAPIProjectEmployeeTimesheetAsync(string empid, string project);
+        Task<bool> newtaskarrivesinboxpushnotificationAsync(int ID, int cTenantID, string username);
+
+        Task<bool> IsPushNotificationEnabled(int tenantId);
+
     }
 
 }

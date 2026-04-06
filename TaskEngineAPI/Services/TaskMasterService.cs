@@ -5546,8 +5546,84 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<bool> newtaskarrivesinboxpushnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
 
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
 
+                    using (SqlCommand cmd = new SqlCommand("sp_newtaskarrivesinboxv1", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();
+                            client.Timeout = TimeSpan.FromSeconds(60);
+
+                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                            bool allSuccess = true;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
+                                string cuserid = reader["cuserid"]?.ToString()?.Trim() ?? "";
+                                string message = reader["message"]?.ToString()?.Trim() ?? "";
+
+                                if (string.IsNullOrWhiteSpace(cphoneno))
+                                    continue;
+
+                                var requestData = new
+                                {
+                                    empid = cuserid,
+                                    message = message
+                                };
+
+                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    allSuccess = false; // mark failure but continue
+                                }
+                            }
+
+                            return allSuccess;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("WhatsApp notification failed: " + ex.Message);
+            }
+        }
+
+        public async Task<bool> IsPushNotificationEnabled(int tenantId)
+        {
+            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+            {
+                await conn.OpenAsync();
+                string query = "SELECT top 1 ISNULL(npush_notification, 0) FROM Tenants WHERE cTenantID = @TenantID";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@TenantID", tenantId);
+                    var result = await cmd.ExecuteScalarAsync();
+                    return Convert.ToInt32(result) == 1;
+
+                }
+            }
+        }
 
 
     }

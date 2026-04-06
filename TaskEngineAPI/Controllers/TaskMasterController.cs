@@ -151,6 +151,15 @@ namespace TaskEngineAPI.Controllers
                 {
                     await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
                 }
+                bool IsPushNotificationEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+
+
+                if (IsPushNotificationEnabled)
+                {
+                    await taskMasterService.newtaskarrivesinboxpushnotificationAsync(insertedUserId, cTenantID, username);
+                }
+                
+
 
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
 
@@ -1939,6 +1948,40 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [Authorize]
+        [HttpPost]
+        [Route("SendTaskNotification")]
+        public async Task<IActionResult> SendTaskNotification([FromQuery] int ID)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
+                bool notificationStatus = await taskMasterService
+                    .newtaskarrivesinboxpushnotificationAsync(ID, cTenantID, username);
+                return Ok(new
+                {
+                    status = notificationStatus ? 200 : 500,
+                    success = notificationStatus,
+                    message = notificationStatus
+                        ? "Notification sent successfully"
+                        : "Notification sending failed"
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
 
     }
 }
