@@ -151,7 +151,7 @@ namespace TaskEngineAPI.Controllers
                 {
                     await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
                 }
-                bool IsPushNotificationEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+                bool IsPushNotificationEnabled = await taskMasterService.IsPushNotificationEnabled(cTenantID);
 
 
                 if (IsPushNotificationEnabled)
