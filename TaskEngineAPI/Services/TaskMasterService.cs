@@ -2326,7 +2326,7 @@ namespace TaskEngineAPI.Services
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     cmeta_response = reader["cmeta_response"]?.ToString() ?? "",
                                     nis_external_api_enabled= reader.SafeGetBoolean("showTimeline"),
-                                    nexternal_api_id = Convert.ToInt32(reader["nexternal_api_id"]),
+                                    nexternal_api_id = reader.SafeGetInt("nexternal_api_id") ,
                                     timeline = new List<TimelineDTO>(),
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
