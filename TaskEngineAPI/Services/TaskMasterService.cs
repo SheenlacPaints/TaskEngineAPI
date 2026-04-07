@@ -5607,6 +5607,69 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<bool> newtaskcreateinboxpushnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_newtaskcreateinboxv1", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();
+                            client.Timeout = TimeSpan.FromSeconds(60);
+
+                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                            bool allSuccess = true;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
+                                string cuserid = reader["cuserid"]?.ToString()?.Trim() ?? "";
+                                string message = reader["message"]?.ToString()?.Trim() ?? "";
+
+                                if (string.IsNullOrWhiteSpace(cphoneno))
+                                    continue;
+
+                                var requestData = new
+                                {
+                                    empid = cuserid,
+                                    message = message
+                                };
+
+                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    allSuccess = false; // mark failure but continue
+                                }
+                            }
+
+                            return allSuccess;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("WhatsApp notification failed: " + ex.Message);
+            }
+        }
+
+
         public async Task<bool> IsPushNotificationEnabled(int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
@@ -5850,6 +5913,98 @@ namespace TaskEngineAPI.Services
                     }
                 }
         }
+
+        public async Task<bool> newprojectraisepushnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+            string? senderName = null;
+            try
+            {
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+                    string getsenderQuery = @"SELECT top 1 cuser_name  FROM Users 
+          WHERE cuserid = @sender and nIs_deleted=0";
+                    using (SqlCommand sendCmd = new SqlCommand(getsenderQuery, con))
+                    {
+                        sendCmd.Parameters.AddWithValue("@sender", username);
+                        var result = await sendCmd.ExecuteScalarAsync();
+                        senderName = result?.ToString() ?? "User";
+                    }
+                    using (SqlCommand cmd = new SqlCommand("sp_newprojectraisetomanagersendmsg", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();   // create once
+                            var url = _whatsAppSettings.Url;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuser_name = reader["cuser_name"]?.ToString() ?? "";
+                                string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
+                                string clientname = reader["client_name"]?.ToString()?.Trim() ?? "";
+                                string projectname = reader["ProjectName"]?.ToString()?.Trim() ?? "";
+
+                                //string companyclientname = senderName + " - " + clientname;
+
+                                string companyclientname = $"{senderName} - {clientname}";
+
+                                if (string.IsNullOrWhiteSpace(cphoneno))
+                                    continue;
+
+                                var payload = new
+                                {
+                                    apiKey = _whatsAppSettings.ApiKey,
+                                    campaignName = "ProjectCnew",
+                                    destination = cphoneno,//"8220237725",//cphoneno,//"918220237725",
+                                    userName = "Sheenlac Paintss",
+                                    templateParams = new[]
+                                    {
+                                        cuser_name,
+                                       companyclientname,
+                                        projectname
+                                        },
+                                    source = "new-landing-page form",
+                                    media = new { },
+                                    buttons = Array.Empty<string>(),
+                                    carouselCards = Array.Empty<string>(),
+                                    location = new { },
+                                    attributes = new { },
+                                    paramsFallbackValue = new
+                                    {
+                                        FirstName = cuser_name,
+                                        Taskname = clientname,
+                                        projectname = projectname
+                                    }
+                                };
+
+                                var response = await client.PostAsJsonAsync(_whatsAppSettings.Url, payload);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    var error = await response.Content.ReadAsStringAsync();
+
+                                }
+
+                            }
+                        }
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("WhatsApp notification failed: " + ex.Message);
+            }
+        }
+
+
     }
 }
 

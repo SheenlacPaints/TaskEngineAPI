@@ -77,7 +77,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> holdpushnotificationAsync(updatetaskDTO model, int cTenantID, string username);
         Task<bool> IsPushNotificationEnabled(int tenantId);
         Task<bool> RejectpushnotificationAsync(updatetaskDTO model, int cTenantID, string username);
-
+        Task<bool> newtaskcreateinboxpushnotificationAsync(int ID, int cTenantID, string username);
     }
 
 }

@@ -156,9 +156,8 @@ namespace TaskEngineAPI.Controllers
 
                 if (IsPushNotificationEnabled)
                 {
-                    await taskMasterService.newtaskarrivesinboxpushnotificationAsync(insertedUserId, cTenantID, username);
+                    await taskMasterService.newtaskcreateinboxpushnotificationAsync(insertedUserId, cTenantID, username);                  
                 }
-                
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
 
             }
