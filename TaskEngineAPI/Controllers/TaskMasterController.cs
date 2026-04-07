@@ -159,10 +159,7 @@ namespace TaskEngineAPI.Controllers
                     await taskMasterService.newtaskarrivesinboxpushnotificationAsync(insertedUserId, cTenantID, username);
                 }
                 
-
-
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
-
 
             }
             catch (UnauthorizedAccessException ex)
@@ -1061,12 +1058,18 @@ namespace TaskEngineAPI.Controllers
                 bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
 
                 bool isWhatsAppEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+                
+                bool IsPushNotificationEnabled = await taskMasterService.IsPushNotificationEnabled(cTenantID);
 
-                
-                
+
                 if (model.status == "A" && model.ID.HasValue && isWhatsAppEnabled)
                 {
                     await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
+                }
+                if (model.status == "A" && model.ID.HasValue && IsPushNotificationEnabled)
+                {
+                   await taskMasterService.newtaskarrivesinboxpushnotificationAsync(model.ID.Value, cTenantID, username);
+
                 }
 
                 if (model.reassignto != null && isWhatsAppEnabled)
@@ -1075,10 +1078,22 @@ namespace TaskEngineAPI.Controllers
                     bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
 
                 }
+                if (model.reassignto != null && IsPushNotificationEnabled)
+                {
+                    await taskMasterService.sendpushnotificationAsync(model, cTenantID,username);
+                    await taskMasterService.reassigntoinitiatorpushnotificationAsync(model, cTenantID, username);
+                }
+                
+
                 if (model.status == "H" && isWhatsAppEnabled)
                 {
                     bool holdsuccessss = await taskMasterService.holdwhatappnotificationAsync(model, cTenantID, username);
                 }
+                if (model.status == "H" && IsPushNotificationEnabled)
+                {
+                   await taskMasterService.holdpushnotificationAsync(model, cTenantID, username);
+                }
+
 
                 if (model.status == "R" && isWhatsAppEnabled)
                 {
@@ -1086,13 +1101,12 @@ namespace TaskEngineAPI.Controllers
 
                     bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
                 }
-                //if (model.status == "R")
-               // {
-                 //   bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
+                if (model.status == "R" && IsPushNotificationEnabled)
+                {
+                    await taskMasterService.RejectpushnotificationAsync(model, cTenantID, username);
+                }
 
-                   // bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model,cTenantID,username);
-               // }
-
+              
 
                 if (!success)
                 {

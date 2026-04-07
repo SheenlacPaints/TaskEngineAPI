@@ -723,7 +723,6 @@ namespace TaskEngineAPI.Services
             }
         }
 
-
         public async Task<string> DeptposrolecrudAsync(DeptPostRoleDTO model, int cTenantID, string username)
         {
             try
@@ -5626,6 +5625,231 @@ namespace TaskEngineAPI.Services
         }
 
 
+        public async Task<bool> sendpushnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+           
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_task_reassign_notification", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@reassignto", SqlDbType.VarChar).Value = model.reassignto;
+                        cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();
+                            client.Timeout = TimeSpan.FromSeconds(60);
+
+                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                            bool allSuccess = true;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuserid = reader["cuserid"]?.ToString() ?? "";
+                                string message = reader["message"]?.ToString() ?? "";
+
+                                if (string.IsNullOrWhiteSpace(cuserid))
+                                    continue;
+
+                                var requestData = new
+                                {
+                                    empid = cuserid,
+                                    message = message
+                                };
+
+                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    allSuccess = false;
+                                }
+                            }
+
+                            return allSuccess;
+                        }
+                    }
+                }
+        }
+
+        public async Task<bool> reassigntoinitiatorpushnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+           
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_task_reassign_to_initiator_notification", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@reassignto", SqlDbType.VarChar).Value = model.reassignto;
+                        cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();
+                            client.Timeout = TimeSpan.FromSeconds(60);
+
+                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                            bool allSuccess = true;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuserid = reader["cuserid"]?.ToString() ?? "";
+                                string message = reader["message"]?.ToString() ?? "";
+
+                                if (string.IsNullOrWhiteSpace(cuserid))
+                                    continue;
+
+                                var requestData = new
+                                {
+                                    empid = cuserid,
+                                    message = message
+                                };
+
+                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    allSuccess = false;
+                                }
+                            }
+                            return allSuccess;
+                        }
+                    }
+                }
+           
+        }
+
+        public async Task<bool> holdpushnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_task_hold_notification", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();
+                            client.Timeout = TimeSpan.FromSeconds(60);
+
+                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                            bool allSuccess = true;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuserid = reader["cuserid"]?.ToString() ?? "";
+                                string message = reader["message"]?.ToString() ?? "";
+
+                                if (string.IsNullOrWhiteSpace(cuserid))
+                                    continue;
+
+                                var requestData = new
+                                {
+                                    empid = cuserid,
+                                    message = message
+                                };
+
+                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    allSuccess = false;
+                                }
+                            }
+
+                            return allSuccess;
+                        }
+                    }
+                }
+        }
+
+        public async Task<bool> RejectpushnotificationAsync(updatetaskDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+                using (SqlConnection con = new SqlConnection(connStr))
+                {
+                    await con.OpenAsync();
+
+                    using (SqlCommand cmd = new SqlCommand("sp_task_reject_notification", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
+                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                        cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            var client = _httpClientFactory.CreateClient();
+                            client.Timeout = TimeSpan.FromSeconds(60);
+
+                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                            bool allSuccess = true;
+
+                            while (await reader.ReadAsync())
+                            {
+                                string cuserid = reader["cuserid"]?.ToString() ?? "";
+                                string message = reader["message"]?.ToString() ?? "";
+
+                                if (string.IsNullOrWhiteSpace(cuserid))
+                                    continue;
+
+                                var requestData = new
+                                {
+                                    empid = cuserid,
+                                    message = message
+                                };
+
+                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                                if (!response.IsSuccessStatusCode)
+                                {
+                                    allSuccess = false;
+                                }
+                            }
+
+                            return allSuccess;
+                        }
+                    }
+                }
+        }
     }
 }
 
