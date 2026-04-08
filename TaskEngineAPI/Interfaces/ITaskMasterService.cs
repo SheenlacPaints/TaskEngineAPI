@@ -81,6 +81,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> newprojectraisepushnotificationAsync(int ID, int cTenantID, string username);
 
         Task<string> Getsubordinate_dashboard(int cTenantID, string username, string? searchText = null);
+        Task<bool> projectbackclienforapprovalpushnotificationAsync(int ID, int cTenantID, string username);
 
     }
 

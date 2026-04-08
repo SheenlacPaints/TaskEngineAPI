@@ -328,6 +328,20 @@ namespace TaskEngineAPI.Controllers
                 }
 
                 await _ProjectService.InsertProjectDetails(model, cTenantID, username);
+                var headerId = model.FirstOrDefault()?.header_id;
+                bool isWhatsAppEnabled = await _TaskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+
+                //if (isWhatsAppEnabled)
+                //{
+                //    await _TaskMasterService.newprojectraisewhatappnotificationAsync(model.header_id,value, cTenantID, username);
+                //}
+              
+                bool IsPushNotificationEnabled = await _TaskMasterService.IsPushNotificationEnabled(cTenantID);
+
+                if (IsPushNotificationEnabled && headerId.HasValue)
+                {
+                    await _TaskMasterService.projectbackclienforapprovalpushnotificationAsync(headerId.Value, cTenantID, username);
+                }
 
                 return CreatedSuccessResponse("Project details inserted successfully");
             }

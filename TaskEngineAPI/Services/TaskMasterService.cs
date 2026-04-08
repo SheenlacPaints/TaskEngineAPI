@@ -5473,6 +5473,35 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<string> Getsubordinate_dashboard(int cTenantID, string username, string? searchText = null)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_progovex_subordinate_dashboard", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
+                    cmd.Parameters.AddWithValue("@userid", username);
+                    cmd.Parameters.AddWithValue("@searchtext", searchText);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
         public async Task<bool> IsWhatsAppNotificationEnabled(int tenantId)
         {
             using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
@@ -5913,79 +5942,114 @@ namespace TaskEngineAPI.Services
                     }
                 }
         }
+     
+       
         public async Task<bool> newprojectraisepushnotificationAsync(int ID, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
-            string? senderName = null;
-
             using (SqlConnection con = new SqlConnection(connStr))
             {
                 await con.OpenAsync();
-                string getsenderQuery = @"SELECT top 1 cuser_name  FROM Users 
-  WHERE cuserid = @sender and nIs_deleted=0";
-                using (SqlCommand sendCmd = new SqlCommand(getsenderQuery, con))
-                {
-                    sendCmd.Parameters.AddWithValue("@sender", username);
-                    var result = await sendCmd.ExecuteScalarAsync();
-                    senderName = result?.ToString() ?? "User";
-                }
+
                 using (SqlCommand cmd = new SqlCommand("sp_newprojectraisetomanagersendmsg", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
-                    cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
                     cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
-
+                    cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
                     using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        var client = _httpClientFactory.CreateClient();   // create once
-                        var url = _whatsAppSettings.Url;
+                        var client = _httpClientFactory.CreateClient();
+                        client.Timeout = TimeSpan.FromSeconds(60);
+
+                        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                        bool allSuccess = true;
 
                         while (await reader.ReadAsync())
                         {
-                            string cuser_name = reader["cuser_name"]?.ToString() ?? "";
-                            string cphoneno = reader["cphoneno"]?.ToString()?.Trim() ?? "";
-                            string clientname = reader["client_name"]?.ToString()?.Trim() ?? "";
-                            string projectname = reader["ProjectName"]?.ToString()?.Trim() ?? "";
+                            string cuserid = reader["cuserid"]?.ToString() ?? "";
+                            string message = reader["message"]?.ToString() ?? "";
+
+                            if (string.IsNullOrWhiteSpace(cuserid))
+                                continue;
+
+                            var requestData = new
+                            {
+                                empid = cuserid,
+                                message = message
+                            };
+
+                            var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                allSuccess = false;
+                            }
                         }
+
+                        return allSuccess;
                     }
                 }
-
-                return true;
             }
-
         }
 
-        public async Task<string> Getsubordinate_dashboard(int cTenantID, string username,string? searchText = null)
+
+        public async Task<bool> projectbackclienforapprovalpushnotificationAsync(int ID, int cTenantID, string username)
         {
-            try
+            var connStr = _config.GetConnectionString("Database");
+            using (SqlConnection con = new SqlConnection(connStr))
             {
-                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
-                using (var cmd = new SqlCommand("sp_get_progovex_subordinate_dashboard", con))
+                await con.OpenAsync();
+
+                using (SqlCommand cmd = new SqlCommand("sp_projectbackclienforapproval", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@tenentid", cTenantID);
-                    cmd.Parameters.AddWithValue("@userid", username);
-                    cmd.Parameters.AddWithValue("@searchtext", searchText);
-                    var ds = new DataSet();
-                    var adapter = new SqlDataAdapter(cmd);
-                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
 
-                    if (ds.Tables.Count > 0)
+                    cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+                    cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
-                    }
+                        var client = _httpClientFactory.CreateClient();
+                        client.Timeout = TimeSpan.FromSeconds(60);
 
-                    return "[]";
+                        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                        bool allSuccess = true;
+
+                        while (await reader.ReadAsync())
+                        {
+                            string cuserid = reader["cuserid"]?.ToString() ?? "";
+                            string message = reader["message"]?.ToString() ?? "";
+
+                            if (string.IsNullOrWhiteSpace(cuserid))
+                                continue;
+
+                            var requestData = new
+                            {
+                                empid = cuserid,
+                                message = message
+                            };
+
+                            var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                allSuccess = false;
+                            }
+                        }
+
+                        return allSuccess;
+                    }
                 }
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
         }
-
-
 
     }
 }
