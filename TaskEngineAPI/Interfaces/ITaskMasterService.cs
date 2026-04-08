@@ -78,6 +78,10 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> IsPushNotificationEnabled(int tenantId);
         Task<bool> RejectpushnotificationAsync(updatetaskDTO model, int cTenantID, string username);
         Task<bool> newtaskcreateinboxpushnotificationAsync(int ID, int cTenantID, string username);
+        Task<bool> newprojectraisepushnotificationAsync(int ID, int cTenantID, string username);
+
+        Task<string> Getsubordinate_dashboard(int cTenantID, string username, string? searchText = null);
+
     }
 
 }

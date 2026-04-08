@@ -168,7 +168,24 @@ namespace TaskEngineAPI.Controllers
                 {
                     return CreateEncryptedResponse(500, "Failed to create Process");
                 }
-               // bool success = await _TaskMasterService.newprojectraisewhatappnotificationAsync(insertedUserId, cTenantID, username);
+                // bool success = await _TaskMasterService.newprojectraisewhatappnotificationAsync(insertedUserId, cTenantID, username);
+
+                bool isWhatsAppEnabled = await _TaskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+
+                if (isWhatsAppEnabled)
+                {
+                    await _TaskMasterService.newprojectraisewhatappnotificationAsync(insertedUserId, cTenantID, username);
+                }
+                bool IsPushNotificationEnabled = await _TaskMasterService.IsPushNotificationEnabled(cTenantID);
+
+
+                if (IsPushNotificationEnabled)
+                {
+                    await _TaskMasterService.newprojectraisepushnotificationAsync(insertedUserId, cTenantID, username);
+                }
+
+
+
 
                 return CreatedSuccessResponse(new { projectid = insertedUserId }, "Project created successfully");
             }
