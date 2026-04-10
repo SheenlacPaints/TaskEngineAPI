@@ -70,6 +70,19 @@ namespace TaskEngineAPI.Interfaces
         Task<string> FetchAPIEmployeeTimesheetAsync(int cTenantID, string username, string project);
         Task<bool> IsWhatsAppNotificationEnabled(int tenantId);
         Task<string> FetchAPIProjectEmployeeTimesheetAsync(string empid, string project);
+        Task<bool> newtaskarrivesinboxpushnotificationAsync(int ID, int cTenantID, string username);
+        Task<bool> sendpushnotificationAsync(updatetaskDTO model, int cTenantID, string username);
+        Task<bool> reassigntoinitiatorpushnotificationAsync(updatetaskDTO model, int cTenantID, string username);
+
+        Task<bool> holdpushnotificationAsync(updatetaskDTO model, int cTenantID, string username);
+        Task<bool> IsPushNotificationEnabled(int tenantId);
+        Task<bool> RejectpushnotificationAsync(updatetaskDTO model, int cTenantID, string username);
+        Task<bool> newtaskcreateinboxpushnotificationAsync(int ID, int cTenantID, string username);
+        Task<bool> newprojectraisepushnotificationAsync(int ID, int cTenantID, string username);
+
+        Task<string> Getsubordinate_dashboard(int cTenantID, string username, string? searchText = null);
+        Task<bool> projectbackclienforapprovalpushnotificationAsync(int ID, int cTenantID, string username);
+
     }
 
 }

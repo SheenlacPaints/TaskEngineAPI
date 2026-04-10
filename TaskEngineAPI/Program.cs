@@ -15,6 +15,8 @@ using TaskEngineAPI.Helpers;
 using TaskEngineAPI.WebSockets;
 using static System.Net.WebRequestMethods;
 using TaskEngineAPI.Models;
+using Hangfire;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
      Log.Logger = new LoggerConfiguration()
@@ -172,6 +174,7 @@ builder.Services.AddWebSocketServices();
 
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAdminService, AccountService>();
+builder.Services.AddHttpClient<ISapSyncJobService, SapSyncJobService>();
 builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 builder.Services.AddScoped<IProcessEngineService, ProcessEngineService>();
 builder.Services.AddScoped<ITaskMasterService, TaskMasterService>();
@@ -234,13 +237,34 @@ builder.Services.AddCors(options =>
               .SetIsOriginAllowed(origin => true);
     });
 });
+builder.Services.AddHangfire(config =>
+    config.UseSqlServerStorage(builder.Configuration.GetConnectionString("Database")));
+
+builder.Services.AddHangfireServer();
 
 
 var app = builder.Build();
+
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+
+        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
+            "test-job",
+            x => x.SyncEmployeesAsync(1500),
+           // Cron.MinuteInterval(5)
+             Cron.Daily(4)
+        );
+    }
+});
+
+app.UseHangfireDashboard("/hangfire");
 //app.UseSerilogRequestLogging();
 //app.UseSerilogRequestLogging(options =>
 //{
- //   options.MessageTemplate = "Handled {RequestPath}";
+//   options.MessageTemplate = "Handled {RequestPath}";
 //});
 app.UseSwagger();
 app.UseSwaggerUI();

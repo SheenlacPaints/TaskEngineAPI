@@ -151,9 +151,14 @@ namespace TaskEngineAPI.Controllers
                 {
                     await taskMasterService.newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId, cTenantID, username);
                 }
+                bool IsPushNotificationEnabled = await taskMasterService.IsPushNotificationEnabled(cTenantID);
 
+
+                if (IsPushNotificationEnabled)
+                {
+                    await taskMasterService.newtaskcreateinboxpushnotificationAsync(insertedUserId, cTenantID, username);                  
+                }
                 return CreatedSuccessResponse(new { UserID = insertedUserId }, "Task inserted successfully.");
-
 
             }
             catch (UnauthorizedAccessException ex)
@@ -1052,12 +1057,18 @@ namespace TaskEngineAPI.Controllers
                 bool success = await taskMasterService.UpdatetaskapproveAsync(model, cTenantID, username);
 
                 bool isWhatsAppEnabled = await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+                
+                bool IsPushNotificationEnabled = await taskMasterService.IsPushNotificationEnabled(cTenantID);
 
-                
-                
+
                 if (model.status == "A" && model.ID.HasValue && isWhatsAppEnabled)
                 {
                     await taskMasterService.newtaskarrivesinboxapprovewhatappnotificationAsync(model.ID.Value, cTenantID, username);
+                }
+                if (model.status == "A" && model.ID.HasValue && IsPushNotificationEnabled)
+                {
+                   await taskMasterService.newtaskarrivesinboxpushnotificationAsync(model.ID.Value, cTenantID, username);
+
                 }
 
                 if (model.reassignto != null && isWhatsAppEnabled)
@@ -1066,10 +1077,22 @@ namespace TaskEngineAPI.Controllers
                     bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
 
                 }
+                if (model.reassignto != null && IsPushNotificationEnabled)
+                {
+                    await taskMasterService.sendpushnotificationAsync(model, cTenantID,username);
+                    await taskMasterService.reassigntoinitiatorpushnotificationAsync(model, cTenantID, username);
+                }
+                
+
                 if (model.status == "H" && isWhatsAppEnabled)
                 {
                     bool holdsuccessss = await taskMasterService.holdwhatappnotificationAsync(model, cTenantID, username);
                 }
+                if (model.status == "H" && IsPushNotificationEnabled)
+                {
+                   await taskMasterService.holdpushnotificationAsync(model, cTenantID, username);
+                }
+
 
                 if (model.status == "R" && isWhatsAppEnabled)
                 {
@@ -1077,13 +1100,12 @@ namespace TaskEngineAPI.Controllers
 
                     bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model, cTenantID, username);
                 }
-                //if (model.status == "R")
-               // {
-                 //   bool holdsuccessss = await taskMasterService.RejectwhatappnotificationAsync(model, cTenantID, username);
+                if (model.status == "R" && IsPushNotificationEnabled)
+                {
+                    await taskMasterService.RejectpushnotificationAsync(model, cTenantID, username);
+                }
 
-                   // bool Reassignsuccessss = await taskMasterService.reassigntoinitiatorwhatappnotificationAsync(model,cTenantID,username);
-               // }
-
+              
 
                 if (!success)
                 {
@@ -1939,6 +1961,63 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
+
+        [Authorize]
+        [HttpPost]
+        [Route("SendTaskNotification")]
+        public async Task<IActionResult> SendTaskNotification([FromQuery] int ID)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+                var (cTenantID, username) = GetUserInfoFromToken();
+                bool notificationStatus = await taskMasterService
+                    .newtaskarrivesinboxpushnotificationAsync(ID, cTenantID, username);
+                return Ok(new
+                {
+                    status = notificationStatus ? 200 : 500,
+                    success = notificationStatus,
+                    message = notificationStatus
+                        ? "Notification sent successfully"
+                        : "Notification sending failed"
+                });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("Getsubordinatedashboard")]
+        public async Task<IActionResult> Getsubordinatedashboard([FromQuery] string? searchtext)
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getsubordinate_dashboard(cTenantID,username,searchtext);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
 
     }
 }
