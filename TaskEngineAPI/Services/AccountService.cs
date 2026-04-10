@@ -2,13 +2,19 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Net;
+using System.Net.Http;
 using System.Net.Mail;
+using System.Net.Sockets;
+using System.Numerics;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using TaskEngineAPI.DTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
@@ -26,12 +32,15 @@ namespace TaskEngineAPI.Services
         private readonly IConfiguration _config;
         private readonly IAdminRepository _AdminRepository;
         private readonly UploadSettings _uploadSettings;
-        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository, IOptions<UploadSettings> uploadSettings)
+        private readonly HttpClient _httpClient;
+        public AccountService(IAdminRepository repository, IConfiguration _configuration, IAdminRepository AdminRepository, IOptions<UploadSettings> uploadSettings, HttpClient httpClient)
         {
             _repository = repository;
             _config = _configuration;
             _AdminRepository = AdminRepository;
             _uploadSettings = uploadSettings.Value;
+            _httpClient = httpClient;
+
         }
 
         public Task<APIResponse> CreateSuperAdminAsync(CreateAdminDTO model)
@@ -3537,6 +3546,111 @@ VALUES (
             return masterId;
         }
 
+        //public async Task<bool> UserdetailSAPAPIinsertAsync(int cTenantID)
+        //{
+        //    try
+        //    {
+        //        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/GetAllEmployeeDtls";
 
+        //        using (HttpClient client = new HttpClient())
+        //        {
+        //            // ✅ Correct request body
+        //            var requestBody = new
+        //            {
+        //                EMPLOYEE_ID = "",
+        //                COMPANY_CODE = ""
+        //            };
+
+        //            var content = new StringContent(
+        //                JsonConvert.SerializeObject(requestBody),
+        //                Encoding.UTF8,
+        //                "application/json"
+        //            );
+
+        //            // 🔹 Call API
+        //            var response = await client.PostAsync(apiUrl, content);
+
+        //            if (!response.IsSuccessStatusCode)
+        //                return false;
+
+        //            var jsonResponse = await response.Content.ReadAsStringAsync();
+
+        //            var employees = JsonConvert.DeserializeObject<List<SapEmployeeResponse>>(jsonResponse);
+
+        //            if (employees == null || !employees.Any())
+        //                return false;
+
+        //            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+        //            {
+        //                await conn.OpenAsync();
+
+        //                foreach (var emp in employees) // ✅ loop all employees
+        //                {
+        //                    string query = @"
+        //            INSERT INTO Users_Staging
+        //            (
+        //                TenantId, EmployeeCode, Name,Email,ManagerCode, ManagerName,IsActive,
+        //                BatchId, SyncDate
+        //            )
+        //            VALUES
+        //            (
+        //                @TenantId, @EmployeeCode, @Name,
+        //               @Email,@ManagerCode, @ManagerName,@IsActive,@BatchId, GETDATE()
+        //            )";
+        //                    //          INSERT INTO Users_Staging
+        //                    //(
+        //                    //    
+        //                    //          FirstName, LastName,DOJ,Phone,
+        //                    //     Phone, DepartmentName, JobName,
+        //                    //    
+        //                    //)
+        //                    //  VALUES
+        //                    //  (
+        //                    //          @FirstName, @LastName,@DOJ,@Phone,
+        //                    //      @Phone,  @DepartmentName, @JobName,
+        //                    //    
+        //                    //  )
+        //                    using (SqlCommand cmd = new SqlCommand(query, conn))
+        //                    {
+        //                        cmd.Parameters.AddWithValue("@TenantId", cTenantID);
+        //                        cmd.Parameters.AddWithValue("@EmployeeCode", emp.EMPLOYEE_ID ?? "");
+        //                        cmd.Parameters.AddWithValue("@Name", emp.EMPLOYEE_NAME ?? "");
+
+        //                        //var names = (emp.EMPLOYEE_NAME ?? "").Split(' ');
+        //                        //cmd.Parameters.AddWithValue("@FirstName", names.FirstOrDefault() ?? "");
+        //                        //cmd.Parameters.AddWithValue("@LastName", names.Length > 1 ? names.Last() : "");
+
+        //                        cmd.Parameters.AddWithValue("@Email", emp.EMAIL_ADDRESS ?? "");
+        //                       // cmd.Parameters.AddWithValue("@Phone", emp.PHONE_NUMBER ?? "");
+
+        //                        //cmd.Parameters.AddWithValue("@DOJ",
+        //                        //    DateTime.TryParse(emp.DATE_OF_JOINING, out DateTime doj)
+        //                        //    ? doj : (object)DBNull.Value);
+
+        //                        //cmd.Parameters.AddWithValue("@DepartmentName", emp.DEPARTMENT ?? "");
+        //                        //cmd.Parameters.AddWithValue("@JobName", emp.POSITION ?? "");
+
+        //                        cmd.Parameters.AddWithValue("@ManagerCode", emp.REPORTING_MANAGER_CODE ?? "");
+        //                        cmd.Parameters.AddWithValue("@ManagerName", emp.REPORTING_MANAGER ?? "");
+
+        //                        cmd.Parameters.AddWithValue("@IsActive", emp.EMPLOYEE_STATUS == "Active");
+
+        //                        cmd.Parameters.AddWithValue("@BatchId", Guid.NewGuid());
+
+        //                        await cmd.ExecuteNonQueryAsync();
+        //                    }
+        //                }
+        //            }
+
+        //            return true;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception("Error inserting SAP employee: " + ex.Message);
+        //    }
+        //}
+
+        
     }
 }

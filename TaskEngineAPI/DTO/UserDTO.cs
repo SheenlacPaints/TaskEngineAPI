@@ -529,5 +529,17 @@ namespace TaskEngineAPI.DTO
         public bool? nis_active { get; set; }
     }
 
-
+    public class SapEmployeeResponse
+    {
+        public string EMPLOYEE_ID { get; set; }
+        public string EMPLOYEE_NAME { get; set; }
+        public string DATE_OF_JOINING { get; set; }
+        public string DEPARTMENT { get; set; }
+        public string POSITION { get; set; }
+        public string REPORTING_MANAGER_CODE { get; set; }
+        public string REPORTING_MANAGER { get; set; }
+        public string EMPLOYEE_STATUS { get; set; }
+        public string EMAIL_ADDRESS { get; set; }
+        public string PHONE_NUMBER { get; set; }
+    }
 }

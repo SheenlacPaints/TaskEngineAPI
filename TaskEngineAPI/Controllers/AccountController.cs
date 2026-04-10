@@ -6353,5 +6353,24 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        //[HttpPost]
+        //[Route("SAPEmployeeSync")]
+        //public async Task<IActionResult> SAPEmployeeSync([FromQuery] int? cTenantID)
+        //{
+        //    if (cTenantID == null)
+        //        return BadRequest("cTenantID is required");
+
+        //    bool result = await _AccountService.UserdetailSAPAPIinsertAsync(cTenantID.Value);
+
+        //    if (!result)
+        //    {
+        //        return Ok("No data inserted");
+        //    }
+
+        //    return Ok("Employee sync completed successfully");
+        //}
+
+
+
     }
 }

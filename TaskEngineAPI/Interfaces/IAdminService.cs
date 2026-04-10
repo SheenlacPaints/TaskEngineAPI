@@ -52,8 +52,8 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> UpdatePasswordUserAsync(UpdateUserPasswordDTO model, int cTenantID, string usernameClaim);
         Task<int> InsertCreateusersettingsAsync(CreateusersettingDTO model, int tenantId, string userName);
         Task<List<GetusersapisyncDTO>> GetmetaAPISyncConfigAsync(int cTenantID, string? searchText = null);
-
-
+        //Task<bool> UserdetailSAPAPIinsertAsync(int cTenantID);
+      
     }
 
 }
