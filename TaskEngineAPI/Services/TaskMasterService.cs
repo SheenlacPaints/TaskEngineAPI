@@ -6051,6 +6051,69 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<bool> projectassigntoteammemberpushnotificationAsync(int ID, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection con = new SqlConnection(connStr))
+            {
+                await con.OpenAsync();
+
+                using (SqlCommand cmd = new SqlCommand("sp_projectassigntoteammembersendmsg", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@ID", SqlDbType.Int).Value = ID;
+                    cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                    {
+                        var client = _httpClientFactory.CreateClient();
+                        client.Timeout = TimeSpan.FromSeconds(60);
+
+                        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+
+                        var tasks = new List<Task<bool>>();
+
+                        while (await reader.ReadAsync())
+                        {
+                            string cuserid = reader["cuserid"]?.ToString() ?? "";
+                            string message = reader["message"]?.ToString() ?? "";
+
+                            if (string.IsNullOrWhiteSpace(cuserid) || string.IsNullOrWhiteSpace(message))
+                                continue;
+
+                            tasks.Add(SendNotificationAsync(client, apiUrl, cuserid, message));
+                        }
+
+                        var results = await Task.WhenAll(tasks);
+
+                        return results.All(x => x);
+                    }
+                }
+            }
+        }
+
+        private async Task<bool> SendNotificationAsync(HttpClient client, string apiUrl, string cuserid, string message)
+        {
+           
+                var requestData = new
+                {
+                    empid = cuserid,
+                    message = message
+                };
+
+                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return false;
+                }
+
+                return true;
+        }
     }
 }
 

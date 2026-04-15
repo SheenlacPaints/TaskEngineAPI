@@ -6370,7 +6370,16 @@ namespace TaskEngineAPI.Controllers
         //    return Ok("Employee sync completed successfully");
         //}
 
+        [HttpPost("sync-employees")]
+        public async Task<IActionResult> SyncEmployees([FromQuery] int tenantId)
+        {
+            var result = await _AccountService.SyncEmployeesAsync(tenantId);
 
+            if (result)
+                return Ok("Employees synced successfully");
+
+            return BadRequest("No data or failed");
+        }
 
     }
 }

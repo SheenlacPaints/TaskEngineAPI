@@ -53,7 +53,7 @@ namespace TaskEngineAPI.Interfaces
         Task<int> InsertCreateusersettingsAsync(CreateusersettingDTO model, int tenantId, string userName);
         Task<List<GetusersapisyncDTO>> GetmetaAPISyncConfigAsync(int cTenantID, string? searchText = null);
         //Task<bool> UserdetailSAPAPIinsertAsync(int cTenantID);
-      
+        Task<bool> SyncEmployeesAsync(int tenantId);
     }
 
 }

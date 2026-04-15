@@ -215,12 +215,23 @@ namespace TaskEngineAPI.Controllers
                 var (cTenantID, username) = GetUserInfoFromToken();
 
                 var json = await _ProjectService.Getprojectmaster(cTenantID, username, type, searchText, page, pageSize, projectid, versionid, detailid, remarks1, remarks2, remarks3);
+
+                bool IsPushNotificationEnabled = await _TaskMasterService.IsPushNotificationEnabled(cTenantID);
+
+
+               
+
+
                 if (type == "Client_Approve")
                 {
                     var response1 = JsonConvert.DeserializeObject<List<ClientApprove>>(json);
                     if (response1 == null)
                     {
                         return CreateEncryptedResponse(500, "Invalid response format from service");
+                    }
+                    if (IsPushNotificationEnabled && projectid.HasValue && projectid.Value > 0)
+                    {
+                        await _TaskMasterService.projectassigntoteammemberpushnotificationAsync(projectid.Value, cTenantID, username);
                     }
 
                     return CreatedSuccessResponse(response1);
