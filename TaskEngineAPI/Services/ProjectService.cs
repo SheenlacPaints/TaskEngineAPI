@@ -8,13 +8,11 @@ using System.Data.SqlClient;
 using System.Net.Mail;
 using TaskEngineAPI.Controllers;
 using TaskEngineAPI.DTO;
-using TaskEngineAPI.DTO;
 using TaskEngineAPI.DTO.LookUpDTO;
 using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
-using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Models;
-using TaskEngineAPI.Models;
+
 namespace TaskEngineAPI.Services
 {
     public class ProjectService : IProjectService
