@@ -2018,6 +2018,50 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("Getdepartmentdashboard")]
+        public async Task<IActionResult> Getdepartmentdashboard([FromQuery] string? searchtext)
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getdepartmentdashboard(cTenantID, username, searchtext);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetNotificationsdashboard")]
+        public async Task<IActionResult> GetNotificationsdashboard([FromQuery] string? searchtext)
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.GetNotificationsdashboard(cTenantID, username, searchtext);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
 
     }
 }
