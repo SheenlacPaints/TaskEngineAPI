@@ -85,7 +85,7 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> projectassigntoteammemberpushnotificationAsync(int ID, int cTenantID, string username);
         Task<string> Getdepartmentdashboard(int cTenantID, string username, string? searchText = null);
         Task<string> GetNotificationsdashboard(int cTenantID, string username, string? searchText = null);
-
+        Task<string> Getemployeekradetails(int cTenantID, string username, string? searchText = null);
 
     }
 

@@ -2062,6 +2062,29 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("Getemployeekradetails")]
+        public async Task<IActionResult> Getemployeekradetails([FromQuery] string? searchtext)
+        {
+            try
+            {
+
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getemployeekradetails(cTenantID, username, searchtext);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
 
     }
 }
