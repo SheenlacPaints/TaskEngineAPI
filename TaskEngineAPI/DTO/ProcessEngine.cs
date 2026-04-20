@@ -37,6 +37,8 @@ namespace TaskEngineAPI.DTO
 
         public string? cmetaapi_response { get; set; }
         public bool? nis_auto_initiate { get; set; }
+
+        public int? ctableapi_id { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }   
 
@@ -65,7 +67,7 @@ namespace TaskEngineAPI.DTO
 
         public string? cmetaapi_response { get; set; }
         public bool? nis_auto_initiate { get; set; }
-
+        public int? ctableapi_id { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }
 
@@ -451,6 +453,8 @@ namespace TaskEngineAPI.DTO
 
         public string? cmetaapi_response { get; set; }
         public bool? nis_auto_initiate { get; set; }
+
+        public int? ctableapi_id { get; set; }
         public List<GetIDprocessEngineChildItems> processEngineChildItems { get; set; }
        
        public List<processEngineMeta> processEngineMeta { get; set; }
