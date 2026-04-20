@@ -3981,8 +3981,8 @@ namespace TaskEngineAPI.Controllers
 
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-                string json = $"\"{body}\"";
-                return StatusCode((int)response.StatusCode, json);
+              
+                return StatusCode((int)response.StatusCode, body);
             }
             catch (Exception ex)
             {
@@ -3992,8 +3992,8 @@ namespace TaskEngineAPI.Controllers
                     statusText = $"Error calling external API: {ex.Message}"
                 };
                 string jsonn = JsonConvert.SerializeObject(err);
-                string encc = $"\"{jsonn}\"";
-                return StatusCode(500, encc);
+               
+                return StatusCode(500, jsonn);
             }
         }
 
