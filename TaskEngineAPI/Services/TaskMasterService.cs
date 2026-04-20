@@ -6092,7 +6092,6 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-
         private async Task<bool> SendNotificationAsync(HttpClient client, string apiUrl, string cuserid, string message)
         {
            
@@ -6114,8 +6113,6 @@ namespace TaskEngineAPI.Services
 
                 return true;
         }
-
-    
         public async Task<string> Getdepartmentdashboard(int cTenantID, string username, string? searchText = null)
         {
             try
@@ -6144,7 +6141,6 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-
         public async Task<string> GetNotificationsdashboard(int cTenantID, string username, string? searchText = null)
         {
             try
@@ -6173,7 +6169,6 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
-
         public async Task<bool> projectnewversionpushnotificationAsync(int ID, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
