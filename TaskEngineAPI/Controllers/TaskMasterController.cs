@@ -2074,17 +2074,46 @@ namespace TaskEngineAPI.Controllers
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var json = await taskMasterService.Getemployeekradetails(cTenantID, username, searchtext);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
-                return CreatedDataResponse(data);
-            }
+                return CreatedwithoutDataResponse(data);
+            
+    }
             catch (UnauthorizedAccessException ex)
             {
-                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+                return CreatewithoutEncryptedResponse(401, "Unauthorized access", error: ex.Message);
             }
             catch (Exception ex)
             {
-                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+                return CreatewithoutEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
+
+        private IActionResult CreatedwithoutDataResponse(List<Dictionary<string, object>> data, string noDataMessage = "No data found")
+        {
+            var hasData = data != null && data.Any();
+            var response = new APIResponse
+            {
+                status = hasData ? 200 : 204,
+                statusText = hasData ? "Successful" : noDataMessage,
+                body = hasData ? data.Cast<object>().ToArray() : Array.Empty<object>(),
+            };
+            string json = JsonConvert.SerializeObject(response);
+
+            return StatusCode(response.status, json);
+        }
+
+        private IActionResult CreatewithoutEncryptedResponse(int statusCode, string message, object body = null, string error = null)
+        {
+            var response = new APIResponse
+            {
+                status = statusCode,
+                statusText = message,
+                body = body != null ? new object[] { body } : Array.Empty<object>(),
+                error = error
+            };
+            string json = JsonConvert.SerializeObject(response);          
+            return StatusCode(statusCode, json);
+        }
+
 
     }
 }

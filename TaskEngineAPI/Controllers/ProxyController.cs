@@ -3992,8 +3992,7 @@ namespace TaskEngineAPI.Controllers
                     statusText = $"Error calling external API: {ex.Message}"
                 };
                 string jsonn = JsonConvert.SerializeObject(err);
-                string enc = AesEncryption.Encrypt(jsonn);
-                string encc = $"\"{enc}\"";
+                string encc = $"\"{jsonn}\"";
                 return StatusCode(500, encc);
             }
         }
