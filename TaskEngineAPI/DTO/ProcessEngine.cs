@@ -348,6 +348,8 @@ namespace TaskEngineAPI.DTO
         public string? cactivityname { get; set; }
         public string? cactivity_description { get; set; }
         public string? cmappingcode_name { get; set; }
+
+        public int? cmeta_id { get; set; }
     }
 
 
