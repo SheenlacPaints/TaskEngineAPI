@@ -4136,7 +4136,9 @@ namespace TaskEngineAPI.Services
                                 creassign_to = reader.IsDBNull(reader.GetOrdinal("creassign_to")) ? string.Empty : Convert.ToString(reader["creassign_to"]),
                                 cactivityname = reader.IsDBNull(reader.GetOrdinal("cactivityname")) ? string.Empty : Convert.ToString(reader["cactivityname"]),
                                 cactivity_description = reader.IsDBNull(reader.GetOrdinal("cactivity_description")) ? string.Empty : Convert.ToString(reader["cactivity_description"]),
-                                cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? string.Empty : Convert.ToString(reader["cprofile_image_name"])
+                                cprofile_image_name = reader.IsDBNull(reader.GetOrdinal("cprofile_image_name")) ? string.Empty : Convert.ToString(reader["cprofile_image_name"]),
+                                cmeta_id=reader.IsDBNull(reader.GetOrdinal("cmeta_id")) ? 0 : Convert.ToInt32(reader["cmeta_id"])
+
                             });
                         }
                     }
