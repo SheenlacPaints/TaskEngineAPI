@@ -585,4 +585,37 @@ namespace TaskEngineAPI.DTO
         public string COMPANY_CODE { get; set; }
     }
 
+    public class InBoundSyncRequestDTO
+    {
+        public bool SyncOrgUnit { get; set; } = true;
+        public bool SyncJobCode { get; set; } = true;
+        public bool SyncPositionDetails { get; set; } = true;
+        public string TriggeredBy { get; set; } = "Manual";
+    }
+
+    public class InBoundSyncResponseDTO
+    {
+        public int StatusCode { get; set; }
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public DateTime Timestamp { get; set; }
+        public InBoundSyncSummaryDTO Summary { get; set; }
+        public List<string> Errors { get; set; }
+    }
+
+    public class InBoundSyncSummaryDTO
+    {
+        public bool OrgUnitHadData { get; set; }
+        public int OrgUnitRecordsDeleted { get; set; }
+        public int OrgUnitRecordsInserted { get; set; }
+        public bool JobCodeHadData { get; set; }
+        public int JobCodeRecordsDeleted { get; set; }
+        public int JobCodeRecordsInserted { get; set; }
+        public bool PositionHadData { get; set; }
+        public int PositionRecordsDeleted { get; set; }
+        public int PositionRecordsInserted { get; set; }
+        public int TotalRecordsAffected { get; set; }
+        public TimeSpan Duration { get; set; }
+        public List<string> SkippedTables { get; set; }
+    }
 }

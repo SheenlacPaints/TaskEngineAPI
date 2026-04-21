@@ -1,22 +1,23 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Data.SqlClient;
+using Serilog;
+using Serilog.Enrichers;
 using System.Data;
+using System.Data.SqlClient;
+using System.Net;
 using System.Text;
+using TaskEngineAPI.DTO;
+using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Middleware;
 using TaskEngineAPI.Middlewares;
+using TaskEngineAPI.Models;
 using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
-using Serilog;
-using Serilog.Enrichers;
-using TaskEngineAPI.Helpers;
 using TaskEngineAPI.WebSockets;
 using static System.Net.WebRequestMethods;
-using TaskEngineAPI.Models;
-using Hangfire;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
      Log.Logger = new LoggerConfiguration()
@@ -251,11 +252,11 @@ app.Lifetime.ApplicationStarted.Register(() =>
     {
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
+        recurringJobManager.AddOrUpdate(
             "test-job",
-            x => x.SyncEmployeesAsync(1500),
-           // Cron.MinuteInterval(5)
-             Cron.Daily(4)
+            () => scope.ServiceProvider.GetRequiredService<ISapSyncJobService>().SyncEmployeesAsync(1500),
+            Cron.Daily(4),  
+            TimeZoneInfo.Local 
         );
     }
 });
@@ -323,4 +324,54 @@ app.MapControllers();
 //    await handler.HandleAsync(context);
 //});
 
+
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+        var sapSyncService = scope.ServiceProvider.GetRequiredService<ISapSyncJobService>();
+
+        recurringJobManager.RemoveIfExists("inbound-sync-test");
+
+        recurringJobManager.AddOrUpdate(
+            "inbound-sync-8am",
+            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
+            {
+                SyncOrgUnit = true,
+                SyncJobCode = true,
+                SyncPositionDetails = true,
+                TriggeredBy = "Scheduler-8AM"
+            }),
+            "0 8 * * *",
+            TimeZoneInfo.Local
+        );
+
+        recurringJobManager.AddOrUpdate(
+            "inbound-sync-12pm",
+            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
+            {
+                SyncOrgUnit = true,
+                SyncJobCode = true,
+                SyncPositionDetails = true,
+                TriggeredBy = "Scheduler-12PM"
+            }),
+            "0 12 * * *",
+            TimeZoneInfo.Local
+        );
+
+        recurringJobManager.AddOrUpdate(
+            "inbound-sync-4pm",
+            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
+            {
+                SyncOrgUnit = true,
+                SyncJobCode = true,
+                SyncPositionDetails = true,
+                TriggeredBy = "Scheduler-4PM"
+            }),
+            "0 16 * * *",
+            TimeZoneInfo.Local
+        );
+    }
+});
 app.Run();
