@@ -134,10 +134,31 @@ namespace TaskEngineAPI.Services
                     }
                 }
 
+                if (request.SyncAttendanceTimesheet)
+                {
+                    _logger.LogInformation("📋 Processing tbl_attendance_timesheet...");
+                    var hasData = await CheckIfSourceHasDataAsync("tbl_attendance_timesheet");
+                    if (hasData)
+                    {
+                        var result = await SyncAttendanceTimesheetTableAsync(targetConnection, transaction);
+                        response.Summary.AttendanceTimesheetRecordsDeleted = result.Deleted;
+                        response.Summary.AttendanceTimesheetRecordsInserted = result.Inserted;
+                        response.Summary.AttendanceTimesheetHadData = true;
+                        _logger.LogInformation($"✅ AttendanceTimesheet - Deleted: {result.Deleted}, Inserted: {result.Inserted}");
+                    }
+                    else
+                    {
+                        _logger.LogWarning("⚠️ MISPORTAL.tbl_attendance_timesheet has NO data. Skipping.");
+                        response.Summary.AttendanceTimesheetHadData = false;
+                        response.Summary.SkippedTables.Add("tbl_attendance_timesheet");
+                    }
+                }
+
                 response.Summary.TotalRecordsAffected =
                     response.Summary.OrgUnitRecordsInserted +
                     response.Summary.JobCodeRecordsInserted +
-                    response.Summary.PositionRecordsInserted;
+                    response.Summary.PositionRecordsInserted +
+                    response.Summary.AttendanceTimesheetRecordsInserted;
 
                 transaction.Commit();
 
@@ -378,6 +399,142 @@ namespace TaskEngineAPI.Services
                     await bulkCopy.WriteToServerAsync(dataTable);
                     insertedCount = dataTable.Rows.Count;
                     _logger.LogInformation($"📝 Inserted {insertedCount} records into target tbl_position_details");
+                }
+            }
+
+            return (deletedCount, insertedCount);
+        }
+
+        private async Task<(int Deleted, int Inserted)> SyncAttendanceTimesheetTableAsync(SqlConnection targetConnection, SqlTransaction transaction)
+        {
+            int deletedCount = 0;
+            int insertedCount = 0;
+
+            var deleteQuery = "DELETE FROM tbl_attendance_timesheet";
+            using (var deleteCommand = new SqlCommand(deleteQuery, targetConnection, transaction))
+            {
+                deletedCount = await deleteCommand.ExecuteNonQueryAsync();
+                _logger.LogInformation($"🗑️ Deleted {deletedCount} records from target tbl_attendance_timesheet");
+            }
+
+            var dataTable = new DataTable();
+            dataTable.Columns.Add("ccomcode", typeof(string));
+            dataTable.Columns.Add("corgcode", typeof(string));
+            dataTable.Columns.Add("cloccode", typeof(string));
+            dataTable.Columns.Add("cfincode", typeof(string));
+            dataTable.Columns.Add("cdoctype", typeof(string));
+            dataTable.Columns.Add("ndocno", typeof(int));
+            dataTable.Columns.Add("cempcode", typeof(string));
+            dataTable.Columns.Add("cempname", typeof(string));
+            dataTable.Columns.Add("creportmgrid", typeof(string));
+            dataTable.Columns.Add("creportmgrname", typeof(string));
+            dataTable.Columns.Add("niseqno", typeof(int));
+            dataTable.Columns.Add("nitaskno", typeof(int));
+            dataTable.Columns.Add("ctaskdesc", typeof(string));
+            dataTable.Columns.Add("chrstaken", typeof(string));
+            dataTable.Columns.Add("cremarks", typeof(string));
+            dataTable.Columns.Add("cmanagerremarks", typeof(string));
+            dataTable.Columns.Add("ccreatedby", typeof(string));
+            dataTable.Columns.Add("lcreateddate", typeof(DateTime));
+            dataTable.Columns.Add("cmodifiedby", typeof(string));
+            dataTable.Columns.Add("lmodifieddate", typeof(DateTime));
+            dataTable.Columns.Add("ctaskstatus", typeof(string));
+            dataTable.Columns.Add("lstartdttime", typeof(DateTime));
+            dataTable.Columns.Add("lenddttime", typeof(DateTime));
+            dataTable.Columns.Add("cmanagerstatus", typeof(string));
+            dataTable.Columns.Add("itaskno", typeof(int));
+            dataTable.Columns.Add("fileattachements", typeof(string));
+            dataTable.Columns.Add("uniqueid", typeof(string));
+            dataTable.Columns.Add("updatestarttime", typeof(string));  // Changed to string
+            dataTable.Columns.Add("updateendtime", typeof(string));    // Changed to string
+            dataTable.Columns.Add("postponedremarks", typeof(string));
+
+            using (var sourceConnection = new SqlConnection(_sourceConnectionString))
+            {
+                await sourceConnection.OpenAsync();
+                var selectQuery = @"
+            SELECT 
+                ISNULL(ccomcode, '') as ccomcode,
+                ISNULL(corgcode, '') as corgcode,
+                ISNULL(cloccode, '') as cloccode,
+                ISNULL(cfincode, '') as cfincode,
+                ISNULL(cdoctype, '') as cdoctype,
+                ISNULL(ndocno, 0) as ndocno,
+                ISNULL(cempcode, '') as cempcode,
+                ISNULL(cempname, '') as cempname,
+                ISNULL(creportmgrid, '') as creportmgrid,
+                ISNULL(creportmgrname, '') as creportmgrname,
+                ISNULL(niseqno, 0) as niseqno,
+                ISNULL(nitaskno, 0) as nitaskno,
+                ISNULL(ctaskdesc, '') as ctaskdesc,
+                ISNULL(chrstaken, '') as chrstaken,
+                ISNULL(cremarks, '') as cremarks,
+                ISNULL(cmanagerremarks, '') as cmanagerremarks,
+                ISNULL(ccreatedby, '') as ccreatedby,
+                CASE WHEN ISDATE(lcreateddate) = 1 THEN lcreateddate ELSE NULL END as lcreateddate,
+                ISNULL(cmodifiedby, '') as cmodifiedby,
+                CASE WHEN ISDATE(lmodifieddate) = 1 THEN lmodifieddate ELSE NULL END as lmodifieddate,
+                ISNULL(ctaskstatus, '') as ctaskstatus,
+                CASE WHEN ISDATE(lstartdttime) = 1 THEN lstartdttime ELSE NULL END as lstartdttime,
+                CASE WHEN ISDATE(lenddttime) = 1 THEN lenddttime ELSE NULL END as lenddttime,
+                ISNULL(cmanagerstatus, '') as cmanagerstatus,
+                ISNULL(itaskno, 0) as itaskno,
+                ISNULL(fileattachements, '') as fileattachements,
+                ISNULL(uniqueid, '') as uniqueid,
+                ISNULL(updatestarttime, '') as updatestarttime,
+                ISNULL(updateendtime, '') as updateendtime,
+                ISNULL(postponedremarks, '') as postponedremarks
+            FROM tbl_attendance_timesheet";
+
+                using (var adapter = new SqlDataAdapter(selectQuery, sourceConnection))
+                {
+                    adapter.Fill(dataTable);
+                }
+            }
+
+            _logger.LogInformation($"📥 Retrieved {dataTable.Rows.Count} records from source tbl_attendance_timesheet");
+
+            if (dataTable.Rows.Count > 0)
+            {
+                using (var bulkCopy = new SqlBulkCopy(targetConnection, SqlBulkCopyOptions.Default, transaction))
+                {
+                    bulkCopy.DestinationTableName = "tbl_attendance_timesheet";
+                    bulkCopy.BulkCopyTimeout = 300;
+
+                    bulkCopy.ColumnMappings.Add("ccomcode", "ccomcode");
+                    bulkCopy.ColumnMappings.Add("corgcode", "corgcode");
+                    bulkCopy.ColumnMappings.Add("cloccode", "cloccode");
+                    bulkCopy.ColumnMappings.Add("cfincode", "cfincode");
+                    bulkCopy.ColumnMappings.Add("cdoctype", "cdoctype");
+                    bulkCopy.ColumnMappings.Add("ndocno", "ndocno");
+                    bulkCopy.ColumnMappings.Add("cempcode", "cempcode");
+                    bulkCopy.ColumnMappings.Add("cempname", "cempname");
+                    bulkCopy.ColumnMappings.Add("creportmgrid", "creportmgrid");
+                    bulkCopy.ColumnMappings.Add("creportmgrname", "creportmgrname");
+                    bulkCopy.ColumnMappings.Add("niseqno", "niseqno");
+                    bulkCopy.ColumnMappings.Add("nitaskno", "nitaskno");
+                    bulkCopy.ColumnMappings.Add("ctaskdesc", "ctaskdesc");
+                    bulkCopy.ColumnMappings.Add("chrstaken", "chrstaken");
+                    bulkCopy.ColumnMappings.Add("cremarks", "cremarks");
+                    bulkCopy.ColumnMappings.Add("cmanagerremarks", "cmanagerremarks");
+                    bulkCopy.ColumnMappings.Add("ccreatedby", "ccreatedby");
+                    bulkCopy.ColumnMappings.Add("lcreateddate", "lcreateddate");
+                    bulkCopy.ColumnMappings.Add("cmodifiedby", "cmodifiedby");
+                    bulkCopy.ColumnMappings.Add("lmodifieddate", "lmodifieddate");
+                    bulkCopy.ColumnMappings.Add("ctaskstatus", "ctaskstatus");
+                    bulkCopy.ColumnMappings.Add("lstartdttime", "lstartdttime");
+                    bulkCopy.ColumnMappings.Add("lenddttime", "lenddttime");
+                    bulkCopy.ColumnMappings.Add("cmanagerstatus", "cmanagerstatus");
+                    bulkCopy.ColumnMappings.Add("itaskno", "itaskno");
+                    bulkCopy.ColumnMappings.Add("fileattachements", "fileattachements");
+                    bulkCopy.ColumnMappings.Add("uniqueid", "uniqueid");
+                    bulkCopy.ColumnMappings.Add("updatestarttime", "updatestarttime");
+                    bulkCopy.ColumnMappings.Add("updateendtime", "updateendtime");
+                    bulkCopy.ColumnMappings.Add("postponedremarks", "postponedremarks");
+
+                    await bulkCopy.WriteToServerAsync(dataTable);
+                    insertedCount = dataTable.Rows.Count;
+                    _logger.LogInformation($"📝 Inserted {insertedCount} records into target tbl_attendance_timesheet");
                 }
             }
 

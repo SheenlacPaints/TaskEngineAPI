@@ -590,6 +590,7 @@ namespace TaskEngineAPI.DTO
         public bool SyncOrgUnit { get; set; } = true;
         public bool SyncJobCode { get; set; } = true;
         public bool SyncPositionDetails { get; set; } = true;
+        public bool SyncAttendanceTimesheet { get; set; } = true;
         public string TriggeredBy { get; set; } = "Manual";
     }
 
@@ -614,6 +615,9 @@ namespace TaskEngineAPI.DTO
         public bool PositionHadData { get; set; }
         public int PositionRecordsDeleted { get; set; }
         public int PositionRecordsInserted { get; set; }
+        public bool AttendanceTimesheetHadData { get; set; }
+        public int AttendanceTimesheetRecordsDeleted { get; set; }
+        public int AttendanceTimesheetRecordsInserted { get; set; }
         public int TotalRecordsAffected { get; set; }
         public TimeSpan Duration { get; set; }
         public List<string> SkippedTables { get; set; }
