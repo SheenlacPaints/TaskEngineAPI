@@ -6251,6 +6251,71 @@ namespace TaskEngineAPI.Services
                 throw;
             }
         }
+        public async Task<List<processEnginetaskMeta>> Getmetadetaildataasync(int cTenantID, int itaskno)
+        {
+            var result = new List<processEnginetaskMeta>();
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connStr))
+                {
+                    await conn.OpenAsync();
+
+                    string query = @"
+                     SELECT 
+                a.cprocess_id,
+                a.cdata,
+               c.cinput_type,
+               c.label,
+                c.cplaceholder,
+                c.cis_required,
+                c.cis_readonly,
+               c.cis_disabled,
+                c.cfield_value,
+                c.cdata_source
+            FROM tbl_transaction_process_meta_layout a
+            INNER JOIN tbl_process_engine_master b ON a.cprocess_id = b.ID
+            INNER JOIN tbl_process_meta_detail c 
+                ON c.cheader_id = b.cmeta_id AND c.Id = a.cmeta_id
+            WHERE a.citaskno = @TaskNo AND a.ctenant_id = @TenantID";
+
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                      
+                        cmd.Parameters.AddWithValue("@TaskNo", itaskno);
+                        cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+
+                            while (await reader.ReadAsync())
+                            {
+                                result.Add(new processEnginetaskMeta
+                                {
+                                    cdata = reader["cdata"]?.ToString() ?? "",
+                                    cinputType = reader["cinput_type"]?.ToString() ?? "",
+                                    clabel = reader["label"]?.ToString() ?? "",
+                                    cplaceholder = reader["cplaceholder"]?.ToString() ?? "",
+                                    cisRequired = reader.SafeGetBoolean("cis_required"),
+                                    cisReadonly = reader.SafeGetBoolean("cis_readonly"),
+                                    cisDisabled = reader.SafeGetBoolean("cis_disabled"),
+                                    cfieldValue = reader["cfield_value"]?.ToString() ?? "",
+                                    cdatasource = reader["cdata_source"]?.ToString() ?? ""
+                                });
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error retrieving approved task list for TenantID {cTenantID} and itaskno {itaskno}: {ex.Message}", ex);
+            }
+        }
+
 
 
     }
