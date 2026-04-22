@@ -622,4 +622,50 @@ namespace TaskEngineAPI.DTO
         public TimeSpan Duration { get; set; }
         public List<string> SkippedTables { get; set; }
     }
+
+    public class ProcessEngineSyncRequestDTO
+    {
+        public bool SyncProjectDetail { get; set; } = true;
+        public bool SyncProjectMaster { get; set; } = true;
+        public bool SyncProjectVersionDetails { get; set; } = true;
+        public bool SyncTaskFlowDetail { get; set; } = true;
+        public bool SyncTaskFlowMaster { get; set; } = true;
+        public bool SyncTransactionTaskFlowDetail { get; set; } = true;
+        public string TriggeredBy { get; set; } = "Manual";
+    }
+
+    public class ProcessEngineSyncResponseDTO
+    {
+        public int StatusCode { get; set; }
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public DateTime Timestamp { get; set; }
+        public ProcessEngineSyncSummaryDTO Summary { get; set; }
+        public List<string> Errors { get; set; }
+    }
+
+    public class ProcessEngineSyncSummaryDTO
+    {
+        public bool ProjectDetailHadData { get; set; }
+        public int ProjectDetailRecordsDeleted { get; set; }
+        public int ProjectDetailRecordsInserted { get; set; }
+        public bool ProjectMasterHadData { get; set; }
+        public int ProjectMasterRecordsDeleted { get; set; }
+        public int ProjectMasterRecordsInserted { get; set; }
+        public bool ProjectVersionDetailsHadData { get; set; }
+        public int ProjectVersionDetailsRecordsDeleted { get; set; }
+        public int ProjectVersionDetailsRecordsInserted { get; set; }
+        public bool TaskFlowDetailHadData { get; set; }
+        public int TaskFlowDetailRecordsDeleted { get; set; }
+        public int TaskFlowDetailRecordsInserted { get; set; }
+        public bool TaskFlowMasterHadData { get; set; }
+        public int TaskFlowMasterRecordsDeleted { get; set; }
+        public int TaskFlowMasterRecordsInserted { get; set; }
+        public bool TransactionTaskFlowDetailHadData { get; set; }
+        public int TransactionTaskFlowDetailRecordsDeleted { get; set; }
+        public int TransactionTaskFlowDetailRecordsInserted { get; set; }
+        public int TotalRecordsAffected { get; set; }
+        public TimeSpan Duration { get; set; }
+        public List<string> SkippedTables { get; set; }
+    }
 }

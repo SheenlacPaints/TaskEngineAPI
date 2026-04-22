@@ -361,6 +361,22 @@ app.Lifetime.ApplicationStarted.Register(() =>
         );
 
         recurringJobManager.AddOrUpdate(
+    "processengine-sync-5min",
+    () => sapSyncService.SyncProcessEngineToTaskEngineAsync(new ProcessEngineSyncRequestDTO
+    {
+        SyncProjectDetail = true,
+        SyncProjectMaster = true,
+        SyncProjectVersionDetails = true,
+        SyncTaskFlowDetail = true,
+        SyncTaskFlowMaster = true,
+        SyncTransactionTaskFlowDetail = true,
+        TriggeredBy = "Scheduler-5Min"
+    }),
+    "*/5 * * * *",  
+    TimeZoneInfo.Local
+);
+
+        recurringJobManager.AddOrUpdate(
             "inbound-sync-4pm",
             () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
             {
