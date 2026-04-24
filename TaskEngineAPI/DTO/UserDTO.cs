@@ -585,87 +585,87 @@ namespace TaskEngineAPI.DTO
         public string COMPANY_CODE { get; set; }
     }
 
-    public class InBoundSyncRequestDTO
-    {
-        public bool SyncOrgUnit { get; set; } = true;
-        public bool SyncJobCode { get; set; } = true;
-        public bool SyncPositionDetails { get; set; } = true;
-        public bool SyncAttendanceTimesheet { get; set; } = true;
-        public string TriggeredBy { get; set; } = "Manual";
-    }
+    //public class InBoundSyncRequestDTO
+    //{
+    //    public bool SyncOrgUnit { get; set; } = true;
+    //    public bool SyncJobCode { get; set; } = true;
+    //    public bool SyncPositionDetails { get; set; } = true;
+    //    public bool SyncAttendanceTimesheet { get; set; } = true;
+    //    public string TriggeredBy { get; set; } = "Manual";
+    //}
 
-    public class InBoundSyncResponseDTO
-    {
-        public int StatusCode { get; set; }
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public DateTime Timestamp { get; set; }
-        public InBoundSyncSummaryDTO Summary { get; set; }
-        public List<string> Errors { get; set; }
-    }
+    //public class InBoundSyncResponseDTO
+    //{
+    //    public int StatusCode { get; set; }
+    //    public bool Success { get; set; }
+    //    public string Message { get; set; }
+    //    public DateTime Timestamp { get; set; }
+    //    public InBoundSyncSummaryDTO Summary { get; set; }
+    //    public List<string> Errors { get; set; }
+    //}
 
-    public class InBoundSyncSummaryDTO
-    {
-        public bool OrgUnitHadData { get; set; }
-        public int OrgUnitRecordsDeleted { get; set; }
-        public int OrgUnitRecordsInserted { get; set; }
-        public bool JobCodeHadData { get; set; }
-        public int JobCodeRecordsDeleted { get; set; }
-        public int JobCodeRecordsInserted { get; set; }
-        public bool PositionHadData { get; set; }
-        public int PositionRecordsDeleted { get; set; }
-        public int PositionRecordsInserted { get; set; }
-        public bool AttendanceTimesheetHadData { get; set; }
-        public int AttendanceTimesheetRecordsDeleted { get; set; }
-        public int AttendanceTimesheetRecordsInserted { get; set; }
-        public int TotalRecordsAffected { get; set; }
-        public TimeSpan Duration { get; set; }
-        public List<string> SkippedTables { get; set; }
-    }
+    //public class InBoundSyncSummaryDTO
+    //{
+    //    public bool OrgUnitHadData { get; set; }
+    //    public int OrgUnitRecordsDeleted { get; set; }
+    //    public int OrgUnitRecordsInserted { get; set; }
+    //    public bool JobCodeHadData { get; set; }
+    //    public int JobCodeRecordsDeleted { get; set; }
+    //    public int JobCodeRecordsInserted { get; set; }
+    //    public bool PositionHadData { get; set; }
+    //    public int PositionRecordsDeleted { get; set; }
+    //    public int PositionRecordsInserted { get; set; }
+    //    public bool AttendanceTimesheetHadData { get; set; }
+    //    public int AttendanceTimesheetRecordsDeleted { get; set; }
+    //    public int AttendanceTimesheetRecordsInserted { get; set; }
+    //    public int TotalRecordsAffected { get; set; }
+    //    public TimeSpan Duration { get; set; }
+    //    public List<string> SkippedTables { get; set; }
+    //}
 
-    public class ProcessEngineSyncRequestDTO
-    {
-        public bool SyncProjectDetail { get; set; } = true;
-        public bool SyncProjectMaster { get; set; } = true;
-        public bool SyncProjectVersionDetails { get; set; } = true;
-        public bool SyncTaskFlowDetail { get; set; } = true;
-        public bool SyncTaskFlowMaster { get; set; } = true;
-        public bool SyncTransactionTaskFlowDetail { get; set; } = true;
-        public string TriggeredBy { get; set; } = "Manual";
-    }
+    //public class ProcessEngineSyncRequestDTO
+    //{
+    //    public bool SyncProjectDetail { get; set; } = true;
+    //    public bool SyncProjectMaster { get; set; } = true;
+    //    public bool SyncProjectVersionDetails { get; set; } = true;
+    //    public bool SyncTaskFlowDetail { get; set; } = true;
+    //    public bool SyncTaskFlowMaster { get; set; } = true;
+    //    public bool SyncTransactionTaskFlowDetail { get; set; } = true;
+    //    public string TriggeredBy { get; set; } = "Manual";
+    //}
 
-    public class ProcessEngineSyncResponseDTO
-    {
-        public int StatusCode { get; set; }
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public DateTime Timestamp { get; set; }
-        public ProcessEngineSyncSummaryDTO Summary { get; set; }
-        public List<string> Errors { get; set; }
-    }
+    //public class ProcessEngineSyncResponseDTO
+    //{
+    //    public int StatusCode { get; set; }
+    //    public bool Success { get; set; }
+    //    public string Message { get; set; }
+    //    public DateTime Timestamp { get; set; }
+    //    public ProcessEngineSyncSummaryDTO Summary { get; set; }
+    //    public List<string> Errors { get; set; }
+    //}
 
-    public class ProcessEngineSyncSummaryDTO
-    {
-        public bool ProjectDetailHadData { get; set; }
-        public int ProjectDetailRecordsDeleted { get; set; }
-        public int ProjectDetailRecordsInserted { get; set; }
-        public bool ProjectMasterHadData { get; set; }
-        public int ProjectMasterRecordsDeleted { get; set; }
-        public int ProjectMasterRecordsInserted { get; set; }
-        public bool ProjectVersionDetailsHadData { get; set; }
-        public int ProjectVersionDetailsRecordsDeleted { get; set; }
-        public int ProjectVersionDetailsRecordsInserted { get; set; }
-        public bool TaskFlowDetailHadData { get; set; }
-        public int TaskFlowDetailRecordsDeleted { get; set; }
-        public int TaskFlowDetailRecordsInserted { get; set; }
-        public bool TaskFlowMasterHadData { get; set; }
-        public int TaskFlowMasterRecordsDeleted { get; set; }
-        public int TaskFlowMasterRecordsInserted { get; set; }
-        public bool TransactionTaskFlowDetailHadData { get; set; }
-        public int TransactionTaskFlowDetailRecordsDeleted { get; set; }
-        public int TransactionTaskFlowDetailRecordsInserted { get; set; }
-        public int TotalRecordsAffected { get; set; }
-        public TimeSpan Duration { get; set; }
-        public List<string> SkippedTables { get; set; }
-    }
+    //public class ProcessEngineSyncSummaryDTO
+    //{
+    //    public bool ProjectDetailHadData { get; set; }
+    //    public int ProjectDetailRecordsDeleted { get; set; }
+    //    public int ProjectDetailRecordsInserted { get; set; }
+    //    public bool ProjectMasterHadData { get; set; }
+    //    public int ProjectMasterRecordsDeleted { get; set; }
+    //    public int ProjectMasterRecordsInserted { get; set; }
+    //    public bool ProjectVersionDetailsHadData { get; set; }
+    //    public int ProjectVersionDetailsRecordsDeleted { get; set; }
+    //    public int ProjectVersionDetailsRecordsInserted { get; set; }
+    //    public bool TaskFlowDetailHadData { get; set; }
+    //    public int TaskFlowDetailRecordsDeleted { get; set; }
+    //    public int TaskFlowDetailRecordsInserted { get; set; }
+    //    public bool TaskFlowMasterHadData { get; set; }
+    //    public int TaskFlowMasterRecordsDeleted { get; set; }
+    //    public int TaskFlowMasterRecordsInserted { get; set; }
+    //    public bool TransactionTaskFlowDetailHadData { get; set; }
+    //    public int TransactionTaskFlowDetailRecordsDeleted { get; set; }
+    //    public int TransactionTaskFlowDetailRecordsInserted { get; set; }
+    //    public int TotalRecordsAffected { get; set; }
+    //    public TimeSpan Duration { get; set; }
+    //    public List<string> SkippedTables { get; set; }
+    //}
 }
