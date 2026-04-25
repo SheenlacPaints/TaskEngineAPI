@@ -2063,9 +2063,9 @@ namespace TaskEngineAPI.Controllers
         }
 
         [Authorize]
-        [HttpGet]
+        [HttpPost]
         [Route("Getemployeekradetails")]
-        public async Task<IActionResult> Getemployeekradetails([FromQuery] string? searchtext)
+        public async Task<IActionResult> Getemployeekradetails([FromBody] string? searchtext)
         {
             try
             {
