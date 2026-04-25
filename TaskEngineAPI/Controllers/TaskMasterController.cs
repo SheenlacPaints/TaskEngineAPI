@@ -2065,14 +2065,14 @@ namespace TaskEngineAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("Getemployeekradetails")]
-        public async Task<IActionResult> Getemployeekradetails([FromBody] string? searchtext)
+        public async Task<IActionResult> Getemployeekradetails([FromBody] monthr month )
         {
             try
             {
 
 
                 var (cTenantID, username) = GetUserInfoFromToken();
-                var json = await taskMasterService.Getemployeekradetails(cTenantID, username, searchtext);
+                var json = await taskMasterService.Getemployeekradetails(cTenantID, username, month.month);
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
                 return CreatedwithoutDataResponse(data);
             

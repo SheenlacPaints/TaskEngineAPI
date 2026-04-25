@@ -6223,7 +6223,7 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
-        public async Task<string> Getemployeekradetails(int cTenantID, string username, string? searchText = null)
+        public async Task<string> Getemployeekradetails(int cTenantID, string username, string? @month = null)
         {
             try
             {
@@ -6233,7 +6233,7 @@ namespace TaskEngineAPI.Services
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@tenentid", cTenantID);
                     cmd.Parameters.AddWithValue("@userid", username);
-                    cmd.Parameters.AddWithValue("@searchtext", searchText);
+                    cmd.Parameters.AddWithValue("@month", @month);
                     var ds = new DataSet();
                     var adapter = new SqlDataAdapter(cmd);
                     await Task.Run(() => adapter.Fill(ds)); // async wrapper

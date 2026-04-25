@@ -3998,7 +3998,7 @@ namespace TaskEngineAPI.Controllers
         //}
         [Authorize]
         [HttpPost("Getemployeekradetails")]
-        public async Task<IActionResult> Getemployeekradetails([FromBody] string? searchtext)
+        public async Task<IActionResult> Getemployeekradetails([FromBody] monthr month)
         {
             try
             {
@@ -4011,7 +4011,7 @@ namespace TaskEngineAPI.Controllers
 
                 var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}TaskMaster/Getemployeekradetails");
                 requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", jwtToken.Split(" ").Last());
-                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(searchtext), Encoding.UTF8, "application/json");
+                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(month), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
                 string json = body;
