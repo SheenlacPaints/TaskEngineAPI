@@ -147,6 +147,7 @@ namespace TaskEngineAPI.DTO
         public string? cdatasource { get; set; }
 
         public string? capi_mapping { get; set; }
+        public string? cinoutboundapi_mapping { get; set; }
     }
 
     public class GetProcessEngineCountDTO
