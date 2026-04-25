@@ -1700,7 +1700,9 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<APIFetchDTO>(request.payload);
-                var json = (await APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username)).ToString();
+                var bearerToken = HttpContext.Request.Headers["Authorization"].ToString();
+
+                var json = (await APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username, bearerToken)).ToString();
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
                 return CreatedDataResponse(data);

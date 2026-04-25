@@ -122,8 +122,12 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<APIFetchDTO>(request.payload);
+                var bearerToken = HttpContext.Request.Headers["Authorization"].ToString();
 
-                var json = await _APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username);
+                // ✅ PASS TOKEN TO SERVICE
+                
+
+                var json = await _APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username, bearerToken);
 
                 var list = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
