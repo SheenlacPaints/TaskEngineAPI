@@ -4014,7 +4014,7 @@ namespace TaskEngineAPI.Controllers
                 requestMessage.Content = new StringContent(JsonConvert.SerializeObject(searchtext), Encoding.UTF8, "application/json");
                 var response = await _httpClient.SendAsync(requestMessage);
                 var body = await response.Content.ReadAsStringAsync();
-                string json = $"\"{body}\"";
+                string json = body;
                 return StatusCode((int)response.StatusCode, json);
             }
             catch (Exception ex)
