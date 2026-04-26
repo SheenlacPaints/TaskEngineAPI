@@ -463,7 +463,7 @@ p.cprocess_privilege as privilege_name,
     d.nis_board_metaapi_integration,d.cboard_metaapi_id,d.cboard_metaapi_response,d.nis_custom_meta,d.ccustom_meta_seqno,n.notification_type AS Notification_Description,
     s.cstatus_description, d.ciseqno,  d.cheader_id, meta.meta_Name, meta.meta_Description, d.ID AS DetailID,m.nshow_table,m.cattachment,m.nis_metaapi_integration,m.cmetaapi_id,
     m.cmetaapi_response,m.nis_auto_initiate,d.nis_external_api_enabled,d.nexternal_api_id,m.nis_inoutbound_integration ,
-    m.cinoutboundapi_id,m.cinoutboundapi_response,d.nis_inoutbound_integration,d.cinoutboundapi_id,d.cinoutboundapi_response
+    m.cinoutboundapi_id,m.cinoutboundapi_response,d.nis_inoutbound_integration as detailnis_inoutbound_integration,d.cinoutboundapi_id as detailcinoutboundapi_id,d.cinoutboundapi_response as detailcinoutboundapi_response
 FROM tbl_process_engine_master m
 LEFT JOIN AdminUsers u1 ON CAST(m.ccreated_by AS VARCHAR(50)) = u1.cuserid
 LEFT JOIN AdminUsers u2 ON CAST(m.cmodified_by AS VARCHAR(50)) = u2.cuserid
@@ -552,9 +552,9 @@ WHERE m.ctenant_id = @TenantID and m.nIs_deleted=0  and m.ID=@id ORDER BY m.ID D
                             ccustom_meta_seqno = reader.SafeGetInt("ccustom_meta_seqno"),
                             nis_external_api_enabled = reader.SafeGetBoolean("nis_external_api_enabled"),
                             nexternal_api_id = reader.SafeGetInt("nexternal_api_id"),
-                            nis_inoutbound_integration = reader.SafeGetBoolean("nis_inoutbound_integration"),
-                            cinoutboundapi_id = reader.SafeGetInt("cinoutboundapi_id"),
-                            cinoutboundapi_response = reader.SafeGetString("cinoutboundapi_response"),
+                            nis_inoutbound_integration = reader.SafeGetBoolean("detailnis_inoutbound_integration"),
+                            cinoutboundapi_id = reader.SafeGetInt("detailcinoutboundapi_id"),
+                            cinoutboundapi_response = reader.SafeGetString("detailcinoutboundapi_response"),
                             processEngineConditionDetails = new List<processEngineConditionDetails>()
                         };
                         engine.processEngineChildItems.Add(child);
