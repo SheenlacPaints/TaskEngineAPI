@@ -137,6 +137,7 @@ namespace TaskEngineAPI.DTO
         public List<GetprocessEngineConditionDTO> board { get; set; }
         public List<PreviousapproverDTO> approvers { get; set; }
         public List<BoardmetaDTO>? BoardAPIdata { get; set; }
+        public List<InoutboundDTO>? InoutboundAPIdata { get; set; }
     }
     public class GettaskApprovedatabyidDTO
     {
@@ -377,6 +378,12 @@ namespace TaskEngineAPI.DTO
         public string? capiresponse { get; set; }
 
     }
+    public class InoutboundDTO
+    {
+        public string? cinoutboundapiresponse { get; set; }
+
+    }
+
     public class TimelineDTO
     {
         public string? status { get; set; }
