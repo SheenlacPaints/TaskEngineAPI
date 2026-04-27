@@ -1779,6 +1779,7 @@ namespace TaskEngineAPI.Services
                    from [tbl_transaction_process_meta_layout] a 
                    inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
                  inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+                 inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cprocess_id
                  where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
