@@ -424,6 +424,8 @@ namespace TaskEngineAPI.DTO
         public string? rejectedreason { get; set; }
         public string? reassignto { get; set; }
         public string? cmeta_response { get; set; }
+
+        public string? cinoutboundupdate_response { get; set; }
         public List<metaData> metaData { get; set; }
     }
     public class GetDropDownFilterDTO

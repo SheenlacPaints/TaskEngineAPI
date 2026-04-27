@@ -1954,13 +1954,15 @@ namespace TaskEngineAPI.Services
                 int? processId = null;
                 int? taskNo = null;
                 bool committed = false;
-
+                bool isInOutboundIntegration = false;
+                int? headerId = null;
                 try
                 {
                     string checkQuery = @"
-        SELECT a.itaskno, b.cprocess_id, a.cis_reassigned 
+        SELECT a.itaskno,a.iheader_id, b.cprocess_id, a.cis_reassigned,c.nis_inoutbound_integration  
         FROM tbl_taskflow_detail a
         INNER JOIN tbl_taskflow_master b ON a.iheader_id = b.ID 
+        inner join  tbl_process_engine_master c on c.id=b.cprocess_id
         WHERE a.ID = @ID";
 
                     using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn, transaction))
@@ -1973,6 +1975,9 @@ namespace TaskEngineAPI.Services
                                 taskNo = reader["itaskno"] as int? ?? model.itaskno;
                                 processId = reader["cprocess_id"] as int?;
                                 string alreadyReassigned = reader["cis_reassigned"]?.ToString() ?? "";
+                                headerId = reader["iheader_id"] != DBNull.Value ? Convert.ToInt32(reader["iheader_id"]) : (int?)null;
+                                isInOutboundIntegration = reader["nis_inoutbound_integration"] != DBNull.Value &&
+                                    Convert.ToBoolean(reader["nis_inoutbound_integration"]);
 
                                 if (!string.IsNullOrEmpty(model.reassignto) && alreadyReassigned == "Y")
                                 {
@@ -2089,7 +2094,22 @@ namespace TaskEngineAPI.Services
                             await cmd.ExecuteNonQueryAsync();
                         }
                     }
+                    if (isInOutboundIntegration && headerId != null)
+                    {
+                        string updateMaster = @"
+                UPDATE tbl_taskflow_master 
+                SET cmeta_response = @response
+                WHERE ID = @headerId";
 
+                        using var cmd = new SqlCommand(updateMaster, conn, transaction);
+
+                        cmd.Parameters.Add("@response", SqlDbType.NVarChar).Value =
+                            (object?)model.cinoutboundupdate_response ?? DBNull.Value;
+
+                        cmd.Parameters.Add("@headerId", SqlDbType.Int).Value = headerId;
+
+                        await cmd.ExecuteNonQueryAsync();
+                    }
 
                     transaction.Commit();
                     committed = true;
