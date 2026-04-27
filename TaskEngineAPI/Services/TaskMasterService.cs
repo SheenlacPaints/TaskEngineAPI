@@ -2368,8 +2368,10 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                     board = new List<GetprocessEngineConditionDTO>(),
                                     meta = new List<processEnginetaskMeta>(),
                                     approvers = new List<PreviousapproverDTO>(),
-                                    BoardAPIdata = new List<BoardmetaDTO>()
-                                };
+                                    BoardAPIdata = new List<BoardmetaDTO>(),
+                                    InoutboundAPIdata = new List<InoutboundDTO>(),
+        
+                        };
 
                                 if (mapping.showTimeline == true)
                                 {
@@ -2377,10 +2379,10 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                 }
                                 mapping.approvers = await GetPreviousapproverAsync(conn, ID, username, cTenantID);
                                 await LoadProcessConditionsForHold(conn, mapping, processdetailid);
-
                                 await LoadMetaForHold(conn, mapping, itaskno, cTenantID);
                                 await GetPreviousapproverAsync(conn, ID, username, cTenantID);
                                 await BoardholdAPIdata(conn, mapping, itaskno, cTenantID, ID);
+                                await InoutboundAholdPIdata(conn, mapping, itaskno, cTenantID, ID);
                                 result.Add(mapping);
                             }
                         }
@@ -2489,6 +2491,38 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                     cdatasource = dr["cdata_source"]?.ToString() ?? ""
                 });
             }
+        }
+
+        private async Task InoutboundAholdPIdata(SqlConnection conn, GettaskHolddatabyidDTO mapping, int itaskno, int tenantID, int ID)
+        {
+            string sql = @"SELECT 
+        (SELECT id, capi_method, capi_url, cbody, capi_params, capi_headers 
+         FROM tbl_users_api_sync_config 
+         WHERE id = (
+            SELECT cinoutboundapi_id 
+            FROM tbl_taskflow_detail a
+            INNER JOIN tbl_process_engine_details b
+                ON a.iseqno = b.ciseqno
+            WHERE a.id = @ID
+            AND b.cheader_id = @HeaderID
+         )
+         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+        ) AS api_response";
+
+            using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ID", ID);
+            cmd.Parameters.AddWithValue("@HeaderID", mapping.processId);
+
+            using var dr = await cmd.ExecuteReaderAsync();
+
+            if (await dr.ReadAsync())
+            {
+                mapping.InoutboundAPIdata.Add(new InoutboundDTO
+                {
+                    cinoutboundapiresponse = dr["api_response"]?.ToString() ?? ""
+                });
+            }
+
         }
         public async Task<string> GettaskHold(int cTenantID, string username, string? searchText = null, int page = 1, int pageSize = 50)
         {
