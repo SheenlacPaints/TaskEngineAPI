@@ -82,7 +82,7 @@ namespace TaskEngineAPI.Interfaces
 
         Task<string> Getsubordinate_dashboard(int cTenantID, string username, string? searchText = null);
         Task<bool> projectbackclienforapprovalpushnotificationAsync(int ID, int cTenantID, string username);
-
+        Task<List<processEnginetaskMeta>> Getmetadetaildataasync(int cTenantID, int itaskno);
     }
 
 }
