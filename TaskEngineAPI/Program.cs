@@ -251,15 +251,16 @@ app.Lifetime.ApplicationStarted.Register(() =>
     {
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
+        recurringJobManager.AddOrUpdate(
             "test-job",
-            x => x.SyncEmployeesAsync(1500),
-           // Cron.MinuteInterval(5)
-             Cron.Daily(4)
+            () => scope.ServiceProvider.GetRequiredService<ISapSyncJobService>().SyncEmployeesAsync(1500),
+
+            Cron.Daily(4),
+            TimeZoneInfo.Local
         );
     }
 });
-
+  
 app.UseHangfireDashboard("/hangfire");
 //app.UseSerilogRequestLogging();
 //app.UseSerilogRequestLogging(options =>
