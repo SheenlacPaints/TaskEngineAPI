@@ -1199,6 +1199,7 @@ namespace TaskEngineAPI.Services
 
                 DataTable dt = new DataTable();
 
+                // (Your columns remain same)
                 dt.Columns.Add("TenantId", typeof(int));
                 dt.Columns.Add("cuserid", typeof(long));
                 dt.Columns.Add("cuser_name", typeof(string));
@@ -1250,9 +1251,12 @@ namespace TaskEngineAPI.Services
 
                 foreach (var emp in employees)
                 {
+                    long empId;
+                    object empIdValue = long.TryParse(emp.EMPLOYEE_ID, out empId) ? empId : (object)DBNull.Value;
+
                     dt.Rows.Add(
                         tenantId,
-                        string.IsNullOrEmpty(emp.EMPLOYEE_ID) ? (object)DBNull.Value : Convert.ToInt64(emp.EMPLOYEE_ID),
+                        empIdValue,
                         emp.EMPLOYEE_NAME ?? (object)DBNull.Value,
                         emp.EMAIL_ADDRESS ?? (object)DBNull.Value,
                         "",
@@ -1306,6 +1310,7 @@ namespace TaskEngineAPI.Services
                 {
                     await conn.OpenAsync();
 
+                    // ✅ STEP 1: BULK INSERT + COMMIT
                     using (SqlTransaction tran = conn.BeginTransaction())
                     {
                         try
@@ -1313,8 +1318,6 @@ namespace TaskEngineAPI.Services
                             using (SqlBulkCopy bulkCopy = new SqlBulkCopy(conn, SqlBulkCopyOptions.TableLock, tran))
                             {
                                 bulkCopy.DestinationTableName = "dbo.Users_Staging";
-                                bulkCopy.BatchSize = 5000;
-                                bulkCopy.BulkCopyTimeout = 120;
 
                                 foreach (DataColumn col in dt.Columns)
                                 {
@@ -1324,13 +1327,24 @@ namespace TaskEngineAPI.Services
                                 await bulkCopy.WriteToServerAsync(dt);
                             }
 
-                            tran.Commit();
+                            tran.Commit(); // ✅ FIXED
                         }
                         catch
                         {
                             tran.Rollback();
                             throw;
                         }
+                    }
+
+                    // ✅ STEP 2: CALL SP AFTER COMMIT
+                    using (SqlCommand cmd = new SqlCommand("SP_Sync_Users", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+
+                        cmd.Parameters.Add("@BatchId", SqlDbType.UniqueIdentifier).Value = batchId;
+                        cmd.Parameters.Add("@TenantId", SqlDbType.Int).Value = tenantId;
+
+                        await cmd.ExecuteNonQueryAsync();
                     }
                 }
 
