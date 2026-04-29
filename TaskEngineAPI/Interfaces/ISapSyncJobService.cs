@@ -4,7 +4,8 @@
     public interface ISapSyncJobService
     {
         //Task UserdetailSAPAPIinsertAsync(int cTenantID);
-        Task SyncEmployeesAsync(int tenantId);
+
+        Task<bool> SyncEmployeesAsync(int tenantId);
     }
 
 }

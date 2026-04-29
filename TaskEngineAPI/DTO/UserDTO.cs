@@ -542,4 +542,47 @@ namespace TaskEngineAPI.DTO
         public string EMAIL_ADDRESS { get; set; }
         public string PHONE_NUMBER { get; set; }
     }
+
+    public class SapSyncEmployeeResponse
+    {
+        public string EMPLOYEE_ID { get; set; }
+        public string EMPLOYEE_NAME { get; set; }
+        public string EMPLOYEE_FIRST_NAME { get; set; }
+        public string EMPLOYEE_LAST_NAME { get; set; }
+        public string GENDER { get; set; }
+        public string DATE_OF_BIRTH { get; set; }
+        public string MARITAL_STATUS { get; set; }
+        public string DATE_OF_JOINING { get; set; }
+        public string ROLE { get; set; }
+        public string DEPARTMENT_CODE { get; set; }
+        public string DEPARTMENT { get; set; }
+        public string POSITION { get; set; }
+        public string EMPLOYEE_POSITION_CODE { get; set; }
+        public string EMPLOYEE_STATUS_CODE { get; set; }
+        public string EMPLOYEE_STATUS { get; set; }
+        public string EMPLOYEE_CATEGORY { get; set; }
+        public string REPORTING_MANAGER_CODE { get; set; }
+        public string REPORTING_MANAGER { get; set; }
+        public string MANAGER_POS_ID { get; set; }
+        public string MANAGER_POS_DES { get; set; }
+        public string BANK_NAME { get; set; }
+        public string ACCOUNT_NUMBER { get; set; }
+        public string IFSC_CODE { get; set; }
+        public string PAN { get; set; }
+        public string ALTERNATIVE_NUMBER { get; set; }
+        public string ADDRESS_LINE1 { get; set; }
+        public string ADDRESS_LINE2 { get; set; }
+        public string ADDRESS { get; set; }
+        public string CITY { get; set; }
+        public string STATE_CODE { get; set; }
+        public string STATE { get; set; }
+        public string PIN_CODE { get; set; }
+        public string NATIONALITY_CODE { get; set; }
+        public string NATIONALITY { get; set; }
+        public string PHONE_NUMBER { get; set; }
+        public string NOTICE_PERIOD { get; set; }
+        public string EMAIL_ADDRESS { get; set; }
+        public string COMPANY_CODE { get; set; }
+    }
+
 }
