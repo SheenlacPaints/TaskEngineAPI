@@ -204,15 +204,15 @@ namespace TaskEngineAPI.Services
                     }
 
                     // ✅ STEP 2: CALL SP AFTER COMMIT
-                    using (SqlCommand cmd = new SqlCommand("SP_Sync_Users", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
+                    //using (SqlCommand cmd = new SqlCommand("SP_Sync_Users", conn))
+                    //{
+                    //    cmd.CommandType = CommandType.StoredProcedure;
 
-                        cmd.Parameters.Add("@BatchId", SqlDbType.UniqueIdentifier).Value = batchId;
-                        cmd.Parameters.Add("@TenantId", SqlDbType.Int).Value = tenantId;
+                    //    cmd.Parameters.Add("@BatchId", SqlDbType.UniqueIdentifier).Value = batchId;
+                    //    cmd.Parameters.Add("@TenantId", SqlDbType.Int).Value = tenantId;
 
-                        await cmd.ExecuteNonQueryAsync();
-                    }
+                    //    await cmd.ExecuteNonQueryAsync();
+                    //}
                 }
 
                 return true;
