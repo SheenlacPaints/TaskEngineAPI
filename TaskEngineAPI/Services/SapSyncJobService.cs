@@ -23,7 +23,7 @@ namespace TaskEngineAPI.Services
         {
             try
             {
-                string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/GetAllEmployeeDtls";
+                string apiUrl = "https://misapi.sheenlac.com/api/Progovex/GetAllEmployeeDtls";
 
                 var requestBody = new
                 {
