@@ -171,11 +171,7 @@ namespace TaskEngineAPI.Services
                     {
                         try
                         {
-                            using (SqlCommand deleteCmd = new SqlCommand("DELETE FROM dbo.Users_Staging WHERE TenantId = @TenantId", conn, tran))
-                            {
-                                deleteCmd.Parameters.Add("@TenantId", SqlDbType.Int).Value = tenantId;
-                                await deleteCmd.ExecuteNonQueryAsync();
-                            }
+                            
 
                             using (SqlBulkCopy bulkCopy = new SqlBulkCopy(conn, SqlBulkCopyOptions.TableLock, tran))
                             {
