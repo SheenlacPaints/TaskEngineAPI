@@ -44,14 +44,12 @@ namespace TaskEngineAPI.Services
 
                 var json = await response.Content.ReadAsStringAsync();
 
-                var employees = JsonConvert.DeserializeObject<List<SapSyncEmployeeResponse>>(json);
-
+                var apiResponse = JsonConvert.DeserializeObject<SapApiResponse>(json);
+                var employees = apiResponse?.body;
                 if (employees == null || !employees.Any())
                     return false;
 
-
                 Guid batchId = Guid.NewGuid();
-
 
                 DataTable dt = new DataTable();
 
@@ -173,6 +171,11 @@ namespace TaskEngineAPI.Services
                     {
                         try
                         {
+                            using (SqlCommand deleteCmd = new SqlCommand("DELETE FROM dbo.Users_Staging WHERE TenantId = @TenantId", conn, tran))
+                            {
+                                deleteCmd.Parameters.Add("@TenantId", SqlDbType.Int).Value = tenantId;
+                                await deleteCmd.ExecuteNonQueryAsync();
+                            }
 
                             using (SqlBulkCopy bulkCopy = new SqlBulkCopy(conn, SqlBulkCopyOptions.TableLock, tran))
                             {
@@ -203,16 +206,16 @@ namespace TaskEngineAPI.Services
                         }
                     }
 
-                    // ✅ STEP 2: CALL SP AFTER COMMIT
-                    //using (SqlCommand cmd = new SqlCommand("SP_Sync_Users", conn))
-                    //{
-                    //    cmd.CommandType = CommandType.StoredProcedure;
+                  
+                    using (SqlCommand cmd = new SqlCommand("SP_Sync_Users", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
 
-                    //    cmd.Parameters.Add("@BatchId", SqlDbType.UniqueIdentifier).Value = batchId;
-                    //    cmd.Parameters.Add("@TenantId", SqlDbType.Int).Value = tenantId;
+                        cmd.Parameters.Add("@BatchId", SqlDbType.UniqueIdentifier).Value = batchId;
+                        cmd.Parameters.Add("@TenantId", SqlDbType.Int).Value = tenantId;
 
-                    //    await cmd.ExecuteNonQueryAsync();
-                    //}
+                        await cmd.ExecuteNonQueryAsync();
+                    }
                 }
 
                 return true;

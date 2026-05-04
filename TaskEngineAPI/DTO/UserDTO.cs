@@ -585,4 +585,11 @@ namespace TaskEngineAPI.DTO
         public string COMPANY_CODE { get; set; }
     }
 
+    public class SapApiResponse
+    {
+        public int status { get; set; }
+        public string statusText { get; set; }
+        public List<SapSyncEmployeeResponse> body { get; set; }
+    }
+
 }
