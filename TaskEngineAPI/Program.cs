@@ -327,10 +327,10 @@ app.MapControllers();
 
 //app.Lifetime.ApplicationStarted.Register(() =>
 //{
-//    using (var scope = app.Services.CreateScope())
-//    {
-//        var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-//        var sapSyncService = scope.ServiceProvider.GetRequiredService<ISapSyncJobService>();
+//   using (var scope = app.Services.CreateScope())
+//  {
+//      var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+//      var sapSyncService = scope.ServiceProvider.GetRequiredService<ISapSyncJobService>();
 
 //        recurringJobManager.RemoveIfExists("inbound-sync-test");
 
@@ -338,14 +338,14 @@ app.MapControllers();
 //            "inbound-sync-8am",
 //            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
 //            {
-//                SyncOrgUnit = true,
-//                SyncJobCode = true,
-//                SyncPositionDetails = true,
-//                TriggeredBy = "Scheduler-8AM"
-//            }),
-//            "0 8 * * *",
-//            TimeZoneInfo.Local
-//        );
+//               SyncOrgUnit = true,
+//               SyncJobCode = true,
+//               SyncPositionDetails = true,
+//               TriggeredBy = "Scheduler-8AM"
+//           }),
+//           "0 8 * * *",
+//           TimeZoneInfo.Local
+//       );
 
 //        recurringJobManager.AddOrUpdate(
 //            "inbound-sync-12pm",
@@ -388,6 +388,6 @@ app.MapControllers();
 //            "0 16 * * *",
 //            TimeZoneInfo.Local
 //        );
-//    }
+  // }
 //});
 app.Run();
