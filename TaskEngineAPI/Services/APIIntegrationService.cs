@@ -428,6 +428,112 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        public async Task<string> FetchGetapiIntegration(GetFetchDTO model, int tenantId, string username)
+        {
+            string url = null;
+            string method = "POST";
+            string payload = "";
+            var connectionString = _config.GetConnectionString("Database");
+
+            // 🔹 STEP 1: Get API Config from DB
+            using (var conn = new SqlConnection(connectionString))
+            {
+                var sql = "SELECT capi_url, capi_method, cbody FROM tbl_users_api_sync_config WHERE id = @apiId";
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add("@apiId", SqlDbType.Int).Value = model.APIID;
+                    await conn.OpenAsync();
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            url = reader["capi_url"]?.ToString();
+                            method = reader["capi_method"]?.ToString() ?? "POST";
+                            payload = reader["cbody"]?.ToString() ?? "";
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(url))
+                return "{\"error\": \"API Config not found\"}";
+
+            var client = _httpClientFactory.CreateClient();
+            var request = new HttpRequestMessage(new HttpMethod(method.ToUpper().Trim()), url);
+
+            // 🔹 STEP 2: FIX ESCAPED JSON SAFELY
+            if (!string.IsNullOrWhiteSpace(payload))
+            {
+                payload = payload.Trim();
+
+                // Only clean if it's wrapped as string JSON
+                if (payload.StartsWith("\"") && payload.EndsWith("\""))
+                {
+                    try
+                    {
+                        payload = JsonConvert.DeserializeObject<string>(payload);
+                    }
+                    catch
+                    {
+                        // ignore if fails
+                    }
+                }
+            }
+
+            // 🔹 STEP 3: Attach Payload (for POST, PUT, PATCH)
+            if (!string.IsNullOrWhiteSpace(payload) &&
+                (method.Equals("POST", StringComparison.OrdinalIgnoreCase) ||
+                 method.Equals("PUT", StringComparison.OrdinalIgnoreCase) ||
+                 method.Equals("PATCH", StringComparison.OrdinalIgnoreCase)))
+            {
+                request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+            }
+
+            try
+            {
+                // 🔹 STEP 4: Call API
+                var response = await client.SendAsync(request);
+                var apiResponse = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                    return apiResponse;
+
+                // 🔹 STEP 5: Parse API Response
+                var apiObj = Newtonsoft.Json.Linq.JObject.Parse(apiResponse);
+
+                if (apiObj["error"] != null && !string.IsNullOrEmpty(apiObj["error"].ToString()))
+                    return apiResponse;
+
+                if (apiObj["body"] == null)
+                    return apiResponse;
+
+                var bodyToken = apiObj["body"];
+
+                List<Dictionary<string, object>> dataList;
+
+                if (bodyToken.Type == Newtonsoft.Json.Linq.JTokenType.Array)
+                {
+                    dataList = bodyToken.ToObject<List<Dictionary<string, object>>>();
+                }
+                else if (bodyToken.Type == Newtonsoft.Json.Linq.JTokenType.Object)
+                {
+                    var single = bodyToken.ToObject<Dictionary<string, object>>();
+                    dataList = new List<Dictionary<string, object>> { single };
+                }
+                else
+                {
+                    return apiResponse;
+                }
+
+                return JsonConvert.SerializeObject(dataList);
+            }
+            catch (Exception ex)
+            {
+                return $"{{\"error\": \"HTTP Request Failed\", \"details\": \"{ex.Message}\"}}";
+            }
+        }
 
     }
 }

@@ -183,7 +183,47 @@ namespace TaskEngineAPI.Controllers
         }
 
 
+        [Authorize]
+        [HttpPost("FetchGetapiIntegration")]
+        public async Task<IActionResult> FetchGetapiIntegration([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
 
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<GetFetchDTO>(request.payload);
+                var bearerToken = HttpContext.Request.Headers["Authorization"].ToString();
+
+                // ✅ PASS TOKEN TO SERVICE
+
+
+                var json = await _APIIntegrationService.FetchGetapiIntegration(model, cTenantID, username);
+
+                var list = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(list);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+      
 
     }
 }
