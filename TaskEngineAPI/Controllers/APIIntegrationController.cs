@@ -210,20 +210,49 @@ namespace TaskEngineAPI.Controllers
 
                 var list = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
-                return CreatedDataResponse(list);
+                return encryptCreatedDataResponse(list);
             }
             catch (UnauthorizedAccessException)
             {
-                return CreateEncryptedResponse(401, "Unauthorized access");
+                return encryptCreateEncryptedResponse(401, "Unauthorized access");
             }
             catch (Exception ex)
             {
-                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+                return encryptCreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
 
+        protected IActionResult encryptCreatedDataResponse(List<Dictionary<string, object>> data, string noDataMessage = "No data found")
+        {
+            var hasData = data != null && data.Any();
+            var response = new APIResponse
+            {
+                status = hasData ? 200 : 204,
+                statusText = hasData ? "Successful" : noDataMessage,
+                body = hasData ? data.Cast<object>().ToArray() : Array.Empty<object>(),
+                
+            };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            string encryjson = $"\"{encrypted}\"";
+            return StatusCode(response.status, encryjson);
+        }
 
-      
+        protected IActionResult encryptCreateEncryptedResponse(int statusCode, string message, object body = null, string error = null)
+        {
+            var response = new APIResponse
+            {
+                status = statusCode,
+                statusText = message,
+                body = body != null ? new object[] { body } : Array.Empty<object>(),
+                error = error
+            };
+            string json = JsonConvert.SerializeObject(response);
+            string encrypted = AesEncryption.Encrypt(json);
+            string encryjson = $"\"{encrypted}\"";
+            return StatusCode(statusCode, encrypted);
+        }
+
 
     }
 }
