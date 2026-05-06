@@ -535,5 +535,152 @@ namespace TaskEngineAPI.Services
             }
         }
 
+        
+        public async Task<string> FetchtaskGetapiIntegration(GettaskFetchDTO model, int tenantId, string username)
+        {
+            string url = null;
+            string method = "POST";
+            string payload = "";
+            string createdBy = null;
+
+            var connectionString = _config.GetConnectionString("Database");
+
+            // 🔹 STEP 1: Get API Config from DB
+            using (var conn = new SqlConnection(connectionString))
+            {
+                await conn.OpenAsync();
+
+                // 1A: Get API config
+                var sql = "SELECT capi_url, capi_method, cbody FROM tbl_users_api_sync_config WHERE id = @apiId";
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.Add("@apiId", SqlDbType.Int).Value = model.APIID;
+
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            url = reader["capi_url"]?.ToString();
+                            method = reader["capi_method"]?.ToString() ?? "POST";
+                            payload = reader["cbody"]?.ToString() ?? "";
+                        }
+                    }
+                }
+
+                if (model.itaskno.HasValue)
+                {
+                    var taskSql = "SELECT ccreated_by FROM tbl_taskflow_master WHERE itaskno = @taskno";
+
+                    using (var cmd2 = new SqlCommand(taskSql, conn))
+                    {
+                        cmd2.Parameters.Add("@taskno", SqlDbType.Int).Value = model.itaskno.Value;
+
+                        var result = await cmd2.ExecuteScalarAsync();
+                        if (result != null)
+                        {
+                            createdBy = result.ToString();
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(url))
+                return "{\"error\": \"API Config not found\"}";
+
+            var client = _httpClientFactory.CreateClient();
+            var request = new HttpRequestMessage(new HttpMethod(method.ToUpper().Trim()), url);
+
+            // 🔹 STEP 2: FIX ESCAPED JSON
+            if (!string.IsNullOrWhiteSpace(payload))
+            {
+                payload = payload.Trim();
+
+                if (payload.StartsWith("\"") && payload.EndsWith("\""))
+                {
+                    try
+                    {
+                        payload = JsonConvert.DeserializeObject<string>(payload);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(payload) && !string.IsNullOrEmpty(createdBy))
+            {
+                try
+                {
+                    var jsonObj = Newtonsoft.Json.Linq.JObject.Parse(payload);
+
+                    if (jsonObj["emp_ID"] != null)
+                    {
+                        jsonObj["emp_ID"] = createdBy;
+                    }
+
+                    payload = jsonObj.ToString();
+                }
+                catch
+                {
+                    // ignore if parsing fails
+                }
+            }
+
+            // 🔹 STEP 4: Attach Payload
+            if (!string.IsNullOrWhiteSpace(payload) &&
+                (method.Equals("POST", StringComparison.OrdinalIgnoreCase) ||
+                 method.Equals("PUT", StringComparison.OrdinalIgnoreCase) ||
+                 method.Equals("PATCH", StringComparison.OrdinalIgnoreCase)))
+            {
+                request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+            }
+
+            try
+            {
+                // 🔹 STEP 5: Call API
+                var response = await client.SendAsync(request);
+                var apiResponse = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                    return apiResponse;
+
+                // 🔹 STEP 6: Parse API Response
+                var apiObj = Newtonsoft.Json.Linq.JObject.Parse(apiResponse);
+
+                if (apiObj["error"] != null && !string.IsNullOrEmpty(apiObj["error"].ToString()))
+                    return apiResponse;
+
+                if (apiObj["body"] == null)
+                    return apiResponse;
+
+                var bodyToken = apiObj["body"];
+
+                List<Dictionary<string, object>> dataList;
+
+                if (bodyToken.Type == Newtonsoft.Json.Linq.JTokenType.Array)
+                {
+                    dataList = bodyToken.ToObject<List<Dictionary<string, object>>>();
+                }
+                else if (bodyToken.Type == Newtonsoft.Json.Linq.JTokenType.Object)
+                {
+                    var single = bodyToken.ToObject<Dictionary<string, object>>();
+                    dataList = new List<Dictionary<string, object>> { single };
+                }
+                else
+                {
+                    return apiResponse;
+                }
+
+                return JsonConvert.SerializeObject(dataList);
+            }
+            catch (Exception ex)
+            {
+                return $"{{\"error\": \"HTTP Request Failed\", \"details\": \"{ex.Message}\"}}";
+            }
+        }
+
+
     }
 }

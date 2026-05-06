@@ -222,6 +222,48 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost("FetchtaskapiIntegration")]
+        public async Task<IActionResult> FetchtaskapiIntegration([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<GettaskFetchDTO>(request.payload);
+                var bearerToken = HttpContext.Request.Headers["Authorization"].ToString();
+
+                // ✅ PASS TOKEN TO SERVICE
+
+
+                var json = await _APIIntegrationService.FetchtaskGetapiIntegration(model, cTenantID, username);
+
+                var list = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return encryptCreatedDataResponse(list);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return encryptCreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return encryptCreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+
+       
+
         protected IActionResult encryptCreatedDataResponse(List<Dictionary<string, object>> data, string noDataMessage = "No data found")
         {
             var hasData = data != null && data.Any();
