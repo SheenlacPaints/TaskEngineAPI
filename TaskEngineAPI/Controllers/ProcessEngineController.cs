@@ -848,6 +848,39 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("Getprocessraiselimit")]
+        public async Task<IActionResult> Getprocessraiselimit([FromQuery] int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return CreateEncryptedResponse(400, "ID must be greater than 0");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var processEngine = await _processEngineService.GetIDprocessraiselimitDTO(cTenantID, id);
+
+                if (processEngine == null || !processEngine.Any())
+                {
+                    return CreateEncryptedResponse(404, $"Process engine with ID {id} not found");
+                }
+
+                return CreatedSuccessResponse(processEngine, "succesfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
 
     }
 }

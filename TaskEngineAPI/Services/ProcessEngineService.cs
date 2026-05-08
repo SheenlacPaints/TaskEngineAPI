@@ -1974,6 +1974,57 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
             }
         }
 
+        public async Task<List<GetIDprocessraiselimitDTO>> GetIDprocessraiselimitDTO(int cTenantID, int id)
+        {
+            var result = new Dictionary<int, GetIDprocessraiselimitDTO>();
+            var connStr = _config.GetConnectionString("Database");
+
+            try
+            {
+                using var conn = new SqlConnection(connStr);
+                await conn.OpenAsync();
+
+                // 🔹 First query: Header + Child (no condition join)
+                string mainQuery = @"
+
+SELECT m.id, m.ctenant_id, m.cprocess_id, m.nraise_limit, m.climit_type, m.cis_active
+ FROM tbl_process_raise_limit_config m
+WHERE m.ctenant_id = @TenantID and m.cprocess_id=@id ORDER BY m.id DESC;";
+
+                using var cmd = new SqlCommand(mainQuery, conn);
+                cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                cmd.Parameters.AddWithValue("@id", id);
+
+                using var reader = await cmd.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    int masterId = reader.GetInt32(reader.GetOrdinal("ID"));
+
+                    if (!result.TryGetValue(masterId, out var engine))
+                    {
+                        engine = new GetIDprocessraiselimitDTO
+                        {
+                            ID = masterId,
+                            cprocess_id = reader.SafeGetInt("cprocess_id"),
+                            nraise_limit = reader.SafeGetInt("nraise_limit"),
+                            climit_type = reader.SafeGetString("climit_type"),
+                            cis_active = reader.SafeGetBoolean("cis_active"),
+                           
+                        };
+                        result[masterId] = engine;
+                    }
+                 }
+                reader.Close();         
+           }
+            catch (Exception ex)
+            {
+                throw; // log if needed
+            }
+
+            return result.Values.ToList();
+        }
+
+
     }
 }
 
