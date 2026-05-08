@@ -1892,7 +1892,7 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                     {
                         int headerId;
                         string query = @"INSERT INTO tbl_process_raise_limit_config
-                (ctenant_id, cprocess_id,nraise_limit, climit_type,is_active,
+                (ctenant_id, cprocess_id,nraise_limit, climit_type,cis_active,
                 ccreated_by,lcreated_date,cmodified_by,lmodified_date)
                 VALUES(@TenantID,@cprocess_id,@nraise_limit,@climit_type,@is_active,
                 @ccreated_by,@lcreated_date,@cmodified_by,@lmodified_date);
