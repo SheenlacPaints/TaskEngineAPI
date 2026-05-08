@@ -1938,13 +1938,14 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
                     try
                     { 
                         string updateQuery = @"UPDATE tbl_process_raise_limit_config SET cprocess_id=@cprocess_id,
-                        nraise_limit=@nraise_limit,climit_type=@climit_type
+                        nraise_limit=@nraise_limit,climit_type=@climit_type,
                         cmodified_by = @cmodified_by,lmodified_date = @lmodified_date,                       
                         cis_active=@cisactive
                          WHERE id = @id AND ctenant_id = @tenantid";
 
                         using (SqlCommand cmd = new SqlCommand(updateQuery, conn, tx))
                         {
+                            cmd.Parameters.AddWithValue("@id", model.ID);
                             cmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
                             cmd.Parameters.AddWithValue("@nraise_limit", model.nraise_limit);
                             cmd.Parameters.AddWithValue("@climit_type", model.climit_type);

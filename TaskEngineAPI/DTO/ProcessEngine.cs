@@ -607,8 +607,8 @@ namespace TaskEngineAPI.DTO
     {
         public int? ID { get; set; }
         public int? cprocessid { get; set; }
-        public string? nraise_limit { get; set; }
-        public int? climit_type { get; set; }
+        public int? nraise_limit { get; set; }
+        public string? climit_type { get; set; }
         public bool? cis_active { get; set; }
 
     }
