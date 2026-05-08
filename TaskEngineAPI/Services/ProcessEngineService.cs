@@ -1878,6 +1878,102 @@ LEFT JOIN tbl_process_meta_Master meta ON m.cmeta_id = meta.id
             return result.Values.ToList();
         }
 
+        public async Task<int> InsertprocessraiselimitconfigAsync(processraiselimitDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                using (SqlTransaction tx = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        int headerId;
+                        string query = @"INSERT INTO tbl_process_raise_limit_config
+                (ctenant_id, cprocess_id,nraise_limit, climit_type,is_active,
+                ccreated_by,lcreated_date,cmodified_by,lmodified_date)
+                VALUES(@TenantID,@cprocess_id,@nraise_limit,@climit_type,@is_active,
+                @ccreated_by,@lcreated_date,@cmodified_by,@lmodified_date);
+                SELECT SCOPE_IDENTITY();";
+
+                        using (SqlCommand cmd = new SqlCommand(query, conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                            cmd.Parameters.AddWithValue("@cprocess_id",(object?)model.cprocessid ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@nraise_limit",(object?)model.nraise_limit ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@climit_type",(object?)model.climit_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@is_active", 1);
+                            cmd.Parameters.AddWithValue("@ccreated_by", username);
+                            cmd.Parameters.AddWithValue("@lcreated_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@cmodified_by", username);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            var newId = await cmd.ExecuteScalarAsync();
+                            headerId = Convert.ToInt32(newId);
+                        }
+                        tx.Commit();
+                        return headerId;
+                    }
+                    catch
+                    {
+                        tx.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+
+        public async Task<bool> UpdateprocessraiselimitAsync(updateprocessraiselimitDTO model, int cTenantID, string username)
+        {
+            var connStr = _config.GetConnectionString("Database");
+
+            using (SqlConnection conn = new SqlConnection(connStr))
+            {
+                await conn.OpenAsync();
+
+                using (SqlTransaction tx = conn.BeginTransaction())
+                {
+                    try
+                    { 
+                        string updateQuery = @"UPDATE tbl_process_raise_limit_config SET cprocess_id=@cprocess_id,
+                        nraise_limit=@nraise_limit,climit_type=@climit_type
+                        cmodified_by = @cmodified_by,lmodified_date = @lmodified_date,                       
+                        cis_active=@cisactive
+                         WHERE id = @id AND ctenant_id = @tenantid";
+
+                        using (SqlCommand cmd = new SqlCommand(updateQuery, conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@cprocess_id", model.cprocessid);
+                            cmd.Parameters.AddWithValue("@nraise_limit", model.nraise_limit);
+                            cmd.Parameters.AddWithValue("@climit_type", model.climit_type);
+                            cmd.Parameters.AddWithValue("@cmodified_by", username);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@tenantid", cTenantID);
+                            cmd.Parameters.AddWithValue("@cisactive", model.cis_active ?? (object)DBNull.Value);
+
+                            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+                            if (rowsAffected == 0)
+                            {
+                                tx.Rollback();
+                                return false;
+                            }
+                        }
+
+                        tx.Commit();
+                        return true;
+                    }
+                    catch
+                    {
+                        tx.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
     }
 }
 

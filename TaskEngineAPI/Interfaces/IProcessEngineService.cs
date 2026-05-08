@@ -36,7 +36,8 @@ namespace TaskEngineAPI.Interfaces
         Task<List<GetProcessEngineCountDTO>> GetAllProcessengineAsync(int cTenantID, string username, string searchText = null, int page = 1, int pageSize = 10, int? created_by = null, string priority = null, int? status = null);
 
         Task<List<GetIDProcessclipEngineDTO>> GetProcessengineclipboardAsync(int cTenantID, int id);
-
+        Task<int> InsertprocessraiselimitconfigAsync(processraiselimitDTO model, int cTenantID, string username);
+        Task<bool> UpdateprocessraiselimitAsync(updateprocessraiselimitDTO model, int cTenantID, string username);
 
     }
 
