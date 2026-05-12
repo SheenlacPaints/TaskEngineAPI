@@ -704,6 +704,180 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPost]
+        [Route("Createprocessraiselimit")]
+
+        public async Task<IActionResult> Createprocessraiselimit([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return CreateEncryptedResponse(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Payload cannot be empty");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch (Exception ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload format");
+                }
+
+                if (string.IsNullOrWhiteSpace(decryptedJson))
+                {
+                    return CreateEncryptedResponse(400, "Decrypted payload is empty");
+                }
+
+                processraiselimitDTO model;
+                try
+                {
+                    model = JsonConvert.DeserializeObject<processraiselimitDTO>(decryptedJson);
+                }
+                catch (JsonException ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid JSON format in payload");
+                }
+
+                if (model == null)
+                {
+                    return CreateEncryptedResponse(400, "Invalid process mapping data");
+                }
+
+                int insertedUserId = await _processEngineService.InsertprocessraiselimitconfigAsync(model, cTenantID, username);
+
+                if (insertedUserId == -1)
+                {
+                    return CreateEncryptedResponse(409, $"Process Raise limit '{model.cprocessid}'already assigned to this process.");
+                }
+
+                if (insertedUserId <= 0)
+                {
+                    return CreateEncryptedResponse(500, "Failed to create Process limit");
+                }
+
+                return CreatedSuccessResponse(new { processid = insertedUserId }, "Process raise limit successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
+        [Authorize]
+        [HttpPut]
+        [Route("Updateprocessraiselimit")]
+        public async Task<IActionResult> Updateprocessraiselimit([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null)
+                {
+                    return CreateEncryptedResponse(400, "Request body cannot be null");
+                }
+
+                if (string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Payload cannot be empty");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                string decryptedJson;
+                try
+                {
+                    decryptedJson = AesEncryption.Decrypt(request.payload);
+                }
+                catch (Exception ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid encrypted payload format");
+                }
+
+                if (string.IsNullOrWhiteSpace(decryptedJson))
+                {
+                    return CreateEncryptedResponse(400, "Decrypted payload is empty");
+                }
+
+                updateprocessraiselimitDTO model;
+                try
+                {
+                    model = JsonConvert.DeserializeObject<updateprocessraiselimitDTO>(decryptedJson);
+                }
+                catch (JsonException ex)
+                {
+                    return CreateEncryptedResponse(400, "Invalid JSON format in payload");
+                }
+
+                if (model == null || model.ID <= 0)
+                {
+                    return CreateEncryptedResponse(400, "Invalid ID provided");
+                }
+
+                bool success = await _processEngineService.UpdateprocessraiselimitAsync(model, cTenantID, username);
+
+                if (!success)
+                {
+                    return CreateEncryptedResponse(404, "Data not found or update failed");
+                }
+
+                return CreatedSuccessResponse(null, "Updated successfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Getprocessraiselimit")]
+        public async Task<IActionResult> Getprocessraiselimit([FromQuery] int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    return CreateEncryptedResponse(400, "ID must be greater than 0");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var processEngine = await _processEngineService.GetIDprocessraiselimitDTO(cTenantID, id);
+
+                if (processEngine == null || !processEngine.Any())
+                {
+                    return CreateEncryptedResponse(404, $"Process engine with ID {id} not found");
+                }
+
+                return CreatedSuccessResponse(processEngine, "succesfully");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
 
 
 
