@@ -7,7 +7,9 @@ namespace TaskEngineAPI.Interfaces
 
     public interface ITaskMasterService
     {
-        Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string username);
+        Task<int> InsertTaskMasterAsyncold(TaskMasterDTO model, int tenantId, string username);
+
+        Task<object> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string userName);
         Task<string> GetAllProcessmetaAsync(int cTenantID, int processid);
         Task<string> GetAllProcessmetadetailAsync(int cTenantID, int metaid);
         Task<string> Getdepartmentroleposition(int cTenantID, string table);

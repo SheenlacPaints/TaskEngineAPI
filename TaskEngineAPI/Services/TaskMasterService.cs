@@ -49,7 +49,7 @@ namespace TaskEngineAPI.Services
             _whatsAppSettings = whatsAppSettings.Value;
         }
 
-        public async Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string userName)
+        public async Task<int> InsertTaskMasterAsyncold(TaskMasterDTO model, int tenantId, string userName)
         {
             int masterId = 0;
             int detailId = 0;
@@ -251,6 +251,299 @@ namespace TaskEngineAPI.Services
 
             return masterId;
         }
+
+        public async Task<object> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string userName)
+        {
+            int masterId = 0;
+            int detailId = 0;
+            int primaryDetailId = 0;
+            int newTaskNo = 0;
+
+            bool isOutboundIntegration = false;
+
+            var connectionString = _config.GetConnectionString("Database");
+
+            using (var conn = new SqlConnection(connectionString))
+            {
+                await conn.OpenAsync();
+
+                // CHECK OUTBOUND INTEGRATION
+                string integrationQuery = @"
+        SELECT ISNULL(nis_inoutbound_integration,0)
+        FROM tbl_process_engine_master
+        WHERE ID = @processid";
+
+                using (SqlCommand cmd = new SqlCommand(integrationQuery, conn))
+                {
+                    cmd.Parameters.AddWithValue("@processid", model.cprocess_id);
+
+                    var result = await cmd.ExecuteScalarAsync();
+
+                    isOutboundIntegration = result != null &&
+                                            Convert.ToBoolean(result);
+                }
+
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // GENERATE TASK NO
+                        string taskNoQuery = @"
+                SELECT ISNULL(MAX(TRY_CAST(itaskno AS INT)), 0) + 1 
+                FROM tbl_taskflow_master 
+                WHERE ctenant_id = @TenantID";
+
+                        using (var taskNoCmd = new SqlCommand(taskNoQuery, conn, transaction))
+                        {
+                            taskNoCmd.Parameters.AddWithValue("@TenantID", tenantId);
+
+                            var result = await taskNoCmd.ExecuteScalarAsync();
+
+                            newTaskNo = result != null ? Convert.ToInt32(result) : 1;
+                        }
+
+                        // INSERT MASTER
+                        string queryMaster = @"INSERT INTO tbl_taskflow_master(itaskno,
+                    ctenant_id,ctask_type,ctask_name,ctask_description,cstatus,lcreated_date,
+                    ccreated_by,cmodified_by,lmodified_date,cprocess_id,cremarks,cmeta_response)
+                   VALUES(@itaskno,@TenantID,@ctask_type, @ctask_name, @ctask_description,
+                    @cstatus, @ccreated_date,@ccreated_by,@cmodified_by,@lmodified_date,
+                    @cprocess_id,@cremarks,@cmeta_response);
+                SELECT SCOPE_IDENTITY();";
+
+                        using (var cmd = new SqlCommand(queryMaster, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
+                            cmd.Parameters.AddWithValue("@TenantID", tenantId);
+                            cmd.Parameters.AddWithValue("@ctask_type", (object?)model.ctask_type ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctask_name", (object?)model.ctask_name ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ctask_description", (object?)model.ctask_description ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cstatus", "Initiated");
+                            cmd.Parameters.AddWithValue("@ccreated_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@ccreated_by", userName);
+                            cmd.Parameters.AddWithValue("@cmodified_by", userName);
+                            cmd.Parameters.AddWithValue("@lmodified_date", DateTime.Now);
+                            cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cremarks", (object?)model.cremarks ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
+                            var newId = await cmd.ExecuteScalarAsync();
+                            masterId = newId != null ? Convert.ToInt32(newId) : 0;
+                        }
+
+                        // GET PROCESS DETAILS
+                        string selectQuery = @"SELECT ctenant_id,cprocesscode,ciseqno,cactivitycode,
+                    cactivity_description,ctask_type,cprev_step,cactivityname,cnext_seqno,nboard_enabled,
+                    cmapping_code,cparticipant_type,csla_day,csla_Hour,caction_privilege,crejection_privilege,
+                    cmapping_type FROM tbl_process_engine_details 
+                      WHERE cheader_id = @cprocesscode  AND ctenant_id = @ctenent_id";
+
+                        var detailRows = new List<Dictionary<string, object>>();
+                        using (var cmdSelect = new SqlCommand(selectQuery, conn, transaction))
+                        {
+                            cmdSelect.Parameters.AddWithValue("@cprocesscode", model.cprocess_id);
+                            cmdSelect.Parameters.AddWithValue("@ctenent_id", tenantId);
+
+                            using (var reader = await cmdSelect.ExecuteReaderAsync())
+                            {
+                                while (await reader.ReadAsync())
+                                {
+                                    var row = new Dictionary<string, object>
+                                    {
+                                        ["ciseqno"] = reader["ciseqno"],
+                                        ["ctasktype"] = reader["ctask_type"],
+                                        ["cnextseqno"] = reader["cnext_seqno"],
+                                        ["cprevstep"] = reader["cprev_step"],
+                                        ["cmapping_code"] = reader["cmapping_code"],
+                                        ["nboard_enabled"] = reader["nboard_enabled"],
+                                        ["cparticipant_type"] = reader["cparticipant_type"],
+                                        ["csla_day"] = reader["csla_day"],
+                                        ["csla_Hour"] = reader["csla_Hour"],
+                                        ["caction_privilege"] = reader["caction_privilege"],
+                                        ["crejection_privilege"] = reader["crejection_privilege"]
+                                    };
+
+                                    detailRows.Add(row);
+                                }
+                            }
+                        }
+
+                        // INSERT DETAIL
+                        string queryDetail = @"INSERT INTO tbl_taskflow_detail(itaskno,
+                    iseqno,iheader_id,ctenant_id,ctask_type,cmapping_code,ccurrent_status,
+                    lcurrent_status_date,cremarks,inext_seqno,cnext_seqtype,cprevtype,
+                    nboard_enabled,cprocess_type,csla_day,csla_Hour,caction_privilege,
+                    crejection_privilege)VALUES(@itaskno,@iseqno,@iheader_id,@ctenent_id,
+                    @ctask_type,@cmapping_code,@ccurrent_status,@lcurrent_status_date,
+                    @cremarks,@inext_seqno,@cnext_seqtype,@cprevtype,
+                    @nboard_enabled,@cparticipant_type,@csla_day,
+                    @csla_Hour,@caction_privilege,@crejection_privilege);
+                SELECT SCOPE_IDENTITY();";
+
+                        bool isFirstRow = true;
+
+                        foreach (var row in detailRows)
+                        {
+                            string currentStatus = isFirstRow ? "P" : "N";
+
+                            using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
+                            {
+                                cmdInsert.Parameters.AddWithValue("@itaskno", newTaskNo);
+                                cmdInsert.Parameters.AddWithValue("@iseqno", row["ciseqno"]);
+                                cmdInsert.Parameters.AddWithValue("@iheader_id", masterId);
+                                cmdInsert.Parameters.AddWithValue("@ctenent_id", tenantId);
+                                cmdInsert.Parameters.AddWithValue("@ctask_type", row["ctasktype"]);
+                                cmdInsert.Parameters.AddWithValue("@cmapping_code", row["cmapping_code"]);
+                                cmdInsert.Parameters.AddWithValue("@ccurrent_status", currentStatus);
+                                cmdInsert.Parameters.AddWithValue("@lcurrent_status_date", DateTime.Now);
+                                cmdInsert.Parameters.AddWithValue("@cremarks", DBNull.Value);
+                                cmdInsert.Parameters.AddWithValue("@inext_seqno", row["cnextseqno"]);
+                                cmdInsert.Parameters.AddWithValue("@cnext_seqtype", DBNull.Value);
+                                cmdInsert.Parameters.AddWithValue("@cprevtype", row["cprevstep"]);
+                                cmdInsert.Parameters.AddWithValue("@cparticipant_type", row["cparticipant_type"]);
+                                cmdInsert.Parameters.AddWithValue("@csla_day", row["csla_day"]);
+                                cmdInsert.Parameters.AddWithValue("@csla_Hour", row["csla_Hour"]);
+                                cmdInsert.Parameters.AddWithValue("@caction_privilege", row["caction_privilege"]);
+                                cmdInsert.Parameters.AddWithValue("@crejection_privilege", row["crejection_privilege"]);
+                                cmdInsert.Parameters.AddWithValue("@nboard_enabled", row["nboard_enabled"]);
+                                var newId = await cmdInsert.ExecuteScalarAsync();
+                                detailId = newId != null ? Convert.ToInt32(newId) : 0;
+                            }
+
+                            if (isFirstRow)
+                            {
+                                primaryDetailId = detailId;
+                                isFirstRow = false;
+                            }
+                        }
+
+                        // INSERT META
+                        string metaQuery = @"
+                INSERT INTO tbl_transaction_process_meta_layout(cmeta_id,cprocess_id,
+                cprocess_code,ctenant_id,cdata,citaskno,cdetail_id,cmeta_response)
+                VALUES(@cmeta_id, @cprocess_id,@cprocess_code,@TenantID,@cdata,
+                 @citaskno,@cdetail_id,@cmeta_response)";
+
+                        if (primaryDetailId > 0)
+                        {
+                            foreach (var metaData in model.metaData)
+                            {
+                                using (SqlCommand cmd = new SqlCommand(metaQuery, conn, transaction))
+                                {
+                                    cmd.Parameters.AddWithValue("@TenantID", tenantId);
+                                    cmd.Parameters.AddWithValue("@cmeta_id", (object?)metaData.cmeta_id ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@cprocess_id", (object?)model.cprocess_id ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@cprocess_code", (object?)model.ctask_name ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
+                                    cmd.Parameters.AddWithValue("@citaskno", newTaskNo);
+                                    cmd.Parameters.AddWithValue("@cdetail_id", primaryDetailId);
+                                    cmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
+
+                                    await cmd.ExecuteNonQueryAsync();
+                                }
+                            }
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+
+                // RETURN PAYLOAD IF OUTBOUND ENABLED
+                if (isOutboundIntegration)
+                {
+                    var response = new
+                    {
+                        task_master = new List<Dictionary<string, object>>(),
+                        task_detail = new List<Dictionary<string, object>>(),
+                        process_meta = new List<Dictionary<string, object>>()
+                    };
+
+                    // TASK MASTER
+                    using (SqlCommand cmd = new SqlCommand(
+                        "SELECT * FROM tbl_taskflow_master WHERE ID=@ID", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ID", masterId);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var row = new Dictionary<string, object>();
+
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    row[reader.GetName(i)] =
+                                        reader.IsDBNull(i) ? null : reader.GetValue(i);
+                                }
+
+                                response.task_master.Add(row);
+                            }
+                        }
+                    }
+
+                    // TASK DETAIL
+                    using (SqlCommand cmd = new SqlCommand(
+                        "SELECT * FROM tbl_taskflow_detail WHERE itaskno=@itaskno", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var row = new Dictionary<string, object>();
+
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    row[reader.GetName(i)] =
+                                        reader.IsDBNull(i) ? null : reader.GetValue(i);
+                                }
+
+                                response.task_detail.Add(row);
+                            }
+                        }
+                    }
+
+                    // PROCESS META
+                    using (SqlCommand cmd = new SqlCommand(
+                        "SELECT * FROM tbl_transaction_process_meta_layout WHERE citaskno=@itaskno", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@itaskno", newTaskNo);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var row = new Dictionary<string, object>();
+
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    row[reader.GetName(i)] =
+                                        reader.IsDBNull(i) ? null : reader.GetValue(i);
+                                }
+
+                                response.process_meta.Add(row);
+                            }
+                        }
+                    }
+                    return new
+                    {
+                        masterId = masterId,
+                        payload = response
+                    };
+                }
+                // NORMAL RESPONSE
+                return new
+                {
+                    masterId = masterId
+                };
+            }
+        }
+
         public async Task<string> GetAllProcessmetaAsync(int cTenantID, int processid)
         {
             try
@@ -1842,7 +2135,7 @@ namespace TaskEngineAPI.Services
 
             return timelineList;
         }
-      
+
         private async Task<List<PreviousapproverDTO>> GetPreviousapproverAsync(SqlConnection conn, int ID, string userid, int tenantid)
         {
             var timelineList = new List<PreviousapproverDTO>();
@@ -5377,7 +5670,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                         {
                             string currentStatus = isFirstRow ? "P" : "N";
 
-                            
+
                             int detailId;
 
                             using (var cmdInsert = new SqlCommand(queryDetail, conn, transaction))
@@ -5506,7 +5799,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
         {
             try
             {
-            
+
                 string monthYear = DateTime.Now.ToString("MM-yyyy");
                 string apiUrl = $"https://misapi.sheenlac.com/api/Task/GetDashboarddata/{username}/{monthYear}";
 
@@ -5530,7 +5823,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
             }
         }
 
-        public async Task<string> FetchAPIEmployeeTimesheetAsync(int cTenantID, string username,string project)
+        public async Task<string> FetchAPIEmployeeTimesheetAsync(int cTenantID, string username, string project)
         {
             try
             {
@@ -5542,7 +5835,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
 
                     var requestData = new
                     {
-                        empNumber = username.PadLeft(8, '0'),   
+                        empNumber = username.PadLeft(8, '0'),
                         type = "GetEmployee_TimeSheet",
                         ProjectId = project
                     };
@@ -5816,229 +6109,229 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
         {
             var connStr = _config.GetConnectionString("Database");
 
-           
-                using (SqlConnection con = new SqlConnection(connStr))
+
+            using (SqlConnection con = new SqlConnection(connStr))
+            {
+                await con.OpenAsync();
+
+                using (SqlCommand cmd = new SqlCommand("sp_task_reassign_notification", con))
                 {
-                    await con.OpenAsync();
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                    using (SqlCommand cmd = new SqlCommand("sp_task_reassign_notification", con))
+                    cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
+                    cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                    cmd.Parameters.Add("@reassignto", SqlDbType.VarChar).Value = model.reassignto;
+                    cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
+                        var client = _httpClientFactory.CreateClient();
+                        client.Timeout = TimeSpan.FromSeconds(60);
 
-                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
-                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
-                        cmd.Parameters.Add("@reassignto", SqlDbType.VarChar).Value = model.reassignto;
-                        cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+                        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
 
-                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        bool allSuccess = true;
+
+                        while (await reader.ReadAsync())
                         {
-                            var client = _httpClientFactory.CreateClient();
-                            client.Timeout = TimeSpan.FromSeconds(60);
+                            string cuserid = reader["cuserid"]?.ToString() ?? "";
+                            string message = reader["message"]?.ToString() ?? "";
 
-                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+                            if (string.IsNullOrWhiteSpace(cuserid))
+                                continue;
 
-                            bool allSuccess = true;
-
-                            while (await reader.ReadAsync())
+                            var requestData = new
                             {
-                                string cuserid = reader["cuserid"]?.ToString() ?? "";
-                                string message = reader["message"]?.ToString() ?? "";
+                                empid = cuserid,
+                                message = message
+                            };
 
-                                if (string.IsNullOrWhiteSpace(cuserid))
-                                    continue;
+                            var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-                                var requestData = new
-                                {
-                                    empid = cuserid,
-                                    message = message
-                                };
+                            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
 
-                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
-                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
-
-                                if (!response.IsSuccessStatusCode)
-                                {
-                                    allSuccess = false;
-                                }
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                allSuccess = false;
                             }
-
-                            return allSuccess;
                         }
+
+                        return allSuccess;
                     }
                 }
+            }
         }
 
         public async Task<bool> reassigntoinitiatorpushnotificationAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
 
-           
-                using (SqlConnection con = new SqlConnection(connStr))
+
+            using (SqlConnection con = new SqlConnection(connStr))
+            {
+                await con.OpenAsync();
+
+                using (SqlCommand cmd = new SqlCommand("sp_task_reassign_to_initiator_notification", con))
                 {
-                    await con.OpenAsync();
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                    using (SqlCommand cmd = new SqlCommand("sp_task_reassign_to_initiator_notification", con))
+                    cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
+                    cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                    cmd.Parameters.Add("@reassignto", SqlDbType.VarChar).Value = model.reassignto;
+                    cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
+                        var client = _httpClientFactory.CreateClient();
+                        client.Timeout = TimeSpan.FromSeconds(60);
 
-                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
-                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
-                        cmd.Parameters.Add("@reassignto", SqlDbType.VarChar).Value = model.reassignto;
-                        cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+                        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
 
-                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        bool allSuccess = true;
+
+                        while (await reader.ReadAsync())
                         {
-                            var client = _httpClientFactory.CreateClient();
-                            client.Timeout = TimeSpan.FromSeconds(60);
+                            string cuserid = reader["cuserid"]?.ToString() ?? "";
+                            string message = reader["message"]?.ToString() ?? "";
 
-                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+                            if (string.IsNullOrWhiteSpace(cuserid))
+                                continue;
 
-                            bool allSuccess = true;
-
-                            while (await reader.ReadAsync())
+                            var requestData = new
                             {
-                                string cuserid = reader["cuserid"]?.ToString() ?? "";
-                                string message = reader["message"]?.ToString() ?? "";
+                                empid = cuserid,
+                                message = message
+                            };
 
-                                if (string.IsNullOrWhiteSpace(cuserid))
-                                    continue;
+                            var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-                                var requestData = new
-                                {
-                                    empid = cuserid,
-                                    message = message
-                                };
+                            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
 
-                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
-                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
-
-                                if (!response.IsSuccessStatusCode)
-                                {
-                                    allSuccess = false;
-                                }
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                allSuccess = false;
                             }
-                            return allSuccess;
                         }
+                        return allSuccess;
                     }
                 }
-           
+            }
+
         }
 
         public async Task<bool> holdpushnotificationAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
-                using (SqlConnection con = new SqlConnection(connStr))
+            using (SqlConnection con = new SqlConnection(connStr))
+            {
+                await con.OpenAsync();
+
+                using (SqlCommand cmd = new SqlCommand("sp_task_hold_notification", con))
                 {
-                    await con.OpenAsync();
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                    using (SqlCommand cmd = new SqlCommand("sp_task_hold_notification", con))
+                    cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
+                    cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                    cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
+                        var client = _httpClientFactory.CreateClient();
+                        client.Timeout = TimeSpan.FromSeconds(60);
 
-                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
-                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
-                        cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+                        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
 
-                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        bool allSuccess = true;
+
+                        while (await reader.ReadAsync())
                         {
-                            var client = _httpClientFactory.CreateClient();
-                            client.Timeout = TimeSpan.FromSeconds(60);
+                            string cuserid = reader["cuserid"]?.ToString() ?? "";
+                            string message = reader["message"]?.ToString() ?? "";
 
-                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+                            if (string.IsNullOrWhiteSpace(cuserid))
+                                continue;
 
-                            bool allSuccess = true;
-
-                            while (await reader.ReadAsync())
+                            var requestData = new
                             {
-                                string cuserid = reader["cuserid"]?.ToString() ?? "";
-                                string message = reader["message"]?.ToString() ?? "";
+                                empid = cuserid,
+                                message = message
+                            };
 
-                                if (string.IsNullOrWhiteSpace(cuserid))
-                                    continue;
+                            var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-                                var requestData = new
-                                {
-                                    empid = cuserid,
-                                    message = message
-                                };
+                            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
 
-                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
-                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
-
-                                if (!response.IsSuccessStatusCode)
-                                {
-                                    allSuccess = false;
-                                }
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                allSuccess = false;
                             }
-
-                            return allSuccess;
                         }
+
+                        return allSuccess;
                     }
                 }
+            }
         }
 
         public async Task<bool> RejectpushnotificationAsync(updatetaskDTO model, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");
-                using (SqlConnection con = new SqlConnection(connStr))
+            using (SqlConnection con = new SqlConnection(connStr))
+            {
+                await con.OpenAsync();
+
+                using (SqlCommand cmd = new SqlCommand("sp_task_reject_notification", con))
                 {
-                    await con.OpenAsync();
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                    using (SqlCommand cmd = new SqlCommand("sp_task_reject_notification", con))
+                    cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
+                    cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
+                    cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+
+                    using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
+                        var client = _httpClientFactory.CreateClient();
+                        client.Timeout = TimeSpan.FromSeconds(60);
 
-                        cmd.Parameters.Add("@ID", SqlDbType.Int).Value = model.ID;
-                        cmd.Parameters.Add("@ctenantID", SqlDbType.Int).Value = cTenantID;
-                        cmd.Parameters.Add("@sender", SqlDbType.VarChar).Value = username;
+                        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
 
-                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        bool allSuccess = true;
+
+                        while (await reader.ReadAsync())
                         {
-                            var client = _httpClientFactory.CreateClient();
-                            client.Timeout = TimeSpan.FromSeconds(60);
+                            string cuserid = reader["cuserid"]?.ToString() ?? "";
+                            string message = reader["message"]?.ToString() ?? "";
 
-                            string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/Sendpushnotification";
+                            if (string.IsNullOrWhiteSpace(cuserid))
+                                continue;
 
-                            bool allSuccess = true;
-
-                            while (await reader.ReadAsync())
+                            var requestData = new
                             {
-                                string cuserid = reader["cuserid"]?.ToString() ?? "";
-                                string message = reader["message"]?.ToString() ?? "";
+                                empid = cuserid,
+                                message = message
+                            };
 
-                                if (string.IsNullOrWhiteSpace(cuserid))
-                                    continue;
+                            var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
+                            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
 
-                                var requestData = new
-                                {
-                                    empid = cuserid,
-                                    message = message
-                                };
+                            HttpResponseMessage response = await client.PostAsync(apiUrl, content);
 
-                                var json = Newtonsoft.Json.JsonConvert.SerializeObject(requestData);
-                                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                                HttpResponseMessage response = await client.PostAsync(apiUrl, content);
-
-                                if (!response.IsSuccessStatusCode)
-                                {
-                                    allSuccess = false;
-                                }
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                allSuccess = false;
                             }
-
-                            return allSuccess;
                         }
+
+                        return allSuccess;
                     }
                 }
+            }
         }
-     
-       
+
+
         public async Task<bool> newprojectraisepushnotificationAsync(int ID, int cTenantID, string username)
         {
             var connStr = _config.GetConnectionString("Database");

@@ -127,8 +127,8 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost]
-        [Route("InsertTask")]
-        public async Task<IActionResult> InsertTask([FromBody] pay request)
+        [Route("InsertTaskold")]
+        public async Task<IActionResult> InsertTaskold([FromBody] pay request)
         {
             try
             {
@@ -138,7 +138,7 @@ namespace TaskEngineAPI.Controllers
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<TaskMasterDTO>(request.payload);
-                int insertedUserId = await taskMasterService.InsertTaskMasterAsync(model, cTenantID, username);
+                int insertedUserId = await taskMasterService.InsertTaskMasterAsyncold(model, cTenantID, username);
                 if (insertedUserId <= 0)
                 {
                     throw new InvalidOperationException("Task insertion failed.");
@@ -171,6 +171,67 @@ namespace TaskEngineAPI.Controllers
                 throw;
             }
         }
+        [Authorize]
+        [HttpPost]
+        [Route("InsertTask")]
+        public async Task<IActionResult> InsertTask([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var model = DeserializePayload<TaskMasterDTO>(request.payload);
+
+                // UPDATED
+                var result = await taskMasterService.InsertTaskMasterAsync(model,cTenantID,username);
+
+                if (result == null)
+                {
+                    throw new InvalidOperationException("Task insertion failed.");
+                }
+
+                // GET MASTER ID
+                int insertedUserId = Convert.ToInt32(
+                    result.GetType().GetProperty("masterId")?.GetValue(result));
+
+                // WHATSAPP
+                bool isWhatsAppEnabled =
+                    await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+
+                if (isWhatsAppEnabled)
+                {
+                    await taskMasterService
+                        .newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId,cTenantID, username);
+                }
+                // PUSH NOTIFICATION
+                bool IsPushNotificationEnabled =
+                    await taskMasterService.IsPushNotificationEnabled(cTenantID);
+
+                if (IsPushNotificationEnabled)
+                {
+                    await taskMasterService.newtaskcreateinboxpushnotificationAsync(insertedUserId,cTenantID,username);
+                }
+                // FINAL RESPONSE
+                return CreatedSuccessResponse( result,"Task inserted successfully.");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
+
 
         [Authorize]
         [HttpGet]
