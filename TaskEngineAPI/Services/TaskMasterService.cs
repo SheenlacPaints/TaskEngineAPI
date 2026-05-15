@@ -468,7 +468,8 @@ namespace TaskEngineAPI.Services
                     {
                         task_master = new List<Dictionary<string, object>>(),
                         task_detail = new List<Dictionary<string, object>>(),
-                        process_meta = new List<Dictionary<string, object>>()
+                        process_meta = new List<Dictionary<string, object>>(),
+                        InboundAPI= new List<Dictionary<string, object>>()
                     };
 
                     // TASK MASTER
@@ -539,6 +540,30 @@ namespace TaskEngineAPI.Services
                             }
                         }
                     }
+                    using (SqlCommand cmd = new SqlCommand("SELECT cinoutboundapi_id FROM tbl_process_engine_master WHERE id = @cprocessid", conn))
+                    {
+                        cmd.Parameters.AddWithValue("@cprocessid",
+                            (object?)model.cprocess_id ?? DBNull.Value);
+
+                        using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
+                        {
+                            while (await reader.ReadAsync())
+                            {
+                                var row = new Dictionary<string, object>();
+
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    row[reader.GetName(i)] =
+                                        reader.IsDBNull(i) ? null : reader.GetValue(i);
+                                }
+
+                                response.InboundAPI.Add(row);
+                            }
+                        }
+                    }
+
+
+
                     return new
                     {
                         masterId = masterId,
