@@ -681,8 +681,8 @@ namespace TaskEngineAPI.Services
                 return $"{{\"error\": \"HTTP Request Failed\", \"details\": \"{ex.Message}\"}}";
             }
         }
-  
-        public async Task<string> POSTInoutboundIntegrationApi(POSTAPIDTO model,int tenantId,string username)
+
+        public async Task<string> POSTInoutboundIntegrationApi(POSTAPIDTO model, int tenantId, string username)
         {
             string url = "";
             string method = model.apimethod ?? "POST";
@@ -740,11 +740,11 @@ namespace TaskEngineAPI.Services
                     _httpClientFactory.CreateClient();
 
                 var request =
-                    new HttpRequestMessage( new HttpMethod(method), url);
+                    new HttpRequestMessage(new HttpMethod(method), url);
 
-                request.Content =new StringContent(payload,Encoding.UTF8,"application/json");
+                request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
                 var response = await client.SendAsync(request);
-                var apiResponse =await response.Content.ReadAsStringAsync();
+                var apiResponse = await response.Content.ReadAsStringAsync();
                 return apiResponse;
             }
             catch (Exception ex)
