@@ -1967,6 +1967,7 @@ namespace TaskEngineAPI.Services
                     a.cprocess_id AS processId,
                     c.cprocessname AS processName,
                     c.cprocessdescription AS processDesc,
+                    c.cprocesscode as cprocesscode,
                     d.cactivityname AS activityName,
                     d.cactivity_description AS activityDesc,
                     c.cpriority_label AS priorityLabel,
@@ -2012,6 +2013,7 @@ namespace TaskEngineAPI.Services
                                 {
                                     itaskno = itaskno,
                                     processId = Convert.ToInt32(reader["processId"]),
+                                    cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
                                     processName = reader["processName"]?.ToString() ?? "",
                                     processDesc = reader["processDesc"]?.ToString() ?? "",
                                     activityName = reader["activityName"]?.ToString() ?? "",

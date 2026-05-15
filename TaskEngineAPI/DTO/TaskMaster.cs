@@ -105,6 +105,7 @@ namespace TaskEngineAPI.DTO
     {
         public int? itaskno { get; set; }
         public int? processId { get; set; }
+        public string? cprocesscode { get; set; }    
         public string? processName { get; set; }
         public string? processDesc { get; set; }
         public string? activityName { get; set; }
