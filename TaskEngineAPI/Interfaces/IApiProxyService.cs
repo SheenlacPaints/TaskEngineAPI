@@ -9,8 +9,8 @@ namespace TaskEngineAPI.Interfaces
         Task<string> BoardExecuteIntegrationApi(BoardAPIFetchDTO model, int tenantId, string username);
         Task<string> FetchGetapiIntegration(GetFetchDTO model, int tenantId, string username);
         Task<string> FetchtaskGetapiIntegration(GettaskFetchDTO model, int tenantId, string username);
-
-
+        Task<string> POSTInoutboundIntegrationApi(POSTAPIDTO model, int tenantId, string username);
+        
     }
 
 }

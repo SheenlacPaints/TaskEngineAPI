@@ -66,6 +66,15 @@ namespace TaskEngineAPI.Controllers
             string encrypted = AesEncryption.Encrypt(json);
             return StatusCode(response.status, encrypted);
         }
+
+        protected IActionResult CreatedObjectResponse(object data)
+        {
+            string json = JsonConvert.SerializeObject(data);
+
+            string encrypted = AesEncryption.Encrypt(json);
+
+            return StatusCode(200, encrypted);
+        }
         protected (int cTemantID, string username) GetUserInfoFromToken()
         {
             var jwtToken = HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();

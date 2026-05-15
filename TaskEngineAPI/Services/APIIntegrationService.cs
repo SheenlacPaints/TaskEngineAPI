@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using TaskEngineAPI.Controllers;
 using System.Text;
 using Azure;
+using Newtonsoft.Json.Linq;
 
 namespace TaskEngineAPI.Services
 {
@@ -535,7 +536,7 @@ namespace TaskEngineAPI.Services
             }
         }
 
-        
+
         public async Task<string> FetchtaskGetapiIntegration(GettaskFetchDTO model, int tenantId, string username)
         {
             string url = null;
@@ -680,7 +681,83 @@ namespace TaskEngineAPI.Services
                 return $"{{\"error\": \"HTTP Request Failed\", \"details\": \"{ex.Message}\"}}";
             }
         }
+  
+        public async Task<string> POSTInoutboundIntegrationApi(POSTAPIDTO model,int tenantId,string username)
+        {
+            string url = "";
+            string method = model.apimethod ?? "POST";
 
+            string payload =
+                JsonConvert.SerializeObject(model.Payload);
+
+            var connectionString =
+                _config.GetConnectionString("Database");
+
+            using (SqlConnection conn =
+                   new SqlConnection(connectionString))
+            {
+                string sql = @"SELECT capi_url,capi_method FROM tbl_users_api_sync_config WHERE id=@apiId";
+
+                using (SqlCommand cmd =
+                       new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue(
+                        "@apiId",
+                        model.APIID);
+
+                    await conn.OpenAsync();
+
+                    using (SqlDataReader reader =
+                           await cmd.ExecuteReaderAsync())
+                    {
+                        if (await reader.ReadAsync())
+                        {
+                            url =
+                                reader["capi_url"]?.ToString();
+
+                            method =
+                                reader["capi_method"]?.ToString()
+                                ?? "POST";
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return JsonConvert.SerializeObject(new
+                {
+                    status = 404,
+                    statusText = "API Config Not Found",
+                    body = new object[] { },
+                    error = (string)null
+                });
+            }
+
+            try
+            {
+                var client =
+                    _httpClientFactory.CreateClient();
+
+                var request =
+                    new HttpRequestMessage( new HttpMethod(method), url);
+
+                request.Content =new StringContent(payload,Encoding.UTF8,"application/json");
+                var response = await client.SendAsync(request);
+                var apiResponse =await response.Content.ReadAsStringAsync();
+                return apiResponse;
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new
+                {
+                    status = 500,
+                    statusText = "HTTP Request Failed",
+                    body = new object[] { },
+                    error = ex.Message
+                });
+            }
+        }
 
     }
 }

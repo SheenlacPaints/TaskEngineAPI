@@ -486,6 +486,15 @@ namespace TaskEngineAPI.DTO
 
         }
 
+    public class POSTAPIDTO
+    {
+        public int? APIID { get; set; }
+        public string? apimethod { get; set; }
+        public object? Payload { get; set; }
+       
+     
+    }
+
     public class GetFetchDTO
     {
         public int? APIID { get; set; }

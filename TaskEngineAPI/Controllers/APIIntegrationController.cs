@@ -295,6 +295,46 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(statusCode, encrypted);
         }
 
+        [Authorize]
+        [HttpPost("PostInoutboundAPIAsync")]
+        public async Task<IActionResult> PostInoutboundAPIAsync([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<POSTAPIDTO>(request.payload);
+                var bearerToken = HttpContext.Request.Headers["Authorization"].ToString();
+
+                // ✅ PASS TOKEN TO SERVICE
+
+
+                var json = await _APIIntegrationService.POSTInoutboundIntegrationApi(model, cTenantID, username);
+
+                var responseObject =JsonConvert.DeserializeObject<object>(json);
+
+                return CreatedObjectResponse(responseObject);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+       
 
     }
 }
