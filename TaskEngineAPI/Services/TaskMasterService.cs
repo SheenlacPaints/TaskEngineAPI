@@ -2661,6 +2661,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                 SELECT 
                     a.cprocess_id AS processId,
                     c.cprocessname AS processName,
+                    c.cprocesscode AS processcode,
                     c.cprocessdescription AS processDesc,
                     d.cactivityname AS activityName,
                     d.cactivity_description AS activityDesc,
@@ -2710,6 +2711,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                     itaskno = itaskno,
                                     processId = Convert.ToInt32(reader["processId"]),
                                     processName = reader["processName"]?.ToString() ?? "",
+                                    processcode = reader["processcode"]?.ToString() ?? "",
                                     processDesc = reader["processDesc"]?.ToString() ?? "",
                                     activityName = reader["activityName"]?.ToString() ?? "",
                                     priorityLabel = reader["priorityLabel"]?.ToString() ?? "",
