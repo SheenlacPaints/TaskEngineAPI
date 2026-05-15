@@ -2444,7 +2444,7 @@ namespace TaskEngineAPI.Services
                             await cmd.ExecuteNonQueryAsync();
                         }
                     }
-                    if (isInOutboundIntegration && headerId != null)
+                    if (isInOutboundIntegration && headerId != null && model.status == "A")
                     {
                         string updateMaster = @"
                 UPDATE tbl_taskflow_master 
