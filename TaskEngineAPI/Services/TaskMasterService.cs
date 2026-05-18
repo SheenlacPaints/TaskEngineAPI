@@ -435,7 +435,7 @@ namespace TaskEngineAPI.Services
                                     cmd.Parameters.AddWithValue("@cprocess_code", (object?)model.ctask_name ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@cdata", (object?)metaData.cdata ?? DBNull.Value);
                                     cmd.Parameters.AddWithValue("@citaskno", newTaskNo);
-                                    cmd.Parameters.AddWithValue("@cdetail_id", primaryDetailId);
+                                    cmd.Parameters.AddWithValue("@cdetail_id", userName);
                                     cmd.Parameters.AddWithValue("@cmeta_response", (object?)model.cmeta_response ?? DBNull.Value);
 
                                     await cmd.ExecuteNonQueryAsync();
