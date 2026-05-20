@@ -2216,7 +2216,28 @@ namespace TaskEngineAPI.Controllers
 
         }
 
+        [Authorize]
+        [HttpGet]
+        [Route("Getcalendarevents")]
+        public async Task<IActionResult> Getcalendarevents()
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = (await taskMasterService.Getcalendarevents(cTenantID, username)).ToString();
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
 
     }
 }

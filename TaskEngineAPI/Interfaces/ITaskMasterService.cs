@@ -90,6 +90,8 @@ namespace TaskEngineAPI.Interfaces
         Task<string> Getemployeekradetails(int cTenantID, string username, string? searchText = null);   
         Task<List<processEnginetaskMeta>> Getmetadetaildataasync(int cTenantID, int itaskno);
 
+        Task<string> Getcalendarevents(int cTenantID, string username);
+
     }
 
 }

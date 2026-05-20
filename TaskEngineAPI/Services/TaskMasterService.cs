@@ -2400,6 +2400,8 @@ namespace TaskEngineAPI.Services
 
                     if (model.metaData != null && model.metaData.Any())
                     {
+
+
                         string metaQuery = @"
             INSERT INTO tbl_transaction_process_meta_layout 
             ([cmeta_id],[cprocess_id],[cprocess_code],[ctenant_id],[cdata],[citaskno],[cdetail_id],[cmeta_response]) 
@@ -6761,6 +6763,33 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
             }
         }
 
+        public async Task<string> Getcalendarevents(int cTenantID, string username)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_calendar_get_events", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@TenantID", cTenantID);
+                    cmd.Parameters.AddWithValue("@EmployeeCode", username);
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
 
 
     }
