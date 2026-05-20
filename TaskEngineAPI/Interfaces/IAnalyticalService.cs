@@ -8,5 +8,8 @@ namespace TaskEngineAPI.Interfaces
 
         Task<string> GetAnalyticalhub(int cTenantID, string username, string? type, string? searchText = null, int page = 1, int pageSize = 50);
         Task<List<GetAnalyticalbyidDTO>> GetAnalyticalhubbtid(int cTenantID, int id);
+      
+
+     
     }
 }

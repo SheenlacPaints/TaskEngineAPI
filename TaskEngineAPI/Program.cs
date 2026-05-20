@@ -1,17 +1,21 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Data.SqlClient;
+using Serilog;
+using Serilog.Enrichers;
 using System.Data;
+using System.Data.SqlClient;
+using System.Net;
 using System.Text;
+using TaskEngineAPI.DTO;
+using TaskEngineAPI.Helpers;
 using TaskEngineAPI.Interfaces;
 using TaskEngineAPI.Middleware;
 using TaskEngineAPI.Middlewares;
+using TaskEngineAPI.Models;
 using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
-using Serilog;
-using Serilog.Enrichers;
-using TaskEngineAPI.Helpers;
 using TaskEngineAPI.WebSockets;
 using static System.Net.WebRequestMethods;
 using TaskEngineAPI.Models;
@@ -252,7 +256,7 @@ app.Lifetime.ApplicationStarted.Register(() =>
     {
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-        recurringJobManager.AddOrUpdate(
+        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
             "test-job",
             () => scope.ServiceProvider.GetRequiredService<ISapSyncJobService>().SyncEmployeesAsync(1500),
 

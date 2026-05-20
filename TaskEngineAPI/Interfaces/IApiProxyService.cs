@@ -5,12 +5,12 @@ namespace TaskEngineAPI.Interfaces
    
     public interface IApiProxyService
     {   
-        Task<string> ExecuteIntegrationApi(APIFetchDTO model, int tenantId, string username);
+        Task<string> ExecuteIntegrationApi(APIFetchDTO model, int tenantId, string username,string bearerToken);
         Task<string> BoardExecuteIntegrationApi(BoardAPIFetchDTO model, int tenantId, string username);
         Task<string> FetchGetapiIntegration(GetFetchDTO model, int tenantId, string username);
         Task<string> FetchtaskGetapiIntegration(GettaskFetchDTO model, int tenantId, string username);
-
-
+        Task<string> POSTInoutboundIntegrationApi(POSTAPIDTO model, int tenantId, string username);
+        
     }
 
 }

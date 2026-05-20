@@ -105,6 +105,7 @@ namespace TaskEngineAPI.DTO
     {
         public int? itaskno { get; set; }
         public int? processId { get; set; }
+        public string? cprocesscode { get; set; }    
         public string? processName { get; set; }
         public string? processDesc { get; set; }
         public string? activityName { get; set; }
@@ -137,6 +138,7 @@ namespace TaskEngineAPI.DTO
         public List<GetprocessEngineConditionDTO> board { get; set; }
         public List<PreviousapproverDTO> approvers { get; set; }
         public List<BoardmetaDTO>? BoardAPIdata { get; set; }
+        public List<InoutboundDTO>? InoutboundAPIdata { get; set; }
     }
     public class GettaskApprovedatabyidDTO
     {
@@ -180,7 +182,9 @@ namespace TaskEngineAPI.DTO
     {
         public int? itaskno { get; set; }
         public int? processId { get; set; }
+        public string? processcode { get; set; }
         public string? processName { get; set; }
+        
         public string? processDesc { get; set; }
         public string? activityName { get; set; }
         public string? priorityLabel { get; set; }
@@ -216,7 +220,9 @@ namespace TaskEngineAPI.DTO
         public List<GetprocessEngineConditionDTO> board { get; set; }
         public List<PreviousapproverDTO> approvers { get; set; }
         public List<BoardmetaDTO>? BoardAPIdata { get; set; }
+        public List<InoutboundDTO>? InoutboundAPIdata { get; set; }
 
+        
     }
     public class GettaskInitiatordatabyidDTO
     {
@@ -377,6 +383,12 @@ namespace TaskEngineAPI.DTO
         public string? capiresponse { get; set; }
 
     }
+    public class InoutboundDTO
+    {
+        public string? cinoutboundapiresponse { get; set; }
+
+    }
+
     public class TimelineDTO
     {
         public string? status { get; set; }
@@ -415,6 +427,8 @@ namespace TaskEngineAPI.DTO
         public string? rejectedreason { get; set; }
         public string? reassignto { get; set; }
         public string? cmeta_response { get; set; }
+
+        public string? cinoutboundupdate_response { get; set; }
         public List<metaData> metaData { get; set; }
     }
     public class GetDropDownFilterDTO
@@ -474,6 +488,30 @@ namespace TaskEngineAPI.DTO
             public int? processid { get; set; }
 
         }
+
+    public class POSTAPIDTO
+    {
+        public int? APIID { get; set; }
+        public string? apimethod { get; set; }
+        public object? Payload { get; set; }
+       
+     
+    }
+
+    public class GetFetchDTO
+    {
+        public int? APIID { get; set; }
+        public string? apimethod { get; set; }
+     
+    }
+
+    public class GettaskFetchDTO
+    {
+        public int? APIID { get; set; }
+        public int? itaskno { get; set; }
+        public string? apimethod { get; set; }
+
+    }
 
     public class BoardAPIFetchDTO
         {
