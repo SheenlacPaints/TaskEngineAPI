@@ -249,14 +249,14 @@ builder.Services.AddHangfireServer();
 
 
 var app = builder.Build();
-
+ 
 app.Lifetime.ApplicationStarted.Register(() =>
 {
     using (var scope = app.Services.CreateScope())
     {
         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
+        recurringJobManager.AddOrUpdate(
             "test-job",
             () => scope.ServiceProvider.GetRequiredService<ISapSyncJobService>().SyncEmployeesAsync(1500),
 
@@ -265,7 +265,9 @@ app.Lifetime.ApplicationStarted.Register(() =>
         );
     }
 });
-  
+
+
+
 app.UseHangfireDashboard("/hangfire");
 //app.UseSerilogRequestLogging();
 //app.UseSerilogRequestLogging(options =>
