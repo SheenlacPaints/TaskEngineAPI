@@ -254,13 +254,61 @@ app.Lifetime.ApplicationStarted.Register(() =>
 {
     using (var scope = app.Services.CreateScope())
     {
-        var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+        var recurringJobManager =
+            scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
 
-        recurringJobManager.AddOrUpdate(
+        // ================= EMPLOYEE SYNC =================
+
+        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
             "test-job",
-            () => scope.ServiceProvider.GetRequiredService<ISapSyncJobService>().SyncEmployeesAsync(1500),
-
+            x => x.SyncEmployeesAsync(1500),
             Cron.Daily(4),
+            TimeZoneInfo.Local
+        );
+
+        // ================= INBOUND SYNC =================
+
+        recurringJobManager.RemoveIfExists("inbound-sync-test");
+
+        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
+            "inbound-sync-8am",
+            x => x.SyncTablesFromMISPORTALAsync(
+                new InBoundSyncRequestDTO
+                {
+                    SyncOrgUnit = true,
+                    SyncJobCode = true,
+                    SyncPositionDetails = true,
+                    TriggeredBy = "Scheduler-8AM"
+                }),
+            "0 8 * * *",
+            TimeZoneInfo.Local
+        );
+
+        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
+            "inbound-sync-12pm",
+            x => x.SyncTablesFromMISPORTALAsync(
+                new InBoundSyncRequestDTO
+                {
+                    SyncOrgUnit = true,
+                    SyncJobCode = true,
+                    SyncPositionDetails = true,
+                    TriggeredBy = "Scheduler-12PM"
+                }),
+            "0 12 * * *",
+            TimeZoneInfo.Local
+        );
+
+        recurringJobManager.AddOrUpdate<ISapSyncJobService>(
+            "inbound-sync-4pm",
+            x => x.SyncTablesFromMISPORTALAsync(
+                new InBoundSyncRequestDTO
+                {
+                    SyncOrgUnit = true,
+                    SyncJobCode = true,
+                    SyncPositionDetails = true,
+                    TriggeredBy = "Scheduler-4PM"
+                }),
+            "0 16 * * *",
             TimeZoneInfo.Local
         );
     }
@@ -330,53 +378,6 @@ app.MapControllers();
 //    var handler = context.RequestServices.GetRequiredService<ProjectSocketHandler>();
 //    await handler.HandleAsync(context);
 //});
-app.Lifetime.ApplicationStarted.Register(() =>
-{
-using (var scope = app.Services.CreateScope())
-{
-    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-    var sapSyncService = scope.ServiceProvider.GetRequiredService<ISapSyncJobService>();
-
-    recurringJobManager.RemoveIfExists("inbound-sync-test");
-
-    recurringJobManager.AddOrUpdate(
-        "inbound-sync-8am",
-        () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
-        {
-            SyncOrgUnit = true,
-            SyncJobCode = true,
-            SyncPositionDetails = true,
-            TriggeredBy = "Scheduler-8AM"
-        }),
-       "0 8 * * *",
-       TimeZoneInfo.Local
-   );
-        recurringJobManager.AddOrUpdate(
-            "inbound-sync-12pm",
-            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
-            {
-                SyncOrgUnit = true,
-                SyncJobCode = true,
-                SyncPositionDetails = true,
-                TriggeredBy = "Scheduler-12PM"
-            }),
-            "0 12 * * *",
-            TimeZoneInfo.Local
-        );
-        recurringJobManager.AddOrUpdate(
-            "inbound-sync-4pm",
-            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
-            {
-                SyncOrgUnit = true,
-                SyncJobCode = true,
-                SyncPositionDetails = true,
-                TriggeredBy = "Scheduler-4PM"
-            }),
-            "0 16 * * *",
-            TimeZoneInfo.Local
-        );
-    }
-});
 
 
 app.Run();
