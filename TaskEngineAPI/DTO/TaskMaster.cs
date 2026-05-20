@@ -498,20 +498,7 @@ namespace TaskEngineAPI.DTO
      
     }
 
-    public class GetFetchDTO
-    {
-        public int? APIID { get; set; }
-        public string? apimethod { get; set; }
-     
-    }
-
-    public class GettaskFetchDTO
-    {
-        public int? APIID { get; set; }
-        public int? itaskno { get; set; }
-        public string? apimethod { get; set; }
-
-    }
+   
 
     public class BoardAPIFetchDTO
         {

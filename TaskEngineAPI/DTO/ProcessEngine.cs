@@ -621,32 +621,5 @@ namespace TaskEngineAPI.DTO
 
     }
 
-    public class processraiselimitDTO
-    {
-        public int? cprocessid { get; set; }
-        public int? nraise_limit { get; set; }
-        public string? climit_type { get; set; }
-    }
-
-    public class updateprocessraiselimitDTO
-    {
-        public int? ID { get; set; }
-        public int? cprocessid { get; set; }
-        public int? nraise_limit { get; set; }
-        public string? climit_type { get; set; }
-        public bool? cis_active { get; set; }
-
-    }
-    public class GetIDprocessraiselimitDTO
-    {
-        public int? ID { get; set; }
-        public int? cprocess_id { get; set; }
-        public int? nraise_limit { get; set; }
-        public string? climit_type { get; set; }
-        public bool? cis_active { get; set; }
-          
-    }
-
-
 }
 
