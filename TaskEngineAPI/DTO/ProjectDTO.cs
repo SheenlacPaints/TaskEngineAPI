@@ -4,12 +4,30 @@ namespace TaskEngineAPI.DTO
 {
     public class CreateProjectDTO
     {
-        public int AssignedManagerId { get; set; }
-        public string ProjectName { get; set; }
-        public string ProjectType { get; set; }
-        public string Description { get; set; }
-        public string Status { get; set; }
+        public int? AssignedManagerId { get; set; }
+        public string? ProjectName { get; set; }
+        public string? ProjectType { get; set; }
+        public string? Description { get; set; }
+        public string? Status { get; set; }
         public DateTime? expecteddate { get; set; }
+        public string? Remarks1 { get; set; }
+        public string? Remarks2 { get; set; }
+        public string? Remarks3 { get; set; }
+        public int? CurrentVersion { get; set; }
+        public string? WorkflowStatus { get; set; }
+        public int? ClientFinalApprovalBy { get; set; }
+        public DateTime? ClientFinalApprovalDate { get; set; }
+        public int? BossApprovalBy { get; set; }
+        public DateTime? BossApprovalDate { get; set; }
+        public DateTime? ProjectCompletedDate { get; set; }
+        public bool? IsClosed { get; set; }
+        public string? PaymentStatus { get; set; }
+        public decimal? PaymentAmount { get; set; }
+        public DateTime? PaymentRaisedDate { get; set; }
+        public DateTime? PaymentDueDate { get; set; }
+        public DateTime? PaymentCompletedDate { get; set; }
+        public string? PaymentRemarks { get; set; }
+
     }
     public class CreateProjectVersionDTO
     {
@@ -48,13 +66,13 @@ namespace TaskEngineAPI.DTO
         public string? TotalBudgetPerVersion { get; set; }
         public string? VersionCal { get; set; }
         public string? Remarks1 { get; set; }
-        public string? Remarks2{ get; set; }
+        public string? Remarks2 { get; set; }
         public string? Remarks3 { get; set; }
         public string? ActualBudget { get; set; }
         public string? ManagerAttachment { get; set; }
         public string? ClientAttachment { get; set; }
-        
-          
+
+
 
         //public DateTime? Capproved_date { get; set; }
         // public string? Capproved_by {  get; set; }
@@ -102,8 +120,8 @@ namespace TaskEngineAPI.DTO
         public string Resources { get; set; }
         public int No_of_Resources { get; set; }
         public int Slavalue { get; set; }
-        public string Slaunit { get; set; } 
-        public string Version { get; set; } 
-        public string Remarks { get; set; } 
+        public string Slaunit { get; set; }
+        public string Version { get; set; }
+        public string Remarks { get; set; }
     }
 }

@@ -43,8 +43,14 @@ namespace TaskEngineAPI.Services
                     {
                         string queryMaster = @"
                     INSERT INTO Tbl_Project_Master (ClientTenantId,RaisedByUserId,AssignedManagerId,ProjectName,ProjectType,Description,
-                     CreatedDate,Status,expecteddate,Version) VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType, @Description, 
-                     @CreatedDate, @Status,@expecteddate,@Version);SELECT SCOPE_IDENTITY();";
+                     CreatedDate,Status,expecteddate,Version,Remarks1,Remarks2,Remarks3,CurrentVersion,WorkflowStatus,
+                     ClientFinalApprovalBy,ClientFinalApprovalDate,BossApprovalBy,BossApprovalDate,IsClosed,
+                    PaymentStatus,PaymentAmount,PaymentRaisedDate,PaymentDueDate,PaymentCompletedDate,PaymentRemarks)
+                   VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType,@Description, 
+                    @CreatedDate, @Status,@expecteddate,@Version @Remarks1,@Remarks2,@Remarks3,
+                    @CurrentVersion,@WorkflowStatus,@ClientFinalApprovalBy,@ClientFinalApprovalDate,@BossApprovalBy,
+                    @BossApprovalDate,@IsClosed,@PaymentStatus,@PaymentAmount,@PaymentRaisedDate,@PaymentDueDate,
+                    @PaymentCompletedDate,@PaymentRemarks);SELECT SCOPE_IDENTITY();";
 
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
@@ -59,6 +65,23 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@Version", 1);
                             cmd.Parameters.AddWithValue("@ProjectType", (object?)model.ProjectType ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@expecteddate", (object?)model.expecteddate ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Remarks1", (object?)model.Remarks1 ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Remarks2", (object?)model.Remarks2 ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Remarks3", (object?)model.Remarks3 ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@CurrentVersion", (object?)model.CurrentVersion ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@WorkflowStatus", (object?)model.WorkflowStatus ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ClientFinalApprovalBy", (object?)model.ClientFinalApprovalBy ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@ClientFinalApprovalDate", (object?)model.ClientFinalApprovalDate ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@BossApprovalBy", (object?)model.BossApprovalBy ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@BossApprovalDate", (object?)model.BossApprovalDate ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@IsClosed", (object?)model.IsClosed ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@PaymentStatus", (object?)model.PaymentStatus ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@PaymentAmount", (object?)model.PaymentAmount ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@PaymentRaisedDate", (object?)model.PaymentRaisedDate ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@PaymentDueDate", (object?)model.PaymentDueDate ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@PaymentCompletedDate", (object?)model.PaymentCompletedDate ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@PaymentRemarks", (object?)model.PaymentRemarks ?? DBNull.Value);
+  
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
@@ -139,7 +162,7 @@ namespace TaskEngineAPI.Services
                             }
                             ;
                         }
-                       
+
                         else
                         {
                             using (SqlDataReader sdr = await cmd.ExecuteReaderAsync())
@@ -169,8 +192,8 @@ namespace TaskEngineAPI.Services
 
                                         TotalBudgetPerVersion = sdr.IsDBNull(sdr.GetOrdinal("TotalBudgetPerVersion")) ? string.Empty : Convert.ToString(sdr["TotalBudgetPerVersion"]),
                                         expecteddate = sdr.IsDBNull(sdr.GetOrdinal("expecteddate")) ? (DateTime?)null : sdr.GetDateTime(sdr.GetOrdinal("expecteddate")),
-                                        ManagerAttachment= sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerAttachment")) ? string.Empty : Convert.ToString(sdr["AssignedManagerAttachment"]),
-                                        ClientAttachment= sdr.IsDBNull(sdr.GetOrdinal("RaisedByAttachment")) ? string.Empty : Convert.ToString(sdr["RaisedByAttachment"]),
+                                        ManagerAttachment = sdr.IsDBNull(sdr.GetOrdinal("AssignedManagerAttachment")) ? string.Empty : Convert.ToString(sdr["AssignedManagerAttachment"]),
+                                        ClientAttachment = sdr.IsDBNull(sdr.GetOrdinal("RaisedByAttachment")) ? string.Empty : Convert.ToString(sdr["RaisedByAttachment"]),
                                         project_Details = string.IsNullOrWhiteSpace(projectDetailsJson)
                                                      ? new List<ProjectDetailResponse>()
                                                      : JsonConvert.DeserializeObject<List<ProjectDetailResponse>>(projectDetailsJson)
@@ -584,5 +607,8 @@ namespace TaskEngineAPI.Services
                 }
             }
         }
+
+    
+    
     }
 }
