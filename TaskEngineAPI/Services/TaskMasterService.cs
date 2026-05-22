@@ -1988,7 +1988,7 @@ namespace TaskEngineAPI.Services
                     c.cmeta_id,
                     a.itaskno,
                     a.cremarks,b.cattachment,a.cmeta_response,
-                    d.nis_external_api_enabled,d.nexternal_api_id
+                    d.nis_external_api_enabled,d.nexternal_api_id, a.ccreated_by                 
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2030,7 +2030,7 @@ namespace TaskEngineAPI.Services
                                     executionType = reader["executionType"]?.ToString() ?? "",
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
-                                    taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
+                                    taskinitiatedby = reader["ccreated_by"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
@@ -2679,6 +2679,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                     d.ctask_type AS executionType,
                     c.nshow_timeline AS showTimeline,
                     a.lcreated_date AS taskInitiatedDate,
+                    a.ccreated_by as taskInitiatedby,
                     b.lcurrent_status_date AS taskAssignedDate,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     e.cprofile_image_name,
@@ -2730,6 +2731,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
+                                    taskInitiatedby = reader["taskInitiatedby"]?.ToString() ?? "",
                                     HoldRemarks = reader["HoldRemarks"]?.ToString() ?? "",
                                     Remarks = reader["TaskRemarks"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),

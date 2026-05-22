@@ -124,8 +124,8 @@ namespace TaskEngineAPI.DTO
         public string? executionType { get; set; }
         public DateTime? taskAssignedDate { get; set; }
         public DateTime? taskInitiatedDate { get; set; }
-
         public string? taskinitiatedbyname { get; set; }
+        public string? taskinitiatedby { get; set; }
         public string? cattachment { get; set; }
         public bool? showTimeline { get; set; }
         public string? cremarks { get; set; }
@@ -203,7 +203,7 @@ namespace TaskEngineAPI.DTO
         public string? executionType { get; set; }
         public DateTime? taskAssignedDate { get; set; }
         public DateTime? taskInitiatedDate { get; set; }
-
+        public string? taskInitiatedby { get; set; }
         public string? taskinitiatedbyname { get; set; }
         public string? HoldRemarks { get; set; }
         public string? Remarks { get; set; }
