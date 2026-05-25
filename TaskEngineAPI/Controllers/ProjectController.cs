@@ -498,7 +498,9 @@ namespace TaskEngineAPI.Controllers
                     model.ProjectId,
                     model.Description,
                     model.ExpectedDate,
-                    username
+                    username,
+                    model.ParentVersionId,
+                    model.IsClosed               
                 );
 
                 if (newVersionId <= 0)
@@ -524,5 +526,38 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
         }
+
+
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetProjectsummarybyid")]
+        public async Task<IActionResult> GetProjectsummarybyid([FromQuery] int projectId)
+        {
+            try
+            {
+                var (tenantId, username) = GetUserInfoFromToken();
+
+                string json = await _ProjectService.GetProjectsummarybyid(tenantId, username, projectId);
+
+                if (string.IsNullOrWhiteSpace(json))
+                    return CreateEncryptedResponse(404, "Project not found");
+
+                string encrypted = AesEncryption.Encrypt(json);
+
+                return Content($"\"{encrypted}\"", "application/json");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+
+
     }
 }

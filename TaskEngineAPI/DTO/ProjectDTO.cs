@@ -27,7 +27,9 @@ namespace TaskEngineAPI.DTO
         public DateTime? PaymentDueDate { get; set; }
         public DateTime? PaymentCompletedDate { get; set; }
         public string? PaymentRemarks { get; set; }
-
+        public int? SprintNo { get; set; }
+        public string? Priority { get; set; }
+        public string? Severity { get; set; }
     }
     public class CreateProjectVersionDTO
     {
@@ -43,6 +45,8 @@ namespace TaskEngineAPI.DTO
         public int ProjectId { get; set; }
         public string Description { get; set; }
         public DateTime? ExpectedDate { get; set; }
+        public int? ParentVersionId { get; set; }
+        public bool? IsClosed { get; set; }
     }
 
     public class ProjectListDTO

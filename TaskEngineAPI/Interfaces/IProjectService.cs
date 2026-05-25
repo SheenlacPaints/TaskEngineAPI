@@ -10,9 +10,8 @@ namespace TaskEngineAPI.Interfaces
         Task<bool> InsertProjectDetails(List<ProjectDetailRequest> requests,int tenantId,string username);
         Task<bool> UpdateProjectDetails(ProjectDetailRequest request, int tenantId, string username);
         Task<string> GetProjectById(int tenantId, string username, int projectId);
-        Task<int> CreateProjectVersionAsync(int projectId, string description, DateTime? expectedDate, string username);
+        Task<int> CreateProjectVersionAsync(int projectId, string description, DateTime? expectedDate, string username, int? ParentVersionId, bool? IsClosed);
         Task<string> GetProjectList(int tenantId, string username);
-       
-  
+        Task<string> GetProjectsummarybyid(int cTenantID, string username, int projectId);
     }
 }

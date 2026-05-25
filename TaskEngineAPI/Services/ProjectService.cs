@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -45,12 +46,13 @@ namespace TaskEngineAPI.Services
                     INSERT INTO Tbl_Project_Master (ClientTenantId,RaisedByUserId,AssignedManagerId,ProjectName,ProjectType,Description,
                      CreatedDate,Status,expecteddate,Version,Remarks1,Remarks2,Remarks3,CurrentVersion,WorkflowStatus,
                      ClientFinalApprovalBy,ClientFinalApprovalDate,BossApprovalBy,BossApprovalDate,IsClosed,
-                    PaymentStatus,PaymentAmount,PaymentRaisedDate,PaymentDueDate,PaymentCompletedDate,PaymentRemarks)
+                     PaymentStatus,PaymentAmount,PaymentRaisedDate,PaymentDueDate,PaymentCompletedDate,PaymentRemarks, SprintNo,
+                     Priority,Severity)
                    VALUES (@ClientTenantId, @RaisedByUserId, @AssignedManagerId, @ProjectName,@ProjectType,@Description, 
                     @CreatedDate, @Status,@expecteddate,@Version @Remarks1,@Remarks2,@Remarks3,
                     @CurrentVersion,@WorkflowStatus,@ClientFinalApprovalBy,@ClientFinalApprovalDate,@BossApprovalBy,
                     @BossApprovalDate,@IsClosed,@PaymentStatus,@PaymentAmount,@PaymentRaisedDate,@PaymentDueDate,
-                    @PaymentCompletedDate,@PaymentRemarks);SELECT SCOPE_IDENTITY();";
+                    @PaymentCompletedDate,@PaymentRemarks,@SprintNo,@Priority,@Severity);SELECT SCOPE_IDENTITY();";
 
                         using (var cmd = new SqlCommand(queryMaster, conn, transaction))
                         {
@@ -81,7 +83,9 @@ namespace TaskEngineAPI.Services
                             cmd.Parameters.AddWithValue("@PaymentDueDate", (object?)model.PaymentDueDate ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@PaymentCompletedDate", (object?)model.PaymentCompletedDate ?? DBNull.Value);
                             cmd.Parameters.AddWithValue("@PaymentRemarks", (object?)model.PaymentRemarks ?? DBNull.Value);
-  
+                            cmd.Parameters.AddWithValue("@SprintNo", (object?)model.SprintNo ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Priority", (object?)model.Priority ?? DBNull.Value);
+                            cmd.Parameters.AddWithValue("@Severity", (object?)model.Severity ?? DBNull.Value);
                             var newId = await cmd.ExecuteScalarAsync();
                             masterId = newId != null ? Convert.ToInt32(newId) : 0;
                         }
@@ -536,10 +540,40 @@ namespace TaskEngineAPI.Services
             }
         }
 
+      
+        public async Task<string> GetProjectsummarybyid(int cTenantID, string username, int projectId)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_config.GetConnectionString("Database")))
+                using (var cmd = new SqlCommand("sp_get_project_summary", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;       
+                    cmd.Parameters.AddWithValue("@ProjectId", projectId);
+                   
+                    var ds = new DataSet();
+                    var adapter = new SqlDataAdapter(cmd);
+                    await Task.Run(() => adapter.Fill(ds)); // async wrapper
+
+                    if (ds.Tables.Count > 0)
+                    {
+                        return JsonConvert.SerializeObject(ds.Tables[0], Formatting.Indented);
+                    }
+
+                    return "[]";
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
         public async Task<int> CreateProjectVersionAsync(int projectId,
             string description,
             DateTime? expectedDate,
-            string username)
+            string username, int? ParentVersionId,bool? IsClosed)
         {
             var connectionString = _config.GetConnectionString("Database");
 
@@ -569,10 +603,10 @@ namespace TaskEngineAPI.Services
 
                         string insertVersionQuery = @"
                     INSERT INTO tbl_Project_Version_Details
-                    (HeaderId, Description, createdBy, Status, expecteddate, Version, createdDate)
+                    (HeaderId, Description, createdBy, Status, expecteddate, Version, createdDate,ParentVersionId,IsClosed)
                     OUTPUT INSERTED.Id
                     VALUES
-                    (@ProjectId, @Description, @Username, 'Approval', @ExpectedDate, @Version, GETDATE());";
+                    (@ProjectId, @Description, @Username, 'Approval', @ExpectedDate, @Version, GETDATE(),@ParentVersionId,@IsClosed);";
 
                         SqlCommand insertVersionCmd = new SqlCommand(insertVersionQuery, conn, transaction);
                         insertVersionCmd.Parameters.AddWithValue("@ProjectId", projectId);
@@ -582,7 +616,8 @@ namespace TaskEngineAPI.Services
                         insertVersionCmd.Parameters.AddWithValue("@ExpectedDate",
                             expectedDate.HasValue ? (object)expectedDate.Value : DBNull.Value);
                         insertVersionCmd.Parameters.AddWithValue("@Version", nextVersion);
-
+                        insertVersionCmd.Parameters.AddWithValue("@ParentVersionId",ParentVersionId ?? (object)DBNull.Value);
+                       insertVersionCmd.Parameters.AddWithValue("@IsClosed",IsClosed.HasValue? IsClosed.Value : DBNull.Value);
                         int versionDetailId = Convert.ToInt32(await insertVersionCmd.ExecuteScalarAsync());
 
                         string updateMasterQuery = @"
