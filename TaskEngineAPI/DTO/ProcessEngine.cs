@@ -308,7 +308,7 @@ namespace TaskEngineAPI.DTO
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public string? cprocessdescription { get; set; }
-
+        public string? cpriority_label { get; set; }
         public string? cremarks { get; set; }
         public string? cmeta_response { get; set; }
 

@@ -1497,7 +1497,9 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                    cpriority_label = sdr.IsDBNull(sdr.GetOrdinal("cpriority_label")) ? string.Empty : Convert.ToString(sdr["cpriority_label"])
+
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -1639,7 +1641,8 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                    cpriority_label = sdr.IsDBNull(sdr.GetOrdinal("cpriority_label")) ? string.Empty : Convert.ToString(sdr["cpriority_label"])
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(_config.GetConnectionString("Database")))
@@ -2951,7 +2954,8 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                    cpriority_label = sdr.IsDBNull(sdr.GetOrdinal("cpriority_label")) ? string.Empty : Convert.ToString(sdr["cpriority_label"])
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -4045,7 +4049,9 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                 cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                 cprocesscode = sdr["cprocesscode"]?.ToString() ?? string.Empty,
                                 cprocessname = sdr["cprocessname"]?.ToString() ?? string.Empty,
-                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? string.Empty
+                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? string.Empty,
+                                cpriority_label = sdr["cpriority_label"]?.ToString() ?? string.Empty
+
                             };
                             tsk.Add(p);
                         }
@@ -4503,7 +4509,8 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                 cprocess_id = sdr.IsDBNull("cprocess_id") ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                 cprocesscode = sdr["cprocesscode"]?.ToString() ?? "",
                                 cprocessname = sdr["cprocessname"]?.ToString() ?? "",
-                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? ""
+                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? "",
+                                cpriority_label = sdr["cpriority_label"]?.ToString() ?? ""
                             };
 
                             tsk.Add(p);
