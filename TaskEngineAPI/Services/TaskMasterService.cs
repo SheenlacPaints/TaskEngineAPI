@@ -4655,7 +4655,8 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                     cdata = reader["cdata"]?.ToString() ?? "",
                                     cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0,
                                     cdata_source = reader["cdata_source"]?.ToString() ?? "",
-                                    cprofile_image_name = reader["cprofile_image_name"]?.ToString() ?? ""
+                                    cprofile_image_name = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    cfield_value = reader["cfield_value"]?.ToString() ?? ""
                                 });
                             }
                         }
