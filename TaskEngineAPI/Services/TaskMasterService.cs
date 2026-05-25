@@ -2034,6 +2034,7 @@ namespace TaskEngineAPI.Services
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedby = reader["ccreated_by"]?.ToString() ?? "",
+                                    taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",    
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
                                     modifiedbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
