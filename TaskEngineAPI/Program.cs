@@ -324,53 +324,53 @@ app.MapControllers();
 //    var handler = context.RequestServices.GetRequiredService<ProjectSocketHandler>();
 //    await handler.HandleAsync(context);
 //});
-app.Lifetime.ApplicationStarted.Register(() =>
-{
-using (var scope = app.Services.CreateScope())
-{
-    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-    var sapSyncService = scope.ServiceProvider.GetRequiredService<ISapSyncJobService>();
+//app.Lifetime.ApplicationStarted.Register(() =>
+//{
+//using (var scope = app.Services.CreateScope())
+//{
+//    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+//    var sapSyncService = scope.ServiceProvider.GetRequiredService<ISapSyncJobService>();
 
-    recurringJobManager.RemoveIfExists("inbound-sync-test");
+//    recurringJobManager.RemoveIfExists("inbound-sync-test");
 
-    recurringJobManager.AddOrUpdate(
-        "inbound-sync-8am",
-        () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
-        {
-            SyncOrgUnit = true,
-            SyncJobCode = true,
-            SyncPositionDetails = true,
-            TriggeredBy = "Scheduler-8AM"
-        }),
-       "0 8 * * *",
-       TimeZoneInfo.Local
-   );
-        recurringJobManager.AddOrUpdate(
-            "inbound-sync-12pm",
-            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
-            {
-                SyncOrgUnit = true,
-                SyncJobCode = true,
-                SyncPositionDetails = true,
-                TriggeredBy = "Scheduler-12PM"
-            }),
-            "0 12 * * *",
-            TimeZoneInfo.Local
-        );
-        recurringJobManager.AddOrUpdate(
-            "inbound-sync-4pm",
-            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
-            {
-                SyncOrgUnit = true,
-                SyncJobCode = true,
-                SyncPositionDetails = true,
-                TriggeredBy = "Scheduler-4PM"
-            }),
-            "0 16 * * *",
-            TimeZoneInfo.Local
-        );
-    }
-});
+//    recurringJobManager.AddOrUpdate(
+//        "inbound-sync-8am",
+//        () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
+//        {
+//            SyncOrgUnit = true,
+//            SyncJobCode = true,
+//            SyncPositionDetails = true,
+//            TriggeredBy = "Scheduler-8AM"
+//        }),
+//       "0 8 * * *",
+//       TimeZoneInfo.Local
+//   );
+//        recurringJobManager.AddOrUpdate(
+//            "inbound-sync-12pm",
+//            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
+//            {
+//                SyncOrgUnit = true,
+//                SyncJobCode = true,
+//                SyncPositionDetails = true,
+//                TriggeredBy = "Scheduler-12PM"
+//            }),
+//            "0 12 * * *",
+//            TimeZoneInfo.Local
+//        );
+//        recurringJobManager.AddOrUpdate(
+//            "inbound-sync-4pm",
+//            () => sapSyncService.SyncTablesFromMISPORTALAsync(new InBoundSyncRequestDTO
+//            {
+//                SyncOrgUnit = true,
+//                SyncJobCode = true,
+//                SyncPositionDetails = true,
+//                TriggeredBy = "Scheduler-4PM"
+//            }),
+//            "0 16 * * *",
+//            TimeZoneInfo.Local
+//        );
+//    }
+//});
 
 
 app.Run();
