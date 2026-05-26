@@ -2132,7 +2132,7 @@ namespace TaskEngineAPI.Services
                   c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
                    from [tbl_transaction_process_meta_layout] a 
                    inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-                 inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+                 inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id
                  inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cprocess_id
                  where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
@@ -2626,7 +2626,7 @@ namespace TaskEngineAPI.Services
           c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
            from [tbl_transaction_process_meta_layout] a 
            inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-         inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+         inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id
 inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cprocess_id
          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
@@ -3304,7 +3304,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
           c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
            from [tbl_transaction_process_meta_layout] a 
            inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-         inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+         inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id
          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
@@ -3732,7 +3732,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
       c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
        from [tbl_transaction_process_meta_layout] a 
        inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-     inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+     inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id
      where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
@@ -4438,7 +4438,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
           c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
            from [tbl_transaction_process_meta_layout] a 
            inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-         inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+         inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id
          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
@@ -6734,8 +6734,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                 c.cdata_source
             FROM tbl_transaction_process_meta_layout a
             INNER JOIN tbl_process_engine_master b ON a.cprocess_id = b.ID
-            INNER JOIN tbl_process_meta_detail c 
-                ON c.cheader_id = b.cmeta_id AND c.Id = a.cmeta_id
+            INNER JOIN tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id
             WHERE a.citaskno = @TaskNo AND a.ctenant_id = @TenantID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
