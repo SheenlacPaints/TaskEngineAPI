@@ -1989,7 +1989,7 @@ namespace TaskEngineAPI.Services
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,e.cprofile_image_name,
                     c.cmeta_id,
-                    a.itaskno,
+                    a.itaskno,b.iseqno,
                     a.cremarks,b.cattachment,a.cmeta_response,
                     d.nis_external_api_enabled,d.nexternal_api_id, a.ccreated_by                 
                 FROM tbl_taskflow_master a
@@ -2015,6 +2015,7 @@ namespace TaskEngineAPI.Services
                                 var mapping = new GettaskinboxbyidDTO
                                 {
                                     itaskno = itaskno,
+                                    iseqno = reader.SafeGetInt("iseqno"),
                                     processId = Convert.ToInt32(reader["processId"]),
                                     cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
                                     processName = reader["processName"]?.ToString() ?? "",
@@ -2692,7 +2693,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                     a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks,
                     a.cmeta_response,
                     d.nis_external_api_enabled,
-                    d.nexternal_api_id
+                    d.nexternal_api_id,b.iseqno
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2716,6 +2717,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                 var mapping = new GettaskHolddatabyidDTO
                                 {
                                     itaskno = itaskno,
+                                    iseqno=reader.SafeGetInt("iseqno"),
                                     processId = Convert.ToInt32(reader["processId"]),
                                     processName = reader["processName"]?.ToString() ?? "",
                                     processcode = reader["processcode"]?.ToString() ?? "",

@@ -104,6 +104,7 @@ namespace TaskEngineAPI.DTO
     public class GettaskinboxbyidDTO
     {
         public int? itaskno { get; set; }
+        public int? iseqno { get; set; }
         public int? processId { get; set; }
         public string? cprocesscode { get; set; }    
         public string? processName { get; set; }
@@ -181,6 +182,7 @@ namespace TaskEngineAPI.DTO
     public class GettaskHolddatabyidDTO
     {
         public int? itaskno { get; set; }
+        public int? iseqno { get; set; }
         public int? processId { get; set; }
         public string? processcode { get; set; }
         public string? processName { get; set; }
