@@ -104,6 +104,7 @@ namespace TaskEngineAPI.DTO
     public class GettaskinboxbyidDTO
     {
         public int? itaskno { get; set; }
+        public int? iseqno { get; set; }
         public int? processId { get; set; }
         public string? cprocesscode { get; set; }    
         public string? processName { get; set; }
@@ -124,7 +125,7 @@ namespace TaskEngineAPI.DTO
         public string? executionType { get; set; }
         public DateTime? taskAssignedDate { get; set; }
         public DateTime? taskInitiatedDate { get; set; }
-
+        public string? taskinitiatedby {  get; set; }
         public string? taskinitiatedbyname { get; set; }
         public string? cattachment { get; set; }
         public bool? showTimeline { get; set; }
@@ -181,6 +182,7 @@ namespace TaskEngineAPI.DTO
     public class GettaskHolddatabyidDTO
     {
         public int? itaskno { get; set; }
+        public int? iseqno { get; set; }
         public int? processId { get; set; }
         public string? processcode { get; set; }
         public string? processName { get; set; }
@@ -203,8 +205,8 @@ namespace TaskEngineAPI.DTO
         public string? executionType { get; set; }
         public DateTime? taskAssignedDate { get; set; }
         public DateTime? taskInitiatedDate { get; set; }
-
         public string? taskinitiatedbyname { get; set; }
+        public string? taskInitiatedby { get; set; }
         public string? HoldRemarks { get; set; }
         public string? Remarks { get; set; }
         public bool? showTimeline { get; set; }

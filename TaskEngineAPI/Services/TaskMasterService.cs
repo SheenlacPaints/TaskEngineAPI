@@ -1497,7 +1497,9 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                    cpriority_label = sdr.IsDBNull(sdr.GetOrdinal("cpriority_label")) ? string.Empty : Convert.ToString(sdr["cpriority_label"]),
+
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -1639,7 +1641,8 @@ namespace TaskEngineAPI.Services
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                    cpriority_label = sdr.IsDBNull(sdr.GetOrdinal("cpriority_label")) ? string.Empty : Convert.ToString(sdr["cpriority_label"])
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(_config.GetConnectionString("Database")))
@@ -1986,9 +1989,9 @@ namespace TaskEngineAPI.Services
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     d.id AS processdetailid,e.cprofile_image_name,
                     c.cmeta_id,
-                    a.itaskno,
+                    a.itaskno,b.iseqno,
                     a.cremarks,b.cattachment,a.cmeta_response,
-                    d.nis_external_api_enabled,d.nexternal_api_id
+                    d.nis_external_api_enabled,d.nexternal_api_id,a.ccreated_by 
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2012,6 +2015,7 @@ namespace TaskEngineAPI.Services
                                 var mapping = new GettaskinboxbyidDTO
                                 {
                                     itaskno = itaskno,
+                                    iseqno = reader.SafeGetInt("iseqno"),
                                     processId = Convert.ToInt32(reader["processId"]),
                                     cprocesscode = reader["cprocesscode"]?.ToString() ?? "",
                                     processName = reader["processName"]?.ToString() ?? "",
@@ -2030,6 +2034,7 @@ namespace TaskEngineAPI.Services
                                     executionType = reader["executionType"]?.ToString() ?? "",
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
+                                    taskinitiatedby = reader["ccreated_by"]?.ToString() ?? "",
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
                                     createdbyavatar = reader["cprofile_image_name"]?.ToString() ?? "",
@@ -2127,9 +2132,9 @@ namespace TaskEngineAPI.Services
             string sql = @"SELECT a.cprocess_id,a.cdata,c.cinput_type,c.label,c.cplaceholder,
                   c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
                    from [tbl_transaction_process_meta_layout] a 
-                   inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-                 inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
-                 inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cprocess_id
+                   inner join  tbl_process_engine_master b on a.cprocess_id=b.ID             
+                   inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id                              
+                   inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cprocess_id
                  where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
@@ -2622,8 +2627,8 @@ namespace TaskEngineAPI.Services
           c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
            from [tbl_transaction_process_meta_layout] a 
            inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-         inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
-inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cprocess_id
+         inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id
+         inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cprocess_id
          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
@@ -2680,6 +2685,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                     c.nshow_timeline AS showTimeline,
                     a.lcreated_date AS taskInitiatedDate,
                     b.lcurrent_status_date AS taskAssignedDate,
+                    a.ccreated_by as taskInitiatedby,
                     e.cfirst_name + ' ' + e.clast_name AS assigneeName,
                     e.cprofile_image_name,
                     d.id AS processdetailid,
@@ -2687,7 +2693,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                     a.itaskno,b.cremarks as HoldRemarks,a.cremarks as TaskRemarks,
                     a.cmeta_response,
                     d.nis_external_api_enabled,
-                    d.nexternal_api_id
+                    d.nexternal_api_id,b.iseqno
                 FROM tbl_taskflow_master a
                 INNER JOIN tbl_taskflow_detail b ON a.id = b.iheader_id 
                 INNER JOIN tbl_process_engine_master c ON a.cprocess_id = c.ID
@@ -2711,6 +2717,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                 var mapping = new GettaskHolddatabyidDTO
                                 {
                                     itaskno = itaskno,
+                                    iseqno = reader.SafeGetInt("iseqno"),
                                     processId = Convert.ToInt32(reader["processId"]),
                                     processName = reader["processName"]?.ToString() ?? "",
                                     processcode = reader["processcode"]?.ToString() ?? "",
@@ -2730,6 +2737,8 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                     taskInitiatedDate = reader.SafeGetDateTime("taskInitiatedDate"),
                                     taskAssignedDate = reader.SafeGetDateTime("taskAssignedDate"),
                                     taskinitiatedbyname = reader["assigneeName"]?.ToString() ?? "",
+                                    taskInitiatedby = reader["taskInitiatedby"]?.ToString() ?? "",
+
                                     HoldRemarks = reader["HoldRemarks"]?.ToString() ?? "",
                                     Remarks = reader["TaskRemarks"]?.ToString() ?? "",
                                     showTimeline = reader.SafeGetBoolean("showTimeline"),
@@ -2841,7 +2850,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
           c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
            from [tbl_transaction_process_meta_layout] a 
            inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-         inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+          inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id                 
         inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cprocess_id
          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
@@ -2949,7 +2958,9 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                     cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                     cprocesscode = sdr.IsDBNull(sdr.GetOrdinal("cprocesscode")) ? string.Empty : Convert.ToString(sdr["cprocesscode"]),
                                     cprocessname = sdr.IsDBNull(sdr.GetOrdinal("cprocessname")) ? string.Empty : Convert.ToString(sdr["cprocessname"]),
-                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"])
+                                    cprocessdescription = sdr.IsDBNull(sdr.GetOrdinal("cprocessdescription")) ? string.Empty : Convert.ToString(sdr["cprocessdescription"]),
+                                    cpriority_label = sdr.IsDBNull(sdr.GetOrdinal("cpriority_label")) ? string.Empty : Convert.ToString(sdr["cpriority_label"])
+
                                 };
 
                                 using (SqlConnection con1 = new SqlConnection(this._config.GetConnectionString("Database")))
@@ -3297,7 +3308,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
           c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
            from [tbl_transaction_process_meta_layout] a 
            inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-         inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+           inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id     
          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
@@ -3725,7 +3736,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
       c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
        from [tbl_transaction_process_meta_layout] a 
        inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-     inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+        inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id   
      where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
@@ -4043,7 +4054,9 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                 cprocess_id = sdr.IsDBNull(sdr.GetOrdinal("cprocess_id")) ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                 cprocesscode = sdr["cprocesscode"]?.ToString() ?? string.Empty,
                                 cprocessname = sdr["cprocessname"]?.ToString() ?? string.Empty,
-                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? string.Empty
+                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? string.Empty,
+                                cpriority_label = sdr["cpriority_label"]?.ToString() ?? string.Empty
+
                             };
                             tsk.Add(p);
                         }
@@ -4251,7 +4264,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
           c.cis_required,c.cis_readonly,c.cis_disabled,c.cfield_value,c.cdata_source
            from [tbl_transaction_process_meta_layout] a 
            inner join  tbl_process_engine_master b on a.cprocess_id=b.ID
-         inner join tbl_process_meta_detail c on c.cheader_id=b.cmeta_id and c.Id=a.cmeta_id
+            inner join tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id     
          where a.citaskno=@TaskNo and a.ctenant_id=@TenantID";
 
             using var cmd = new SqlCommand(sql, conn);
@@ -4501,7 +4514,9 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                 cprocess_id = sdr.IsDBNull("cprocess_id") ? 0 : Convert.ToInt32(sdr["cprocess_id"]),
                                 cprocesscode = sdr["cprocesscode"]?.ToString() ?? "",
                                 cprocessname = sdr["cprocessname"]?.ToString() ?? "",
-                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? ""
+                                cprocessdescription = sdr["cprocessdescription"]?.ToString() ?? "",
+                                cpriority_label = sdr["cpriority_label"]?.ToString() ?? ""
+
                             };
 
                             tsk.Add(p);
@@ -4653,7 +4668,9 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                                     cdata = reader["cdata"]?.ToString() ?? "",
                                     cdetail_id = reader["cdetail_id"] != DBNull.Value ? Convert.ToInt32(reader["cdetail_id"]) : 0,
                                     cdata_source = reader["cdata_source"]?.ToString() ?? "",
-                                    cprofile_image_name = reader["cprofile_image_name"]?.ToString() ?? ""
+                                    cprofile_image_name = reader["cprofile_image_name"]?.ToString() ?? "",
+                                    cfield_value = reader["cfield_value"]?.ToString() ?? ""
+
                                 });
                             }
                         }
@@ -6723,8 +6740,7 @@ inner join tbl_taskflow_master d on a.citaskno=d.itaskno  and d.cprocess_id=a.cp
                 c.cdata_source
             FROM tbl_transaction_process_meta_layout a
             INNER JOIN tbl_process_engine_master b ON a.cprocess_id = b.ID
-            INNER JOIN tbl_process_meta_detail c 
-                ON c.cheader_id = b.cmeta_id AND c.Id = a.cmeta_id
+            INNER JOIN tbl_process_meta_detail c on c.id=a.cmeta_id and c.ctenant_id = a.ctenant_id		
             WHERE a.citaskno = @TaskNo AND a.ctenant_id = @TenantID";
 
                     using (SqlCommand cmd = new SqlCommand(query, conn))
