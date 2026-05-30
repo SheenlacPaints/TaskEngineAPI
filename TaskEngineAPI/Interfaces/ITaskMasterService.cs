@@ -7,7 +7,9 @@ namespace TaskEngineAPI.Interfaces
 
     public interface ITaskMasterService
     {
-        Task<int> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string username);
+        Task<int> InsertTaskMasterAsyncold(TaskMasterDTO model, int tenantId, string username);
+
+        Task<object> InsertTaskMasterAsync(TaskMasterDTO model, int tenantId, string userName);
         Task<string> GetAllProcessmetaAsync(int cTenantID, int processid);
         Task<string> GetAllProcessmetadetailAsync(int cTenantID, int metaid);
         Task<string> Getdepartmentroleposition(int cTenantID, string table);
@@ -82,7 +84,14 @@ namespace TaskEngineAPI.Interfaces
 
         Task<string> Getsubordinate_dashboard(int cTenantID, string username, string? searchText = null);
         Task<bool> projectbackclienforapprovalpushnotificationAsync(int ID, int cTenantID, string username);
+        Task<bool> projectassigntoteammemberpushnotificationAsync(int ID, int cTenantID, string username);
+        Task<string> Getdepartmentdashboard(int cTenantID, string username, string? searchText = null);
+        Task<string> GetNotificationsdashboard(int cTenantID, string username, string? searchText = null);
+        Task<string> Getemployeekradetails(int cTenantID, string username, string? searchText = null);   
         Task<List<processEnginetaskMeta>> Getmetadetaildataasync(int cTenantID, int itaskno);
+
+        Task<string> Getcalendarevents(int cTenantID, string username);
+
     }
 
 }

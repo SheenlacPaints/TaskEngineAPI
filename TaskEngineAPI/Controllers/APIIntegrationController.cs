@@ -125,8 +125,12 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<APIFetchDTO>(request.payload);
+                var bearerToken = HttpContext.Request.Headers["Authorization"].ToString();
 
-                var json = await _APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username);
+                // ✅ PASS TOKEN TO SERVICE
+                
+
+                var json = await _APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username, bearerToken);
 
                 var list = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
@@ -181,6 +185,7 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
+     
         [Authorize]
         [HttpPost("FetchGetapiIntegration")]
         public async Task<IActionResult> FetchGetapiIntegration([FromBody] pay request)
@@ -220,7 +225,6 @@ namespace TaskEngineAPI.Controllers
             }
         }
 
-
         [Authorize]
         [HttpPost("FetchtaskapiIntegration")]
         public async Task<IActionResult> FetchtaskapiIntegration([FromBody] pay request)
@@ -259,6 +263,10 @@ namespace TaskEngineAPI.Controllers
                 return encryptCreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
             }
         }
+
+
+       
+
         protected IActionResult encryptCreatedDataResponse(List<Dictionary<string, object>> data, string noDataMessage = "No data found")
         {
             var hasData = data != null && data.Any();
@@ -267,7 +275,7 @@ namespace TaskEngineAPI.Controllers
                 status = hasData ? 200 : 204,
                 statusText = hasData ? "Successful" : noDataMessage,
                 body = hasData ? data.Cast<object>().ToArray() : Array.Empty<object>(),
-
+                
             };
             string json = JsonConvert.SerializeObject(response);
             string encrypted = AesEncryption.Encrypt(json);
@@ -290,7 +298,46 @@ namespace TaskEngineAPI.Controllers
             return StatusCode(statusCode, encrypted);
         }
 
+        [Authorize]
+        [HttpPost("PostInoutboundAPIAsync")]
+        public async Task<IActionResult> PostInoutboundAPIAsync([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
 
+                if (!ModelState.IsValid)
+                {
+                    return CreateEncryptedResponse(400, "Invalid request payload");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var model = DeserializePayload<POSTAPIDTO>(request.payload);
+                var bearerToken = HttpContext.Request.Headers["Authorization"].ToString();
+
+                // ✅ PASS TOKEN TO SERVICE
+
+
+                var json = await _APIIntegrationService.POSTInoutboundIntegrationApi(model, cTenantID, username);
+
+                var responseObject =JsonConvert.DeserializeObject<object>(json);
+
+                return CreatedObjectResponse(responseObject);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+       
 
     }
 }

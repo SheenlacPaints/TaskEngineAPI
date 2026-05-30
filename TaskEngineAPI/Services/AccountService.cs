@@ -946,7 +946,7 @@ VALUES (
                 }
             }
         }
-       
+
         public async Task<bool> UpdatePasswordSuperAdminAsync(UpdateadminPassword model)
         {
             var connStr = _config.GetConnectionString("Database");
@@ -3546,111 +3546,140 @@ VALUES (
             return masterId;
         }
 
-        
-//public async Task<bool> UserdetailSAPAPIinsertAsync(int cTenantID)
-        //{
-        //    try
-        //    {
-        //        string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/GetAllEmployeeDtls";
 
-        //        using (HttpClient client = new HttpClient())
-        //        {
-        //            // ✅ Correct request body
-        //            var requestBody = new
-        //            {
-        //                EMPLOYEE_ID = "",
-        //                COMPANY_CODE = ""
-        //            };
 
-        //            var content = new StringContent(
-        //                JsonConvert.SerializeObject(requestBody),
-        //                Encoding.UTF8,
-        //                "application/json"
-        //            );
 
-        //            // 🔹 Call API
-        //            var response = await client.PostAsync(apiUrl, content);
 
-        //            if (!response.IsSuccessStatusCode)
-        //                return false;
+        public async Task<bool> SyncEmployeesAsync(int tenantId)
+        {
+            try
+            {
+                string apiUrl = "https://misdevapi.sheenlac.com/api/Progovex/GetAllEmployeeDtls";
 
-        //            var jsonResponse = await response.Content.ReadAsStringAsync();
+                using (HttpClient client = new HttpClient())
+                {
+                    var requestBody = new
+                    {
+                        EMPLOYEE_ID = "",
+                        COMPANY_CODE = ""
+                    };
 
-        //            var employees = JsonConvert.DeserializeObject<List<SapEmployeeResponse>>(jsonResponse);
+                    var content = new StringContent(
+                        JsonConvert.SerializeObject(requestBody),
+                        Encoding.UTF8,
+                        "application/json"
+                    );
 
-        //            if (employees == null || !employees.Any())
-        //                return false;
+                    var response = await client.PostAsync(apiUrl, content);
 
-        //            using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
-        //            {
-        //                await conn.OpenAsync();
+                    if (!response.IsSuccessStatusCode)
+                        return false;
 
-        //                foreach (var emp in employees) // ✅ loop all employees
-        //                {
-        //                    string query = @"
-        //            INSERT INTO Users_Staging
-        //            (
-        //                TenantId, EmployeeCode, Name,Email,ManagerCode, ManagerName,IsActive,
-        //                BatchId, SyncDate
-        //            )
-        //            VALUES
-        //            (
-        //                @TenantId, @EmployeeCode, @Name,
-        //               @Email,@ManagerCode, @ManagerName,@IsActive,@BatchId, GETDATE()
-        //            )";
-        //                    //          INSERT INTO Users_Staging
-        //                    //(
-        //                    //    
-        //                    //          FirstName, LastName,DOJ,Phone,
-        //                    //     Phone, DepartmentName, JobName,
-        //                    //    
-        //                    //)
-        //                    //  VALUES
-        //                    //  (
-        //                    //          @FirstName, @LastName,@DOJ,@Phone,
-        //                    //      @Phone,  @DepartmentName, @JobName,
-        //                    //    
-        //                    //  )
-        //                    using (SqlCommand cmd = new SqlCommand(query, conn))
-        //                    {
-        //                        cmd.Parameters.AddWithValue("@TenantId", cTenantID);
-        //                        cmd.Parameters.AddWithValue("@EmployeeCode", emp.EMPLOYEE_ID ?? "");
-        //                        cmd.Parameters.AddWithValue("@Name", emp.EMPLOYEE_NAME ?? "");
+                    var json = await response.Content.ReadAsStringAsync();
 
-        //                        //var names = (emp.EMPLOYEE_NAME ?? "").Split(' ');
-        //                        //cmd.Parameters.AddWithValue("@FirstName", names.FirstOrDefault() ?? "");
-        //                        //cmd.Parameters.AddWithValue("@LastName", names.Length > 1 ? names.Last() : "");
+                    var employees = JsonConvert.DeserializeObject<List<SapSyncEmployeeResponse>>(json);
 
-        //                        cmd.Parameters.AddWithValue("@Email", emp.EMAIL_ADDRESS ?? "");
-        //                       // cmd.Parameters.AddWithValue("@Phone", emp.PHONE_NUMBER ?? "");
+                    if (employees == null || !employees.Any())
+                        return false;
 
-        //                        //cmd.Parameters.AddWithValue("@DOJ",
-        //                        //    DateTime.TryParse(emp.DATE_OF_JOINING, out DateTime doj)
-        //                        //    ? doj : (object)DBNull.Value);
+                    using (SqlConnection conn = new SqlConnection(_config.GetConnectionString("Database")))
+                    {
+                        await conn.OpenAsync();
 
-        //                        //cmd.Parameters.AddWithValue("@DepartmentName", emp.DEPARTMENT ?? "");
-        //                        //cmd.Parameters.AddWithValue("@JobName", emp.POSITION ?? "");
+                        foreach (var emp in employees)
+                        {
+                            // ✅ Avoid duplicate
+                            string checkQuery = "SELECT COUNT(1) FROM Users_Staging WHERE cuserid=@id";
 
-        //                        cmd.Parameters.AddWithValue("@ManagerCode", emp.REPORTING_MANAGER_CODE ?? "");
-        //                        cmd.Parameters.AddWithValue("@ManagerName", emp.REPORTING_MANAGER ?? "");
+                            using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                            {
+                                checkCmd.Parameters.AddWithValue("@id", emp.EMPLOYEE_ID);
 
-        //                        cmd.Parameters.AddWithValue("@IsActive", emp.EMPLOYEE_STATUS == "Active");
+                                int exists = (int)await checkCmd.ExecuteScalarAsync();
+                                if (exists > 0) continue;
+                            }
+                            string query = @"INSERT INTO Users_Staging
+                            (
+                                TenantId, cuserid, cuser_name,cemail,cpassword,nIs_active,cfirst_name,clast_name,cphoneno,calternate_phone,
+                                ldob,cmarital_status,cnation,cgender,caddress,caddress1,caddress2,cpincode,ccity,cstate_code,cstate_desc,cbank_name,
+                               caccount_number,ciFSC_code,cpan,cdept_code,cdept_desc,creport_mgr_code,creport_mgr_name,cposition_code,cposition_name,
+                               creport_manager_empcode,creport_manager_poscode,creport_manager_pos_desc,cemployment_status,cemp_category,ldoj,nnotice_period_days,SyncDate,BatchId
+                            )
+                            VALUES
+                            (
+                                @TenantId, @cuserid, @cuser_name,@cemail,@cpassword,@nIs_active,@cfirst_name,@clast_name,@cphoneno,@calternate_phone,
+                                @ldob,@cmarital_status,@cnation,@cgender,@caddress,@caddress1,@caddress2,@cpincode,@ccity,@cstate_code,@cstate_desc,@cbank_name,
+                               @caccount_number,@ciFSC_code,@cpan,@cdept_code,@cdept_desc,@creport_mgr_code,@creport_mgr_name,@cposition_code,@cposition_name,
+                               @creport_manager_empcode,@creport_manager_poscode,@creport_manager_pos_desc,@cemployment_status,@cemp_category,@ldoj,@nnotice_period_days,GETDATE(),@BatchId
+                            )";
 
-        //                        cmd.Parameters.AddWithValue("@BatchId", Guid.NewGuid());
+                            using (SqlCommand cmd = new SqlCommand(query, conn))
+                            {
+                                cmd.Parameters.AddWithValue("@TenantId", tenantId);
+                                cmd.Parameters.AddWithValue("@cuserid", Convert.ToInt64(emp.EMPLOYEE_ID));
+                                cmd.Parameters.AddWithValue("@cuser_name", emp.EMPLOYEE_NAME ?? "");
+                                cmd.Parameters.AddWithValue("@cemail", emp.EMAIL_ADDRESS ?? "");
+                                cmd.Parameters.AddWithValue("@nIs_active", emp.EMPLOYEE_STATUS == "Active");
+                                cmd.Parameters.AddWithValue("@cpassword", "");
+                                cmd.Parameters.AddWithValue("@cfirst_name", emp.EMPLOYEE_FIRST_NAME ?? "");
+                                cmd.Parameters.AddWithValue("@clast_name", emp.EMPLOYEE_LAST_NAME ?? "");
+                                cmd.Parameters.AddWithValue("@cphoneno", emp.PHONE_NUMBER ?? "");
+                                cmd.Parameters.AddWithValue("@calternate_phone", emp.ALTERNATIVE_NUMBER ?? "");
+                                cmd.Parameters.AddWithValue("@ldob", ConvertToDate(emp.DATE_OF_BIRTH));
+                                cmd.Parameters.AddWithValue("@cmarital_status", emp.MARITAL_STATUS ?? "");
+                                cmd.Parameters.AddWithValue("@cnation", emp.NATIONALITY ?? "");
+                                cmd.Parameters.AddWithValue("@cgender", emp.GENDER ?? "");
+                                cmd.Parameters.AddWithValue("@caddress", emp.ADDRESS ?? "");
+                                cmd.Parameters.AddWithValue("@caddress1", emp.ADDRESS_LINE1 ?? "");
+                                cmd.Parameters.AddWithValue("@caddress2", emp.ADDRESS_LINE2 ?? "");
+                                cmd.Parameters.AddWithValue("@cpincode", emp.PIN_CODE ?? "");
+                                cmd.Parameters.AddWithValue("@ccity", emp.CITY ?? "");
+                                cmd.Parameters.AddWithValue("@cstate_code", emp.STATE_CODE ?? "");
+                                cmd.Parameters.AddWithValue("@cstate_desc", emp.STATE ?? "");
+                                cmd.Parameters.AddWithValue("@cbank_name", emp.BANK_NAME ?? "");
+                                cmd.Parameters.AddWithValue("@caccount_number", emp.ACCOUNT_NUMBER ?? "");
+                                cmd.Parameters.AddWithValue("@ciFSC_code", emp.IFSC_CODE ?? "");
+                                cmd.Parameters.AddWithValue("@cpan", emp.PAN ?? "");
+                                cmd.Parameters.AddWithValue("@ldoj", ConvertToDate(emp.DATE_OF_JOINING));
+                                cmd.Parameters.AddWithValue("@cemployment_status", emp.EMPLOYEE_STATUS ?? "");
+                                cmd.Parameters.AddWithValue("@nnotice_period_days", ExtractDays(emp.NOTICE_PERIOD));
+                                cmd.Parameters.AddWithValue("@cemp_category", emp.EMPLOYEE_CATEGORY ?? "");
+                                cmd.Parameters.AddWithValue("@cdept_code", emp.DEPARTMENT_CODE ?? "");
+                                cmd.Parameters.AddWithValue("@cdept_desc", emp.DEPARTMENT ?? "");
+                                //cmd.Parameters.AddWithValue("@cjob_desc", "");
+                                cmd.Parameters.AddWithValue("@creport_mgr_code", emp.REPORTING_MANAGER_CODE ?? "");
+                                cmd.Parameters.AddWithValue("@creport_mgr_name", emp.REPORTING_MANAGER ?? "");
+                                cmd.Parameters.AddWithValue("@creport_manager_empcode", emp.REPORTING_MANAGER_CODE ?? "");
+                                cmd.Parameters.AddWithValue("@creport_manager_poscode", emp.MANAGER_POS_ID ?? "");
+                                cmd.Parameters.AddWithValue("@creport_manager_pos_desc", emp.MANAGER_POS_DES ?? "");
+                                cmd.Parameters.AddWithValue("@cposition_code", emp.EMPLOYEE_POSITION_CODE ?? "");
+                                cmd.Parameters.AddWithValue("@cposition_name", emp.POSITION ?? "");
+                                cmd.Parameters.AddWithValue("@IsActive", emp.EMPLOYEE_STATUS == "Active");
+                                cmd.Parameters.AddWithValue("@BatchId", Guid.NewGuid());
 
-        //                        await cmd.ExecuteNonQueryAsync();
-        //                    }
-        //                }
-        //            }
+                                await cmd.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
+                }
 
-        //            return true;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception("Error inserting SAP employee: " + ex.Message);
-        //    }
-        //}
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("SAP Sync Error: " + ex.Message);
+            }
+        }
+
+        private object ConvertToDate(string date)
+        {
+            if (DateTime.TryParse(date, out DateTime result))
+                return result;
+
+            return DBNull.Value;
+        }
+
+
         public async Task<bool> UserdetailSAPAPIinsertAsync(int tenantId)
         {
             try
@@ -3676,7 +3705,7 @@ VALUES (
 
                 var json = await response.Content.ReadAsStringAsync();
 
-               // var employees = JsonConvert.DeserializeObject<List<SapSyncEmployeeResponse>>(json);
+                // var employees = JsonConvert.DeserializeObject<List<SapSyncEmployeeResponse>>(json);
                 var apiResponse = JsonConvert.DeserializeObject<SapApiResponse>(json);
                 var employees = apiResponse?.body;
 
@@ -3859,13 +3888,6 @@ VALUES (
             }
         }
 
-        private object ConvertToDate(string date)
-        {
-            if (DateTime.TryParse(date, out DateTime result))
-                return result;
-
-            return DBNull.Value;
-        }
 
         private int ExtractDays(string notice)
         {
@@ -3875,7 +3897,5 @@ VALUES (
 
             return int.TryParse(num, out int days) ? days : 0;
         }
-
-
     }
 }

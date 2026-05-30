@@ -2,12 +2,12 @@
 
 namespace TaskEngineAPI.DTO
 {
-    
+
     public class ProcessEngineTypeDTO
     {
         public int? ID { get; set; }
         public string? privilege { get; set; }
-       
+
     }
     public class PrivilageDTO
     {
@@ -21,8 +21,8 @@ namespace TaskEngineAPI.DTO
         public string? cprocessCode { get; set; }
         public string? cprocessName { get; set; }
         public string? cprocessdescription { get; set; }
-        public int? cprivilegeType  { get; set; }
-        public string? cvalue { get; set; }       
+        public int? cprivilegeType { get; set; }
+        public string? cvalue { get; set; }
         public string? cstatus { get; set; }
         public string? cpriorityLabel { get; set; }
         public bool? nshowTimeline { get; set; }
@@ -30,17 +30,18 @@ namespace TaskEngineAPI.DTO
         public string? cmetaType { get; set; }
         public int? cmetaId { get; set; }
         public string? cmetaName { get; set; }
-
         public bool? nshow_table { get; set; }
         public bool? nis_metaapi_integration { get; set; }
         public int? cmetaapi_id { get; set; }
-
         public string? cmetaapi_response { get; set; }
         public bool? nis_auto_initiate { get; set; }
+        public bool? nis_inoutbound_integration { get; set; }
+        public int? cinoutboundapi_id { get; set; }
+        public string? cinoutboundapi_response { get; set; }
         public List<processEngineChildItems> processEngineChildItems { get; set; }
-        public List<processEngineMeta> processEngineMeta { get; set; }   
+        public List<processEngineMeta> processEngineMeta { get; set; }
 
-        
+
     }
 
 
@@ -65,6 +66,9 @@ namespace TaskEngineAPI.DTO
 
         public string? cmetaapi_response { get; set; }
         public bool? nis_auto_initiate { get; set; }
+        public bool? nis_inoutbound_integration { get; set; }
+        public int? cinoutboundapi_id { get; set; }
+        public string? cinoutboundapi_response { get; set; }
 
         public List<processEngineChildItems> processEngineChildItems { get; set; }
         public List<processEngineMeta> processEngineMeta { get; set; }
@@ -74,9 +78,9 @@ namespace TaskEngineAPI.DTO
 
 
     public class processEngineChildItems
-    {      
+    {
         public string? cprocessCode { get; set; }
-        public int? ciseqno { get; set; }     
+        public int? ciseqno { get; set; }
         public string? cactivityCode { get; set; }
         public string? cactivityDescription { get; set; }
         public string? ctaskType { get; set; }
@@ -97,20 +101,21 @@ namespace TaskEngineAPI.DTO
         public string? bcc_cmapping_code { get; set; }
         public string? cc_cmapping_type { get; set; }
         public string? bcc_cmapping_type { get; set; }
-        public string? nis_board_metaapi_integration { get; set; }
-        public string? cboard_metaapi_id { get; set; }
+        public bool? nis_board_metaapi_integration { get; set; }
+        public int? cboard_metaapi_id { get; set; }
         public string? cboard_metaapi_response { get; set; }
         public bool? nis_custom_meta { get; set; }
         public int? ccustom_meta_seqno { get; set; }
         public bool? nis_external_api_enabled { get; set; }
         public int? nexternal_api_id { get; set; }
-     
+        public bool? nis_inoutbound_integration { get; set; }
+        public int? cinoutboundapi_id { get; set; }
+        public string? cinoutboundapi_response { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
-   
+
     public class processEngineConditionDetails
     {
-        
         public string? cprocessCode { get; set; }
         public int? ciseqno { get; set; }
         public int? icondseqno { get; set; }
@@ -123,11 +128,8 @@ namespace TaskEngineAPI.DTO
         public string? cfieldValue { get; set; }
         public string? cdatasource { get; set; }
         public string? ccondition { get; set; }
-
         public string? capi_mapping { get; set; }
-        //public string? remarks1 { get; set; }
-        //public string? remarks2 { get; set; }
-        //public string? remarks3 { get; set; }
+        public string? cinoutboundapi_mapping { get; set; }
 
     }
 
@@ -139,12 +141,13 @@ namespace TaskEngineAPI.DTO
         public string? cplaceholder { get; set; }
         public bool? cisRequired { get; set; }
         public bool? cisReadonly { get; set; }
-        public bool? cisDisabled { get; set; }   
+        public bool? cisDisabled { get; set; }
         public string? cfieldValue { get; set; }
 
         public string? cdatasource { get; set; }
 
         public string? capi_mapping { get; set; }
+        public string? cinoutboundapi_mapping { get; set; }
     }
 
     public class GetProcessEngineCountDTO
@@ -168,7 +171,7 @@ namespace TaskEngineAPI.DTO
     public class GetProcessEngineDTO
     {
         public int? ID { get; set; }
-        public string? cprocessType { get; set; }    
+        public string? cprocessType { get; set; }
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public string? cprocessvalueid { get; set; }
@@ -178,10 +181,10 @@ namespace TaskEngineAPI.DTO
         public bool? nshow_timeline { get; set; }
 
         public bool? nshow_table { get; set; }
-        
+
         public int? cnotification_type { get; set; }
         public string? cprocessdescription { get; set; }
-        public string? cprocessvalue { get; set; }     
+        public string? cprocessvalue { get; set; }
         public string? cstatus { get; set; }
         public int? cmeta_id { get; set; }
 
@@ -205,7 +208,7 @@ namespace TaskEngineAPI.DTO
     public class GetprocessEngineChildItems
     {
         public int? cheader_id { get; set; }
-       
+
         public string? cprocessCode { get; set; }
         public int? ciseqno { get; set; }
         public string? cactivityCode { get; set; }
@@ -221,7 +224,7 @@ namespace TaskEngineAPI.DTO
         public int? cslaHour { get; set; }
         public bool? nboardEnabled { get; set; }
         public string? cactionPrivilege { get; set; }
-        public string? crejectionPrivilege { get; set; }   
+        public string? crejectionPrivilege { get; set; }
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
 
@@ -230,7 +233,7 @@ namespace TaskEngineAPI.DTO
     {
         public string? meta_Name { get; set; }
         public string? meta_Description { get; set; }
-        public string?label { get; set; }
+        public string? label { get; set; }
     }
 
     public class TaskList
@@ -240,7 +243,7 @@ namespace TaskEngineAPI.DTO
         public string? ctasktype { get; set; }
         public string? ctaskname { get; set; }
         public string? ctaskdescription { get; set; }
-        public string? cstatus { get; set; }  
+        public string? cstatus { get; set; }
         public DateTime? lcompleteddate { get; set; }
         public string? ccreatedby { get; set; }
         public DateTime? lcreateddate { get; set; }
@@ -265,7 +268,7 @@ namespace TaskEngineAPI.DTO
         public int? inextseqno { get; set; }
         public string? cnextseqtype { get; set; }
         public string? cprevtype { get; set; }
-       
+
         public string? SLA { get; set; }
         public string? cisforwarded { get; set; }
         public DateTime? lfwddate { get; set; }
@@ -273,7 +276,7 @@ namespace TaskEngineAPI.DTO
         public string? cisreassigned { get; set; }
         public DateTime? lreassigndt { get; set; }
         public string? creassignto { get; set; }
-       
+
     }
 
 
@@ -294,24 +297,24 @@ namespace TaskEngineAPI.DTO
         public DateTime? lcreateddate { get; set; }
         public string? cmodifiedby { get; set; }
         public string? cmodifiedbyname { get; set; }
-        
+
         public DateTime? lmodifieddate { get; set; }
         public string? Employeecode { get; set; }
         public string? Employeename { get; set; }
-        
+
         public string? EmpDepartment { get; set; }
         public int? cprocess_id { get; set; }
 
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public string? cprocessdescription { get; set; }
-
+        public string? cpriority_label { get; set; }
         public string? cremarks { get; set; }
         public string? cmeta_response { get; set; }
 
         //public string? privilege_name { get; set; }
         public List<GetTaskDetails>? TaskChildItems { get; set; }
-      
+
     }
 
 
@@ -334,7 +337,7 @@ namespace TaskEngineAPI.DTO
         public string? cprocess_type { get; set; }
         public bool? nboard_enabled { get; set; }
         public string? caction_privilege { get; set; }
-        public string? crejection_privilege { get; set; }                              
+        public string? crejection_privilege { get; set; }
         public string? cisforwarded { get; set; }
         public DateTime? lfwd_date { get; set; }
         public string? cfwd_to { get; set; }
@@ -346,11 +349,13 @@ namespace TaskEngineAPI.DTO
         public string? cactivityname { get; set; }
         public string? cactivity_description { get; set; }
         public string? cmappingcode_name { get; set; }
+
+        public int? cmeta_id { get; set; }
     }
 
 
 
-   
+
     public class GetTaskinitiateList
     {
         public int ID { get; set; }
@@ -429,8 +434,8 @@ namespace TaskEngineAPI.DTO
         public string? cprocesscode { get; set; }
         public string? cprocessname { get; set; }
         public string? cprocessdescription { get; set; }
-        
-        public string? cprocessvalue { get; set; }   
+
+        public string? cprocessvalue { get; set; }
         public string? cstatus { get; set; }
         public string? cstatus_description { get; set; }
         public string? cpriority_label { get; set; }
@@ -439,7 +444,7 @@ namespace TaskEngineAPI.DTO
         public string? Notification_Description { get; set; }
         public int? cmeta_id { get; set; }
         public string? cmetaname { get; set; }
-        public string? privilege_name { get;set; }
+        public string? privilege_name { get; set; }
         public int? cprivilege_type { get; set; }
 
         public bool? nshow_table { get; set; }
@@ -451,16 +456,22 @@ namespace TaskEngineAPI.DTO
 
         public string? cmetaapi_response { get; set; }
         public bool? nis_auto_initiate { get; set; }
+
+        public bool? nis_inoutbound_integration { get; set; }
+        public int? cinoutboundapi_id { get; set; }
+
+        public string? cinoutboundapi_response { get; set; }
+
         public List<GetIDprocessEngineChildItems> processEngineChildItems { get; set; }
-       
-       public List<processEngineMeta> processEngineMeta { get; set; }
+
+        public List<processEngineMeta> processEngineMeta { get; set; }
 
     }
 
 
     public class GetIDprocessEngineChildItems
     {
-        public int? id{ get; set; }
+        public int? id { get; set; }
         public int? cheader_id { get; set; }
         public string? cprocessCode { get; set; }
         public int? ciseqno { get; set; }
@@ -492,7 +503,9 @@ namespace TaskEngineAPI.DTO
 
         public bool? nis_external_api_enabled { get; set; }
         public int? nexternal_api_id { get; set; }
-        
+        public bool? nis_inoutbound_integration { get; set; }
+        public int? cinoutboundapi_id { get; set; }
+        public string? cinoutboundapi_response { get; set; }
 
         public List<processEngineConditionDetails> processEngineConditionDetails { get; set; }
     }
@@ -511,7 +524,7 @@ namespace TaskEngineAPI.DTO
         public int? cprocessid { get; set; }
         public string? cprocesscode { get; set; }
         public int? cprivilegeType { get; set; }
-        
+
 
         public List<privilegeList>? privilegeList { get; set; }
     }
@@ -520,7 +533,7 @@ namespace TaskEngineAPI.DTO
     {
         public int? value { get; set; }
         public string? view_value { get; set; }
-   
+
     }
     public class MappingListDTO
     {
@@ -528,9 +541,9 @@ namespace TaskEngineAPI.DTO
         public int mappingID { get; set; }
         public string cprocessname { get; set; } = string.Empty;
         public string cprocessdescription { get; set; } = string.Empty;
-        public string cprocesscode { get; set; }      
-        public string privilegeType { get; set; }      
-        public string privilegeTypevalue { get; set; }  
+        public string cprocesscode { get; set; }
+        public string privilegeType { get; set; }
+        public string privilegeTypevalue { get; set; }
         public bool? cis_active { get; set; }
         public List<PrivilegeItemDTO> privilegeList { get; set; } = new List<PrivilegeItemDTO>();
     }
@@ -538,7 +551,7 @@ namespace TaskEngineAPI.DTO
     public class updateprocessmappingDTO
     {
         public int? cmappingid { get; set; }
-        public int? cprocessid { get; set; }      
+        public int? cprocessid { get; set; }
         public int? cprivilegeType { get; set; }
         public bool? cis_active { get; set; }
         public List<privilegeList>? privilegeList { get; set; }
@@ -568,7 +581,7 @@ namespace TaskEngineAPI.DTO
         public string? cautoinitiate_api_url { get; set; }
         public string? cautoinitiate_api_payload { get; set; }
         public string? ctoken_api_url { get; set; }
-        public string? ctoken_api_payload { get; set; }    
+        public string? ctoken_api_payload { get; set; }
     }
 
     public class GetIDProcessclipEngineDTO
@@ -576,8 +589,8 @@ namespace TaskEngineAPI.DTO
         public string? processcode { get; set; }
         public string? processname { get; set; }
         public string? processdescription { get; set; }
-        public int?    privilege_type { get; set; }
-        public string? privilege_name { get; set; }       
+        public int? privilege_type { get; set; }
+        public string? privilege_name { get; set; }
         public List<processEngineclipMeta> Meta { get; set; }
         public List<TenantAPIdata> TenantAPIdata { get; set; }
 
@@ -607,8 +620,6 @@ namespace TaskEngineAPI.DTO
         public bool? cis_active { get; set; }
 
     }
-
-
 
 }
 

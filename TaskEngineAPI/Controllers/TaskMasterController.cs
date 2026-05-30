@@ -127,8 +127,8 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpPost]
-        [Route("InsertTask")]
-        public async Task<IActionResult> InsertTask([FromBody] pay request)
+        [Route("InsertTaskold")]
+        public async Task<IActionResult> InsertTaskold([FromBody] pay request)
         {
             try
             {
@@ -138,7 +138,7 @@ namespace TaskEngineAPI.Controllers
                 }
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<TaskMasterDTO>(request.payload);
-                int insertedUserId = await taskMasterService.InsertTaskMasterAsync(model, cTenantID, username);
+                int insertedUserId = await taskMasterService.InsertTaskMasterAsyncold(model, cTenantID, username);
                 if (insertedUserId <= 0)
                 {
                     throw new InvalidOperationException("Task insertion failed.");
@@ -171,6 +171,67 @@ namespace TaskEngineAPI.Controllers
                 throw;
             }
         }
+        [Authorize]
+        [HttpPost]
+        [Route("InsertTask")]
+        public async Task<IActionResult> InsertTask([FromBody] pay request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.payload))
+                {
+                    return CreateEncryptedResponse(400, "Request payload is required");
+                }
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+
+                var model = DeserializePayload<TaskMasterDTO>(request.payload);
+
+                // UPDATED
+                var result = await taskMasterService.InsertTaskMasterAsync(model,cTenantID,username);
+
+                if (result == null)
+                {
+                    throw new InvalidOperationException("Task insertion failed.");
+                }
+
+                // GET MASTER ID
+                int insertedUserId = Convert.ToInt32(
+                    result.GetType().GetProperty("masterId")?.GetValue(result));
+
+                // WHATSAPP
+                bool isWhatsAppEnabled =
+                    await taskMasterService.IsWhatsAppNotificationEnabled(cTenantID);
+
+                if (isWhatsAppEnabled)
+                {
+                    await taskMasterService
+                        .newtaskarrivesinboxvwhatappnotificationAsync(insertedUserId,cTenantID, username);
+                }
+                // PUSH NOTIFICATION
+                bool IsPushNotificationEnabled =
+                    await taskMasterService.IsPushNotificationEnabled(cTenantID);
+
+                if (IsPushNotificationEnabled)
+                {
+                    await taskMasterService.newtaskcreateinboxpushnotificationAsync(insertedUserId,cTenantID,username);
+                }
+                // FINAL RESPONSE
+                return CreatedSuccessResponse( result,"Task inserted successfully.");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
+
 
         [Authorize]
         [HttpGet]
@@ -1700,7 +1761,9 @@ namespace TaskEngineAPI.Controllers
 
                 var (cTenantID, username) = GetUserInfoFromToken();
                 var model = DeserializePayload<APIFetchDTO>(request.payload);
-                var json = (await APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username)).ToString();
+                var bearerToken = HttpContext.Request.Headers["Authorization"].ToString();
+
+                var json = (await APIIntegrationService.ExecuteIntegrationApi(model, cTenantID, username, bearerToken)).ToString();
                 var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
 
                 return CreatedDataResponse(data);
@@ -2020,6 +2083,104 @@ namespace TaskEngineAPI.Controllers
 
         [Authorize]
         [HttpGet]
+        [Route("Getdepartmentdashboard")]
+        public async Task<IActionResult> Getdepartmentdashboard([FromQuery] string? searchtext)
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getdepartmentdashboard(cTenantID, username, searchtext);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("GetNotificationsdashboard")]
+        public async Task<IActionResult> GetNotificationsdashboard([FromQuery] string? searchtext)
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.GetNotificationsdashboard(cTenantID, username, searchtext);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("Getemployeekradetails")]
+        public async Task<IActionResult> Getemployeekradetails([FromBody] monthr month )
+        {
+            try
+            {
+
+
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = await taskMasterService.Getemployeekradetails(cTenantID, username, month.month);
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+                return CreatedwithoutDataResponse(data);
+            
+    }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreatewithoutEncryptedResponse(401, "Unauthorized access", error: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return CreatewithoutEncryptedResponse(500, "Internal server error", error: ex.Message);
+            }
+        }
+
+        private IActionResult CreatedwithoutDataResponse(List<Dictionary<string, object>> data, string noDataMessage = "No data found")
+        {
+            var hasData = data != null && data.Any();
+            var response = new APIResponse
+            {
+                status = hasData ? 200 : 204,
+                statusText = hasData ? "Successful" : noDataMessage,
+                body = hasData ? data.Cast<object>().ToArray() : Array.Empty<object>(),
+            };
+            string json = JsonConvert.SerializeObject(response);
+
+            return StatusCode(response.status, json);
+        }
+
+        private IActionResult CreatewithoutEncryptedResponse(int statusCode, string message, object body = null, string error = null)
+        {
+            var response = new APIResponse
+            {
+                status = statusCode,
+                statusText = message,
+                body = body != null ? new object[] { body } : Array.Empty<object>(),
+                error = error
+            };
+            string json = JsonConvert.SerializeObject(response);          
+            return StatusCode(statusCode, json);
+        }
+
+    
+
+        [Authorize]
+        [HttpGet]
         [Route("Getmetadetaildata")]
         public async Task<IActionResult> Getmetadetaildata([FromQuery] int itaskno)
         {
@@ -2053,6 +2214,29 @@ namespace TaskEngineAPI.Controllers
                 return CreateEncryptedResponse(500, "Internal server error", error: ex.Message);
             }
 
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Getcalendarevents")]
+        public async Task<IActionResult> Getcalendarevents()
+        {
+            try
+            {
+                var (cTenantID, username) = GetUserInfoFromToken();
+                var json = (await taskMasterService.Getcalendarevents(cTenantID, username)).ToString();
+                var data = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(json);
+
+                return CreatedDataResponse(data);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return CreateEncryptedResponse(401, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                return CreateEncryptedResponse(500, $"Internal server error: {ex.Message}");
+            }
         }
 
     }

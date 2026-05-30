@@ -1062,4 +1062,9 @@ namespace TaskEngineAPI.Controllers
         public int status { get; set; }
         public object? data { get; set; }
     }
+
+    public class monthr
+    {
+        public string month { get; set; } = string.Empty;
+    }
 }
