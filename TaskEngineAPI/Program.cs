@@ -18,10 +18,7 @@ using TaskEngineAPI.Repositories;
 using TaskEngineAPI.Services;
 using TaskEngineAPI.WebSockets;
 using static System.Net.WebRequestMethods;
-using TaskEngineAPI.Models;
-using Hangfire;
-using System.Net;
-using TaskEngineAPI.DTO;
+
 
 var builder = WebApplication.CreateBuilder(args);
      Log.Logger = new LoggerConfiguration()
